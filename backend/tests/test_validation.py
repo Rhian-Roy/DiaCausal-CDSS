@@ -68,14 +68,24 @@ def test_bad_trace_id_is_rejected(client, chat_body, bad_id):
     data = post(client, chat_body(client_trace_id=bad_id))
 
     assert data["problems"][0]["field"] == "client_trace_id"
+    # It was supplied, so say what is wrong with it, not that it is "required".
+    assert data["message"].startswith('client_trace_id must be 1-64 letters, digits, "-" or "_" (got ')
     assert data["trace_id"] is None
+
+
+def test_bad_trace_id_message_shows_the_value(client, chat_body):
+    data = post(client, chat_body(client_trace_id="has space"))
+
+    assert data["message"] == 'client_trace_id must be 1-64 letters, digits, "-" or "_" (got "has space").'
 
 
 def test_missing_trace_id_is_rejected(client, chat_body):
     body = chat_body()
     del body["client_trace_id"]
 
-    assert post(client, body)["problems"][0]["field"] == "client_trace_id"
+    data = post(client, body)
+    assert data["problems"][0]["field"] == "client_trace_id"
+    assert data["message"] == 'client_trace_id is required: 1-64 letters, digits, "-" or "_".'
 
 
 def test_empty_parts_list_is_rejected(client, chat_body):

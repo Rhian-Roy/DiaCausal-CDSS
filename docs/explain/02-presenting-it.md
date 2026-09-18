@@ -40,8 +40,8 @@ ask, a glossary and a code tour.
    anything else with a clear explanation. A six-stage pipeline runs, with basic guard
    checks at both ends (not empty, no blocked word); there is **no clinical safety check
    yet**. Every step carries one trace ID.
-4. **How we know.** One command, `python3 scripts/check_all.py`, runs all 102 automated
-   tests (53 backend, 49 frontend), the type-check, build and lint, then starts the real
+4. **How we know.** One command, `python3 scripts/check_all.py`, runs all 103 automated
+   tests (54 backend, 49 frontend), the type-check, build and lint, then starts the real
    servers and tests them live. It prints 21 pass/fail lines, all passing. GitHub runs the
    same check on Linux, Windows and macOS for every push.
 5. **What's next.** Login with MFA and CAPTCHA; the real blocked-word list; then
@@ -84,7 +84,7 @@ As a backup, keep a screenshot of the page and of a passing `check_all` run.
 | 4 | Point at the answer card | "The reply is a fixed test text for now. The grey box shows which stages ran: two of six. The ID under it matches the console." |
 | 5 | Press **Enter** on an empty box | "Empty messages are blocked in the browser — nothing reaches the server. The server also blocks them, in case someone skips the page." |
 | 6 | Open http://localhost:8000 → **POST /api/v1/chat → Try it out**; in the example body change `"type": "text"` to `"type": "image"`; **Execute** | "The API refuses anything outside the contract with a message a person can read: *Part 1 has type "image", which this API does not accept.*" |
-| 7 | Run `python3 scripts/check_all.py` | "One command runs all 102 tests, the build and lint, then starts the real app and tests it live: 21 lines, all passing." |
+| 7 | Run `python3 scripts/check_all.py` | "One command runs all 103 tests, the build and lint, then starts the real app and tests it live: 21 lines, all passing." |
 | 8 | Close | "Next: login with MFA and CAPTCHA, then our causal engine plugs into its stage." |
 
 ## Questions you may be asked — with answers
@@ -326,7 +326,7 @@ image is not supported yet" is far safer than quietly ignoring an attached lab r
 ### F. Testing and quality
 
 **36. How do you know it works?**
-`python3 scripts/check_all.py` runs the 53 backend and 49 frontend tests, the
+`python3 scripts/check_all.py` runs the 54 backend and 49 frontend tests, the
 type-check, build and lint, then starts the real backend and page and sends real
 messages through them — 21 pass/fail lines. We also checked it by hand in a browser
 ([TESTING.md, part 2](../TESTING.md#part-2--check-by-eye-in-a-real-browser-about-10-minutes)).
@@ -476,7 +476,7 @@ When someone says "show me the code", open these in order:
 | Max parts per message | 20 |
 | Pipeline stages | 6 — 2 run today (first and last), 4 skipped |
 | Trace ID | 8 hex characters from the browser (backend accepts 1–64 of `A–Z a–z 0–9 - _`) |
-| Tests | 53 backend + 49 frontend = 102 |
+| Tests | 54 backend + 49 frontend = 103 |
 | `check_all` | 21 pass/fail lines: 4 tools, 1 per test suite, build, lint, 13 live |
 | Versions | Python 3.12, Node 24 LTS, React 19, Vite 8, FastAPI 0.141, Pydantic 2.13 |
 | Ports | backend 8000, page 5173 |

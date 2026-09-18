@@ -14,7 +14,7 @@ report one.
 (First time on a computer? Do the setup in [SETUP.md](SETUP.md) first.)
 
 It takes a few seconds and prints `[PASS]` or `[FAIL]` per line, ending with
-`ALL 21 CHECKS PASSED`. Those 21 lines are: 4 tool checks, 1 line for all 53 backend
+`ALL 21 CHECKS PASSED`. Those 21 lines are: 4 tool checks, 1 line for all 54 backend
 tests, 1 line for all 49 frontend tests, build, lint, then 13 live checks. It starts its
 own copy of the app on spare ports, so it does not disturb servers you already have
 running.
@@ -84,7 +84,7 @@ terminal side by side.
 | The real page against the real backend, automatically | The page's tests use a fake backend (`frontend/src/test/fakeBackend.ts`); `check_all` section 7 sends a request through the page's server but does not run the page's JavaScript. The two together were checked by hand in a browser (part 2). A browser-automation test (e.g. Playwright) would close this gap |
 | `contract.ts` and `schemas.py` staying the same | They are kept in sync by hand; section 6 catches some drift in what the backend sends |
 | Every browser | Automated page tests run in a simulated browser (jsdom). Tried by hand in Chrome/Chromium. Safari's special keyboard behaviour for Hindi/Japanese input is covered by a simulated test only |
-| Windows and Linux setup | Run on macOS by hand. GitHub's automatic check runs setup + check on Linux, Windows and macOS once the code is pushed — look there for the result |
+| Windows and Linux setup by a person | Run by hand on macOS only. GitHub's automatic check runs setup + check on Linux, Windows and macOS for every push — all three passed all 21 checks (pull request #1) |
 
 ## Part 4 — when something fails
 
