@@ -1,0 +1,5 @@
+# Runtime dependencies for the DiaCausal API (Python 3.12).
+# Pinned exactly so every machine installs the same versions.
+fastapi==0.141.1
+uvicorn[standard]==0.53.0
+pydantic==2.13.5

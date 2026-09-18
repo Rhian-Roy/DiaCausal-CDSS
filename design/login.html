@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DiaCausal — Sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+:root{
+  /* ground and ink */
+  --ground:#F4F7F3;
+  --surface:#FFFFFF;
+  --ink:#12211A;
+  --ink-muted:#3C4A42;
+  --ink-placeholder:#6B776F;
+
+  /* brand */
+  --pine:#0E5049;
+  --pine-dark:#083B36;
+  --pine-hairline:#7FB8A8;
+  --on-pine-muted:#CFE3DC;
+
+  /* lines */
+  --border-strong:#9FB0A6;
+  --border-soft:#C8D4CB;
+
+  /* status */
+  --safe-ink:#14562A;   --safe-line:#1B6B33;  --safe-fill:#DEF0E2;
+  --check-ink:#6E4400;  --check-line:#6E4400; --check-fill:#FBEBCB;
+  --danger-ink:#8A1010; --danger-line:#8A1010;--danger-fill:#FADCDC;
+
+  /* type */
+  --font-body:'Atkinson Hyperlegible', Verdana, system-ui, sans-serif;
+  --font-display:'Source Serif 4', Georgia, serif;
+
+  /* spacing (4px base) */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:22px; --s6:24px; --s7:32px;
+
+  /* shape */
+  --r-control:8px; --r-status:10px; --r-card:12px;
+  --border-w:2px;
+  --h-input:56px; --h-button:58px; --h-touch:48px;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  font-family:var(--font-body);
+  background:var(--ground);
+  color:var(--ink);
+  font-size:18px;
+  line-height:1.55;
+  -webkit-text-size-adjust:100%;
+}
+a{color:var(--pine)}
+a:hover{color:var(--pine-dark)}
+a:focus-visible,button:focus-visible,input:focus-visible{
+  outline:3px solid var(--pine);
+  outline-offset:2px;
+}
+input::placeholder{color:var(--ink-placeholder)}
+
+/* ---------- top bar ---------- */
+.topbar{
+  background:var(--pine);
+  padding:var(--s4) var(--s7);
+  display:flex;align-items:center;justify-content:space-between;gap:var(--s4);
+  flex-wrap:wrap;
+}
+.brand{display:flex;align-items:center;gap:var(--s3)}
+.brand__name{
+  font-family:var(--font-display);
+  font-size:27px;font-weight:600;letter-spacing:-0.01em;color:#fff;
+}
+.tag{
+  font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;
+  color:#fff;border:var(--border-w) solid var(--pine-hairline);
+  border-radius:6px;padding:5px 11px;white-space:nowrap;
+}
+
+/* ---------- layout ---------- */
+.page{
+  max-width:1280px;margin:0 auto;
+  padding:var(--s7);
+  display:grid;grid-template-columns:minmax(0,600px) minmax(0,1fr);
+  gap:var(--s7) 64px;align-items:start;
+}
+@media (max-width:900px){
+  .page{grid-template-columns:minmax(0,1fr);padding:var(--s4);gap:var(--s6)}
+  .topbar{padding:var(--s3) var(--s4)}
+  .brand__name{font-size:22px}
+  body{font-size:17px}
+}
+
+.col{display:flex;flex-direction:column;gap:var(--s5)}
+h1{
+  font-family:var(--font-display);
+  font-size:34px;font-weight:600;line-height:1.2;margin:0;
+}
+@media (max-width:900px){h1{font-size:28px}}
+.lede{margin:0;color:var(--ink-muted)}
+
+/* ---------- fields ---------- */
+.field{display:flex;flex-direction:column;gap:var(--s2)}
+.field__label{font-size:18px;font-weight:700}
+.field__hint{font-size:16px;color:var(--ink-muted)}
+.input{
+  height:var(--h-input);width:100%;
+  padding:0 var(--s4);
+  font-family:inherit;font-size:19px;color:var(--ink);
+  background:var(--surface);
+  border:var(--border-w) solid var(--border-strong);
+  border-radius:var(--r-control);
+}
+.input--otp{
+  width:254px;max-width:100%;
+  font-size:25px;font-weight:700;letter-spacing:0.3em;
+}
+
+/* ---------- buttons ---------- */
+.btn{
+  font-family:inherit;font-weight:700;cursor:pointer;
+  border-radius:var(--r-control);border:var(--border-w) solid;
+}
+.btn--primary{
+  height:var(--h-button);font-size:20px;
+  color:#fff;background:var(--pine);border-color:var(--pine);
+}
+.btn--primary:hover{background:var(--pine-dark);border-color:var(--pine-dark)}
+.btn--ghost{
+  min-height:var(--h-touch);padding:0 var(--s4);font-size:16px;
+  color:var(--ink);background:var(--surface);border-color:var(--border-strong);
+  display:inline-flex;align-items:center;gap:var(--s2);
+}
+.link-row{min-height:44px;display:flex;align-items:center;font-weight:700;font-size:17px}
+
+/* ---------- cards ---------- */
+.card{
+  background:var(--surface);
+  border:var(--border-w) solid var(--border-soft);
+  border-radius:var(--r-card);
+  padding:var(--s5);
+  display:flex;flex-direction:column;gap:var(--s3);
+}
+.captcha-image{
+  width:100%;height:84px;
+  border:var(--border-w) dashed var(--border-strong);
+  border-radius:var(--r-control);
+  background:var(--ground);color:var(--ink-muted);
+  font-size:14px;letter-spacing:0.12em;
+  display:flex;align-items:center;justify-content:center;text-align:center;
+}
+.captcha-actions{display:flex;flex-wrap:wrap;gap:var(--s3)}
+
+.notice{
+  background:var(--surface);
+  border:var(--border-w) solid var(--border-soft);
+  border-radius:var(--r-card);
+  padding:var(--s4);
+  display:flex;gap:var(--s3);align-items:flex-start;
+}
+.notice p{margin:0;font-size:17px}
+.icon{flex-shrink:0}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <svg class="icon" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13h4l2.5-6 4 12 2.5-6h5"/></svg>
+    <span class="brand__name">DiaCausal</span>
+  </div>
+  <span class="tag">Research prototype</span>
+</div>
+
+<main class="page">
+
+  <form class="col" action="#" method="post" novalidate>
+
+    <div>
+      <h1>Sign in</h1>
+      <p class="lede">Second-line therapy support for adults already taking metformin.</p>
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="user">User ID</label>
+      <input class="input" id="user" name="user" type="text" autocomplete="username" placeholder="Hospital user ID" required>
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="password">Password</label>
+      <input class="input" id="password" name="password" type="password" autocomplete="current-password" placeholder="••••••••••" required>
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="otp">6-digit code</label>
+      <span class="field__hint">From your authenticator app</span>
+      <input class="input input--otp" id="otp" name="otp" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" placeholder="000000" required>
+    </div>
+
+    <button class="btn btn--primary" type="submit">Sign in</button>
+
+    <a class="link-row" href="#help">Trouble signing in?</a>
+
+  </form>
+
+  <div class="col">
+
+    <div class="card">
+      <label class="field__label" for="captcha">Type the characters shown</label>
+      <div class="captcha-image">[CAPTCHA IMAGE]</div>
+      <div class="captcha-actions">
+        <button class="btn btn--ghost" type="button">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 4v4.6h-4.6"/></svg>
+          New image
+        </button>
+        <button class="btn btn--ghost" type="button">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13L7.5 14.5H4z"/><path d="M15.6 9.2a4.4 4.4 0 0 1 0 5.6"/></svg>
+          Play audio
+        </button>
+      </div>
+      <input class="input" id="captcha" name="captcha" type="text" autocomplete="off" placeholder="Characters from the image" required>
+    </div>
+
+    <div class="notice">
+      <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3C4A42" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><path d="M12 7.6h.01"/></svg>
+      <p>Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.</p>
+    </div>
+
+  </div>
+
+</main>
+
+</body>
+</html>

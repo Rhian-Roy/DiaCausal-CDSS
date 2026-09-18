@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DiaCausal — Chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+:root{
+  /* ground and ink */
+  --ground:#F4F7F3;
+  --surface:#FFFFFF;
+  --ink:#12211A;
+  --ink-muted:#3C4A42;
+  --ink-placeholder:#6B776F;
+
+  /* brand */
+  --pine:#0E5049;
+  --pine-dark:#083B36;
+  --pine-hairline:#7FB8A8;
+  --on-pine-muted:#CFE3DC;
+
+  /* lines */
+  --border-strong:#9FB0A6;
+  --border-soft:#C8D4CB;
+  --track:#DCE6DF;
+
+  /* status */
+  --safe-ink:#14562A;   --safe-line:#1B6B33;  --safe-fill:#DEF0E2;
+  --check-ink:#6E4400;  --check-line:#6E4400; --check-fill:#FBEBCB;
+  --danger-ink:#8A1010; --danger-line:#8A1010;--danger-fill:#FADCDC;
+
+  /* type */
+  --font-body:'Atkinson Hyperlegible', Verdana, system-ui, sans-serif;
+  --font-display:'Source Serif 4', Georgia, serif;
+
+  /* spacing (4px base) */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:22px; --s6:24px; --s7:32px;
+
+  /* shape */
+  --r-control:8px; --r-status:10px; --r-card:12px;
+  --border-w:2px;
+  --h-touch:52px;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  font-family:var(--font-body);
+  background:var(--ground);
+  color:var(--ink);
+  font-size:19px;line-height:1.55;
+  display:flex;flex-direction:column;
+  height:100dvh;
+  -webkit-text-size-adjust:100%;
+}
+a{color:var(--pine)}
+a:hover{color:var(--pine-dark)}
+a:focus-visible,button:focus-visible,textarea:focus-visible{outline:3px solid var(--pine);outline-offset:2px}
+textarea::placeholder{color:var(--ink-placeholder)}
+.icon{flex-shrink:0}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+/* ---------- header ---------- */
+.topbar{
+  flex-shrink:0;background:var(--pine);
+  padding:var(--s3) var(--s7);
+  display:flex;align-items:center;justify-content:space-between;gap:var(--s4);flex-wrap:wrap;
+}
+.brand{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap}
+.brand__name{font-family:var(--font-display);font-size:24px;font-weight:600;color:#fff}
+.tag{
+  font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#fff;
+  border:var(--border-w) solid var(--pine-hairline);border-radius:6px;padding:4px 10px;white-space:nowrap;
+}
+.topbar__right{display:flex;align-items:center;gap:var(--s5)}
+.topbar__user{font-size:16px;color:var(--on-pine-muted)}
+.topbar__signout{color:#fff;font-weight:700;font-size:16px;min-height:44px;display:flex;align-items:center}
+
+/* ---------- patient strip ---------- */
+.patient{
+  flex-shrink:0;background:var(--surface);
+  border-bottom:var(--border-w) solid var(--border-soft);
+  padding:var(--s3) var(--s7);
+  display:flex;align-items:center;justify-content:space-between;gap:var(--s4);flex-wrap:wrap;
+}
+.patient p{margin:0;font-size:18px;font-weight:700;line-height:1.4}
+.chip{
+  font-size:14px;font-weight:700;color:var(--ink-muted);
+  background:var(--ground);border:var(--border-w) solid var(--border-soft);
+  border-radius:6px;padding:4px 10px;white-space:nowrap;
+}
+
+/* ---------- thread ---------- */
+.thread{
+  flex:1 1 auto;min-height:0;overflow-y:auto;
+  padding:var(--s6) var(--s7);
+  display:flex;flex-direction:column;gap:var(--s5);
+}
+.turn{max-width:900px;display:flex;flex-direction:column;gap:var(--s2)}
+.turn__who{
+  font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-muted);
+}
+.turn p{margin:0}
+.answer{
+  max-width:900px;background:var(--surface);
+  border:var(--border-w) solid var(--border-soft);border-radius:var(--r-card);
+  padding:var(--s6);display:flex;flex-direction:column;gap:var(--s4);
+}
+.answer h2{font-family:var(--font-display);font-size:29px;font-weight:600;line-height:1.25;margin:0}
+.answer h3{font-size:19px;font-weight:700;margin:0}
+.answer p{margin:0}
+
+/* ---------- status blocks ---------- */
+.statuses{display:flex;flex-direction:column;gap:var(--s3)}
+.status{
+  border:var(--border-w) solid;border-radius:var(--r-status);
+  padding:var(--s4) 18px;display:flex;gap:14px;align-items:flex-start;
+}
+.status__body{display:flex;flex-direction:column;gap:var(--s1)}
+.status__word{font-size:19px;font-weight:700}
+.status p{font-size:18px;line-height:1.5;color:var(--ink)}
+.status--safe{background:var(--safe-fill);border-color:var(--safe-line)}
+.status--safe .status__word{color:var(--safe-ink)}
+.status--check{background:var(--check-fill);border-color:var(--check-line)}
+.status--check .status__word{color:var(--check-ink)}
+.status--danger{background:var(--danger-fill);border-color:var(--danger-line)}
+.status--danger .status__word{color:var(--danger-ink)}
+
+.guardrail{
+  display:flex;gap:var(--s3);align-items:flex-start;
+  background:var(--ground);border:var(--border-w) solid var(--border-soft);
+  border-radius:var(--r-status);padding:var(--s3) var(--s4);
+}
+.guardrail p{font-size:17px;line-height:1.5;color:var(--ink-muted)}
+
+/* ---------- comparison table ---------- */
+.compare{width:100%;border-collapse:collapse;font-size:17px}
+.compare caption{
+  text-align:left;font-size:16px;color:var(--ink-muted);padding-bottom:var(--s2);
+}
+.compare th,.compare td{
+  text-align:left;padding:var(--s3);border-bottom:var(--border-w) solid var(--border-soft);vertical-align:top;
+}
+.compare thead th{font-size:15px;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-muted)}
+.compare tbody th{font-weight:700;font-size:18px}
+.compare .ci{display:block;font-size:15px;color:var(--ink-muted)}
+@media (max-width:760px){
+  .compare thead{display:none}
+  .compare tbody tr{
+    display:block;border:var(--border-w) solid var(--border-soft);
+    border-radius:var(--r-status);padding:var(--s3);margin-bottom:var(--s3);
+  }
+  .compare tbody th,.compare tbody td{display:block;border:0;padding:var(--s1) 0}
+  .compare tbody td::before{
+    content:attr(data-label) " — ";font-weight:700;
+  }
+}
+
+/* ---------- drivers ---------- */
+.drivers{
+  background:var(--ground);border:var(--border-w) solid var(--border-soft);
+  border-radius:var(--r-status);padding:18px;display:flex;flex-direction:column;gap:var(--s3);
+}
+.driver{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.driver__name{width:190px;font-size:17px;font-weight:700}
+.driver__bar{width:190px;height:12px;background:var(--track);border-radius:999px;overflow:hidden}
+.driver__fill{display:block;height:12px;background:var(--pine)}
+.driver__note{font-size:17px;color:var(--ink-muted)}
+.footnote{font-size:16px;line-height:1.5;color:var(--ink-muted)}
+
+/* ---------- composer ---------- */
+.composer{
+  flex-shrink:0;background:var(--surface);
+  border-top:var(--border-w) solid var(--border-soft);
+  padding:14px var(--s7) 18px;
+  display:flex;flex-direction:column;gap:var(--s3);
+}
+.composer__box{
+  display:flex;align-items:flex-end;gap:var(--s3);
+  padding:10px var(--s3);
+  border:var(--border-w) solid var(--border-strong);border-radius:var(--r-card);
+}
+.composer__box textarea{
+  flex:1 1 auto;resize:none;border:0;outline:none;background:transparent;
+  font-family:inherit;font-size:19px;line-height:1.5;color:var(--ink);padding:8px 4px;
+}
+.iconbtn{
+  width:var(--h-touch);height:var(--h-touch);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  border:var(--border-w) solid var(--border-strong);border-radius:var(--r-control);
+  background:var(--surface);color:var(--ink);
+}
+.iconbtn--send{background:var(--pine);border-color:var(--pine);color:#fff}
+.iconbtn--send:hover{background:var(--pine-dark);border-color:var(--pine-dark)}
+.intended-use{margin:0;font-size:16px;line-height:1.5;color:var(--ink-muted)}
+
+@media (max-width:760px){
+  body{font-size:17px}
+  .topbar{padding:var(--s3) var(--s4)}
+  .brand__name{font-size:21px}
+  .patient{padding:var(--s3) var(--s4)}
+  .patient p{font-size:16px}
+  .thread{padding:var(--s4);gap:var(--s4)}
+  .answer{padding:var(--s4);gap:var(--s3)}
+  .answer h2{font-size:24px}
+  .status{padding:var(--s3) 14px;gap:11px}
+  .status__word{font-size:17px}
+  .status p{font-size:16px}
+  .driver__name,.driver__bar{width:100%}
+  .composer{padding:11px var(--s4) 14px}
+  .composer__box textarea{font-size:17px}
+  .iconbtn{width:48px;height:48px}
+  .intended-use{font-size:14px}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <svg class="icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13h4l2.5-6 4 12 2.5-6h5"/></svg>
+    <span class="brand__name">DiaCausal</span>
+    <span class="tag">Research prototype</span>
+  </div>
+  <div class="topbar__right">
+    <span class="topbar__user">Dr [CLINICIAN NAME]</span>
+    <a class="topbar__signout" href="#signout">Sign out</a>
+  </div>
+</header>
+
+<div class="patient">
+  <p>Adult, 58 y · Type 2 diabetes 6 y · on metformin 1 g twice daily · HbA1c 8.4% · eGFR 62 · BMI 31.2</p>
+  <span class="chip">Example data</span>
+</div>
+
+<main class="thread">
+
+  <section class="turn">
+    <span class="turn__who">You asked</span>
+    <p>Established coronary disease, HbA1c still 8.4% on maximum metformin. What should I add, and what must I check first?</p>
+  </section>
+
+  <section class="answer">
+    <span class="turn__who">DiaCausal answered</span>
+
+    <h2>Add an SGLT2 inhibitor</h2>
+    <p>With established cardiovascular disease and eGFR 62, this class ranks first alongside metformin. A DPP-4 inhibitor is the alternative if cost decides.</p>
+
+    <div class="guardrail">
+      <svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3C4A42" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7.5 3.2v5.6c0 4.6-3.1 8.2-7.5 9.7-4.4-1.5-7.5-5.1-7.5-9.7V6.2z"/><path d="M9.2 12.1l2 2 3.6-3.8"/></svg>
+      <p>Safety checks ran before ranking. No option was removed for this record.</p>
+    </div>
+
+    <div class="statuses">
+
+      <div class="status status--safe">
+        <svg class="icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#14562A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.4l2.6 2.6L16 9.6"/></svg>
+        <div class="status__body">
+          <span class="status__word">Safe to start</span>
+          <p>eGFR 62 is above the initiation threshold for this class, and nothing in the current therapy list interacts with it.</p>
+        </div>
+      </div>
+
+      <div class="status status--check">
+        <svg class="icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6E4400" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.6L21.4 20H2.6z"/><path d="M12 10v4.4"/><path d="M12 17.4h.01"/></svg>
+        <div class="status__body">
+          <span class="status__word">Check this</span>
+          <p>Ask about recent genital or urinary infection. Give sick-day rules before the first dose.</p>
+        </div>
+      </div>
+
+      <div class="status status--danger">
+        <svg class="icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8A1010" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.3 2.6h7.4l5.7 5.7v7.4l-5.7 5.7H8.3l-5.7-5.7V8.3z"/><path d="M15 9l-6 6"/><path d="M9 9l6 6"/></svg>
+        <div class="status__body">
+          <span class="status__word">Do not use</span>
+          <p>Contraindicated if this is type 1 diabetes or there is any past episode of ketoacidosis. Confirm before you prescribe.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div>
+      <h3>The three options compared</h3>
+      <table class="compare">
+        <caption>Illustrative values for layout only — replace each cell with the engine's estimate and interval.</caption>
+        <thead>
+          <tr>
+            <th scope="col">Option</th>
+            <th scope="col">HbA1c at 6 months</th>
+            <th scope="col">Hypoglycaemia</th>
+            <th scope="col">Weight</th>
+            <th scope="col">Cost, ₹ per month</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">SGLT2 inhibitor</th>
+            <td data-label="HbA1c at 6 months">[−X.X] %<span class="ci">95% CI [−X.X to −X.X]</span></td>
+            <td data-label="Hypoglycaemia">[LOW]</td>
+            <td data-label="Weight">[−X.X] kg</td>
+            <td data-label="Cost">[₹ RANGE]</td>
+          </tr>
+          <tr>
+            <th scope="row">DPP-4 inhibitor</th>
+            <td data-label="HbA1c at 6 months">[−X.X] %<span class="ci">95% CI [−X.X to −X.X]</span></td>
+            <td data-label="Hypoglycaemia">[LOW]</td>
+            <td data-label="Weight">[±X.X] kg</td>
+            <td data-label="Cost">[₹ RANGE]</td>
+          </tr>
+          <tr>
+            <th scope="row">Sulfonylurea</th>
+            <td data-label="HbA1c at 6 months">[−X.X] %<span class="ci">95% CI [−X.X to −X.X]</span></td>
+            <td data-label="Hypoglycaemia">[HIGHER]</td>
+            <td data-label="Weight">[+X.X] kg</td>
+            <td data-label="Cost">[₹ RANGE]</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="drivers">
+      <h3>Why this ranking</h3>
+      <div class="driver">
+        <span class="driver__name">Established CVD</span>
+        <span class="driver__bar"><span class="driver__fill" style="width:88%"></span></span>
+        <span class="driver__note">Strongest driver toward this class</span>
+      </div>
+      <div class="driver">
+        <span class="driver__name">eGFR 62</span>
+        <span class="driver__bar"><span class="driver__fill" style="width:54%"></span></span>
+        <span class="driver__note">No dose limit; kidney benefit expected</span>
+      </div>
+      <div class="driver">
+        <span class="driver__name">BMI 31.2</span>
+        <span class="driver__bar"><span class="driver__fill" style="width:36%"></span></span>
+        <span class="driver__note">Favours an agent that lowers weight</span>
+      </div>
+      <p class="footnote">Model output on a synthetic record. It does not replace your assessment of this patient.</p>
+    </div>
+
+    <p class="footnote">Basis: <a href="#source">[SOURCE, VERSION, SECTION]</a> · <a href="#formulary">[YOUR LOCAL FORMULARY]</a></p>
+
+  </section>
+
+</main>
+
+<form class="composer" action="#" method="post">
+  <div class="composer__box">
+    <label class="sr-only" for="message">Message DiaCausal</label>
+    <textarea id="message" name="message" rows="2" placeholder="Ask about a class, a dose, or a contraindication"></textarea>
+    <button class="iconbtn" type="button" aria-label="Dictate message">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11.2a7 7 0 0 0 14 0"/><path d="M12 18.2v3.3"/></svg>
+    </button>
+    <button class="iconbtn iconbtn--send" type="submit" aria-label="Send message">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19.5V5"/><path d="M5.8 11.2L12 5l6.2 6.2"/></svg>
+    </button>
+  </div>
+  <p class="intended-use">Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.</p>
+</form>
+
+</body>
+</html>
