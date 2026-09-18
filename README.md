@@ -13,8 +13,13 @@ A clinician-facing chat page (`frontend/`, React + Vite) talking to a FastAPI ba
 engine below will plug into it. Research prototype for clinician evaluation; not a
 marketed medical device; not for unsupervised clinical use.
 
-- How to run and test it: [`CLAUDE.md`](CLAUDE.md)
-- What happens when you press Enter: [`docs/explain/01-walking-skeleton.md`](docs/explain/01-walking-skeleton.md)
+**Teammates — start here, in this order:**
+
+1. [`docs/SETUP.md`](docs/SETUP.md) — install, one setup command, one check command (macOS, Windows, Linux)
+2. [`docs/TESTING.md`](docs/TESTING.md) — how to know everything works, and what to do if not
+3. [`docs/explain/01-walking-skeleton.md`](docs/explain/01-walking-skeleton.md) — what happens when you press Enter
+4. [`docs/explain/02-presenting-it.md`](docs/explain/02-presenting-it.md) — pitch, demo script, answers to likely questions
+5. [`CLAUDE.md`](CLAUDE.md) — the project's working rules
 
 ---
 

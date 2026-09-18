@@ -17,9 +17,17 @@ so a whole block can be pasted at once.
 ## Setup (once per checkout — `.venv` and `node_modules` are not in git)
 
 ```bash
-(cd backend && /opt/homebrew/bin/python3.12 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt)
-(cd frontend && npm ci)
+python3.12 scripts/setup.py      # any OS; Windows: py -3.12 scripts\setup.py (see docs/SETUP.md)
 ```
+
+## Check everything (tests, build, lint, live backend + page on spare ports)
+
+```bash
+python3 scripts/check_all.py     # must end with "ALL 21 CHECKS PASSED"; Windows: py scripts\check_all.py
+```
+
+If you add a requirement, add a check for it here or in the tests, and update
+`docs/TESTING.md` (requirement → check table) and the numbers in `docs/explain/02-presenting-it.md`.
 
 ## Run (one terminal each)
 
