@@ -1,0 +1,133 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Fonts are bundled with the app (no Google Fonts request from a hospital network). */
+@import "@fontsource/atkinson-hyperlegible/400.css";
+@import "@fontsource/atkinson-hyperlegible/700.css";
+@import "@fontsource-variable/source-serif-4/opsz.css";
+
+/* The design is light-only. shadcn's `dark:` styles apply only inside a `.dark`
+   element (there is none), not whenever the computer is in dark mode. */
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Design tokens, copied from design/chat.html. Change a colour here and it changes
+ * everywhere. Use them as Tailwind classes: bg-pine, text-ink-muted, border-border-soft,
+ * rounded-card, font-display ... ("static" = always emit the CSS variables, since
+ * the shadcn names below refer to them.)
+ */
+@theme static {
+  --color-ground: #f4f7f3;
+  --color-surface: #ffffff;
+  --color-ink: #12211a;
+  --color-ink-muted: #3c4a42;
+  --color-ink-placeholder: #6b776f;
+
+  --color-pine: #0e5049;
+  --color-pine-dark: #083b36;
+  --color-pine-hairline: #7fb8a8;
+  --color-on-pine-muted: #cfe3dc;
+
+  --color-border-strong: #9fb0a6;
+  --color-border-soft: #c8d4cb;
+
+  --color-safe-ink: #14562a;
+  --color-safe-line: #1b6b33;
+  --color-safe-fill: #def0e2;
+  --color-check-ink: #6e4400;
+  --color-check-line: #6e4400;
+  --color-check-fill: #fbebcb;
+  --color-danger-ink: #8a1010;
+  --color-danger-line: #8a1010;
+  --color-danger-fill: #fadcdc;
+
+  --font-display: "Source Serif 4 Variable", Georgia, serif;
+
+  --radius-control: 8px;
+  --radius-status: 10px;
+  --radius-card: 12px;
+
+  /* The design switches to phone layout at max-width:760px, so `md:` starts at 761px. */
+  --breakpoint-md: 761px;
+}
+
+/* shadcn/ui's own colour names, pointed at the design tokens above. */
+@theme inline {
+  --font-sans: "Atkinson Hyperlegible", Verdana, system-ui, sans-serif;
+  --font-heading: var(--font-display);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+}
+
+:root {
+  color-scheme: light;
+  --background: var(--color-ground);
+  --foreground: var(--color-ink);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-ink);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-ink);
+  --primary: var(--color-pine);
+  --primary-foreground: #ffffff;
+  --secondary: var(--color-ground);
+  --secondary-foreground: var(--color-ink);
+  --muted: var(--color-ground);
+  --muted-foreground: var(--color-ink-muted);
+  --accent: var(--color-ground);
+  --accent-foreground: var(--color-ink);
+  --destructive: var(--color-danger-ink);
+  --border: var(--color-border-soft);
+  --input: var(--color-border-strong);
+  --ring: var(--color-pine);
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    @apply font-sans;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-background text-foreground;
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.55;
+  }
+  @media (width >= 761px) {
+    body {
+      font-size: 19px;
+    }
+  }
+  a {
+    @apply text-pine hover:text-pine-dark;
+  }
+  /* One clearly visible focus ring for keyboard users, as in the design. */
+  :where(a, button, textarea, input):focus-visible {
+    outline: 3px solid var(--color-pine);
+    outline-offset: 2px;
+  }
+}

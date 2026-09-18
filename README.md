@@ -6,6 +6,21 @@ A transparent, from-scratch implementation of causal inference methods applied t
 
 > Every causal quantity is computed **by hand** in NumPy so that each step can be explained, line by line, to a non-specialist. Nothing is hidden behind a library call.
 
+## 💬 Chat app (walking skeleton)
+
+A clinician-facing chat page (`frontend/`, React + Vite) talking to a FastAPI backend
+(`backend/`) through a six-stage pipeline. Today it returns a dummy reply; the causal
+engine below will plug into it. Research prototype for clinician evaluation; not a
+marketed medical device; not for unsupervised clinical use.
+
+**Teammates — start here, in this order:**
+
+1. [`docs/SETUP.md`](docs/SETUP.md) — install, one setup command, one check command (macOS, Windows, Linux)
+2. [`docs/TESTING.md`](docs/TESTING.md) — how to know everything works, and what to do if not
+3. [`docs/explain/01-walking-skeleton.md`](docs/explain/01-walking-skeleton.md) — what happens when you press Enter
+4. [`docs/explain/02-presenting-it.md`](docs/explain/02-presenting-it.md) — pitch, demo script, answers to likely questions
+5. [`CLAUDE.md`](CLAUDE.md) — the project's working rules
+
 ---
 
 ## ✨ Highlights

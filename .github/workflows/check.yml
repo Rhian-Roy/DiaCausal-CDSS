@@ -1,0 +1,29 @@
+# Runs the same one-command check a teammate runs locally (scripts/check_all.py),
+# on Linux, Windows and macOS, for every push and pull request. A red cross on
+# GitHub means something broke; click it to see which [FAIL] line.
+name: check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+      - name: One-time setup
+        run: python scripts/setup.py
+      - name: Check everything
+        run: python scripts/check_all.py
