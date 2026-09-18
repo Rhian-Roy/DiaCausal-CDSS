@@ -11,7 +11,8 @@ export function PatientStrip() {
           Adult, 58 y · Type 2 diabetes 6 y · on metformin 1 g twice daily · HbA1c 8.4% · eGFR 62 · BMI 31.2
         </span>
       </p>
-      <span className="rounded-md border-2 border-border-soft bg-ground px-2.5 py-1 text-sm leading-normal font-bold whitespace-nowrap text-ink-muted">
+      {/* Kept on phones too (the phone mock-up drops it): example values must never pass for a real patient. */}
+      <span className="rounded-md border-2 border-border-soft bg-ground px-2 py-0.5 text-xs leading-normal font-bold whitespace-nowrap text-ink-muted md:px-2.5 md:py-1 md:text-sm">
         Example data
       </span>
     </div>

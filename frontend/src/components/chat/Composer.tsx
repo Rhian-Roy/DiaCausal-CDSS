@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { INTENDED_USE, MAX_TEXT_CHARS } from '@/lib/contract'
 import { countCharacters } from '@/lib/guards'
 import { ArrowUp, Mic } from 'lucide-react'
@@ -19,6 +20,7 @@ export function Composer({ onSend, onType, notice, waiting }: Props) {
   const [text, setText] = useState('')
   const box = useRef<HTMLTextAreaElement>(null)
   const count = countCharacters(text)
+  const wide = useMediaQuery('(width >= 48rem)') // Tailwind's `md`
 
   function submit() {
     if (onSend(text)) setText('')
@@ -58,7 +60,7 @@ export function Composer({ onSend, onType, notice, waiting }: Props) {
             onType()
           }}
           onKeyDown={onKeyDown}
-          placeholder="Ask about a class, a dose, or a contraindication"
+          placeholder={wide ? 'Ask about a class, a dose, or a contraindication' : 'Ask a question'}
           aria-describedby="composer-help"
           className="max-h-56 min-h-[calc(2lh+1rem)] flex-1 resize-none self-center rounded-none border-0 bg-transparent px-1 py-2 text-[17px] leading-normal text-ink shadow-none placeholder:text-ink-placeholder focus-visible:ring-0 focus-visible:outline-none md:text-[19px]"
         />

@@ -1,0 +1,58 @@
+/** A stand-in for the FastAPI backend, so frontend tests run without a server. */
+
+import {
+  INTENDED_USE,
+  STAGE_ORDER,
+  type ChatRequest,
+  type ChatResponse,
+  type StageName,
+  type StageResult,
+  type StageStatus,
+} from '@/lib/contract'
+import { vi } from 'vitest'
+
+export function stages(statuses: Partial<Record<StageName, StageStatus>> = {}): StageResult[] {
+  return STAGE_ORDER.map((name) => {
+    const ranToday = name === 'backend_guard' || name === 'output_guard'
+    const status = statuses[name] ?? (ranToday ? 'passed' : 'skipped')
+    return { name, status, detail: status === 'skipped' ? 'Not built yet.' : 'ok' }
+  })
+}
+
+export function answeredReply(traceId: string, text = 'Dummy reply from the DiaCausal backend.'): ChatResponse {
+  return {
+    schema_version: '1.0',
+    trace_id: traceId,
+    outcome: 'answered',
+    parts: [{ type: 'text', text }],
+    blocked_reason: null,
+    stages: stages(),
+    intended_use: INTENDED_USE,
+  }
+}
+
+export function blockedReply(traceId: string, reason: string): ChatResponse {
+  const later = { clinical_guardrails: 'skipped', output_guard: 'skipped' } as const
+  return {
+    ...answeredReply(traceId),
+    outcome: 'blocked',
+    parts: [],
+    blocked_reason: reason,
+    stages: stages({ backend_guard: 'blocked', ...later }),
+  }
+}
+
+export function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
+}
+
+/** Replace `fetch` with a fake backend; `reply` gets the parsed request. */
+export function stubBackend(reply: (request: ChatRequest) => Response | ChatResponse | Promise<Response>) {
+  const fetchMock = vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {
+    const request = JSON.parse(String(init?.body)) as ChatRequest
+    const result = await reply(request)
+    return result instanceof Response ? result : jsonResponse(result)
+  })
+  vi.stubGlobal('fetch', fetchMock)
+  return fetchMock
+}

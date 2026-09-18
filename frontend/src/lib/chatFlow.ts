@@ -9,6 +9,7 @@
  *   5. the answer is shown on the page
  */
 
+import { checkOutput, postChat } from './api'
 import type { StageResult } from './contract'
 import { medicalUiGuard, uiGuard } from './guards'
 import type { TraceLogger } from './trace'
@@ -43,7 +44,40 @@ export function checkInput(typed: string, log: TraceLogger): InputCheck {
   return { ok: true, message }
 }
 
-/** Steps 4-5: send to the backend and check what comes back. Wired up in the next step. */
-export async function askDiaCausal(_message: string, _traceId: string, _log: TraceLogger): Promise<Answer> {
-  return { kind: 'error', message: 'Not connected to the backend yet.' }
+/** Steps 4-5: send to the backend and check what comes back. Never throws. */
+export async function askDiaCausal(
+  message: string,
+  traceId: string,
+  log: TraceLogger,
+  fetchImpl?: typeof fetch,
+): Promise<Answer> {
+  const result = await postChat(message, traceId, fetchImpl)
+  if (result.kind === 'rejected') {
+    log.error(`backend rejected the request: ${result.message}`)
+    return { kind: 'error', message: result.message }
+  }
+  if (result.kind === 'failed') {
+    log.error(`request failed: ${result.message}`)
+    return { kind: 'error', message: result.message }
+  }
+
+  const checked = checkOutput(result.body, traceId)
+  if (!checked.ok) {
+    log.error(`output check failed: ${checked.reason}`)
+    return { kind: 'error', message: 'The reply did not pass the output check, so it is not shown.' }
+  }
+
+  const { response } = checked
+  if (response.outcome === 'blocked') {
+    const reason = response.blocked_reason ?? 'The message was blocked.'
+    log.warn(`backend blocked the message: ${reason}`)
+    return { kind: 'blocked', reason, stages: response.stages }
+  }
+
+  log.info('output passed')
+  return {
+    kind: 'answered',
+    text: response.parts.map((part) => part.text).join('\n\n'),
+    stages: response.stages,
+  }
 }

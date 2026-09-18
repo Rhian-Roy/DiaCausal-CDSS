@@ -20,8 +20,25 @@ cd frontend && npm run dev                                          # page on ht
 ## Test
 
 ```bash
-cd backend && .venv/bin/python -m pytest
+cd backend && .venv/bin/python -m pytest       # API contract, guards, trace-ID logging
+cd frontend && npm test                         # guards, output check, whole page flow (Vitest + jsdom)
+cd frontend && npm run build && npm run lint    # type-check + bundle + oxlint
 ```
+
+## Frontend rules
+
+- Pressing Enter (Shift+Enter = new line) prints, in order, each line starting with the
+  message's 8-hex trace ID: `[id] input passed`, `[id] ui guard passed`,
+  `[id] medical ui guard passed`, then after the reply `[id] output passed`.
+  Blocks and failures use `console.warn` / `console.error` with the same prefix.
+- Flow lives in `src/lib/chatFlow.ts`; guards in `src/lib/guards.ts` (`BLOCKED_TERMS` is empty
+  until the agreed list arrives; the medical UI guard is a pass-through stub).
+- `src/lib/contract.ts` mirrors `backend/app/schemas.py` — change both together.
+  `checkOutput` (src/lib/api.ts) refuses any reply with the wrong shape or another trace ID.
+- The browser only calls `/api/...`; Vite proxies it to :8000. No CORS setup needed in dev.
+- Colours, fonts, radii are tokens in `src/index.css` copied from `design/chat.html`; use
+  `bg-pine`, `text-ink-muted`, `rounded-card` etc., never raw hex in components. Light-only.
+- shadcn/ui components live in `src/components/ui/` (ours to edit).
 
 ## API rules (backend/app/schemas.py is the contract)
 
