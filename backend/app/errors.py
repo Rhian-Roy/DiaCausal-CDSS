@@ -104,7 +104,10 @@ def _describe(err: dict) -> Problem:
         return problem(f'schema_version must be "{SCHEMA_VERSION}"{got}.')
 
     if path == ("client_trace_id",):
-        return problem('client_trace_id is required: 1-64 letters, digits, "-" or "_".')
+        rule = '1-64 letters, digits, "-" or "_"'
+        if kind == "missing":
+            return problem(f"client_trace_id is required: {rule}.")
+        return problem(f"client_trace_id must be {rule} (got {_show(value)}).")
 
     if kind == "extra_forbidden":
         return problem(f'"{field}" is not a field this API accepts.')
