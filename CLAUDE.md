@@ -14,6 +14,7 @@ for unsupervised clinical use.** That sentence appears on every screen and in ev
 
 ```bash
 cd backend && .venv/bin/uvicorn app.main:app --reload --port 8000   # API on :8000, docs at /docs
+cd frontend && npm run dev                                          # page on http://localhost:5173
 ```
 
 ## Test
