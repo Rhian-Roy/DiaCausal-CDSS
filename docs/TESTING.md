@@ -9,13 +9,19 @@ report one.
 
 | macOS / Linux | Windows |
 |---|---|
-| `python3 scripts/check_all.py` | `py scripts\check_all.py` |
+| `python3 scripts/check_all.py` | `py scripts/check_all.py` |
 
 (First time on a computer? Do the setup in [SETUP.md](SETUP.md) first.)
 
 It takes a few seconds and prints `[PASS]` or `[FAIL]` per line, ending with
-`ALL 21 CHECKS PASSED`. It starts its own copy of the app on spare ports, so it does
-not disturb servers you already have running.
+`ALL 21 CHECKS PASSED`. Those 21 lines are: 4 tool checks, 1 line for all 53 backend
+tests, 1 line for all 49 frontend tests, build, lint, then 13 live checks. It starts its
+own copy of the app on spare ports, so it does not disturb servers you already have
+running.
+
+**On GitHub, automatically:** `.github/workflows/check.yml` runs the same two commands
+(setup, then check) on Linux, Windows and macOS for every push and pull request. See the
+green tick or red cross next to each commit, or the **Actions** tab.
 
 ### Which check proves which requirement
 
@@ -33,16 +39,18 @@ not disturb servers you already have running.
 | The code type-checks, builds and has no lint problems | Sections 4 and 5 |
 | Colours, fonts, layout match `design/` | By eye only: part 2, steps 1 and 7 |
 
-**Are the tests themselves any good?** They were checked by *mutation testing*:
-reviewers deliberately broke the code in dozens of small ways (skip a console line,
-reorder the stages, stop trimming, let an empty message through, …) and confirmed the
-tests fail each time. Every test that failed to notice a break was fixed.
+**Are the tests themselves any good?** During development, AI review agents working under
+our direction deliberately broke the code in small ways (skip a console line, reorder the
+stages, stop trimming, let an empty message through, …) and checked that a test failed
+each time. Where none did, a test was added (backend 46 → 53, frontend 41 → 49; commit
+`4a3beec`). This is *mutation testing* done by hand — no mutation-testing tool (such as
+mutmut or Stryker) has been run, so there is no mutation score yet.
 
 You can also run the parts separately:
 
-| What | Command (from the repo root; Windows: `.venv\Scripts\python`) |
+| What | Command (from the repo root) |
 |---|---|
-| Backend tests | `cd backend` then `.venv/bin/python -m pytest -v` (`-v` lists every test by name) |
+| Backend tests | `cd backend` then `.venv/bin/python -m pytest -v` (Windows: `.venv\Scripts\python -m pytest -v`; `-v` lists every test by name) |
 | Frontend tests | `cd frontend` then `npm test` |
 | Type-check + build | `cd frontend` then `npm run build` |
 | Lint | `cd frontend` then `npm run lint` |
@@ -64,7 +72,7 @@ terminal side by side.
 | 7 | Open the device toolbar (**⌘⇧M** Mac / **Ctrl+Shift+M** Windows, with the console open), pick an iPhone | Compare with `design/chat-phone.png`: "PROTOTYPE" badge, short patient line, "Ask a question" placeholder |
 | 8 | Press **Tab** until the green send button is selected | A thick pine-green outline around it (keyboard users can see where they are) |
 | 9 | Stop terminal 1 (**Ctrl+C**), then send a question | Red box "Couldn't get a reply … Check that the backend is running." Start terminal 1 again afterwards |
-| 10 | Open http://localhost:8000 | The API's own documentation page (`/docs`); **POST /api/v1/chat → Try it out → Execute** sends a request by hand |
+| 10 | Open http://localhost:8000 (needs internet: the page loads its look from a CDN) | The API's own documentation page (`/docs`); **POST /api/v1/chat → Try it out → Execute** sends a request by hand |
 
 ## Part 3 — what is not tested yet (and why)
 
@@ -73,19 +81,24 @@ terminal side by side.
 | Login, MFA, CAPTCHA, database, Docker, voice | Not built yet; each has a README where it will go (see `CLAUDE.md`) |
 | The four clinical stages (guardrails, causal engine, RAG, LLM) | Not connected yet; they return `skipped` |
 | Foul-language blocking with real words | The mechanism works and is tested with a made-up word; the agreed list is still empty |
+| The real page against the real backend, automatically | The page's tests use a fake backend (`frontend/src/test/fakeBackend.ts`); `check_all` section 7 sends a request through the page's server but does not run the page's JavaScript. The two together were checked by hand in a browser (part 2). A browser-automation test (e.g. Playwright) would close this gap |
+| `contract.ts` and `schemas.py` staying the same | They are kept in sync by hand; section 6 catches some drift in what the backend sends |
 | Every browser | Automated page tests run in a simulated browser (jsdom). Tried by hand in Chrome/Chromium. Safari's special keyboard behaviour for Hindi/Japanese input is covered by a simulated test only |
-| Windows and Linux setup | `scripts/setup.py` and `scripts/check_all.py` are written for all three, but have been run on macOS only so far — tell the team if something differs on your computer |
+| Windows and Linux setup | Run on macOS by hand. GitHub's automatic check runs setup + check on Linux, Windows and macOS once the code is pushed — look there for the result |
 
 ## Part 4 — when something fails
 
 | You see | Why | Fix |
 |---|---|---|
 | `command not found: python3.12` / `No suitable Python runtime found` | Python 3.12 not installed | [SETUP.md step 1](SETUP.md#1-install-the-tools-once-per-computer) |
-| `[FAIL] backend Python is 3.12 (found: none…)` or `vitest: command not found` | Setup not done in this folder | `python3.12 scripts/setup.py` (Windows `py -3.12 scripts\setup.py`) |
-| `Node.js … too old` / `node: command not found` | Old or missing Node | Install Node 24 LTS, open a new terminal |
+| `[FAIL] backend Python is 3.12 (found: none…)` or `vitest: command not found` | Setup not done in this folder | `python3.12 scripts/setup.py` (Windows `py -3.12 scripts/setup.py`) |
+| `Node.js … not supported` / `node: command not found` | Old or missing Node | Install Node 24 LTS (24.15+), open a new terminal |
+| `No such file or directory: scripts/setup.py` | You have the old `main` without the chat app | [SETUP.md step 2](SETUP.md#2-get-the-code): switch to the chat-app branch |
+| `bad interpreter` when starting the backend | The folder was moved or renamed after setup | Start it with `.venv/bin/python -m uvicorn …` as in SETUP.md, or delete `backend/.venv` and run setup again |
 | Windows: `npm.ps1 cannot be loaded because running scripts is disabled` | PowerShell's script policy | Use **Command Prompt** instead of PowerShell, or type `npm.cmd` instead of `npm` |
 | `Port 5173 is already in use` / `address already in use` (8000) | Another copy is already running — another terminal, or an app's preview | Stop the other one (**Ctrl+C** in its terminal), or just use it |
-| Page shows *Couldn't reach the DiaCausal server* or *HTTP 500* | Backend (terminal 1) not running or crashed | Start or restart terminal 1; read its last lines |
+| Page shows *The server could not answer (HTTP 502)* | Backend (terminal 1) not running | Start terminal 1 |
+| Page shows *HTTP 500*, or *Couldn't reach the DiaCausal server* | Backend crashed while answering (500: read the last lines of terminal 1), or the page's own server (terminal 2) stopped | Restart that terminal, then reload the page |
 | Console shows none of the four lines | Console filter hides them, or wrong tab | Console level **Default** / **All levels**, clear the filter box |
 | Tests fail right after `git pull` | Someone added a library | Run the setup script again |
 | Anything else | | Report it (part 5) |
@@ -98,6 +111,7 @@ Tell the team (or open a GitHub issue):
 2. What happened instead — a screenshot of the page **and** the console.
 3. The **trace ID** (8 characters, under the answer and on every console line), and the
    lines from the backend terminal that contain it.
-4. Your system (macOS/Windows/Linux) and the output of `python3 scripts/check_all.py`.
+4. Your system (macOS/Windows/Linux) and the output of `python3 scripts/check_all.py`
+   (to save it to a file: `python3 scripts/check_all.py > check.txt`).
 
 With the trace ID anyone can find exactly what the backend did with that message.

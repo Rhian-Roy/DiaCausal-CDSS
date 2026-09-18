@@ -2,7 +2,7 @@
 """Check that everything in the DiaCausal chat app works, with one command.
 
     macOS / Linux:  python3 scripts/check_all.py
-    Windows:        py scripts\\check_all.py
+    Windows:        py scripts/check_all.py
 
 Needs the one-time setup first (scripts/setup.py). Any Python 3.9+ can run this
 file; it uses the backend's own Python (backend/.venv) for the backend parts.
@@ -45,7 +45,7 @@ VENV_PY = BACKEND / ".venv" / ("Scripts/python.exe" if WINDOWS else "bin/python"
 VITE = FRONTEND / "node_modules" / "vite" / "bin" / "vite.js"
 ANSI = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 STAGES = ["backend_guard", "clinical_guardrails", "causal_engine", "rag_retrieval", "llm_explanation", "output_guard"]
-SETUP = "py -3.12 scripts\\setup.py" if WINDOWS else "python3.12 scripts/setup.py"
+SETUP = "py -3.12 scripts/setup.py" if WINDOWS else "python3.12 scripts/setup.py"
 
 results: list[bool] = []
 # Talk to our own local servers directly, never through a system proxy.
@@ -69,7 +69,7 @@ def check(ok: bool, label: str, why: str = "") -> bool:
 
 
 def run(cmd: list[str], cwd: Path, timeout: int = 900) -> tuple[int, str]:
-    env = {**os.environ, "NO_COLOR": "1", "FORCE_COLOR": "0"}
+    env = {**os.environ, "NO_COLOR": "1", "FORCE_COLOR": "0", "PYTHONIOENCODING": "utf-8"}
     try:
         proc = subprocess.run(
             [str(part) for part in cmd], cwd=cwd, env=env, capture_output=True,
@@ -159,8 +159,10 @@ def check_tools(npm: str | None, node: str | None) -> bool:
     section(1, "Tools")
     py_text, py = version_of([VENV_PY, "--version"]) if VENV_PY.exists() else ("", (0, 0))
     ok = check(py == (3, 12), f"backend Python is 3.12 (found: {py_text or 'none - backend/.venv missing'})")
-    node_text, node_version = version_of([node, "--version"]) if node else ("", (0, 0))
-    ok &= check(node_version >= (20, 19), f"Node.js 20.19+ installed (found: {node_text or 'none'}; project uses 24 LTS)")
+    node_text, (major, minor) = version_of([node, "--version"]) if node else ("", (0, 0))
+    # The pinned test tools (Vitest 5, jsdom 30) support Node 22.22+, 24.15+ and 26+.
+    node_ok = (major == 22 and minor >= 22) or (major == 24 and minor >= 15) or major >= 26
+    ok &= check(node_ok, f"Node.js 24 LTS (24.15+) installed (found: {node_text or 'none'})")
     ok &= check(bool(npm), "npm installed")
     ok &= check((FRONTEND / "node_modules").is_dir(), "frontend libraries installed (frontend/node_modules)")
     if not ok:
@@ -265,6 +267,11 @@ def check_live(node: str) -> None:
 
 
 def main() -> None:
+    # Show each line as it happens, and never crash on a character the terminal can't show
+    # (e.g. Windows when the output goes to a file or Git Bash).
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(errors="backslashreplace", line_buffering=True)
     started = time.time()
     print("DiaCausal: checking everything")
     npm, node = shutil.which("npm"), shutil.which("node")

@@ -1,7 +1,12 @@
 # Setup for teammates (macOS, Windows, Linux)
 
 About 15 minutes the first time. You need three tools, the code, one setup command and
-one check command. Nothing here needs an internet connection once it is installed.
+one check command. Setup downloads libraries, so it needs internet; after that the app
+runs offline (only the API documentation page, `/docs`, loads its look from the internet).
+
+> No installing possible right now? Watch the demo on a teammate's laptop. (GitHub
+> Codespaces is not set up for the chat app yet: the repo's `.devcontainer` is for the
+> older Streamlit demo.)
 
 > DiaCausal is a research prototype for clinician evaluation; not a marketed medical
 > device; not for unsupervised clinical use.
@@ -24,6 +29,10 @@ echo 'export PATH="/opt/homebrew/opt/node@24/bin:$PATH"' >> ~/.zshrc
 (On an older Intel Mac the path is `/usr/local/opt/node@24/bin` instead.)
 
 **Windows only:** after installing, close and reopen the terminal so it finds the new tools.
+The Windows commands below are for PowerShell or Command Prompt. In Git Bash, write every
+path with forward slashes (`.venv/Scripts/python`).
+
+**Linux only:** Ubuntu's own `nodejs` package is too old; install Node 24 from nodejs.org.
 
 Check the three tools. Each should print a version:
 
@@ -31,7 +40,7 @@ Check the three tools. Each should print a version:
 |---|---|---|
 | Git | `git --version` | `git --version` |
 | Python | `python3.12 --version` → `3.12.x` | `py -3.12 --version` → `3.12.x` |
-| Node | `node --version` → `v24.x` (20.19 or newer works) | `node --version` |
+| Node | `node --version` → `v24.x` (24.15 or newer) | `node --version` |
 
 ## 2. Get the code
 
@@ -45,23 +54,32 @@ cd DiaCausal-CDSS
 
 All commands below are run from this `DiaCausal-CDSS` folder.
 
+If there is no `scripts` folder, the chat app has not been merged into `main` yet. Switch to
+its branch (ask Rhian for the name if it has changed):
+
+```bash
+git switch claude/diacausal-chatbot-setup-225ec7
+```
+
 ## 3. One-time setup
 
 It checks your Python and Node, makes the backend's private Python (`backend/.venv`)
-and installs the libraries for both parts. Safe to run again (do so after a `git pull`
-that changed `requirements` or `package-lock.json`).
+and installs the libraries for both parts. Safe to run again — do so after a `git pull`
+that changed `requirements` or `package-lock.json`, **after stopping both servers**
+(on Windows running servers lock files that setup replaces).
 
 | macOS / Linux | Windows |
 |---|---|
-| `python3.12 scripts/setup.py` | `py -3.12 scripts\setup.py` |
+| `python3.12 scripts/setup.py` | `py -3.12 scripts/setup.py` |
 
-It ends with `Setup finished.`
+It ends with `Setup finished.` Lines starting with `npm warn` (on a Mac, one about
+`fsevents`) are harmless; only a line starting with `[FAIL]` needs action.
 
 ## 4. Check that everything works (one command)
 
 | macOS / Linux | Windows |
 |---|---|
-| `python3 scripts/check_all.py` | `py scripts\check_all.py` |
+| `python3 scripts/check_all.py` | `py scripts/check_all.py` |
 
 It runs every automated test, then starts the real app on spare ports and sends real
 messages through it. It should end with:
@@ -80,11 +98,13 @@ Two terminal windows, both in the `DiaCausal-CDSS` folder.
 
 | macOS / Linux | Windows |
 |---|---|
-| `cd backend` then `.venv/bin/uvicorn app.main:app --reload --port 8000` | `cd backend` then `.venv\Scripts\uvicorn app.main:app --reload --port 8000` |
+| `cd backend` then `.venv/bin/python -m uvicorn app.main:app --reload --port 8000` | `cd backend` then `.venv\Scripts\python -m uvicorn app.main:app --reload --port 8000` |
 
 **Terminal 2 — the frontend (the page):**
 
-`cd frontend` then `npm run dev` (same on every system).
+`cd frontend` then `npm run dev`. **Windows PowerShell:** if it says `npm.ps1 cannot be
+loaded because running scripts is disabled`, type `npm.cmd run dev` instead (or use
+Command Prompt).
 
 Open **http://localhost:5173**, then the browser's console:
 **⌥⌘J** (Chrome, Mac), **Ctrl+Shift+J** (Chrome, Windows/Linux), or F12 → Console.
@@ -100,6 +120,9 @@ Stop either server with **Ctrl+C**.
 - Before you push, run the check from step 4 — everything should pass.
 - Share your work: `git push -u origin login-page`, then on GitHub click
   **Compare & pull request** and ask a teammate to review.
+- GitHub runs the same check automatically on Linux, Windows and macOS for every push
+  and pull request (the **Actions** tab). A green tick means all three passed; a red cross
+  means click it and read the `[FAIL]` line.
 - Found a problem? Report it with the **trace ID** (shown under each answer and in the
   console) — see [TESTING.md, part 5](TESTING.md#part-5--reporting-a-problem).
 

@@ -32,7 +32,7 @@ If you add a requirement, add a check for it here or in the tests, and update
 ## Run (one terminal each)
 
 ```bash
-(cd backend && .venv/bin/uvicorn app.main:app --reload --port 8000)   # API on :8000, docs at /docs
+(cd backend && .venv/bin/python -m uvicorn app.main:app --reload --port 8000)   # API on :8000, docs at /docs
 (cd frontend && npm run dev)                                          # page on http://localhost:5173
 ```
 
@@ -76,7 +76,7 @@ If you add a requirement, add a check for it here or in the tests, and update
   `app/pipeline/`). Today only the first and last run; the rest return `"skipped"`.
   After a stage blocks, later stages are `"skipped"` and `outcome` is `"blocked"` (HTTP 200).
 - Every app log line (logger `diacausal`, app/tracing.py) carries `[client_trace_id]` after
-  the time and level, e.g. `19:33:11 INFO    [efc1a658] backend_guard: passed`. Uvicorn's own
+  the time and level (`[-]` when there is no valid ID, e.g. a rejected request), e.g. `19:33:11 INFO    [efc1a658] backend_guard: passed`. Uvicorn's own
   access lines (`"POST /api/v1/chat HTTP/1.1" 200`) do not.
   **Never log message text** — only sizes, stage results and IDs. Client values echoed in
   errors or logs go through `_show` in app/errors.py (short, ASCII-escaped).

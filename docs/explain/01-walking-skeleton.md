@@ -49,7 +49,8 @@ here, each new feature is "fill in one box" instead of "invent the whole route".
    and the backend prints the same ID in its log.
 3. **"input passed".** `chatFlow.ts` takes the text from the box and trims spaces off the ends.
 4. **"ui guard passed".** `guards.ts` checks the message isn't empty, isn't longer than
-   8,000 characters (counted the way Python counts them, so an emoji is 1), and has no
+   8,000 characters (counted the way Python counts them, so the browser and the server
+   always agree; a simple emoji like 💊 is 1), and has no
    word from the blocklist. The blocklist is empty until the team supplies it. If a check
    fails, the message is **not sent**. You see a notice, and the console shows a
    `ui guard blocked` warning instead.
@@ -155,8 +156,9 @@ built yet", followed by each stage and its status. Last comes "Trace ID efc1a658
 | Backend not running | error `request failed: …` | — | red box "Couldn't get a reply … Check that the backend is running." |
 | A reply with another message's trace ID | error `output check failed: …` | — | "The reply did not pass the output check, so it is not shown." |
 
-To try the API yourself while the backend is running (change `image` to `text` and add a
-`"text"` field to get the dummy reply instead of the 422):
+To try the API yourself while the backend is running (macOS/Linux terminal; on Windows
+use the `/docs` page instead). To get the dummy reply instead of the 422, replace
+`"type":"image","url":"x.png"` with `"type":"text","text":"Hello"`:
 
 ```bash
 curl -s -X POST http://127.0.0.1:8000/api/v1/chat -H 'Content-Type: application/json' -d '{"schema_version":"1.0","client_trace_id":"test0001","parts":[{"type":"image","url":"x.png"}]}'
@@ -183,10 +185,12 @@ whole story in the logs, without the logs ever storing what they typed. The back
 only accepts safe characters in the ID, so it can't be used to fake log lines.
 
 **3. Why does the reply list four stages that did not run?**
-So the shape of the reply is final from day one. The frontend already displays six
-stages, and the tests already require all six in order. When `causal_engine` is built,
-its status changes from `"skipped"` to `"passed"` or `"blocked"`, and nothing else in the
-contract changes. It is also honest: the doctor can see that no clinical reasoning
+So the list of stages is fixed from day one. The frontend already displays six stages,
+and the tests already require all six in order. When `causal_engine` is built, its
+status changes from `"skipped"` to `"passed"` or `"blocked"` and the page shows that with
+no change. (Its *ranking* will need a new reply part type — an addition to the contract,
+not a rewrite, because replies are lists of typed parts.) It is also honest: the doctor
+can see that no clinical reasoning
 happened.
 
 **4. The notes say "we don't know what data types will come in the future", so why reject unknown part types?**
@@ -212,7 +216,8 @@ On top of that, the whole route was run by hand in a real browser with the real 
 (the worked example above).
 
 Not tested yet, because it doesn't exist yet: login, the database, voice, Docker, and
-the four clinical stages. Each has a README saying where it will go.
+the four clinical stages. Each of the first four has a README saying where it will go;
+each stage's plan is at the top of its file in `backend/app/pipeline/`.
 
 ## Where to look
 

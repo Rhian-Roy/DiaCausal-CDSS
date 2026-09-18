@@ -1,6 +1,6 @@
 """Builds the FastAPI app. Run it with:
 
-    .venv/bin/uvicorn app.main:app --reload --port 8000
+    .venv/bin/python -m uvicorn app.main:app --reload --port 8000
 """
 
 from fastapi import FastAPI
