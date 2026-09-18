@@ -57,6 +57,18 @@ cd frontend && npm run build && npm run lint    # type-check + bundle + oxlint
 - Every backend log line starts with `[client_trace_id]` (app/tracing.py).
   **Never log message text** — only sizes, stage results and IDs.
 
+## Not built yet — where each piece goes
+
+| Piece | Backend | Frontend / other |
+|---|---|---|
+| Login (ID, password, 6-digit code, CAPTCHA) | `backend/app/auth/` | `frontend/src/features/auth/`, `design/login.html` |
+| Database | `backend/app/db/` | — |
+| Voice (speech-to-text) | `backend/app/voice/` | `frontend/src/features/voice/` (mic button is disabled) |
+| Docker | — | `docker/` |
+| Clinical guardrails, causal engine, RAG, LLM | `backend/app/pipeline/<stage>.py` | — |
+
+Each folder's README says how it connects. Search the code for `LOGIN:` and `VOICE:`.
+
 ## Tooling
 
 - Node: `/opt/homebrew/opt/node@24/bin` (on PATH via `~/.zshrc`). Python: `/opt/homebrew/bin/python3.12`.
