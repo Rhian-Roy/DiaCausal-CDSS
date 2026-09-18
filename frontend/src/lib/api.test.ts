@@ -101,6 +101,19 @@ describe('checkOutput', () => {
     expect(checkOutput({ ...reply, parts: [{ type: 'image', url: 'x' }] }, 'a1b2c3d4').ok).toBe(false)
   })
 
+  it.each([
+    ['a wrong schema_version', { schema_version: '2.0' }],
+    ['an unknown outcome', { outcome: 'maybe', blocked_reason: 'x' }],
+    ['no intended-use notice', { intended_use: undefined }],
+    ['an unknown stage status', { stages: stages({ causal_engine: 'weird' as never }) }],
+  ])('rejects a reply with %s', (_, patch) => {
+    expect(checkOutput({ ...answeredReply('a1b2c3d4'), ...patch }, 'a1b2c3d4').ok).toBe(false)
+  })
+
+  it('rejects a blocked reply that does not say why', () => {
+    expect(checkOutput({ ...blockedReply('a1b2c3d4', 'x'), blocked_reason: null }, 'a1b2c3d4').ok).toBe(false)
+  })
+
   it.each([null, 'text', [], 42])('rejects a body that is not an object (%j)', (body) => {
     expect(checkOutput(body, 'a1b2c3d4').ok).toBe(false)
   })

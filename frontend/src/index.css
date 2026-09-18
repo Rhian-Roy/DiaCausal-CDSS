@@ -47,6 +47,9 @@
   --radius-control: 8px;
   --radius-status: 10px;
   --radius-card: 12px;
+
+  /* The design switches to phone layout at max-width:760px, so `md:` starts at 761px. */
+  --breakpoint-md: 761px;
 }
 
 /* shadcn/ui's own colour names, pointed at the design tokens above. */
@@ -114,7 +117,7 @@
     font-size: 17px;
     line-height: 1.55;
   }
-  @media (width >= 48rem) {
+  @media (width >= 761px) {
     body {
       font-size: 19px;
     }

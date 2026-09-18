@@ -5,8 +5,9 @@ but its default wording ("Input should be 'text'") is written for programmers.
 This handler keeps the 422 and rewrites each problem as a clear sentence, e.g.
     Part 1 has type "image", which this API does not accept. Supported part types: text.
 
-Anything the client sent is echoed back only in short, escaped form, so a
-hostile value cannot flood the response or inject fake lines into the log.
+Anything the client sent is echoed back only in short, escaped form (every
+non-ASCII or control character becomes a \\uXXXX escape), so a hostile value
+cannot flood the response, inject fake lines into the log, or crash the reply.
 """
 
 import json
@@ -35,7 +36,7 @@ _PART_EXAMPLE = '{"type": "text", "text": "..."}'
 
 def _show(value: Any, limit: int = 40) -> str:
     """A short, escaped copy of a client-supplied value."""
-    shown = json.dumps(value, ensure_ascii=False, default=str)
+    shown = json.dumps(value, default=str)  # ASCII-only: also safe for broken "\ud800"-style input
     return shown if len(shown) <= limit else shown[: limit - 1] + "…"
 
 
@@ -64,6 +65,9 @@ def _describe(err: dict) -> Problem:
 
     if kind == "json_invalid":
         return Problem(field="body", message="The request body is not valid JSON.")
+    if not path and isinstance(value, bytes):
+        # FastAPI only parses JSON when the request says it is JSON.
+        return problem('Send the body as JSON with the header "Content-Type: application/json".')
     if not path:
         return problem('The request body must be a JSON object like {"schema_version": "1.0", ...}.')
 

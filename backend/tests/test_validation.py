@@ -119,5 +119,34 @@ def test_invalid_json_is_rejected(client):
     assert response.json()["trace_id"] is None
 
 
+@pytest.mark.parametrize(
+    "raw",
+    [
+        b'{"schema_version":"1.0","client_trace_id":"abc12345","parts":[{"type":"\\ud800","text":"x"}]}',
+        b'{"schema_version":"\\ud800","client_trace_id":"abc12345","parts":[{"type":"text","text":"x"}]}',
+    ],
+)
+def test_broken_unicode_gets_a_clear_422_not_a_crash(client, raw):
+    # "\ud800" is legal JSON but cannot be encoded as UTF-8; echoing it raw used to cause a 500.
+    response = client.post("/api/v1/chat", content=raw, headers={"Content-Type": "application/json"})
+
+    assert response.status_code == 422
+    assert "\\ud800" in response.json()["message"]
+
+
+def test_rejection_does_not_echo_a_long_part_type(client, chat_body):
+    data = post(client, chat_body(parts=[{"type": "x" * 5000}]))
+
+    assert len(data["message"]) < 200
+
+
+def test_json_sent_without_the_json_header_gets_told_so(client):
+    body = b'{"schema_version":"1.0","client_trace_id":"abc12345","parts":[{"type":"text","text":"x"}]}'
+    response = client.post("/api/v1/chat", content=body)  # no Content-Type header
+
+    assert response.status_code == 422
+    assert response.json()["message"] == 'Send the body as JSON with the header "Content-Type: application/json".'
+
+
 def test_non_object_body_is_rejected(client):
     assert post(client, ["not", "an", "object"])["message"].startswith("The request body must be a JSON object")

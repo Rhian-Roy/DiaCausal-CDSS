@@ -4,7 +4,7 @@
  */
 
 import { answeredReply, blockedReply, jsonResponse, stubBackend } from '@/test/fakeBackend'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest'
 import { ChatPage } from './ChatPage'
@@ -50,10 +50,13 @@ describe('pressing Enter on a message', () => {
   })
 
   it('shows the question under "You asked" and empties the box', async () => {
-    stubBackend((request) => answeredReply(request.client_trace_id))
+    const fetchMock = stubBackend((request) => answeredReply(request.client_trace_id))
     const { user, box } = setup()
 
     await user.type(box, '  HbA1c 8.4% on metformin  {Enter}')
+
+    // getByText ignores outer spaces, so check the trimming on what was actually sent.
+    expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body)).parts[0].text).toBe('HbA1c 8.4% on metformin')
 
     expect(screen.getByText('You asked')).toBeInTheDocument()
     expect(screen.getByText('HbA1c 8.4% on metformin')).toBeInTheDocument()
@@ -85,6 +88,28 @@ describe('what does not get sent', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
+  it('Enter that picks a word on a Hindi keyboard does not send (Chrome and Firefox)', () => {
+    const fetchMock = stubBackend((request) => answeredReply(request.client_trace_id))
+    const { box } = setup()
+
+    fireEvent.change(box, { target: { value: 'मेट' } })
+    fireEvent.keyDown(box, { key: 'Enter', isComposing: true })
+
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('Enter that picks a word on a Hindi keyboard does not send (Safari)', () => {
+    const fetchMock = stubBackend((request) => answeredReply(request.client_trace_id))
+    const { box } = setup()
+
+    fireEvent.compositionStart(box)
+    fireEvent.change(box, { target: { value: 'नमस्ते' } })
+    fireEvent.compositionEnd(box)
+    fireEvent.keyDown(box, { key: 'Enter', keyCode: 229, isComposing: false })
+
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
   it('an empty message is blocked by the ui guard and never sent', async () => {
     const fetchMock = stubBackend((request) => answeredReply(request.client_trace_id))
     const { user, box } = setup()
@@ -111,6 +136,26 @@ describe('what does not get sent', () => {
     expect(screen.getByRole('button', { name: 'Send message' })).toBeDisabled()
     expect(box).toHaveValue('second')
     answer(new Response('{}'))
+  })
+
+  it('the "please wait" notice goes away once the answer arrives', async () => {
+    let release = () => {}
+    stubBackend(
+      (request) =>
+        new Promise<Response>((resolve) => {
+          release = () => resolve(jsonResponse(answeredReply(request.client_trace_id)))
+        }),
+    )
+    const { user, box } = setup()
+
+    await user.type(box, 'first{Enter}')
+    await user.type(box, 'second{Enter}')
+    expect(screen.getByRole('alert')).toHaveTextContent('Please wait for the current answer.')
+
+    release()
+    expect(await screen.findByText('DiaCausal answered')).toBeInTheDocument()
+    expect(screen.queryByText('Please wait for the current answer.')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Send message' })).toBeEnabled()
   })
 })
 

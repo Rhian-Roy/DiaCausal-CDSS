@@ -68,6 +68,29 @@ def test_output_guard_withholds_an_empty_reply():
     assert ctx.blocked_reason == "The reply was empty, so it was withheld."
 
 
+def test_reply_withheld_by_output_guard_is_not_sent(client, chat_body, monkeypatch):
+    # "dummy" appears in the dummy reply, so blocking it makes output_guard withhold the reply.
+    monkeypatch.setattr("app.pipeline.blocklist.BLOCKED_TERMS", frozenset({"dummy"}))
+
+    data = client.post("/api/v1/chat", json=chat_body("hello")).json()
+
+    assert data["outcome"] == "blocked"
+    assert data["parts"] == []
+    assert data["blocked_reason"] == "The reply did not pass the output check, so it was withheld."
+    assert data["stages"][0]["status"] == "passed"
+    assert data["stages"][-1]["status"] == "blocked"
+
+
+def test_output_guard_withholds_a_whitespace_only_reply():
+    ctx = PipelineContext(
+        trace_id="t",
+        parts=[TextPart(type="text", text="hi")],
+        reply_parts=[TextPart(type="text", text=" \n\t ")],
+    )
+
+    assert output_guard.run(ctx).status is StageStatus.BLOCKED
+
+
 def test_output_guard_withholds_a_reply_with_a_blocked_word(monkeypatch):
     monkeypatch.setattr("app.pipeline.blocklist.BLOCKED_TERMS", frozenset({"rudeword"}))
     ctx = PipelineContext(

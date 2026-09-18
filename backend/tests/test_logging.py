@@ -14,6 +14,12 @@ def app_logs(caplog):
     return caplog
 
 
+def test_app_logger_is_set_to_print_info_lines(client):
+    # The other tests use caplog.set_level, which would hide a missing log.setLevel(INFO)
+    # in tracing.py; without it the uvicorn terminal would show no [trace-id] lines at all.
+    assert log.getEffectiveLevel() == logging.INFO
+
+
 def test_every_log_line_for_a_request_carries_its_trace_id(client, chat_body, app_logs):
     client.post("/api/v1/chat", json=chat_body())
 

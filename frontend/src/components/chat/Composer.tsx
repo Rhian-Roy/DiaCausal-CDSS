@@ -20,7 +20,7 @@ export function Composer({ onSend, onType, notice, waiting }: Props) {
   const [text, setText] = useState('')
   const box = useRef<HTMLTextAreaElement>(null)
   const count = countCharacters(text)
-  const wide = useMediaQuery('(width >= 48rem)') // Tailwind's `md`
+  const wide = useMediaQuery('(width >= 761px)') // same switch point as `md:` (see index.css)
 
   function submit() {
     if (onSend(text)) setText('')
@@ -28,9 +28,11 @@ export function Composer({ onSend, onType, notice, waiting }: Props) {
   }
 
   function onKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
-    // isComposing: the user is still building a character with an input method
-    // (e.g. a Hindi or Marathi keyboard); Enter there picks the character, not "send".
-    if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
+    // The user may still be building a word with an input method (e.g. a Hindi or
+    // Marathi keyboard); that Enter picks the word, it does not mean "send".
+    // Chrome/Firefox flag it with isComposing; Safari sends keyCode 229 instead.
+    const composing = event.nativeEvent.isComposing || event.keyCode === 229
+    if (event.key === 'Enter' && !event.shiftKey && !composing) {
       event.preventDefault()
       submit()
     }

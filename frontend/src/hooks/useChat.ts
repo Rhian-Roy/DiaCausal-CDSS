@@ -5,6 +5,8 @@ import { newTraceId, traceLogger } from '@/lib/trace'
 
 export type Turn = { traceId: string; question: string; answer: Answer }
 
+const WAIT_NOTICE = 'Please wait for the current answer.'
+
 /** The conversation on screen, and `send` for a new message. */
 export function useChat() {
   const [turns, setTurns] = useState<Turn[]>([])
@@ -14,7 +16,7 @@ export function useChat() {
   /** Returns true if the message was accepted (so the box can be cleared). */
   function send(typed: string): boolean {
     if (waiting) {
-      setNotice('Please wait for the current answer.')
+      setNotice(WAIT_NOTICE)
       return false
     }
 
@@ -29,8 +31,10 @@ export function useChat() {
     setNotice(null)
     setTurns((all) => [...all, { traceId, question: checked.message, answer: { kind: 'pending' } }])
 
-    const setAnswer = (answer: Answer) =>
+    const setAnswer = (answer: Answer) => {
       setTurns((all) => all.map((turn) => (turn.traceId === traceId ? { ...turn, answer } : turn)))
+      setNotice((current) => (current === WAIT_NOTICE ? null : current)) // no longer true
+    }
     askDiaCausal(checked.message, traceId, log)
       .then(setAnswer)
       .catch((error: unknown) => {

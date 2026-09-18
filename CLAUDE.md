@@ -1,7 +1,8 @@
 # DiaCausal — working rules
 
 Research prototype chatbot for clinician evaluation; **not a marketed medical device; not
-for unsupervised clinical use.** That sentence appears on every screen and in every API reply.
+for unsupervised clinical use.** That sentence appears on every screen, in every chat reply
+(`intended_use`) and in the API docs.
 
 ## Layout
 
@@ -10,19 +11,29 @@ for unsupervised clinical use.** That sentence appears on every screen and in ev
 - `design/` — the screens to match (`chat.html` / `login.html` hold the exact colours, fonts, spacing)
 - `causal_engine/`, notebooks, `RAG/` — earlier research code; the backend will call into it later
 
-## Run (from the repo root, one terminal each)
+All commands run from the repo root. The `( ... )` keeps each `cd` inside its own line,
+so a whole block can be pasted at once.
+
+## Setup (once per checkout — `.venv` and `node_modules` are not in git)
 
 ```bash
-cd backend && .venv/bin/uvicorn app.main:app --reload --port 8000   # API on :8000, docs at /docs
-cd frontend && npm run dev                                          # page on http://localhost:5173
+(cd backend && /opt/homebrew/bin/python3.12 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt)
+(cd frontend && npm ci)
+```
+
+## Run (one terminal each)
+
+```bash
+(cd backend && .venv/bin/uvicorn app.main:app --reload --port 8000)   # API on :8000, docs at /docs
+(cd frontend && npm run dev)                                          # page on http://localhost:5173
 ```
 
 ## Test
 
 ```bash
-cd backend && .venv/bin/python -m pytest       # API contract, guards, trace-ID logging
-cd frontend && npm test                         # guards, output check, whole page flow (Vitest + jsdom)
-cd frontend && npm run build && npm run lint    # type-check + bundle + oxlint
+(cd backend && .venv/bin/python -m pytest)       # API contract, guards, trace-ID logging
+(cd frontend && npm test)                         # guards, output check, whole page flow (Vitest + jsdom)
+(cd frontend && npm run build && npm run lint)    # type-check + bundle + oxlint
 ```
 
 ## Frontend rules
@@ -38,6 +49,8 @@ cd frontend && npm run build && npm run lint    # type-check + bundle + oxlint
 - The browser only calls `/api/...`; Vite proxies it to :8000. No CORS setup needed in dev.
 - Colours, fonts, radii are tokens in `src/index.css` copied from `design/chat.html`; use
   `bg-pine`, `text-ink-muted`, `rounded-card` etc., never raw hex in components. Light-only.
+  `md:` starts at 761px, the design's phone/desktop switch.
+- Enter must not send while an input method is composing (`isComposing` or Safari's `keyCode 229`).
 - shadcn/ui components live in `src/components/ui/` (ours to edit).
 
 ## API rules (backend/app/schemas.py is the contract)
@@ -54,8 +67,11 @@ cd frontend && npm run build && npm run lint    # type-check + bundle + oxlint
   `causal_engine`, `rag_retrieval`, `llm_explanation`, `output_guard` (one file each in
   `app/pipeline/`). Today only the first and last run; the rest return `"skipped"`.
   After a stage blocks, later stages are `"skipped"` and `outcome` is `"blocked"` (HTTP 200).
-- Every backend log line starts with `[client_trace_id]` (app/tracing.py).
-  **Never log message text** — only sizes, stage results and IDs.
+- Every app log line (logger `diacausal`, app/tracing.py) carries `[client_trace_id]` after
+  the time and level, e.g. `19:33:11 INFO    [efc1a658] backend_guard: passed`. Uvicorn's own
+  access lines (`"POST /api/v1/chat HTTP/1.1" 200`) do not.
+  **Never log message text** — only sizes, stage results and IDs. Client values echoed in
+  errors or logs go through `_show` in app/errors.py (short, ASCII-escaped).
 
 ## Not built yet — where each piece goes
 
