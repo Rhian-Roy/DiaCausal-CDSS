@@ -65,6 +65,8 @@ class AuthError(StrictModel):
     error: Literal[
         "login_failed", "code_failed", "locked", "slow_down", "not_signed_in", "session_expired",
         "csrf_failed", "acknowledge_first", "captcha_expired", "wrong_step",
+        # voice (app/voice/routes.py)
+        "unsupported_audio", "audio_too_large", "audio_too_long", "audio_unreadable",
     ]
     message: str
     attempts_left: int | None = None

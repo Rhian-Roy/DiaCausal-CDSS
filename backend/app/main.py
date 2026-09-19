@@ -14,6 +14,7 @@ from app.errors import validation_exception_handler
 from app.routes import router
 from app.secrets_env import database_url, secret_key
 from app.settings import INTENDED_USE
+from app.voice.routes import router as voice_router
 from app.tracing import configure_logging
 
 
@@ -27,6 +28,7 @@ def create_app(database: str | None = None) -> FastAPI:
     app.add_exception_handler(AuthProblem, auth_problem_handler)
     app.include_router(auth_router)
     app.include_router(router)
+    app.include_router(voice_router)
 
     @app.get("/", include_in_schema=False)
     def root() -> RedirectResponse:

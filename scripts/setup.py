@@ -130,6 +130,8 @@ def main() -> None:
     print("   [OK] backend libraries installed")
 
     make_env_file()
+    step("     Speech-to-text model (about 145 MB, once)")
+    run([VENV_PY, "-c", "from app.voice.transcriber import download; print('   model in', download())"], BACKEND)
 
     step("4/4  Frontend: libraries in frontend/node_modules")
     run([npm, "ci", "--no-audit", "--no-fund"], FRONTEND)
