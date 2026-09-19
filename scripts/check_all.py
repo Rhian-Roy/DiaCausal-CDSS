@@ -15,7 +15,8 @@ What it does, in order:
   5. lint       oxlint finds no problems
   6. live API   starts the real backend on a spare port and sends it real
                 requests: a question, an image part, 8001 characters, an empty
-                message; checks the replies and the trace ID in the backend log
+                message, an identifier, foul language; checks the replies and the
+                trace ID in the backend log
   7. live page  starts the real frontend on a spare port and sends a message
                 through its /api proxy to that backend
 Servers you may already have running on 8000/5173 are not touched.
@@ -239,8 +240,22 @@ def check_live(node: str) -> None:
         check(blocked.get("outcome") == "blocked" and (blocked.get("stages") or [{}])[0].get("status") == "blocked",
               "an empty message is blocked by backend_guard", text)
 
+        status, text, _ = call(api_url + "/api/v1/chat", chat("Patient Aadhaar 726018159082, HbA1c 8.4%", trace))
+        reply = parse(text) if status == 200 else {}
+        check(reply.get("outcome") == "blocked" and reply.get("reason_code") == "identifier"
+              and "726018159082" not in text,
+              "a patient identifier is blocked by the server guard (notice 09)", text)
+
+        rude = "bullshit"  # from shared/guard_rules/rules.v1.json
+        status, text, _ = call(api_url + "/api/v1/chat", chat(f"what {rude} answer is this", trace))
+        reply = parse(text) if status == 200 else {}
+        check(reply.get("outcome") == "blocked" and reply.get("reason_code") == "language" and rude not in text,
+              "foul language is blocked by the server guard without repeating the word", text)
+
         time.sleep(0.5)
         log = read(logs / "backend.log")
+        check(rude not in log and "726018159082" not in log and "guard rules version" in log,
+              "the backend log shows the guard rules version, never the blocked word or identifier", log)
         needed = ["chat request received", *[f"{name}:" for name in STAGES], "reply sent"]
         tagged = [line for line in log.splitlines() if f"[{trace}]" in line]
         check(all(any(word in line for line in tagged) for word in needed),

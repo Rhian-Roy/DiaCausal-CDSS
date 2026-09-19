@@ -23,7 +23,7 @@ python3.12 scripts/setup.py      # any OS; Windows: py -3.12 scripts\setup.py (s
 ## Check everything (tests, build, lint, live backend + page on spare ports)
 
 ```bash
-python3 scripts/check_all.py     # must end with "ALL 21 CHECKS PASSED"; Windows: py scripts\check_all.py
+python3 scripts/check_all.py     # must end with "ALL 24 CHECKS PASSED"; Windows: py scripts\check_all.py
 ```
 
 If you add a requirement, add a check for it here or in the tests, and update
@@ -50,8 +50,10 @@ If you add a requirement, add a check for it here or in the tests, and update
   message's 8-hex trace ID: `[id] input passed`, `[id] ui guard passed`,
   `[id] medical ui guard passed`, then after the reply `[id] output passed`.
   Blocks and failures use `console.warn` / `console.error` with the same prefix.
-- Flow lives in `src/lib/chatFlow.ts`; guards in `src/lib/guards.ts` (`BLOCKED_TERMS` is empty
-  until the agreed list arrives; the medical UI guard is a pass-through stub).
+- Flow lives in `src/lib/chatFlow.ts`; guards in `src/lib/guards.ts`. Both guards and the
+  backend's `app/pipeline/blocklist.py` load `shared/guard_rules/rules.v1.json` — edit the
+  lists there, never in code. A guard block shows notice 09–12 (`GuardNotice.tsx`); the
+  backend returns `reason_code` + `scope_topic`. Never show or log the matched word.
 - `src/lib/contract.ts` mirrors `backend/app/schemas.py` — change both together.
   `checkOutput` (src/lib/api.ts) refuses any reply with the wrong shape or another trace ID.
 - The browser only calls `/api/...`; Vite proxies it to :8000. No CORS setup needed in dev.
