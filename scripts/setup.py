@@ -70,6 +70,28 @@ def venv_is_usable() -> bool:
     return probe.returncode == 0 and probe.stdout.strip() == "True"
 
 
+def make_env_file() -> None:
+    """backend/.env holds the key that encrypts MFA secrets. Made once, never overwritten
+    (a new key would make every authenticator app stop working), never committed."""
+    env_file = BACKEND / ".env"
+    if env_file.exists():
+        print("   backend/.env already exists, keeping it (it holds the MFA encryption key)")
+        return
+    key = subprocess.run(
+        [str(VENV_PY), "-c", "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"],
+        capture_output=True, text=True, check=True,
+    ).stdout.strip()
+    env_file.write_text(
+        "# Made by scripts/setup.py. NEVER commit or share this file.\n"
+        "# Losing the key means everyone must set up their authenticator app again.\n"
+        f"DIACAUSAL_SECRET_KEY={key}\n",
+        encoding="utf-8",
+    )
+    if not WINDOWS:
+        env_file.chmod(0o600)
+    print("   [OK] made backend/.env with a new secret key")
+
+
 def main() -> None:
     # Show each line as it happens, and never crash on a character the terminal can't show.
     for stream in (sys.stdout, sys.stderr):
@@ -106,6 +128,8 @@ def main() -> None:
         run([sys.executable, "-m", "venv", "--clear", VENV], ROOT)
     run([VENV_PY, "-m", "pip", "install", "--disable-pip-version-check", "-q", "-r", "requirements-dev.txt"], BACKEND)
     print("   [OK] backend libraries installed")
+
+    make_env_file()
 
     step("4/4  Frontend: libraries in frontend/node_modules")
     run([npm, "ci", "--no-audit", "--no-fund"], FRONTEND)

@@ -41,3 +41,11 @@ anaconda_projects/
 
 # ── Misc ──────────────────────────────────────────────────────────────────────
 *.log
+
+# ── DiaCausal backend secrets and data (never commit) ────────────────────────
+.env
+backend/.env
+*.db
+*.db-journal
+*.db-wal
+*.db-shm

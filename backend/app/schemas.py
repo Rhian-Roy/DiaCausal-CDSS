@@ -94,6 +94,7 @@ class ChatResponse(StrictModel):
     scope_topic: ScopeTopic | None = None
     stages: list[StageResult]
     intended_use: str = INTENDED_USE
+    request_id: str | None = None  # server-generated UUID, the row in audit_log
 
 
 class HealthResponse(StrictModel):
