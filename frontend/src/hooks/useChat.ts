@@ -1,9 +1,19 @@
 import { useState } from 'react'
 
 import { askDiaCausal, checkInput, type Answer } from '@/lib/chatFlow'
+import type { ReasonCode } from '@/lib/contract'
+import { redactIdentifiers } from '@/lib/guards'
 import { newTraceId, traceLogger } from '@/lib/trace'
 
-export type Turn = { traceId: string; question: string; answer: Answer }
+/** `question` is null when it must not be shown back (a message blocked for its language). */
+export type Turn = { traceId: string; question: string | null; answer: Answer }
+
+/** What the "You asked" line may show for a message a guard stopped. */
+function shownQuestion(message: string, code: ReasonCode): string | null {
+  if (code === 'language') return null
+  if (code === 'identifier') return redactIdentifiers(message)
+  return message
+}
 
 const WAIT_NOTICE = 'Please wait for the current answer.'
 
@@ -23,6 +33,14 @@ export function useChat() {
     const traceId = newTraceId()
     const log = traceLogger(traceId)
     const checked = checkInput(typed, log)
+    if (!checked.ok && checked.code) {
+      // A guard stopped it: show the notice in the conversation (designs 09-12). Not sent.
+      const { code, topic = null } = checked
+      const answer: Answer = { kind: 'notice', code, topic, stages: null }
+      setNotice(null)
+      setTurns((all) => [...all, { traceId, question: shownQuestion(typed.trim(), code), answer }])
+      return true
+    }
     if (!checked.ok) {
       setNotice(checked.reason)
       return false
@@ -32,7 +50,15 @@ export function useChat() {
     setTurns((all) => [...all, { traceId, question: checked.message, answer: { kind: 'pending' } }])
 
     const setAnswer = (answer: Answer) => {
-      setTurns((all) => all.map((turn) => (turn.traceId === traceId ? { ...turn, answer } : turn)))
+      setTurns((all) =>
+        all.map((turn) =>
+          turn.traceId !== traceId
+            ? turn
+            : answer.kind === 'notice' // the server's guard: hide what the browser's would have hidden
+              ? { ...turn, answer, question: shownQuestion(checked.message, answer.code) }
+              : { ...turn, answer },
+        ),
+      )
       setNotice((current) => (current === WAIT_NOTICE ? null : current)) // no longer true
     }
     askDiaCausal(checked.message, traceId, log)

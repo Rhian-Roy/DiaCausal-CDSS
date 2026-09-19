@@ -4,7 +4,9 @@
  */
 
 import {
+  REASON_CODES,
   SCHEMA_VERSION,
+  SCOPE_TOPICS,
   STAGE_ORDER,
   type ChatRequest,
   type ChatResponse,
@@ -74,6 +76,12 @@ export function checkOutput(body: unknown, traceId: string): OutputCheck {
   if (!Array.isArray(body.parts) || !body.parts.every(isTextPart)) return fail('the reply parts are not all text')
   if (!hasAllStagesInOrder(body.stages)) return fail('the pipeline stages are missing or out of order')
   if (typeof body.intended_use !== 'string') return fail('the intended-use notice is missing')
+  if (body.reason_code !== null && !(REASON_CODES as readonly unknown[]).includes(body.reason_code)) {
+    return fail('unknown reason_code')
+  }
+  if (body.scope_topic !== null && !(SCOPE_TOPICS as readonly unknown[]).includes(body.scope_topic)) {
+    return fail('unknown scope_topic')
+  }
 
   if (body.outcome === 'answered') {
     if (!body.parts.some((part) => part.text.trim() !== '')) return fail('the answer is empty')

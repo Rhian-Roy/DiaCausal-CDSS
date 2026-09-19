@@ -5,6 +5,8 @@ import {
   STAGE_ORDER,
   type ChatRequest,
   type ChatResponse,
+  type ReasonCode,
+  type ScopeTopic,
   type StageName,
   type StageResult,
   type StageStatus,
@@ -26,18 +28,27 @@ export function answeredReply(traceId: string, text = 'Dummy reply from the DiaC
     outcome: 'answered',
     parts: [{ type: 'text', text }],
     blocked_reason: null,
+    reason_code: null,
+    scope_topic: null,
     stages: stages(),
     intended_use: INTENDED_USE,
   }
 }
 
-export function blockedReply(traceId: string, reason: string): ChatResponse {
+export function blockedReply(
+  traceId: string,
+  reason: string,
+  reasonCode: ReasonCode | null = null,
+  scopeTopic: ScopeTopic | null = null,
+): ChatResponse {
   const later = { clinical_guardrails: 'skipped', output_guard: 'skipped' } as const
   return {
     ...answeredReply(traceId),
     outcome: 'blocked',
     parts: [],
     blocked_reason: reason,
+    reason_code: reasonCode,
+    scope_topic: scopeTopic,
     stages: stages({ backend_guard: 'blocked', ...later }),
   }
 }

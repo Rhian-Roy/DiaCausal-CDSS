@@ -106,8 +106,15 @@ describe('checkOutput', () => {
     ['an unknown outcome', { outcome: 'maybe', blocked_reason: 'x' }],
     ['no intended-use notice', { intended_use: undefined }],
     ['an unknown stage status', { stages: stages({ causal_engine: 'weird' as never }) }],
+    ['an unknown reason_code', { reason_code: 'rude' }],
+    ['a missing reason_code', { reason_code: undefined }],
+    ['an unknown scope_topic', { scope_topic: 'gout' }],
   ])('rejects a reply with %s', (_, patch) => {
     expect(checkOutput({ ...answeredReply('a1b2c3d4'), ...patch }, 'a1b2c3d4').ok).toBe(false)
+  })
+
+  it('accepts a blocked reply with a known reason_code and topic', () => {
+    expect(checkOutput(blockedReply('a1b2c3d4', 'x', 'out_of_scope', 'pregnancy'), 'a1b2c3d4').ok).toBe(true)
   })
 
   it('rejects a blocked reply that does not say why', () => {

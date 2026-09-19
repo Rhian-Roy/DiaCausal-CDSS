@@ -1,5 +1,6 @@
 import type { Answer } from '@/lib/chatFlow'
 import type { ReactNode } from 'react'
+import { GuardNotice } from './GuardNotice'
 import { StageList } from './StageList'
 import { StatusBlock } from './StatusBlock'
 
@@ -41,6 +42,8 @@ export function AnswerCard({ answer, traceId }: { answer: Answer; traceId: strin
           <TraceNote traceId={traceId} />
         </Card>
       )
+    case 'notice':
+      return <GuardNotice code={answer.code} topic={answer.topic} />
     case 'blocked':
       return (
         <Card label="DiaCausal did not answer">

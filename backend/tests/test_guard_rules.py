@@ -141,3 +141,16 @@ def test_rules_version_is_logged_with_the_trace_id(client, chat_body, caplog):
 
     lines = [r for r in caplog.records if r.getMessage() == f"guard rules version {blocklist.RULES_VERSION}"]
     assert len(lines) == 1 and lines[0].trace_id == "abc12345"
+
+
+# The browser's tests (frontend/src/lib/guards.test.ts) run the same extra cases, so
+# the page and the server are proved to agree beyond the 47 examples.
+AGREEMENT = json.loads(
+    (RULES_FILE.parents[2] / "frontend" / "src" / "test" / "guardAgreement.json").read_text(encoding="utf-8")
+)["cases"]
+
+
+@pytest.mark.parametrize("case", AGREEMENT, ids=[c["text"][:30] for c in AGREEMENT])
+def test_shared_agreement_cases(case):
+    assert REFERENCE.check(case["text"]) == case["expect"]
+    assert blocklist.check(case["text"]) == case["expect"]

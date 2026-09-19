@@ -1,0 +1,225 @@
+{
+ "note": "Extra cases; 'expect' is what shared/guard_rules/reference_guard.py answers. backend/tests/test_guard_rules.py re-checks that, and both guards must agree.",
+ "cases": [
+  {
+   "text": "History of anal fissure, HbA1c 8%",
+   "expect": "pass"
+  },
+  {
+   "text": "not pregnant, HbA1c 8.1%",
+   "expect": "pass"
+  },
+  {
+   "text": "History of seizures as a child",
+   "expect": "pass"
+  },
+  {
+   "text": "sugar 38 mg/dL two years ago, now stable",
+   "expect": "emergency"
+  },
+  {
+   "text": "past DKA in 2019, now on metformin",
+   "expect": "pass"
+  },
+  {
+   "text": "no seizure today",
+   "expect": "pass"
+  },
+  {
+   "text": "Seizure now",
+   "expect": "emergency"
+  },
+  {
+   "text": "मधुमेह रोगी, HbA1c ८.२%",
+   "expect": "pass"
+  },
+  {
+   "text": "Fournier's gangrene on empagliflozin?",
+   "expect": "pass"
+  },
+  {
+   "text": "ASSESS eGFR please",
+   "expect": "pass"
+  },
+  {
+   "text": "you ASS.",
+   "expect": "block:language"
+  },
+  {
+   "text": "Bull shit",
+   "expect": "block:language"
+  },
+  {
+   "text": "piece of  shit",
+   "expect": "block:language"
+  },
+  {
+   "text": "Piece Of Shit!",
+   "expect": "block:language"
+  },
+  {
+   "text": "glucose 3.0 mmol/L",
+   "expect": "pass"
+  },
+  {
+   "text": "glucose 2.9 mmol/l",
+   "expect": "emergency"
+  },
+  {
+   "text": "glucose 599",
+   "expect": "pass"
+  },
+  {
+   "text": "glucose 600 mg/dL",
+   "expect": "emergency"
+  },
+  {
+   "text": "fbs 53",
+   "expect": "emergency"
+  },
+  {
+   "text": "fbs 54",
+   "expect": "pass"
+  },
+  {
+   "text": "no hypoglycaemia; sugar 40 last year",
+   "expect": "pass"
+  },
+  {
+   "text": "Email a.b@c.co",
+   "expect": "block:identifier"
+  },
+  {
+   "text": "call 09876543210",
+   "expect": "block:identifier"
+  },
+  {
+   "text": "+91-9876543210",
+   "expect": "block:identifier"
+  },
+  {
+   "text": "12345 67890",
+   "expect": "pass"
+  },
+  {
+   "text": "phone 5876543210",
+   "expect": "pass"
+  },
+  {
+   "text": "ABHA 12-3456-7890-1234",
+   "expect": "block:identifier"
+  },
+  {
+   "text": "abpce1234f",
+   "expect": "pass"
+  },
+  {
+   "text": "ABCPE1234F",
+   "expect": "block:identifier"
+  },
+  {
+   "text": "UID 5016-6131-8603",
+   "expect": "block:identifier"
+  },
+  {
+   "text": "५०१६ ६१३१ ८६०३ Aadhaar",
+   "expect": "pass"
+  },
+  {
+   "text": "T1DM on insulin",
+   "expect": "out_of_scope:type_1"
+  },
+  {
+   "text": "LADA suspected",
+   "expect": "out_of_scope:type_1"
+  },
+  {
+   "text": "denies pregnancy",
+   "expect": "pass"
+  },
+  {
+   "text": "rule out T1D",
+   "expect": "pass"
+  },
+  {
+   "text": "breastfeeding mother, HbA1c 8",
+   "expect": "out_of_scope:pregnancy"
+  },
+  {
+   "text": "Straße ist nass",
+   "expect": "pass"
+  },
+  {
+   "text": "teenager with T2D",
+   "expect": "out_of_scope:under_18"
+  },
+  {
+   "text": "switch to insulin?",
+   "expect": "out_of_scope:insulin_start"
+  },
+  {
+   "text": "unresponsive patient",
+   "expect": "emergency"
+  },
+  {
+   "text": "not responding to metformin",
+   "expect": "emergency"
+  },
+  {
+   "text": "chutiya",
+   "expect": "block:language"
+  },
+  {
+   "text": "kutte ki aulad",
+   "expect": "block:language"
+  },
+  {
+   "text": "HbA1c 8.4% on metformin",
+   "expect": "pass"
+  },
+  {
+   "text": "tatti mein jalan",
+   "expect": "pass"
+  },
+  {
+   "text": "hhs ruled out",
+   "expect": "out_of_scope:dka_hhs"
+  },
+  {
+   "text": "Patient collapsed",
+   "expect": "emergency"
+  },
+  {
+   "text": "under 18 years",
+   "expect": "out_of_scope:under_18"
+  },
+  {
+   "text": "RBS 33.4 mmol",
+   "expect": "emergency"
+  },
+  {
+   "text": "bg 600",
+   "expect": "emergency"
+  },
+  {
+   "text": "Sugar: 45",
+   "expect": "emergency"
+  },
+  {
+   "text": "Sugar was 45",
+   "expect": "emergency"
+  },
+  {
+   "text": "fuck",
+   "expect": "block:language"
+  },
+  {
+   "text": "FUCKING slow",
+   "expect": "block:language"
+  },
+  {
+   "text": "sex hormone binding globulin",
+   "expect": "pass"
+  }
+ ]
+}

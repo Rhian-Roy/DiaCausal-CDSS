@@ -209,3 +209,80 @@ describe('when the backend does not answer normally', () => {
     expect(lines(consoleError)).toContainEqual(expect.stringContaining('output check failed'))
   })
 })
+
+describe('guard notices (design/v1/09-12)', () => {
+  it('an identifier is stopped in the browser, never sent, and not shown back', async () => {
+    const fetchMock = stubBackend((request) => answeredReply(request.client_trace_id))
+    const { user, box } = setup()
+
+    await user.type(box, 'Patient Aadhaar 726018159082, HbA1c 8.4%{Enter}')
+
+    expect(await screen.findByText('Identifier removed — not sent')).toBeInTheDocument()
+    expect(screen.getByText('Patient Aadhaar [removed], HbA1c 8.4%')).toBeInTheDocument()
+    expect(document.body.textContent).not.toContain('726018159082')
+    expect(fetchMock).not.toHaveBeenCalled()
+    const printed = lines(consoleLog)
+    const traceId = /^\[([0-9a-f]{8})\] /.exec(printed[0] ?? '')?.[1]
+    expect(printed).toEqual([`[${traceId}] input passed`, `[${traceId}] ui guard passed`])
+    expect(lines(consoleWarn)).toEqual([`[${traceId}] medical ui guard blocked (identifier)`])
+  })
+
+  it('foul language fails the ui guard, is not sent and the message is not repeated', async () => {
+    const fetchMock = stubBackend((request) => answeredReply(request.client_trace_id))
+    const { user, box } = setup()
+
+    await user.type(box, 'what bullshit answer is this{Enter}')
+
+    expect(await screen.findByText('Cannot answer as written')).toBeInTheDocument()
+    expect(screen.getByText('Message not shown.')).toBeInTheDocument()
+    expect(document.body.textContent).not.toContain('bullshit')
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(lines(consoleWarn)).toContainEqual(expect.stringMatching(/^\[[0-9a-f]{8}\] ui guard blocked: .*\(language\)$/))
+    expect(lines(consoleWarn).join('\n')).not.toContain('bullshit')
+  })
+
+  it('an emergency shows only the emergency notice', async () => {
+    const fetchMock = stubBackend((request) => answeredReply(request.client_trace_id))
+    const { user, box } = setup()
+
+    await user.type(box, 'CBG 45 mg/dL, sweating{Enter}')
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('This may be an emergency. Follow your emergency protocol.')
+    expect(screen.getByText('DiaCausal has not answered this question and will not suggest treatment for it.')).toBeInTheDocument()
+    expect(screen.queryByText('DiaCausal answered')).not.toBeInTheDocument()
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('an out-of-scope question names the reason', async () => {
+    stubBackend((request) => answeredReply(request.client_trace_id))
+    const { user, box } = setup()
+
+    await user.type(box, 'She is pregnant, 28 weeks, on metformin{Enter}')
+
+    expect(await screen.findByText('Out of scope')).toBeInTheDocument()
+    expect(screen.getByText(/This question is about pregnancy\./)).toBeInTheDocument()
+  })
+
+  it('shows the notice when only the server guard blocks (the server has the final say)', async () => {
+    stubBackend((request) =>
+      blockedReply(request.client_trace_id, 'Out of scope: …', 'out_of_scope', 'type_1'),
+    )
+    const { user, box } = setup()
+
+    await user.type(box, 'HbA1c 8.4% on metformin{Enter}')
+
+    expect(await screen.findByText('Out of scope')).toBeInTheDocument()
+    expect(screen.getByText(/This question is about type 1 diabetes\./)).toBeInTheDocument()
+    expect(lines(consoleWarn)).toContainEqual(expect.stringContaining('backend blocked the message'))
+  })
+
+  it('hides the question when the server blocks it for language', async () => {
+    stubBackend((request) => blockedReply(request.client_trace_id, 'The message contains language that is not allowed.', 'language'))
+    const { user, box } = setup()
+
+    await user.type(box, 'HbA1c 8.4% on metformin{Enter}')
+
+    expect(await screen.findByText('Cannot answer as written')).toBeInTheDocument()
+    expect(screen.queryByText('HbA1c 8.4% on metformin')).not.toBeInTheDocument()
+  })
+})
