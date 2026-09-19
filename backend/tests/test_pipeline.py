@@ -55,7 +55,7 @@ def test_blocklist_matches_whole_words_only(monkeypatch):
     assert find_blocked_term("you ASS.") == "ass"
 
 
-def test_blocklist_is_empty_until_the_list_is_supplied():
+def test_ordinary_clinical_question_has_no_blocked_word():
     assert find_blocked_term("any ordinary clinical question") is None
 
 

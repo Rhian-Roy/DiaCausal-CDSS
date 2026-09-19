@@ -3,3 +3,4 @@
 fastapi==0.141.1
 uvicorn[standard]==0.53.0
 pydantic==2.13.5
+regex==2026.9.10  # Unicode word classes (\p{L}\p{M}\p{N}) for the shared guard rules
