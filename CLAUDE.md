@@ -23,7 +23,7 @@ python3.12 scripts/setup.py      # any OS; Windows: py -3.12 scripts\setup.py (s
 ## Check everything (tests, build, lint, live backend + page on spare ports)
 
 ```bash
-python3 scripts/check_all.py     # must end with "ALL 24 CHECKS PASSED"; Windows: py scripts\check_all.py
+python3 scripts/check_all.py     # must end with "ALL 32 CHECKS PASSED"; Windows: py scripts\check_all.py
 ```
 
 If you add a requirement, add a check for it here or in the tests, and update
@@ -83,12 +83,19 @@ If you add a requirement, add a check for it here or in the tests, and update
   **Never log message text** — only sizes, stage results and IDs. Client values echoed in
   errors or logs go through `_show` in app/errors.py (short, ASCII-escaped).
 
+## Sign-in (built) — see docs/explain/04-login-and-mfa.md
+
+- `backend/app/auth/` (CAPTCHA, Argon2id, TOTP, sessions, CSRF, lockout, audit, admin CLI),
+  `backend/app/db/` (SQLAlchemy 2 + Alembic; add a migration for every model change),
+  `frontend/src/features/auth/` (designs 01–08). `/api/v1/chat` needs `require_clinician`.
+- Secrets live in `backend/.env` (made by setup, never committed). Never log passwords,
+  codes, CAPTCHA answers or message text. First admin: `scripts/create_admin.py`.
+- Tests: the `client` fixture is already signed in; use `anon` for a stranger.
+
 ## Not built yet — where each piece goes
 
 | Piece | Backend | Frontend / other |
 |---|---|---|
-| Login (ID, password, 6-digit code, CAPTCHA) | `backend/app/auth/` | `frontend/src/features/auth/`, `design/login.html` |
-| Database | `backend/app/db/` | — |
 | Voice (speech-to-text) | `backend/app/voice/` | `frontend/src/features/voice/` (mic button is disabled) |
 | Docker | — | `docker/` |
 | Clinical guardrails, causal engine, RAG, LLM | `backend/app/pipeline/<stage>.py` | — |

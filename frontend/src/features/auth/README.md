@@ -1,12 +1,12 @@
-# auth — login page (not built yet)
+# auth — sign-in screens (built)
 
-**What goes here:** `LoginPage.tsx`, built from `design/login.html`
-(`design/login-desktop.png`): user ID, password, 6-digit code, CAPTCHA with "New image"
-and "Play audio", and the intended-use notice.
+Designs `design/v1/01-08`: `SignInPage` (01-03), `CodePage` (04-05), `MfaSetupPage` (06),
+`IntendedUsePage` (07), `SessionTimer` (08). `src/App.tsx` moves between them:
+sign in → [first time: authenticator set-up] → code → intended use → chat.
 
-**How it will connect:** `src/App.tsx` shows `<LoginPage />` until the backend says the
-clinician is signed in (see `backend/app/auth/README.md`), then `<ChatPage />`. The top
-bar (`src/components/chat/TopBar.tsx`) then shows the clinician's name and "Sign out".
+`api.ts` calls `/api/v1/auth/*`. The session is an `HttpOnly` cookie the page cannot
+read; the CSRF token is kept in memory only (`src/lib/authSession.ts`) and sent as
+`X-CSRF-Token`. The browser never stores the password or code.
 
-**Rules:** the browser never stores the password or code; the session lives in an
-`HttpOnly` cookie the page cannot read.
+Console lines (with a trace ID): `login input passed`, `captcha passed`, `password passed`,
+`mfa passed`. Tests: `src/App.test.tsx`.

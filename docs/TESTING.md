@@ -14,8 +14,8 @@ report one.
 (First time on a computer? Do the setup in [SETUP.md](SETUP.md) first.)
 
 It takes a few seconds and prints `[PASS]` or `[FAIL]` per line, ending with
-`ALL 24 CHECKS PASSED`. Those 24 lines are: 4 tool checks, 1 line for all 226 backend
-tests, 1 line for all 174 frontend tests, build, lint, then 16 live checks. It starts its
+`ALL 32 CHECKS PASSED`. Those 32 lines are: 4 tool checks, 1 line for all 283 backend
+tests, 1 line for all 191 frontend tests, build, lint, then 24 live checks. It starts its
 own copy of the app on spare ports, so it does not disturb servers you already have
 running.
 
@@ -38,6 +38,12 @@ green tick or red cross next to each commit, or the **Actions** tab.
 | Foul language blocked (UI side, whiteboard "FOUL LANGUAGES … if found BLOCK"), medical allowlist wins, word never repeated | Section 2 `backend/tests/test_guard_rules.py`, section 3 `frontend/src/lib/guards.test.ts` + page test *"foul language fails the ui guard…"*, section 6 *"foul language is blocked by the server guard…"* |
 | Medical UI guards: identifiers (notice 09), out of scope (10), emergency (11), language (12); same answer in browser and server | Sections 2 and 3 run all 47 cases in `shared/guard_rules/examples.v1.json` and 55 extra cases in `frontend/src/test/guardAgreement.json` on both sides; page tests *"guard notices (design/v1/09-12)"*; section 6 *"a patient identifier is blocked by the server guard"* |
 | The guard rules version is logged with the trace ID, never the blocked word | Section 2 `test_rules_version_is_logged_with_the_trace_id`, section 6 *"the backend log shows the guard rules version…"* |
+| Login page: user ID + password + CAPTCHA (Python `captcha` library, image + audio) | Section 3 `frontend/src/App.test.tsx` (*"first sign-in…"*, *"the CAPTCHA sits inside the form…"*); section 6 *"the CAPTCHA comes as an image and as audio"*, *"sign-in works…"* |
+| MFA (6-digit code), backend authentication | Section 2 `backend/tests/test_auth.py` (wrong/reused code, lockout, timeouts…); section 6 *"sign-in works: user ID + password + CAPTCHA, then authenticator set-up and a 6-digit code"* |
+| Wrong details → one message "Those details did not match" | Section 2 `test_wrong_password`, `test_unknown_user_gets_exactly_the_same_answer`; section 6 *"a wrong password gets…"* |
+| Chat only for signed-in users; CSRF token required | Section 2 `test_chat_without_a_session_is_401`, `test_chat_without_the_csrf_header_is_403`; section 6 *"chat without signing in is refused (401)"*, *"…without the CSRF token is refused (403)"* |
+| Master login = admin role (no shared login) | Section 2 `backend/tests/test_admin.py`; section 6 *"scripts/create_admin.py creates an admin account"* |
+| Every chat request in the audit log (request_id + trace ID, no text) | Section 2 `test_every_chat_request_is_audited…`; section 6 *"every chat request is in audit_log…"* |
 | Message text never written to the log | Section 2 (`test_message_text_is_never_logged`) and section 6 |
 | The code type-checks, builds and has no lint problems | Sections 4 and 5 |
 | Colours, fonts, layout match `design/` | By eye only: part 2, steps 1 and 7 |
@@ -67,6 +73,7 @@ terminal side by side.
 | # | Do | You should see |
 |---|---|---|
 | 1 | Look at the page next to `design/chat-desktop.png` | Dark pine-green top bar, serif "DiaCausal", "RESEARCH PROTOTYPE" badge, bold patient line with an "Example data" chip, a white message box with a mic and a green arrow button, the disclaimer under it |
+| 1b | Sign in as in [SETUP.md step 5c](SETUP.md#5c-sign-in-use-chrome) | Console: `login input passed`, `captcha passed`, `password passed`, then `mfa passed`; your name and **Sign out** top right |
 | 2 | Type `HbA1c 8.4% on metformin. What should I add?` and press **Enter** | Console: four lines `[xxxxxxxx] input passed`, `… ui guard passed`, `… medical ui guard passed`, `… output passed` — the same 8 characters on each |
 | 3 | Look at terminal 1 | Eight lines with that same `[xxxxxxxx]`: request received, six stages, reply sent. Your question's words do **not** appear |
 | 4 | Look at the chat | "YOU ASKED" + your question; a white card "DIACAUSAL ANSWERED" with the dummy reply, "2 of 6 stages ran; the others are not built yet", and "Trace ID xxxxxxxx" matching the console |
@@ -81,7 +88,8 @@ terminal side by side.
 
 | Not tested | Why |
 |---|---|
-| Login, MFA, CAPTCHA, database, Docker, voice | Not built yet; each has a README where it will go (see `CLAUDE.md`) |
+| Docker | Not built yet (`docker/README.md`) |
+| Scanning the QR code with a real phone | By hand only (SETUP.md step 5c); the automated checks compute the code from the key, as the phone would |
 | The four clinical stages (guardrails, causal engine, RAG, LLM) | Not connected yet; they return `skipped` |
 | Whether the guard lists are clinically right | `rules.v1.json` is a **draft**: Member D must review every list and the collaborating doctor the clinical ones (status field in the file) |
 | The real page against the real backend, automatically | The page's tests use a fake backend (`frontend/src/test/fakeBackend.ts`); `check_all` section 7 sends a request through the page's server but does not run the page's JavaScript. The two together were checked by hand in a browser (part 2). A browser-automation test (e.g. Playwright) would close this gap |
