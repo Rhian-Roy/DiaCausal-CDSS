@@ -11,6 +11,6 @@ The app brings the tables up to date on start-up (`app.db.configure`).
 | `captcha_challenges` | open CAPTCHAs (single use, 5 minutes) |
 | `audit_log` | time, event, user, server `request_id`, client trace ID, outcome, stage statuses — never message text or secrets |
 
-**Changing a table:** edit `models.py`, then from `backend/` generate a migration
-(`.venv/bin/python -m alembic -c <config> revision --autogenerate`, see `migrations/`),
-check it, and commit both. `tests/test_admin.py` fails if models and migrations differ.
+**Changing a table:** edit `models.py`, then from `backend/` run
+`.venv/bin/python -m app.db.new_migration "what changed"`, read the new file in
+`migrations/versions/`, and commit both. `tests/test_admin.py` fails if models and migrations differ.
