@@ -1,0 +1,249 @@
+{
+ "version": "1.0.0-draft",
+ "note": "Shared by pytest and vitest. Aadhaar-format numbers are randomly generated fakes with a valid Verhoeff digit; they belong to no one.",
+ "outcomes": [
+  "pass",
+  "block:identifier",
+  "block:language",
+  "out_of_scope:<category>",
+  "emergency"
+ ],
+ "cases": [
+  {
+   "id": "p01",
+   "text": "HbA1c 8.4% on metformin 1 g BD, eGFR 62. Which add-on?",
+   "expect": "pass"
+  },
+  {
+   "id": "p02",
+   "text": "Recurrent genital mycotic infection on dapagliflozin — switch to a DPP-4 inhibitor?",
+   "expect": "pass"
+  },
+  {
+   "id": "p03",
+   "text": "Male, 54, erectile dysfunction, HbA1c 8.9%. Any agent to avoid?",
+   "expect": "pass"
+  },
+  {
+   "id": "p04",
+   "text": "History of anal fissure; Fournier's gangrene risk with empagliflozin?",
+   "expect": "pass"
+  },
+  {
+   "id": "p05",
+   "text": "Urine ketones positive last month on dapagliflozin, eGFR 58.",
+   "expect": "pass"
+  },
+  {
+   "id": "p06",
+   "text": "Breast cancer survivor, BMI 29, HbA1c 8.1% on metformin.",
+   "expect": "pass"
+  },
+  {
+   "id": "p07",
+   "text": "Assess renal function before titrating glimepiride.",
+   "expect": "pass"
+  },
+  {
+   "id": "p08",
+   "text": "Analysis of Cockcroft-Gault creatinine clearance vs eGFR for sitagliptin.",
+   "expect": "pass"
+  },
+  {
+   "id": "p09",
+   "text": "Finger-prick glucose 180 mg/dL after lunch.",
+   "expect": "pass"
+  },
+  {
+   "id": "p10",
+   "text": "Cumulative dose of glimepiride over 2 years?",
+   "expect": "pass"
+  },
+  {
+   "id": "p11",
+   "text": "Tablet vildagliptin-cum-metformin — keep or change?",
+   "expect": "pass"
+  },
+  {
+   "id": "p12",
+   "text": "Patient on sildenafil (Viagra) — interaction with gliclazide?",
+   "expect": "pass"
+  },
+  {
+   "id": "p13",
+   "text": "Patient complains of tatti mein jalan and frequent peshab.",
+   "expect": "pass"
+  },
+  {
+   "id": "p14",
+   "text": "मधुमेह रोगी, HbA1c 8.2%",
+   "expect": "pass"
+  },
+  {
+   "id": "p15",
+   "text": "Type 2 diabetes for 6 years, not pregnant, no prior DKA.",
+   "expect": "pass"
+  },
+  {
+   "id": "p16",
+   "text": "History of seizures as a child, now 52 with T2DM on metformin.",
+   "expect": "pass"
+  },
+  {
+   "id": "p17",
+   "text": "Past severe hypoglycaemia on glibenclamide two years ago.",
+   "expect": "pass"
+  },
+  {
+   "id": "p18",
+   "text": "Lab accession 726018159083 (12 digits, invalid checksum) — HbA1c 8.1%",
+   "expect": "pass"
+  },
+  {
+   "id": "p19",
+   "text": "FBS 126 mg/dL, PPBS 210 mg/dL, HbA1c 7.9%.",
+   "expect": "pass"
+  },
+  {
+   "id": "p20",
+   "text": "Fasting glucose 7.8 mmol/L on metformin.",
+   "expect": "pass"
+  },
+  {
+   "id": "p21",
+   "text": "Monthly budget around ₹XXX for the second drug.",
+   "expect": "pass"
+  },
+  {
+   "id": "p22",
+   "text": "Transgender woman, 44, T2D on metformin, HbA1c 8.0%.",
+   "expect": "pass"
+  },
+  {
+   "id": "i01",
+   "text": "Patient Aadhaar 726018159082, HbA1c 8.4%",
+   "expect": "block:identifier"
+  },
+  {
+   "id": "i02",
+   "text": "UID 5016 6131 8603 please check eGFR",
+   "expect": "block:identifier"
+  },
+  {
+   "id": "i03",
+   "text": "Call relative on +91 98765 43210 if hypo",
+   "expect": "block:identifier"
+  },
+  {
+   "id": "i04",
+   "text": "Mobile 9876543210, HbA1c 9%",
+   "expect": "block:identifier"
+  },
+  {
+   "id": "i05",
+   "text": "PAN ABCPE1234F on the file",
+   "expect": "block:identifier"
+  },
+  {
+   "id": "i06",
+   "text": "Email ramesh.k@example.com for reports",
+   "expect": "block:identifier"
+  },
+  {
+   "id": "i07",
+   "text": "ABHA 91-1234-5678-9012 linked",
+   "expect": "block:identifier"
+  },
+  {
+   "id": "i08",
+   "text": "ABHA address ramesh.k@abdm",
+   "expect": "block:identifier"
+  },
+  {
+   "id": "l01",
+   "text": "This fucking app is slow",
+   "expect": "block:language"
+  },
+  {
+   "id": "l02",
+   "text": "what bullshit answer is this",
+   "expect": "block:language"
+  },
+  {
+   "id": "l03",
+   "text": "chutiya system",
+   "expect": "block:language"
+  },
+  {
+   "id": "l04",
+   "text": "that is a piece of shit reply",
+   "expect": "block:language"
+  },
+  {
+   "id": "s01",
+   "text": "Type 1 diabetes, 24 y, HbA1c 9% — add SGLT2i?",
+   "expect": "out_of_scope:type_1"
+  },
+  {
+   "id": "s02",
+   "text": "She is pregnant, 28 weeks, on metformin",
+   "expect": "out_of_scope:pregnancy"
+  },
+  {
+   "id": "s03",
+   "text": "Gestational diabetes at 30 weeks",
+   "expect": "out_of_scope:pregnancy"
+  },
+  {
+   "id": "s04",
+   "text": "Paediatric patient with T2D on metformin",
+   "expect": "out_of_scope:under_18"
+  },
+  {
+   "id": "s05",
+   "text": "Admitted with DKA yesterday",
+   "expect": "out_of_scope:dka_hhs"
+  },
+  {
+   "id": "s06",
+   "text": "Should I start insulin instead?",
+   "expect": "out_of_scope:insulin_start"
+  },
+  {
+   "id": "e01",
+   "text": "Patient unconscious in OPD, sugar 38",
+   "expect": "emergency"
+  },
+  {
+   "id": "e02",
+   "text": "Having a seizure right now",
+   "expect": "emergency"
+  },
+  {
+   "id": "e03",
+   "text": "CBG 45 mg/dL, sweating",
+   "expect": "emergency"
+  },
+  {
+   "id": "e04",
+   "text": "RBS 2.4 mmol/L",
+   "expect": "emergency"
+  },
+  {
+   "id": "e05",
+   "text": "GRBS 650 mg/dL and drowsy",
+   "expect": "emergency"
+  },
+  {
+   "id": "e06",
+   "text": "Severe hypoglycaemia at home today",
+   "expect": "emergency"
+  },
+  {
+   "id": "i09",
+   "text": "Lab accession 7260181590 attached",
+   "expect": "block:identifier",
+   "why": "documented false positive: 10 digits starting 7 look like a mobile number"
+  }
+ ]
+}

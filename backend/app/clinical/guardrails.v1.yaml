@@ -1,0 +1,203 @@
+# DiaCausal clinical guardrails — DRAFT v1.0.0-draft (2026-09-19)
+#
+# STATUS: DRAFT. NOT FOR USE ON PATIENTS.
+#   - Every rule must be checked by Member D against its source AND reviewed by the
+#     collaborating doctor. Fill reviewed_by / reviewed_on only after that review.
+#   - Sources are US FDA labels and FDA safety communications. Indian (CDSCO) labelling
+#     can differ; the doctor must confirm each rule for Indian practice.
+#   - Drugs common in India with NO US label (vildagliptin, teneligliptin, gliclazide,
+#     remogliflozin) are NOT covered by these rules.
+#
+# Semantics (see prompt 5):
+#   scope: patient  -> the whole question is refused (abstain) before any ranking.
+#   scope: option   -> acts on one of: sglt2i | dpp4i | sulfonylurea
+#   action: abstain | do_not_use | check_first | info
+#   A "do_not_use" option is removed BEFORE the causal stage (safety invariant 2).
+#   verified: "yes" = rule text matched in the source during this pass;
+#             "recheck" = taken from earlier team research, re-open the source.
+#   requires_field: the patient panel must collect this field first (not in panel yet).
+version: 1.0.0-draft
+status: draft_not_reviewed
+rules:
+  - id: G00_metformin_egfr_lt30
+    scope: patient
+    when: "egfr_ml_min_1_73m2 < 30"
+    action: abstain
+    reason: "Metformin is contraindicated below eGFR 30, so 'adding to metformin' does not apply. Outside DiaCausal's scope."
+    source: {title: "FDA Drug Safety Communication: revised warnings for metformin in reduced kidney function", version: "8 Apr 2016 (labels updated Apr 2017)", section: "Recommendations for health care professionals", url: "https://www.fda.gov/drugs/drug-safety-and-availability/fda-drug-safety-communication-fda-revises-warnings-regarding-use-diabetes-medicine-metformin-certain"}
+    verified: "yes"
+    reviewed_by: null
+    reviewed_on: null
+
+  - id: G00b_missing_egfr
+    scope: patient
+    when: "egfr_ml_min_1_73m2 is missing"
+    action: abstain
+    reason: "Kidney function is needed before any of the three options can be judged."
+    source: {title: "DiaCausal design rule (every option has an eGFR-dependent rule below)", version: "v1", section: "—", url: null}
+    verified: "yes"
+    reviewed_by: null
+    reviewed_on: null
+
+  - id: G01_sglt2i_egfr_lt30
+    scope: option
+    option: sglt2i
+    when: "egfr_ml_min_1_73m2 < 30"
+    action: do_not_use
+    reason: "SGLT2 inhibitors are not recommended to improve glycaemic control below eGFR 30 (empagliflozin) or below 45 (dapagliflozin); they are likely ineffective for HbA1c here."
+    note: "Kidney/heart protection is a different goal (see G15); this rule is about the HbA1c outcome only."
+    source:
+      - {title: "JARDIANCE (empagliflozin) US prescribing information", version: "label 204629s041 (2023)", section: "1 Indications and Usage — Limitations of Use", url: "https://www.accessdata.fda.gov/drugsatfda_docs/label/2023/204629s041lbl.pdf"}
+      - {title: "FARXIGA (dapagliflozin) US prescribing information", version: "label 202293s035 (2026)", section: "1 Indications and Usage — Limitations of Use", url: "https://www.accessdata.fda.gov/drugsatfda_docs/label/2026/202293s035lbl.pdf"}
+    verified: "yes"
+    reviewed_by: null
+    reviewed_on: null
+
+  - id: G02_sglt2i_egfr_30_to_45
+    scope: option
+    option: sglt2i
+    when: "30 <= egfr_ml_min_1_73m2 < 45"
+    action: check_first
+    reason: "Dapagliflozin is not recommended for glycaemic control below eGFR 45; empagliflozin may be used down to 30. Expect a smaller HbA1c fall at this eGFR. Choose the agent accordingly."
+    source: {title: "FARXIGA (dapagliflozin) US prescribing information", version: "label 202293s035 (2026)", section: "1 Limitations of Use; 2 Dosage and Administration", url: "https://www.accessdata.fda.gov/drugsatfda_docs/label/2026/202293s035lbl.pdf"}
+    verified: "yes"
+    reviewed_by: null
+    reviewed_on: null
+
+  - id: G03_sglt2i_past_dka
+    scope: option
+    option: sglt2i
+    when: "past_dka == true"
+    requires_field: past_dka
+    action: do_not_use
+    reason: "History of ketoacidosis. SGLT2 inhibitors carry a ketoacidosis warning."
+    source: {title: "FARXIGA / JARDIANCE US prescribing information", version: "current", section: "5 Warnings and Precautions — Ketoacidosis", url: null}
+    verified: "recheck"
+    decision_for_doctor: "Is do_not_use right, or check_first?"
+    reviewed_by: null
+    reviewed_on: null
+
+  - id: G04_sglt2i_recurrent_genital_infection
+    scope: option
+    option: sglt2i
+    when: "recurrent_genital_or_urinary_infection == true"
+    requires_field: recurrent_genital_or_urinary_infection
+    action: check_first
+    reason: "Genital mycotic infections are a labelled adverse effect of SGLT2 inhibitors."
+    source: {title: "JARDIANCE US prescribing information", version: "2016 label 204629s012", section: "5 Warnings and Precautions — Genital mycotic infections", url: "https://www.accessdata.fda.gov/drugsatfda_docs/label/2016/204629s012lbl.pdf"}
+    verified: "yes"
+    reviewed_by: null
+    reviewed_on: null
+
+  - id: G07_dpp4i_heart_failure
+    scope: option
+    option: dpp4i
+    when: "heart_failure == true"
+    action: check_first
+    reason: "Saxagliptin and alogliptin may increase heart-failure risk, particularly with existing heart or kidney disease. If a DPP-4 inhibitor is chosen, avoid these two agents."
+    source: {title: "FDA Drug Safety Communication: saxagliptin- and alogliptin-containing medicines and heart failure", version: "5 Apr 2016", section: "Safety announcement", url: "https://www.drugs.com/fda-alerts/3448-0.html"}
+    verified: "yes"
+    note: "URL is a mirror of the FDA text; Member D to replace with the fda.gov page."
+    reviewed_by: null
+    reviewed_on: null
+
+  - id: G08_dpp4i_past_pancreatitis
+    scope: option
+    option: dpp4i
+    when: "past_pancreatitis == true"
+    requires_field: past_pancreatitis
+    action: check_first
+    reason: "Pancreatitis has been reported with DPP-4 inhibitors; sitagliptin was not studied in people with past pancreatitis."
+    source: {title: "JANUVIA (sitagliptin) US prescribing information", version: "current", section: "5.1 Pancreatitis", url: null}
+    verified: "recheck"
+    reviewed_by: null
+    reviewed_on: null
+
+  - id: G09_dpp4i_egfr_lt45
+    scope: option
+    option: dpp4i
+    when: "egfr_ml_min_1_73m2 < 45"
+    action: check_first
+    reason: "Renal dose adjustment is needed for sitagliptin (and most DPP-4 inhibitors except linagliptin). Dose comes from the label table, never from the explanation text."
+    source: {title: "JANUVIA (sitagliptin) US prescribing information", version: "current", section: "2.2 Use in Renal Impairment", url: null}
+    verified: "recheck"
+    reviewed_by: null
+    reviewed_on: null
+
+  - id: G10_su_past_severe_hypo
+    scope: option
+    option: sulfonylurea
+    when: "past_hypoglycaemia == 'severe'"
+    action: check_first
+    reason: "Sulfonylureas can cause severe hypoglycaemia. In CANTATA-SU, hypoglycaemia over 52 weeks was 34% with glimepiride vs 5–6% with canagliflozin; severe hypoglycaemia 3% vs <1%."
+    source:
+      - {title: "AMARYL (glimepiride) US prescribing information", version: "current", section: "5.1 Hypoglycemia", url: null}
+      - {title: "Cefalu WT et al. CANTATA-SU. Lancet 2013;382:941-950 (summarised in Clin Diabetes 2014;32(2):81-86, PMC4485248)", version: "2013", section: "Results", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC4485248"}
+    verified: "recheck"
+    decision_for_doctor: "Should a past SEVERE hypo make sulfonylurea do_not_use instead of check_first?"
+    reviewed_by: null
+    reviewed_on: null
+
+  - id: G11_su_past_mild_hypo
+    scope: option
+    option: sulfonylurea
+    when: "past_hypoglycaemia == 'mild'"
+    action: check_first
+    reason: "Previous hypoglycaemia raises the risk of further episodes on a sulfonylurea."
+    source: {title: "AMARYL (glimepiride) US prescribing information", version: "current", section: "5.1 Hypoglycemia", url: null}
+    verified: "recheck"
+    reviewed_by: null
+    reviewed_on: null
+
+  - id: G12_su_egfr_lt30
+    scope: option
+    option: sulfonylurea
+    when: "egfr_ml_min_1_73m2 < 30"
+    action: check_first
+    reason: "Renal impairment increases hypoglycaemia risk with sulfonylureas; glimepiride label advises a conservative start and titration. Glibenclamide (glyburide) is generally avoided in CKD."
+    source: {title: "AMARYL (glimepiride) US prescribing information", version: "current", section: "2.1 Recommended dosing; 8.6 Renal impairment", url: null}
+    verified: "recheck"
+    decision_for_doctor: "Indian practice with gliclazide — same rule?"
+    reviewed_by: null
+    reviewed_on: null
+
+  - id: G13_su_older_adult
+    scope: option
+    option: sulfonylurea
+    when: "age_years >= TODO_AGE"
+    action: check_first
+    reason: "Older adults are more sensitive to sulfonylurea hypoglycaemia."
+    source: {title: "TODO — Member D: cite a guideline that states the age threshold", version: null, section: null, url: null}
+    verified: "no — loader must refuse this rule until TODO_AGE and source are filled"
+    reviewed_by: null
+    reviewed_on: null
+
+  - id: G15_sglt2i_ckd_info
+    scope: option
+    option: sglt2i
+    when: "ckd == true and egfr_ml_min_1_73m2 >= 20"
+    action: info
+    reason: "Separate from HbA1c: KDIGO 2022 recommends SGLT2 inhibitors for people with T2D and CKD at eGFR 20 or above for kidney and heart protection (the 2020 version said 30)."
+    source: {title: "KDIGO 2022 Clinical Practice Guideline for Diabetes Management in CKD. Kidney Int 2022;102(5S):S1-S127", version: "2022", section: "Chapter 1 — SGLT2i recommendation (Member D: add exact recommendation number)", url: "https://kdigo.org/wp-content/uploads/2023/12/KDIGO-2022-Diabetes-Guideline.pdf"}
+    verified: "yes"
+    reviewed_by: null
+    reviewed_on: null
+
+  - id: G16_sglt2i_ascvd_hf_info
+    scope: option
+    option: sglt2i
+    when: "established_ascvd == true or heart_failure == true"
+    action: info
+    reason: "Separate from HbA1c: empagliflozin has a US indication to reduce cardiovascular death in T2D with established cardiovascular disease; dapagliflozin and empagliflozin have heart-failure indications."
+    source:
+      - {title: "JARDIANCE US prescribing information", version: "label 204629s041 (2023)", section: "1 Indications and Usage", url: "https://www.accessdata.fda.gov/drugsatfda_docs/label/2023/204629s041lbl.pdf"}
+      - {title: "FARXIGA US prescribing information", version: "label 202293s035 (2026)", section: "1 Indications and Usage", url: "https://www.accessdata.fda.gov/drugsatfda_docs/label/2026/202293s035lbl.pdf"}
+    verified: "yes"
+    reviewed_by: null
+    reviewed_on: null
+
+# Fields to ADD to the patient panel (prompt 4) so rules G03, G04, G08 can run:
+#   past_dka (bool), recurrent_genital_or_urinary_infection (bool), past_pancreatitis (bool)
+# Correction to earlier team notes: the current JARDIANCE label no longer lists dialysis as a
+# contraindication (a 2023 manufacturer summary says "No contraindication for patients on
+# dialysis"); dapagliflozin's label still does. G01 already removes SGLT2i below eGFR 30.

@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DiaCausal — How to use DiaCausal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+:root{
+  /* ---- from login.html / chat.html (unchanged) ---- */
+  --ground:#F4F7F3;
+  --surface:#FFFFFF;
+  --ink:#12211A;
+  --ink-muted:#3C4A42;
+  --ink-placeholder:#6B776F;
+
+  --pine:#0E5049;
+  --pine-dark:#083B36;
+  --pine-hairline:#7FB8A8;
+  --on-pine-muted:#CFE3DC;
+
+  --border-strong:#9FB0A6;
+  --border-soft:#C8D4CB;
+  --track:#DCE6DF;
+
+  --safe-ink:#14562A;   --safe-line:#1B6B33;  --safe-fill:#DEF0E2;
+  --check-ink:#6E4400;  --check-line:#6E4400; --check-fill:#FBEBCB;
+  --danger-ink:#8A1010; --danger-line:#8A1010;--danger-fill:#FADCDC;
+
+  --font-body:'Atkinson Hyperlegible', Verdana, system-ui, sans-serif;
+  --font-display:'Source Serif 4', Georgia, serif;
+
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:22px; --s6:24px; --s7:32px;
+
+  --r-control:8px; --r-status:10px; --r-card:12px;
+  --border-w:2px;
+  --h-input:56px; --h-button:58px; --h-touch:52px;
+
+  /* ---- NEW tokens (added for these screens) ---- */
+  --pine-fill:#E4EEEB;                  /* informational notice ground */
+  --on-danger:#FFFFFF;                  /* text on solid danger bar */
+  --scrim:rgba(18,33,26,0.55);          /* modal overlay, from --ink */
+  --border-w-strong:3px;                /* emergency card only */
+  --font-mono:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  font-family:var(--font-body);
+  background:var(--ground);
+  color:var(--ink);
+  font-size:18px;line-height:1.55;
+  -webkit-text-size-adjust:100%;
+}
+a{color:var(--pine)}
+a:hover{color:var(--pine-dark)}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{
+  outline:3px solid var(--pine);outline-offset:2px;border-radius:2px;
+}
+input::placeholder,textarea::placeholder{color:var(--ink-placeholder)}
+.icon{flex-shrink:0}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+/* ---------- top bar ---------- */
+.topbar{
+  background:var(--pine);
+  padding:var(--s3) var(--s7);
+  display:flex;align-items:center;justify-content:space-between;gap:var(--s4);flex-wrap:wrap;
+}
+.brand{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap}
+.brand__name{font-family:var(--font-display);font-size:24px;font-weight:600;color:#fff;letter-spacing:-0.01em}
+.tag{
+  font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#fff;
+  border:var(--border-w) solid var(--pine-hairline);border-radius:6px;padding:4px 10px;white-space:nowrap;
+}
+.topbar__right{display:flex;align-items:center;gap:var(--s5);flex-wrap:wrap}
+.topbar__user{font-size:16px;color:var(--on-pine-muted)}
+.topbar__link{color:#fff;font-weight:700;font-size:16px;min-height:44px;display:flex;align-items:center}
+
+/* ---------- auth layout ---------- */
+.auth{max-width:1280px;margin:0 auto;padding:var(--s7)}
+.auth--single{max-width:720px}
+.col{display:flex;flex-direction:column;gap:var(--s5)}
+.stepnote{font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-muted)}
+h1{font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.2;margin:0}
+h2{font-family:var(--font-display);font-size:26px;font-weight:600;line-height:1.25;margin:0}
+h3{font-size:19px;font-weight:700;margin:0}
+p{margin:0}
+.lede{color:var(--ink-muted)}
+
+/* sign-in form: captcha sits in the right column on desktop but stays
+   before the submit button in DOM / keyboard order */
+.signin{
+  display:grid;
+  grid-template-columns:minmax(0,560px) minmax(0,1fr);
+  gap:var(--s5) 64px;align-items:start;
+}
+.signin > *{grid-column:1}
+.signin .captcha{grid-column:2;grid-row:1 / span 8}
+
+/* ---------- fields ---------- */
+.field{display:flex;flex-direction:column;gap:var(--s2)}
+.field__label{font-size:18px;font-weight:700}
+.field__hint{font-size:16px;color:var(--ink-muted)}
+.input{
+  height:var(--h-input);width:100%;padding:0 var(--s4);
+  font-family:inherit;font-size:19px;color:var(--ink);
+  background:var(--surface);
+  border:var(--border-w) solid var(--border-strong);
+  border-radius:var(--r-control);
+}
+.input--otp{width:260px;max-width:100%;font-size:26px;font-weight:700;letter-spacing:0.3em}
+.input[aria-invalid="true"]{border-color:var(--danger-line);border-width:var(--border-w-strong)}
+.input:disabled{background:var(--track);color:var(--ink-muted)}
+
+/* ---------- buttons ---------- */
+.btn{font-family:inherit;font-weight:700;cursor:pointer;border-radius:var(--r-control);border:var(--border-w) solid}
+.btn--primary{height:var(--h-button);font-size:20px;color:#fff;background:var(--pine);border-color:var(--pine);padding:0 var(--s6)}
+.btn--primary:hover{background:var(--pine-dark);border-color:var(--pine-dark)}
+.btn--primary[disabled]{background:var(--track);border-color:var(--border-strong);color:var(--ink-muted);cursor:not-allowed}
+.btn--ghost{
+  min-height:var(--h-touch);padding:0 var(--s4);font-size:17px;
+  color:var(--ink);background:var(--surface);border-color:var(--border-strong);
+  display:inline-flex;align-items:center;justify-content:center;gap:var(--s2);
+}
+.btn--ghost:hover{border-color:var(--ink-muted)}
+.linkrow{min-height:44px;display:inline-flex;align-items:center;font-weight:700;font-size:17px}
+.btnrow{display:flex;flex-wrap:wrap;gap:var(--s3)}
+
+/* ---------- cards, alerts ---------- */
+.card{
+  background:var(--surface);border:var(--border-w) solid var(--border-soft);
+  border-radius:var(--r-card);padding:var(--s5);
+  display:flex;flex-direction:column;gap:var(--s3);
+}
+.notice{
+  background:var(--surface);border:var(--border-w) solid var(--border-soft);
+  border-radius:var(--r-card);padding:var(--s4);
+  display:flex;gap:var(--s3);align-items:flex-start;
+}
+.notice p{font-size:17px}
+
+.alert{
+  border:var(--border-w) solid;border-radius:var(--r-status);
+  padding:var(--s4);display:flex;gap:14px;align-items:flex-start;
+}
+.alert__body{display:flex;flex-direction:column;gap:var(--s1)}
+.alert__word{font-size:19px;font-weight:700}
+.alert p{font-size:17px;line-height:1.5;color:var(--ink)}
+.alert--danger{background:var(--danger-fill);border-color:var(--danger-line)}
+.alert--danger .alert__word{color:var(--danger-ink)}
+.alert--check{background:var(--check-fill);border-color:var(--check-line)}
+.alert--check .alert__word{color:var(--check-ink)}
+.alert--safe{background:var(--safe-fill);border-color:var(--safe-line)}
+.alert--safe .alert__word{color:var(--safe-ink)}
+.alert--info{background:var(--pine-fill);border-color:var(--pine)}
+.alert--info .alert__word{color:var(--pine)}
+
+/* ---------- captcha ---------- */
+.captcha{
+  background:var(--surface);border:var(--border-w) solid var(--border-soft);
+  border-radius:var(--r-card);padding:var(--s5);
+  display:flex;flex-direction:column;gap:var(--s3);
+}
+.captcha__image{
+  width:100%;height:96px;
+  border:var(--border-w) dashed var(--border-strong);border-radius:var(--r-control);
+  background:var(--ground);color:var(--ink-muted);
+  font-size:14px;letter-spacing:0.12em;
+  display:flex;align-items:center;justify-content:center;text-align:center;padding:var(--s2);
+}
+.captcha__actions{display:flex;flex-wrap:wrap;gap:var(--s3)}
+
+/* ---------- key groups (MFA setup) ---------- */
+.qr{
+  width:220px;height:220px;max-width:100%;
+  border:var(--border-w) dashed var(--border-strong);border-radius:var(--r-control);
+  background:var(--ground);color:var(--ink-muted);font-size:14px;letter-spacing:0.1em;
+  display:flex;align-items:center;justify-content:center;text-align:center;padding:var(--s3);
+}
+.key{
+  display:flex;flex-wrap:wrap;gap:var(--s2);
+  font-family:var(--font-mono);font-size:20px;font-weight:700;letter-spacing:0.08em;
+}
+.key span{
+  background:var(--ground);border:var(--border-w) solid var(--border-soft);
+  border-radius:6px;padding:6px 10px;
+}
+.steps{margin:0;padding-left:26px;display:flex;flex-direction:column;gap:var(--s2);font-size:17px}
+
+/* ---------- checkbox row ---------- */
+.checkrow{
+  display:flex;align-items:flex-start;gap:var(--s3);
+  min-height:44px;padding:var(--s3);
+  border:var(--border-w) solid var(--border-strong);border-radius:var(--r-control);
+  background:var(--surface);
+}
+.checkrow input{width:26px;height:26px;margin:2px 0 0;accent-color:var(--pine);flex-shrink:0}
+.checkrow label{font-size:18px;font-weight:700}
+
+.twocol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s5)}
+.list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:var(--s3)}
+.list li{display:flex;gap:var(--s3);align-items:flex-start;font-size:17px;line-height:1.5}
+
+/* ---------- chat shell ---------- */
+.chat{display:flex;flex-direction:column;height:100dvh}
+.patient{
+  flex-shrink:0;background:var(--surface);
+  border-bottom:var(--border-w) solid var(--border-soft);
+  padding:var(--s3) var(--s7);
+  display:flex;align-items:center;justify-content:space-between;gap:var(--s4);flex-wrap:wrap;
+}
+.patient p{font-size:18px;font-weight:700;line-height:1.4}
+.chip{
+  font-size:14px;font-weight:700;color:var(--ink-muted);
+  background:var(--ground);border:var(--border-w) solid var(--border-soft);
+  border-radius:6px;padding:4px 10px;white-space:nowrap;
+}
+.thread{
+  flex:1 1 auto;min-height:0;overflow-y:auto;
+  padding:var(--s6) var(--s7);display:flex;flex-direction:column;gap:var(--s5);
+}
+.turn{max-width:900px;display:flex;flex-direction:column;gap:var(--s2)}
+.turn__who{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-muted)}
+.composer{
+  flex-shrink:0;background:var(--surface);
+  border-top:var(--border-w) solid var(--border-soft);
+  padding:14px var(--s7) 18px;display:flex;flex-direction:column;gap:var(--s3);
+}
+.composer__box{
+  display:flex;align-items:flex-end;gap:var(--s3);padding:10px var(--s3);
+  border:var(--border-w) solid var(--border-strong);border-radius:var(--r-card);
+}
+.composer__box textarea{
+  flex:1 1 auto;resize:none;border:0;outline:none;background:transparent;
+  font-family:inherit;font-size:19px;line-height:1.5;color:var(--ink);padding:8px 4px;
+}
+.iconbtn{
+  width:var(--h-touch);height:var(--h-touch);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  border:var(--border-w) solid var(--border-strong);border-radius:var(--r-control);
+  background:var(--surface);color:var(--ink);
+}
+.iconbtn--send{background:var(--pine);border-color:var(--pine);color:#fff}
+.iconbtn--send:hover{background:var(--pine-dark);border-color:var(--pine-dark)}
+.intended-use{font-size:16px;line-height:1.5;color:var(--ink-muted)}
+
+/* ---------- chat notices (in place of an answer card) ---------- */
+.msgnotice{
+  max-width:900px;border-radius:var(--r-card);
+  border:var(--border-w) solid;padding:var(--s5);
+  display:flex;gap:14px;align-items:flex-start;
+}
+.msgnotice__body{display:flex;flex-direction:column;gap:var(--s2)}
+.msgnotice__word{font-size:20px;font-weight:700}
+.msgnotice p{font-size:18px;line-height:1.5}
+.msgnotice--check{background:var(--check-fill);border-color:var(--check-line)}
+.msgnotice--check .msgnotice__word{color:var(--check-ink)}
+.msgnotice--info{background:var(--pine-fill);border-color:var(--pine)}
+.msgnotice--info .msgnotice__word{color:var(--pine)}
+.msgnotice--plain{background:var(--surface);border-color:var(--border-strong)}
+.msgnotice--plain .msgnotice__word{color:var(--ink)}
+
+/* emergency: most prominent — solid bar + thicker border + larger type */
+.emergency{
+  max-width:900px;border:var(--border-w-strong) solid var(--danger-line);
+  border-radius:var(--r-card);overflow:hidden;
+}
+.emergency__bar{
+  background:var(--danger-line);color:var(--on-danger);
+  padding:var(--s3) var(--s5);display:flex;align-items:center;gap:var(--s3);
+  font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;
+}
+.emergency__body{background:var(--danger-fill);padding:var(--s5);display:flex;flex-direction:column;gap:var(--s3)}
+.emergency__lead{font-size:24px;font-weight:700;line-height:1.35;color:var(--ink)}
+.emergency__body p{font-size:18px;line-height:1.5}
+
+/* ---------- modal ---------- */
+.scrim{
+  position:fixed;inset:0;background:var(--scrim);
+  display:flex;align-items:center;justify-content:center;padding:var(--s4);z-index:10;
+}
+.modal{
+  width:100%;max-width:560px;background:var(--surface);
+  border:var(--border-w) solid var(--border-soft);border-radius:var(--r-card);
+  padding:var(--s6);display:flex;flex-direction:column;gap:var(--s4);
+}
+.modal h2{font-size:26px}
+.modal p{font-size:18px;line-height:1.5}
+
+/* ---------- 390px phone ---------- */
+@media (max-width:760px){
+  body{font-size:17px}
+  .topbar{padding:var(--s3) var(--s4)}
+  .brand__name{font-size:21px}
+  .auth{padding:var(--s4)}
+  h1{font-size:28px}
+  h2{font-size:23px}
+  .signin{grid-template-columns:minmax(0,1fr);gap:var(--s4)}
+  .signin > *,.signin .captcha{grid-column:1}
+  .signin .captcha{grid-row:auto}
+  .twocol{grid-template-columns:minmax(0,1fr)}
+  .patient{padding:var(--s3) var(--s4)}
+  .patient p{font-size:16px}
+  .thread{padding:var(--s4);gap:var(--s4)}
+  .msgnotice{padding:var(--s4)}
+  .msgnotice__word{font-size:18px}
+  .msgnotice p{font-size:16px}
+  .emergency__bar{font-size:17px;padding:var(--s3) var(--s4)}
+  .emergency__body{padding:var(--s4)}
+  .emergency__lead{font-size:20px}
+  .composer{padding:11px var(--s4) 14px}
+  .composer__box textarea{font-size:17px}
+  .iconbtn{width:48px;height:48px}
+  .intended-use{font-size:14px}
+  .key{font-size:17px}
+  .modal{padding:var(--s5)}
+}
+</style>
+</head>
+<body >
+<div class="topbar">
+  <div class="brand">
+    <svg class="icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13h4l2.5-6 4 12 2.5-6h5"/></svg>
+    <span class="brand__name">DiaCausal</span>
+    <span class="tag">Research prototype</span>
+  </div>
+</div>
+<main class="auth auth--single">
+  <form class="col" action="#" method="post">
+    <div>
+      <p class="stepnote">Before you start</p>
+      <h1>How to use DiaCausal</h1>
+      <p class="lede">Read this once, each time the tool is updated.</p>
+    </div>
+
+    <div class="card">
+      <h2>What DiaCausal does</h2>
+      <ul class="list">
+        <li><svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#14562A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg><span>Suggests which second-line agent to consider for an adult with type 2 diabetes who is already on metformin.</span></li>
+        <li><svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#14562A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg><span>Compares the options with an estimate <strong>and an uncertainty interval</strong>, never a bare number.</span></li>
+        <li><svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#14562A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg><span>Runs contraindication, kidney-function and interaction checks <strong>before</strong> it ranks anything.</span></li>
+        <li><svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#14562A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg><span>Cites the source, version and section behind every clinical statement.</span></li>
+        <li><svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#14562A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg><span>Says &ldquo;insufficient evidence&rdquo; and stops when the patient falls outside what it can support.</span></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>What DiaCausal does not do</h2>
+      <ul class="list">
+        <li><svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A1010" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6"/><path d="M9 9l6 6"/></svg><span>It does not prescribe, place orders, or act on its own. You decide.</span></li>
+        <li><svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A1010" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6"/><path d="M9 9l6 6"/></svg><span>It does not diagnose, and it does not replace your examination of the patient.</span></li>
+        <li><svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A1010" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6"/><path d="M9 9l6 6"/></svg><span>It does not cover type 1 diabetes, pregnancy, under-18s, or starting insulin.</span></li>
+        <li><svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A1010" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6"/><path d="M9 9l6 6"/></svg><span>It does not accept patient identifiers. Do not type names, Aadhaar, phone, PAN or email.</span></li>
+        <li><svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A1010" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6"/><path d="M9 9l6 6"/></svg><span>It is not a marketed medical device and has not been approved for routine clinical use.</span></li>
+      </ul>
+    </div>
+
+    <div class="alert alert--info">
+      <svg class="icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0E5049" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><path d="M12 7.6h.01"/></svg>
+      <div class="alert__body">
+        <span class="alert__word">Intended use</span>
+        <p>Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.</p>
+      </div>
+    </div>
+
+    <div class="checkrow">
+      <input id="ack" name="ack" type="checkbox" required>
+      <label for="ack">I understand</label>
+    </div>
+
+    <div class="btnrow">
+      <button class="btn btn--primary" type="submit">Continue</button>
+    </div>
+  </form>
+</main>
+</body>
+</html>
