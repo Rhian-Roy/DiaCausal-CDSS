@@ -32,6 +32,7 @@ export function answeredReply(traceId: string, text = 'Dummy reply from the DiaC
     scope_topic: null,
     stages: stages(),
     intended_use: INTENDED_USE,
+    request_id: '6f1c2d3e-4a5b-4c6d-8e9f-0a1b2c3d4e5f',
   }
 }
 

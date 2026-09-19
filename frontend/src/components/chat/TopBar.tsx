@@ -1,6 +1,8 @@
 import { PulseIcon } from './PulseIcon'
 
-export function TopBar() {
+type Props = { userName?: string; onSignOut?: () => void }
+
+export function TopBar({ userName, onSignOut }: Props) {
   return (
     <header className="flex shrink-0 flex-wrap items-center justify-between gap-4 bg-pine px-4 py-3 md:px-8">
       <div className="flex flex-wrap items-center gap-3">
@@ -12,8 +14,20 @@ export function TopBar() {
           <span className="hidden md:inline">Research </span>prototype
         </span>
       </div>
-      {/* LOGIN: replace with the signed-in clinician's name and a "Sign out" link (design/chat.html). */}
-      <span className="hidden text-base text-on-pine-muted md:inline">Not signed in · login comes later</span>
+      {userName && onSignOut ? (
+        <div className="flex flex-wrap items-center gap-[22px]">
+          <span className="hidden text-base text-on-pine-muted md:inline">{userName}</span>
+          <button
+            type="button"
+            onClick={onSignOut}
+            className="flex min-h-11 cursor-pointer items-center bg-transparent p-0 text-base font-bold text-white underline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white"
+          >
+            Sign out
+          </button>
+        </div>
+      ) : (
+        <span className="hidden text-base text-on-pine-muted md:inline">Not signed in</span>
+      )}
     </header>
   )
 }

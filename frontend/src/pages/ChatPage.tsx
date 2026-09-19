@@ -5,11 +5,13 @@ import { TopBar } from '@/components/chat/TopBar'
 import { useChat } from '@/hooks/useChat'
 
 /** The chat screen from design/chat.html: top bar, patient strip, conversation, message box. */
-export function ChatPage() {
+type Props = { userName?: string; onSignOut?: () => void }
+
+export function ChatPage({ userName, onSignOut }: Props = {}) {
   const chat = useChat()
   return (
     <div className="flex h-dvh flex-col">
-      <TopBar />
+      <TopBar userName={userName} onSignOut={onSignOut} />
       <PatientStrip />
       <Thread turns={chat.turns} />
       <Composer onSend={chat.send} onType={chat.clearNotice} notice={chat.notice} waiting={chat.waiting} />

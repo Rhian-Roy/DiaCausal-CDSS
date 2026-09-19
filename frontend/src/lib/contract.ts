@@ -49,6 +49,7 @@ export type ChatResponse = {
   scope_topic: ScopeTopic | null
   stages: StageResult[]
   intended_use: string
+  request_id: string // server-generated UUID: this request's row in audit_log
 }
 
 export type ErrorResponse = {
