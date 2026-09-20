@@ -25,9 +25,10 @@ describe('postChat', () => {
 
     await postChat('Hello', 'a1b2c3d4')
 
-    const init = fetchMock.mock.calls[0][1]
-    expect((init?.headers as Record<string, string>)['X-CSRF-Token']).toBe('token-123')
-    expect(init?.credentials).toBe('same-origin')
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({
+      credentials: 'same-origin',
+      headers: expect.objectContaining({ 'X-CSRF-Token': 'token-123' }),
+    })
     setCsrfToken(null)
   })
 
