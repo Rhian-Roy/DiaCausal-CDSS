@@ -503,3 +503,68 @@ def test_login_log_lines_carry_the_trace_id(anon, db, caplog):
     login(anon, db)
     lines = {r.getMessage(): r.trace_id for r in caplog.records if r.name == "diacausal"}
     assert lines["login: captcha passed"] == TRACE and lines["login: password passed"] == TRACE
+
+
+# ── the cookie on plain http (development only) ──────────────────────────────
+
+
+def local_client(app_client):
+    """The same app, but reached over http://localhost, as a browser in development does."""
+    from fastapi.testclient import TestClient
+
+    from app.main import create_app
+    from conftest import TEST_DB
+
+    del app_client
+    return TestClient(create_app(TEST_DB), base_url="http://localhost")
+
+
+def test_over_plain_http_localhost_the_cookie_is_not_secure_so_any_browser_can_sign_in(anon, db, caplog):
+    """Safari and Brave drop a Secure cookie on http, which made sign-in impossible."""
+    caplog.set_level(logging.WARNING, logger="diacausal")
+    add_user()
+    plain = local_client(anon)
+    cid, answer = captcha(plain, db)
+    reply = plain.post("/api/v1/auth/login", json={"client_trace_id": TRACE, "user_id": "dr.rao",
+                                                   "password": PASSWORD, "captcha_id": cid, "captcha_answer": answer})
+
+    cookie = reply.headers["set-cookie"]
+    assert reply.status_code == 200
+    assert cookie.startswith("diacausal_session_dev=") and "secure" not in cookie.lower()
+    assert "httponly" in cookie.lower() and "samesite=strict" in cookie.lower()
+    assert "the session cookie is not marked Secure" in caplog.text  # said out loud
+
+
+def test_the_next_step_works_over_plain_http_too(anon, db, frozen):
+    """The whole point: sign-in used to stop dead at the authenticator step."""
+    add_user()
+    plain = local_client(anon)
+    cid, answer = captcha(plain, db)
+    csrf = plain.post("/api/v1/auth/login", json={"client_trace_id": TRACE, "user_id": "dr.rao",
+                                                  "password": PASSWORD, "captcha_id": cid,
+                                                  "captcha_answer": answer}).json()["csrf_token"]
+    setup = plain.post("/api/v1/auth/mfa/setup", headers={sess.CSRF_HEADER: csrf})
+    assert setup.status_code == 200 and setup.json()["key_groups"]
+
+
+def test_over_https_the_cookie_is_always_the_strict_one(anon, db):
+    """A deployment can never silently fall back to the weaker cookie."""
+    add_user()
+    cookie = login(anon, db).headers["set-cookie"]  # `anon` uses https://testserver
+    assert cookie.startswith("__Host-diacausal_session=") and "Secure" in cookie
+
+
+def test_a_real_host_over_http_still_gets_the_strict_cookie(db):
+    """Only localhost gets the development cookie — not a server on the network."""
+    from fastapi.testclient import TestClient
+
+    from app.main import create_app
+    from conftest import TEST_DB
+
+    add_user()
+    hospital = TestClient(create_app(TEST_DB), base_url="http://ward-pc.hospital.local")
+    cid, answer = captcha(hospital, db)
+    reply = hospital.post("/api/v1/auth/login", json={"client_trace_id": TRACE, "user_id": "dr.rao",
+                                                      "password": PASSWORD, "captcha_id": cid,
+                                                      "captcha_answer": answer})
+    assert reply.headers["set-cookie"].startswith("__Host-diacausal_session=")
