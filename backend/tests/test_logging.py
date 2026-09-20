@@ -1,6 +1,7 @@
 """The backend log carries the browser's trace ID and never the message text."""
 
 import logging
+import re
 
 import pytest
 
@@ -33,7 +34,9 @@ def test_log_shows_request_each_stage_and_reply(client, chat_body, app_logs):
     client.post("/api/v1/chat", json=chat_body("hello"))
 
     messages = [r.getMessage() for r in app_logs.records if r.name == "diacausal"]
-    assert messages == [
+    # Each stage line ends with how long it took, e.g. "backend_guard: passed in 0.4 ms".
+    timed = re.compile(r"^(\w+): (passed|skipped|blocked) in \d+\.\d ms$")
+    assert [timed.sub(r"\1: \2", line) for line in messages] == [
         "chat request received: 1 part(s), 5 characters",
         f"guard rules version {RULES_VERSION}",
         "backend_guard: passed",
@@ -44,6 +47,7 @@ def test_log_shows_request_each_stage_and_reply(client, chat_body, app_logs):
         "output_guard: passed",
         "reply sent: outcome=answered",
     ]
+    assert sum(bool(timed.match(line)) for line in messages) == 6  # one line per stage
 
 
 def test_printed_log_line_starts_with_the_trace_id(client, chat_body, app_logs):
