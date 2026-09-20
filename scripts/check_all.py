@@ -128,7 +128,10 @@ def call(url: str, body: dict | None = None, raw: bytes | None = None, *, as_use
 
 
 def session_cookie(headers: dict) -> str | None:
-    match = re.search(r"(__Host-diacausal_session=[^;]+)", headers.get("set-cookie", headers.get("Set-Cookie", "")))
+    """The session cookie the server set. Over plain http to localhost it is the
+    development one (`diacausal_session_dev`), over https the strict `__Host-` one."""
+    header = headers.get("set-cookie", headers.get("Set-Cookie", ""))
+    match = re.search(r"((?:__Host-diacausal_session|diacausal_session_dev)=[^;]+)", header)
     return match[1] if match else None
 
 
@@ -312,9 +315,16 @@ def check_live(node: str) -> None:
         info = parse(text)
         signed_in.update(cookie=session_cookie(headers) or "", csrf=info.get("csrf_token", ""))
         call(api_url + "/api/v1/auth/acknowledge", {"version": info.get("intended_use_version", "")})
-        check(step1.get("next") == "mfa_setup" and status == 200 and info.get("stage") == "full"
-              and "Secure" in headers.get("set-cookie", headers.get("Set-Cookie", "")),
+        cookie_header = headers.get("set-cookie", headers.get("Set-Cookie", "")).lower()
+        check(step1.get("next") == "mfa_setup" and status == 200 and info.get("stage") == "full",
               "sign-in works: user ID + password + CAPTCHA, then authenticator set-up and a 6-digit code", text)
+        # This check talks to the app over plain http on 127.0.0.1, as a developer does, so the
+        # cookie is the development one. That it is the strict __Host- cookie everywhere else is
+        # checked in backend/tests/test_auth.py.
+        check("httponly" in cookie_header and "samesite=strict" in cookie_header
+              and "secure" not in cookie_header,
+              "the session cookie is HttpOnly and SameSite=Strict (development cookie on plain http)",
+              cookie_header)
 
         status, text, _ = call(api_url + "/api/v1/chat", chat("Hello", trace), csrf=False)
         check(status == 403 and parse(text).get("error") == "csrf_failed",
