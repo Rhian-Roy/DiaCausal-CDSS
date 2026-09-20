@@ -54,13 +54,6 @@ cd DiaCausal-CDSS
 
 All commands below are run from this `DiaCausal-CDSS` folder.
 
-If there is no `scripts` folder, the chat app has not been merged into `main` yet. Switch to
-its branch (ask Rhian for the name if it has changed):
-
-```bash
-git switch claude/diacausal-chatbot-setup-225ec7
-```
-
 ## 3. One-time setup
 
 It checks your Python and Node, makes the backend's private Python (`backend/.venv`)
@@ -90,7 +83,7 @@ It runs every automated test, then starts the real app on spare ports and sends 
 messages through it. It should end with:
 
 ```
-ALL 34 CHECKS PASSED
+ALL 35 CHECKS PASSED
 ```
 
 What each check proves, and what to do if one fails: [TESTING.md](TESTING.md).

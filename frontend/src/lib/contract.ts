@@ -29,7 +29,7 @@ export const STAGE_ORDER = [
 
 export type StageName = (typeof STAGE_ORDER)[number]
 export type StageStatus = 'passed' | 'blocked' | 'skipped'
-export type StageResult = { name: StageName; status: StageStatus; detail: string }
+export type StageResult = { name: StageName; status: StageStatus; detail: string; duration_ms: number }
 
 /** Why backend_guard blocked a message; the page shows the matching notice (designs 09-12). */
 export const REASON_CODES = ['identifier', 'out_of_scope', 'emergency', 'language'] as const

@@ -132,3 +132,18 @@ def test_migrations_build_exactly_the_tables_in_models(tmp_path):
 
 def test_the_test_database_is_not_the_real_one():
     assert "diacausal-tests-" in TEST_DB
+
+
+def test_a_broken_secret_key_stops_the_app_with_a_clear_message(monkeypatch):
+    from app.main import create_app
+    from app.secrets_env import MissingSecret, secret_key
+
+    monkeypatch.setenv("DIACAUSAL_SECRET_KEY", "not-a-real-fernet-key")
+    with pytest.raises(MissingSecret, match="url-safe base64"):
+        secret_key()
+    with pytest.raises(MissingSecret):
+        create_app(TEST_DB)  # refuses to start rather than failing later with a 500
+
+    monkeypatch.delenv("DIACAUSAL_SECRET_KEY")
+    with pytest.raises(MissingSecret, match="not set"):
+        secret_key()

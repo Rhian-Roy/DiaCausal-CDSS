@@ -64,6 +64,7 @@ class StageResult(StrictModel):
     name: StageName
     status: StageStatus
     detail: str
+    duration_ms: float = 0.0  # how long this stage took, to the tenth of a millisecond
 
 
 class Outcome(StrEnum):

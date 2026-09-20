@@ -17,7 +17,7 @@ export function stages(statuses: Partial<Record<StageName, StageStatus>> = {}): 
   return STAGE_ORDER.map((name) => {
     const ranToday = name === 'backend_guard' || name === 'output_guard'
     const status = statuses[name] ?? (ranToday ? 'passed' : 'skipped')
-    return { name, status, detail: status === 'skipped' ? 'Not built yet.' : 'ok' }
+    return { name, status, detail: status === 'skipped' ? 'Not built yet.' : 'ok', duration_ms: status === 'skipped' ? 0 : 1.2 }
   })
 }
 

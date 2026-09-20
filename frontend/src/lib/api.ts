@@ -111,7 +111,7 @@ function isTextPart(value: unknown): value is Part {
   return isRecord(value) && value.type === 'text' && typeof value.text === 'string'
 }
 
-function hasAllStagesInOrder(value: unknown): value is { name: string; status: StageStatus; detail: string }[] {
+function hasAllStagesInOrder(value: unknown): value is { name: string; status: StageStatus; detail: string; duration_ms: number }[] {
   return (
     Array.isArray(value) &&
     value.length === STAGE_ORDER.length &&
@@ -120,7 +120,8 @@ function hasAllStagesInOrder(value: unknown): value is { name: string; status: S
         isRecord(stage) &&
         stage.name === STAGE_ORDER[index] &&
         STATUSES.includes(stage.status) &&
-        typeof stage.detail === 'string',
+        typeof stage.detail === 'string' &&
+        typeof stage.duration_ms === 'number',
     )
   )
 }

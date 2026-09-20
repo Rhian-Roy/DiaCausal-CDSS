@@ -16,11 +16,19 @@ const STATUS_STYLE: Record<StageStatus, string> = {
   skipped: 'text-ink-muted',
 }
 
+/** "1.2 ms", "0.4 s" — short enough to sit beside every stage. */
+function howLong(milliseconds: number): string {
+  return milliseconds >= 1000 ? `${(milliseconds / 1000).toFixed(1)} s` : `${milliseconds.toFixed(1)} ms`
+}
+
 function summary(stages: StageResult[]): string {
   const stoppedAt = stages.find((stage) => stage.status === 'blocked')
-  if (stoppedAt) return `Stopped at ${LABELS[stoppedAt.name].toLowerCase()}; later stages did not run.`
+  if (stoppedAt) {
+    return `Stopped at ${LABELS[stoppedAt.name].toLowerCase()} after ${howLong(stoppedAt.duration_ms)}; later stages did not run.`
+  }
   const ran = stages.filter((stage) => stage.status === 'passed').length
-  return `${ran} of ${stages.length} stages ran; the others are not built yet.`
+  const total = stages.reduce((sum, stage) => sum + stage.duration_ms, 0)
+  return `${ran} of ${stages.length} stages ran in ${howLong(total)}; the others are not built yet.`
 }
 
 /** What the backend pipeline did with this message (the design's "guardrail" box). */
@@ -35,6 +43,9 @@ export function StageList({ stages }: { stages: StageResult[] }) {
             <li key={stage.name} title={stage.detail}>
               <span className="text-ink-muted">{LABELS[stage.name]}:</span>{' '}
               <span className={STATUS_STYLE[stage.status]}>{stage.status}</span>
+              {stage.status !== 'skipped' && (
+                <span className="text-ink-muted"> · {howLong(stage.duration_ms)}</span>
+              )}
             </li>
           ))}
         </ul>

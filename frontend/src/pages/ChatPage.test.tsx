@@ -4,7 +4,7 @@
  */
 
 import { answeredReply, blockedReply, jsonResponse, stubBackend } from '@/test/fakeBackend'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest'
 import { ChatPage } from './ChatPage'
@@ -62,7 +62,7 @@ describe('pressing Enter on a message', () => {
     expect(screen.getByText('HbA1c 8.4% on metformin')).toBeInTheDocument()
     expect(box).toHaveValue('')
     expect(await screen.findByText('DiaCausal answered')).toBeInTheDocument()
-    expect(screen.getByText('2 of 6 stages ran; the others are not built yet.')).toBeInTheDocument()
+    expect(screen.getByText(/^2 of 6 stages ran in [\d.]+ ms; the others are not built yet\.$/)).toBeInTheDocument()
   })
 
   it('also sends with the send button', async () => {
@@ -300,5 +300,19 @@ describe('the conversation is scrollable (whiteboard: "scrollable")', () => {
     await screen.findByText('Dummy reply from the DiaCausal backend.')
 
     expect(thread.scrollTop).toBe(2000) // scrolled to the newest message
+  })
+})
+
+describe('how long each stage took', () => {
+  it('shows the time beside each stage that ran, and the total', async () => {
+    stubBackend((request) => answeredReply(request.client_trace_id))
+    const { user, box } = setup()
+
+    await user.type(box, 'HbA1c 8.4% on metformin{Enter}')
+    await screen.findByText('Dummy reply from the DiaCausal backend.')
+
+    const list = screen.getByRole('list', { name: 'Pipeline stages' })
+    expect(within(list).getAllByText(/1\.2 ms/)).toHaveLength(2) // backend_guard and output_guard
+    expect(screen.getByText(/2 of 6 stages ran in 2\.4 ms/)).toBeInTheDocument()
   })
 })

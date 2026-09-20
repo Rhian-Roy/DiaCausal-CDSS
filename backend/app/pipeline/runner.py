@@ -14,6 +14,8 @@ from app.pipeline import (
     output_guard,
     rag_retrieval,
 )
+import time
+
 from app.pipeline.context import PipelineContext
 from app.schemas import ChatRequest, ChatResponse, Outcome, StageResult, StageStatus, TextPart
 from app.tracing import log
@@ -37,6 +39,7 @@ def dummy_reply(ctx: PipelineContext) -> TextPart:
 
 
 def _run(stage, ctx: PipelineContext) -> StageResult:
+    started = time.perf_counter()
     if ctx.blocked_reason is not None:
         result = StageResult(
             name=stage.NAME,
@@ -45,11 +48,13 @@ def _run(stage, ctx: PipelineContext) -> StageResult:
         )
     else:
         result = stage.run(ctx)
+    # Measured here, once, so no stage can forget to time itself or report a wrong number.
+    result.duration_ms = round((time.perf_counter() - started) * 1000, 1)
 
     if result.status is StageStatus.BLOCKED:
-        log.warning("%s: blocked (%s)", result.name, result.detail)
+        log.warning("%s: blocked in %.1f ms (%s)", result.name, result.duration_ms, result.detail)
     else:
-        log.info("%s: %s", result.name, result.status)
+        log.info("%s: %s in %.1f ms", result.name, result.status, result.duration_ms)
     return result
 
 

@@ -1,0 +1,12 @@
+{
+  "name": "diacausal-e2e",
+  "private": true,
+  "type": "module",
+  "description": "End-to-end tests: the real page in real Chrome against the real backend.",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.57.0"
+  }
+}

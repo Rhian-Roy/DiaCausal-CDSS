@@ -28,11 +28,15 @@ def test_empty_message_is_blocked_by_backend_guard(client, chat_body, text):
     assert data["outcome"] == "blocked"
     assert data["blocked_reason"] == "The message is empty."
     assert data["parts"] == []
-    assert data["stages"][0] == {
+    first, *later_stages = data["stages"]
+    assert first == {
         "name": "backend_guard",
         "status": "blocked",
         "detail": "The message is empty.",
+        "duration_ms": first["duration_ms"],
     }
+    assert isinstance(first["duration_ms"], float) and 0 <= first["duration_ms"] < 5000
+    assert all(stage["duration_ms"] >= 0 for stage in later_stages)
     later = data["stages"][1:]
     assert [s["status"] for s in later] == ["skipped"] * 5
     assert all(s["detail"] == "Not run: an earlier stage blocked the message." for s in later)
@@ -111,3 +115,22 @@ def test_output_guard_passes_a_normal_reply():
 
     assert output_guard.run(ctx).status is StageStatus.PASSED
     assert ctx.blocked_reason is None
+
+
+def test_every_stage_reports_how_long_it_took(client, chat_body, monkeypatch):
+    import time
+
+    from app.pipeline import causal_engine
+
+    def slow(ctx):
+        time.sleep(0.02)
+        return not_built_yet(causal_engine.NAME)
+
+    from app.pipeline.context import not_built_yet
+
+    monkeypatch.setattr(causal_engine, "run", slow)
+    stages = client.post("/api/v1/chat", json=chat_body()).json()["stages"]
+
+    assert all(stage["duration_ms"] >= 0 for stage in stages)
+    slow_stage = next(stage for stage in stages if stage["name"] == "causal_engine")
+    assert slow_stage["duration_ms"] >= 20  # the sleep really was measured
