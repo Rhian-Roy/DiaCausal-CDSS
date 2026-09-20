@@ -26,7 +26,7 @@ STAGE_ORDER = [stage.NAME for stage in STAGES_BEFORE_REPLY + STAGES_AFTER_REPLY]
 
 
 def dummy_reply(ctx: PipelineContext) -> TextPart:
-    characters = sum(len(part.text) for part in ctx.parts)
+    characters = len(ctx.text)
     return TextPart(
         type="text",
         text=(

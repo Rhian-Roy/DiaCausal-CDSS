@@ -10,7 +10,8 @@ MAX_TEXT_CHARS = 8000
 MAX_PARTS = 20
 
 # Part types the API understands today. Add new ones here *and* in schemas.py.
-SUPPORTED_PART_TYPES = ("text",)
+# "patient" carries the structured patient details from the panel (app/patient_ranges.py).
+SUPPORTED_PART_TYPES = ("text", "patient")
 
 # client_trace_id: 1-64 letters, digits, "-" or "_". Safe to print in logs.
 TRACE_ID_PATTERN = r"^[A-Za-z0-9_-]{1,64}$"

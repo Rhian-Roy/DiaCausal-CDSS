@@ -2,7 +2,10 @@
 
 import pytest
 
+from app.settings import SUPPORTED_PART_TYPES
 from conftest import TRACE
+
+SUPPORTED = ", ".join(SUPPORTED_PART_TYPES)
 
 
 def post(client, body):
@@ -18,7 +21,7 @@ def test_unknown_part_type_is_rejected_clearly(client, chat_body):
     data = post(client, chat_body(parts=parts))
 
     assert data["message"] == (
-        'Part 1 has type "image", which this API does not accept. Supported part types: text.'
+        f'Part 1 has type "image", which this API does not accept. Supported part types: {SUPPORTED}.'
     )
     # Only the real problem is reported, not the knock-on "text missing" / "url not allowed".
     assert data["problems"] == [{"field": "parts[0].type", "message": data["message"]}]
@@ -35,7 +38,7 @@ def test_unknown_type_in_second_part_names_part_2(client, chat_body):
 def test_missing_part_type_is_rejected(client, chat_body):
     data = post(client, chat_body(parts=[{"text": "hello"}]))
 
-    assert data["message"] == 'Part 1 has no "type". Supported part types: text.'
+    assert data["message"] == f'Part 1 has no "type". Supported part types: {SUPPORTED}.'
 
 
 def test_text_over_8000_characters_is_rejected_clearly(client, chat_body):

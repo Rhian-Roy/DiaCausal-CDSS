@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 
-from app.schemas import Part, ReasonCode, ScopeTopic, StageName, StageResult, StageStatus
+from app.schemas import Part, PatientPart, ReasonCode, ScopeTopic, StageName, StageResult, StageStatus, TextPart
 
 
 @dataclass
@@ -16,7 +16,13 @@ class PipelineContext:
 
     @property
     def text(self) -> str:
-        return "\n\n".join(part.text for part in self.parts)
+        """Everything the clinician typed or dictated (the patient part is not text)."""
+        return "\n\n".join(part.text for part in self.parts if isinstance(part, TextPart))
+
+    @property
+    def patient(self) -> PatientPart | None:
+        """The patient details from the panel, if the page sent them."""
+        return next((part for part in self.parts if isinstance(part, PatientPart)), None)
 
 
 def passed(name: StageName, detail: str) -> StageResult:
