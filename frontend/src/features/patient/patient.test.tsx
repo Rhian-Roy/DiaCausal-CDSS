@@ -8,7 +8,7 @@ import { answeredReply, stubBackend } from '@/test/fakeBackend'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import { EMPTY_PANEL, EXAMPLE_PANEL, isPanelEmpty, panelProblems, toPatientPart } from './PatientPanel'
+import { EMPTY_PANEL, EXAMPLE_PANEL, isPanelEmpty, panelProblems, toPatientPart } from './panelValues'
 import { bmiCategory, RANGES, rangeProblem, type PatientField } from './ranges'
 
 const FIELDS = Object.keys(RANGES) as PatientField[]

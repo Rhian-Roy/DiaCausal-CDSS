@@ -1,11 +1,11 @@
 """The happy path: a valid message gets the dummy reply and all six stages."""
 
 from app.settings import INTENDED_USE, MAX_TEXT_CHARS
-from conftest import TRACE
+from conftest import PATIENT, TRACE
 
 EXPECTED_STAGES = [
     ("backend_guard", "passed"),
-    ("clinical_guardrails", "skipped"),
+    ("clinical_guardrails", "passed"),
     ("causal_engine", "skipped"),
     ("rag_retrieval", "skipped"),
     ("llm_explanation", "skipped"),
@@ -23,9 +23,9 @@ def test_valid_message_gets_dummy_reply(client, chat_body):
     assert data["outcome"] == "answered"
     assert data["blocked_reason"] is None
     assert data["intended_use"] == INTENDED_USE
-    assert len(data["parts"]) == 1
-    assert data["parts"][0]["type"] == "text"
-    assert data["parts"][0]["text"].startswith("Dummy reply")
+    # The reply carries the three options from the clinical guardrails, then the text.
+    assert [part["type"] for part in data["parts"]] == ["options", "text"]
+    assert data["parts"][1]["text"].startswith("Dummy reply")
 
 
 def test_reply_lists_all_six_stages_in_order(client, chat_body):
@@ -46,11 +46,12 @@ def test_trace_id_comes_back_in_body_and_header(client, chat_body):
 def test_reply_does_not_echo_the_message(client, chat_body):
     data = client.post("/api/v1/chat", json=chat_body("Patient Ramesh, 58, HbA1c 8.4")).json()
 
-    assert "Ramesh" not in data["parts"][0]["text"]
+    reply_text = next(part["text"] for part in data["parts"] if part["type"] == "text")
+    assert "Ramesh" not in reply_text
 
 
 def test_several_text_parts_are_accepted(client, chat_body):
-    parts = [{"type": "text", "text": "HbA1c 8.4%."}, {"type": "text", "text": "What next?"}]
+    parts = [{"type": "text", "text": "HbA1c 8.4%."}, {"type": "text", "text": "What next?"}, PATIENT]
     response = client.post("/api/v1/chat", json=chat_body(parts=parts))
 
     assert response.status_code == 200

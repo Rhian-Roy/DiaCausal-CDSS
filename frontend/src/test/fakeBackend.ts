@@ -5,6 +5,8 @@ import {
   STAGE_ORDER,
   type ChatRequest,
   type ChatResponse,
+  type OptionResult,
+  type OptionsPart,
   type ReasonCode,
   type ScopeTopic,
   type StageName,
@@ -19,6 +21,21 @@ export function stages(statuses: Partial<Record<StageName, StageStatus>> = {}): 
     const status = statuses[name] ?? (ranToday ? 'passed' : 'skipped')
     return { name, status, detail: status === 'skipped' ? 'Not built yet.' : 'ok', duration_ms: status === 'skipped' ? 0 : 1.2 }
   })
+}
+
+/** The three options as the clinical guardrails return them. */
+export function optionsPart(overrides: Partial<OptionResult>[] = []): OptionsPart {
+  const base: OptionResult[] = [
+    { option: 'sglt2i', name: 'SGLT2 inhibitor', status: 'safe_to_consider', reasons: [], sources: [], notes: [], rule_ids: [] },
+    { option: 'dpp4i', name: 'DPP-4 inhibitor', status: 'safe_to_consider', reasons: [], sources: [], notes: [], rule_ids: [] },
+    { option: 'sulfonylurea', name: 'Sulfonylurea', status: 'safe_to_consider', reasons: [], sources: [], notes: [], rule_ids: [] },
+  ]
+  return {
+    type: 'options',
+    options: base.map((option, index) => ({ ...option, ...overrides[index] })),
+    rules_version: '1.0.0-draft',
+    draft_warning: 'draft — not clinically reviewed',
+  }
 }
 
 export function answeredReply(traceId: string, text = 'Dummy reply from the DiaCausal backend.'): ChatResponse {

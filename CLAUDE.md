@@ -23,7 +23,7 @@ python3.12 scripts/setup.py      # any OS; Windows: py -3.12 scripts\setup.py (s
 ## Check everything (tests, build, lint, live backend + page on spare ports)
 
 ```bash
-python3 scripts/check_all.py     # must end with "ALL 38 CHECKS PASSED"; Windows: py scripts\check_all.py
+python3 scripts/check_all.py     # must end with "ALL 41 CHECKS PASSED"; Windows: py scripts\check_all.py
 ```
 
 If you add a requirement, add a check for it here or in the tests, and update
@@ -106,12 +106,20 @@ Ranges are plausibility limits in `app/patient_ranges.py` + `features/patient/ra
 (a test compares them); clinical thresholds belong in `app/clinical/guardrails.v1.yaml`.
 Stages read `ctx.patient`. Never log patient values — only which fields arrived.
 
+## Clinical guardrails (built) — see docs/explain/06-guardrails.md
+
+`app/clinical/guardrails.v1.yaml` is the only place thresholds live; `app/clinical/rules.py`
+loads it (a rule with TODO or no source never fires) and `pipeline/clinical_guardrails.py`
+applies it **before** the causal stage, removing any "do not use" option. Never put a
+clinical number in code, and never let a later stage put a removed option back.
+Check the table with `.venv/bin/python -m app.clinical.check`.
+
 ## Not built yet — where each piece goes
 
 | Piece | Backend | Frontend / other |
 |---|---|---|
 | Docker | — | `docker/` |
-| Clinical guardrails, causal engine, RAG, LLM | `backend/app/pipeline/<stage>.py` | — |
+| Causal engine, RAG, LLM explanation | `backend/app/pipeline/<stage>.py` | — |
 
 Each folder's README says how it connects.
 

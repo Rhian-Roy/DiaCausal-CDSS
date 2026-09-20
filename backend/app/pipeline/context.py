@@ -2,7 +2,18 @@
 
 from dataclasses import dataclass, field
 
-from app.schemas import Part, PatientPart, ReasonCode, ScopeTopic, StageName, StageResult, StageStatus, TextPart
+from app.schemas import (
+    OptionResult,
+    OptionsPart,
+    Part,
+    PatientPart,
+    ReasonCode,
+    ScopeTopic,
+    StageName,
+    StageResult,
+    StageStatus,
+    TextPart,
+)
 
 
 @dataclass
@@ -13,6 +24,10 @@ class PipelineContext:
     blocked_reason: str | None = None  # set by the first stage that blocks
     reason_code: ReasonCode | None = None
     scope_topic: ScopeTopic | None = None
+    # Set by clinical_guardrails, read by the stages after it.
+    options: list[OptionResult] = field(default_factory=list)  # may be used
+    removed_options: list[OptionResult] = field(default_factory=list)  # "do not use"
+    options_part: OptionsPart | None = None
 
     @property
     def text(self) -> str:

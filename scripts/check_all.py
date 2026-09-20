@@ -190,8 +190,17 @@ def parse(text: str) -> dict:
     return data if isinstance(data, dict) else {}
 
 
+# Enough patient detail for the clinical guardrails to be able to answer (without eGFR
+# they abstain, which is checked separately below).
+PATIENT = {"type": "patient", "age_years": 58, "diabetes_duration_years": 6, "hba1c_percent": 8.4,
+           "egfr_ml_min_1_73m2": 62, "bmi_kg_m2": 31.2, "established_ascvd": False, "ckd": False,
+           "heart_failure": False, "past_dka": False, "recurrent_genital_or_urinary_infection": False,
+           "past_pancreatitis": False, "past_hypoglycaemia": "none"}
+
+
 def chat(text: str, trace: str, **overrides) -> dict:
-    return {"schema_version": "1.0", "client_trace_id": trace, "parts": [{"type": "text", "text": text}], **overrides}
+    return {"schema_version": "1.0", "client_trace_id": trace,
+            "parts": [{"type": "text", "text": text}, PATIENT], **overrides}
 
 
 # ── the checks ───────────────────────────────────────────────────────────────
@@ -314,12 +323,12 @@ def check_live(node: str) -> None:
         status, text, headers = call(api_url + "/api/v1/chat", chat(f"Test question {secret_word}: what next?", trace))
         reply = first_reply = parse(text) if status == 200 else {}
         stages = [(s.get("name"), s.get("status")) for s in reply.get("stages", [])]
-        expected = [(name, "passed" if name in ("backend_guard", "output_guard") else "skipped") for name in STAGES]
-        first_part = (reply.get("parts") or [{}])[0]
-        check(status == 200 and reply.get("outcome") == "answered"
-              and str(first_part.get("text", "")).startswith("Dummy reply"),
+        ran = ("backend_guard", "clinical_guardrails", "output_guard")
+        expected = [(name, "passed" if name in ran else "skipped") for name in STAGES]
+        reply_text = next((part.get("text", "") for part in reply.get("parts", []) if part.get("type") == "text"), "")
+        check(status == 200 and reply.get("outcome") == "answered" and reply_text.startswith("Dummy reply"),
               "a question gets the dummy reply", text)
-        check(stages == expected, "reply lists the 6 stages in order: first and last passed, the rest skipped", text)
+        check(stages == expected, "reply lists the 6 stages in order; the three built ones passed", text)
         check(reply.get("trace_id") == trace and headers.get("X-Trace-Id", headers.get("x-trace-id")) == trace,
               f"reply carries the same trace ID ({trace})", text)
 
@@ -349,17 +358,35 @@ def check_live(node: str) -> None:
         check(reply.get("outcome") == "blocked" and reply.get("reason_code") == "language" and rude not in text,
               "foul language is blocked by the server guard without repeating the word", text)
 
-        patient = {"type": "patient", "age_years": 58, "hba1c_percent": 8.4, "egfr_ml_min_1_73m2": 62,
-                   "bmi_kg_m2": 31.2, "past_dka": False, "past_hypoglycaemia": "none"}
-        body = chat("HbA1c 8.4% on metformin, which add-on?", trace)
-        body["parts"] = [patient, *body["parts"]]
-        status, text, _ = call(api_url + "/api/v1/chat", body)
+        status, text, _ = call(api_url + "/api/v1/chat", chat("HbA1c 8.4% on metformin, which add-on?", trace))
         check(status == 200 and parse(text).get("outcome") == "answered",
               "the patient panel's details are accepted with the question", text)
 
+        options = next((part for part in parse(text).get("parts", []) if part.get("type") == "options"), {})
+        statuses = {option["option"]: option["status"] for option in options.get("options", [])}
+        check(statuses == {"sglt2i": "safe_to_consider", "dpp4i": "safe_to_consider",
+                           "sulfonylurea": "safe_to_consider"}
+              and options.get("draft_warning") == "draft — not clinically reviewed",
+              "the clinical guardrails judge all three options and say the table is a draft", text[:400])
+
+        body = chat("Which add-on?", trace)
+        body["parts"] = [body["parts"][0], {**PATIENT, "past_dka": True}]
+        status, text, _ = call(api_url + "/api/v1/chat", body)
+        options = next((part for part in parse(text).get("parts", []) if part.get("type") == "options"), {})
+        sglt2i = next((o for o in options.get("options", []) if o["option"] == "sglt2i"), {})
+        check(sglt2i.get("status") == "do_not_use" and bool(sglt2i.get("sources")),
+              "a contraindicated option is marked do-not-use, with its source", text[:400])
+
+        body = chat("Which add-on?", trace)
+        body["parts"] = [body["parts"][0], {k: v for k, v in PATIENT.items() if k != "egfr_ml_min_1_73m2"}]
+        status, text, _ = call(api_url + "/api/v1/chat", body)
+        reply = parse(text)
+        check(reply.get("outcome") == "blocked" and reply.get("reason_code") == "insufficient_evidence",
+              "without eGFR the clinical guardrails abstain instead of guessing", text[:300])
+
         bad = {"type": "patient", "hba1c_percent": 45}
         body = chat("what next?", trace)
-        body["parts"] = [bad, *body["parts"]]
+        body["parts"] = [body["parts"][0], bad]
         status, text, _ = call(api_url + "/api/v1/chat", body)
         message = str(parse(text).get("message", ""))
         check(status == 422 and "outside the expected range 4.0-20.0" in message.replace("–", "-"),

@@ -3,7 +3,7 @@ import { TOPIC_NAMES } from '@/lib/guards'
 import { cn } from '@/lib/utils'
 import { EyeOff, Info, MessageCircleX, OctagonX } from 'lucide-react'
 
-type Props = { code: ReasonCode; topic?: ScopeTopic | null }
+type Props = { code: ReasonCode; topic?: ScopeTopic | null; reason?: string | null }
 
 function Notice({ tone, Icon, word, children }: {
   tone: 'check' | 'info' | 'plain'
@@ -27,8 +27,8 @@ function Notice({ tone, Icon, word, children }: {
   )
 }
 
-/** The four guard notices from design/v1/09-12, shown in place of an answer. */
-export function GuardNotice({ code, topic }: Props) {
+/** The guard notices from design/v1/09-12, plus the clinical abstain, shown in place of an answer. */
+export function GuardNotice({ code, topic, reason }: Props) {
   switch (code) {
     case 'identifier':
       return (
@@ -44,6 +44,14 @@ export function GuardNotice({ code, topic }: Props) {
             DiaCausal covers adults with type 2 diabetes already on metformin.
             {topic && ` This question is about ${TOPIC_NAMES[topic]}.`}
           </p>
+          <p className="m-0">Use your usual guideline or refer as you normally would.</p>
+        </Notice>
+      )
+    case 'insufficient_evidence':
+      // The clinical guardrails stopped before any ranking (design 19 builds this out).
+      return (
+        <Notice tone="check" Icon={Info} word="Not enough to go on">
+          <p className="m-0">{reason ?? 'DiaCausal cannot answer safely for this patient.'}</p>
           <p className="m-0">Use your usual guideline or refer as you normally would.</p>
         </Notice>
       )

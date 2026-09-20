@@ -1,16 +1,16 @@
 import { Composer } from '@/components/chat/Composer'
 import { Thread } from '@/components/chat/Thread'
 import { TopBar } from '@/components/chat/TopBar'
+import { PatientPanel } from '@/features/patient/PatientPanel'
 import {
   EMPTY_PANEL,
   EXAMPLE_PANEL,
-  PatientPanel,
   panelProblems,
   toPatientPart,
   type PanelValues,
-} from '@/features/patient/PatientPanel'
+} from '@/features/patient/panelValues'
 import { useChat } from '@/hooks/useChat'
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 
 type Props = { userName?: string; onSignOut?: () => void }
 
@@ -19,13 +19,12 @@ export function ChatPage({ userName, onSignOut }: Props = {}) {
   // It starts with the design's example patient, clearly badged as example data.
   const [panel, setPanel] = useState<PanelValues>(EXAMPLE_PANEL)
   const [isExample, setIsExample] = useState(true)
-  const latest = useRef(panel)
-  latest.current = panel
 
   // Only plausible values are sent: a value the browser flagged is left out, and the
-  // server checks everything again anyway.
+  // server checks everything again anyway. `send` is rebuilt on every render, so this
+  // closure always sees the panel as it is now.
   const chat = useChat(() => {
-    const values = { ...latest.current }
+    const values = { ...panel }
     for (const field of Object.keys(panelProblems(values)) as (keyof PanelValues)[]) {
       values[field] = '' as never
     }

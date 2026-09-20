@@ -5,6 +5,7 @@
 
 import { csrfHeaders, markActivity, sessionEnded } from './authSession'
 import {
+  OPTION_STATUSES,
   REASON_CODES,
   SCHEMA_VERSION,
   SCOPE_TOPICS,
@@ -12,7 +13,9 @@ import {
   type ChatRequest,
   type ChatResponse,
   type ErrorResponse,
+  type OptionsPart,
   type PatientPart,
+  type ReplyPart,
   type StageStatus,
   type TextPart,
 } from './contract'
@@ -35,8 +38,8 @@ export async function postChat(
   const request: ChatRequest = {
     schema_version: SCHEMA_VERSION,
     client_trace_id: traceId,
-    // The panel first, then the question: one patient part at most (schemas.py).
-    parts: patient ? [patient, { type: 'text', text: message }] : [{ type: 'text', text: message }],
+    // The question first, then the panel: one patient part at most (schemas.py).
+    parts: patient ? [{ type: 'text', text: message }, patient] : [{ type: 'text', text: message }],
   }
 
   let response: Response
@@ -89,8 +92,8 @@ export function checkOutput(body: unknown, traceId: string): OutputCheck {
   if (body.schema_version !== SCHEMA_VERSION) return fail(`unexpected schema_version ${JSON.stringify(body.schema_version)}`)
   if (body.trace_id !== traceId) return fail(`the reply is for trace ${JSON.stringify(body.trace_id)}, not ${traceId}`)
   if (body.outcome !== 'answered' && body.outcome !== 'blocked') return fail('unknown outcome')
-  if (!Array.isArray(body.parts) || !body.parts.every(isTextPart)) return fail('the reply parts are not all text')
-  const replyParts: TextPart[] = body.parts // a reply is always text, never a patient part
+  if (!Array.isArray(body.parts) || !body.parts.every(isReplyPart)) return fail('the reply has a part we do not understand')
+  const replyParts = body.parts.filter(isTextPart)
   if (!hasAllStagesInOrder(body.stages)) return fail('the pipeline stages are missing or out of order')
   if (typeof body.intended_use !== 'string') return fail('the intended-use notice is missing')
   if (body.reason_code !== null && !(REASON_CODES as readonly unknown[]).includes(body.reason_code)) {
@@ -117,6 +120,28 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function isTextPart(value: unknown): value is TextPart {
   return isRecord(value) && value.type === 'text' && typeof value.text === 'string'
+}
+
+/** An options part: the three options, each with a status from the cited rules. */
+function isOptionsPart(value: unknown): value is OptionsPart {
+  return (
+    isRecord(value) &&
+    value.type === 'options' &&
+    typeof value.rules_version === 'string' &&
+    Array.isArray(value.options) &&
+    value.options.every(
+      (option) =>
+        isRecord(option) &&
+        (OPTION_STATUSES as readonly unknown[]).includes(option.status) &&
+        typeof option.name === 'string' &&
+        Array.isArray(option.reasons) &&
+        Array.isArray(option.sources),
+    )
+  )
+}
+
+function isReplyPart(value: unknown): value is ReplyPart {
+  return isTextPart(value) || isOptionsPart(value)
 }
 
 function hasAllStagesInOrder(value: unknown): value is { name: string; status: StageStatus; detail: string; duration_ms: number }[] {

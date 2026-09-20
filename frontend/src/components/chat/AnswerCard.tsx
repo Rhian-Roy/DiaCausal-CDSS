@@ -1,6 +1,7 @@
 import type { Answer } from '@/lib/chatFlow'
 import type { ReactNode } from 'react'
 import { GuardNotice } from './GuardNotice'
+import { OptionsList } from './OptionsList'
 import { StageList } from './StageList'
 import { StatusBlock } from './StatusBlock'
 
@@ -43,7 +44,7 @@ export function AnswerCard({ answer, traceId }: { answer: Answer; traceId: strin
         </Card>
       )
     case 'notice':
-      return <GuardNotice code={answer.code} topic={answer.topic} />
+      return <GuardNotice code={answer.code} topic={answer.topic} reason={answer.reason} />
     case 'blocked':
       return (
         <Card label="DiaCausal did not answer">
@@ -57,6 +58,7 @@ export function AnswerCard({ answer, traceId }: { answer: Answer; traceId: strin
     case 'answered':
       return (
         <Card label="DiaCausal answered">
+          {answer.options && <OptionsList part={answer.options} />}
           {answer.text.split(/\n{2,}/).map((paragraph, index) => (
             <p key={index} className="m-0 whitespace-pre-wrap wrap-break-word">
               {paragraph}
