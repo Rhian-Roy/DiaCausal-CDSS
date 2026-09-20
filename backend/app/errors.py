@@ -18,6 +18,7 @@ from fastapi import Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
+from app.patient_ranges import RANGES
 from app.schemas import ErrorResponse, Problem
 from app.settings import (
     MAX_PARTS,
@@ -52,17 +53,43 @@ def _field_name(path: tuple) -> str:
     return name or "body"
 
 
+def _number(value: float, decimals: int) -> str:
+    return f"{value:,.{decimals}f}"
+
+
+def _range_problem(field_name: str, value: Any, part_number: int) -> Problem | None:
+    """A patient value outside its plausibility range, named with the expected range."""
+    limits = RANGES.get(field_name)
+    if limits is None:
+        return None
+    low, high, unit, label, decimals = limits
+    shown = _show(value, 20)
+    return Problem(
+        field=f"parts[{part_number - 1}].{field_name}",
+        message=(
+            f"{label} {shown}{unit if unit == '%' else ''} is outside the expected range "
+            f"{_number(low, decimals)}–{_number(high, decimals)} {unit}. Check the value."
+        ),
+    )
+
+
 def _describe(err: dict) -> Problem:
     """One Pydantic error -> one plain-English Problem."""
     loc = tuple(err.get("loc", ()))
     path = loc[1:] if loc[:1] == ("body",) else loc
     kind = err.get("type", "")
     value = err.get("input")
+    # A tagged union reports the chosen part type inside the path:
+    # ("parts", 0, "patient", "hba1c_percent"). Drop it so the messages stay the same.
+    if len(path) >= 3 and path[0] == "parts" and path[2] in SUPPORTED_PART_TYPES:
+        path = path[:2] + path[3:]
     field = _field_name(path)
 
     def problem(message: str) -> Problem:
         return Problem(field=field, message=message)
 
+    if not path and kind == "value_error" and "one patient part" in str(err.get("msg", "")):
+        return Problem(field="parts", message="A message may carry at most one patient part.")
     if kind == "json_invalid":
         return Problem(field="body", message="The request body is not valid JSON.")
     if not path and isinstance(value, bytes):
@@ -73,13 +100,22 @@ def _describe(err: dict) -> Problem:
 
     if path[0] == "parts" and len(path) >= 2 and isinstance(path[1], int):
         n, rest = path[1] + 1, path[2:]
-        if rest == ("type",):
-            if kind == "missing":
-                return problem(f'Part {n} has no "type". Supported part types: {_SUPPORTED}.')
-            return problem(
-                f"Part {n} has type {_show(value)}, which this API does not accept. "
-                f"Supported part types: {_SUPPORTED}."
+        # The union reports the whole part; point at the "type" field, which is the problem.
+        type_field = f"parts[{n - 1}].type"
+        if kind == "union_tag_not_found" or (rest == ("type",) and kind == "missing"):
+            return Problem(field=type_field, message=f'Part {n} has no "type". Supported part types: {_SUPPORTED}.')
+        if kind == "union_tag_invalid" or rest == ("type",):
+            given = value.get("type") if isinstance(value, dict) else value
+            return Problem(
+                field=type_field,
+                message=(
+                    f"Part {n} has type {_show(given)}, which this API does not accept. "
+                    f"Supported part types: {_SUPPORTED}."
+                ),
             )
+        if kind in ("greater_than_equal", "less_than_equal") and len(rest) == 1:
+            if (described := _range_problem(str(rest[0]), value, n)) is not None:
+                return described
         if rest == ("text",):
             if kind == "string_too_long":
                 return problem(

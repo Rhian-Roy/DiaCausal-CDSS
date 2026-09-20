@@ -48,6 +48,9 @@ green tick or red cross next to each commit, or the **Actions** tab.
 | Master login = admin role (no shared login) | Section 2 `backend/tests/test_admin.py`; section 6 *"scripts/create_admin.py creates an admin account"* |
 | Every chat request in the audit log (request_id + trace ID, no text) | Section 2 `test_every_chat_request_is_audited…`; section 6 *"every chat request is in audit_log…"* |
 | Voice: Python speech-to-text, transcript into the box (never auto-sent), numbers marked, audio deleted | Section 2 `backend/tests/test_voice.py` (5 recorded clips through the real model, limits, deletion); section 3 `frontend/src/features/voice/voice.test.tsx`; section 6 *"speech-to-text: a recorded clip comes back as text"* |
+| Patient panel: every field's range, both sides; unknown field refused; two patient parts refused | Section 2 `backend/tests/test_patient.py` (incl. a test that the browser's copy of the ranges matches the server's), section 3 `frontend/src/features/patient/patient.test.tsx`, section 6 *"the patient panel's details are accepted…"*, *"an impossible patient value is refused…"* |
+| "New patient" clears the panel and the conversation | Section 3 *"New patient clears the panel AND the conversation"*, section 8 (real browser) |
+| Patient values never logged (only which fields arrived) | Section 2 `test_patient_values_are_never_logged`, section 6 *"the log says which patient fields arrived, never their values"* |
 | Message text never written to the log | Section 2 (`test_message_text_is_never_logged`) and section 6 |
 | The code type-checks, builds and has no lint problems | Sections 4 and 5 |
 | The whole app really works in a real browser | Section 8: 9 Playwright tests in Google Chrome |
@@ -80,6 +83,7 @@ terminal side by side.
 | # | Do | You should see |
 |---|---|---|
 | 1 | Look at the page next to `design/chat-desktop.png` | Dark pine-green top bar, serif "DiaCausal", "RESEARCH PROTOTYPE" badge, bold patient line with an "Example data" chip, a white message box with a mic and a green arrow button, the disclaimer under it |
+| 1a | Look at the patient panel beside the conversation | "Patient details" with an **Example data** badge, the example patient filled in, "Category: Obese (≥25)" with the Asian-Indian cut-offs under it. Type `45` into HbA1c → a warning appears beside the field. Press **New patient** → panel and conversation both empty |
 | 1b | Sign in as in [SETUP.md step 5c](SETUP.md#5c-sign-in-use-chrome) | Console: `login input passed`, `captcha passed`, `password passed`, then `mfa passed`; your name and **Sign out** top right |
 | 2 | Type `HbA1c 8.4% on metformin. What should I add?` and press **Enter** | Console: four lines `[xxxxxxxx] input passed`, `… ui guard passed`, `… medical ui guard passed`, `… output passed` — the same 8 characters on each |
 | 3 | Look at terminal 1 | Eight lines with that same `[xxxxxxxx]`: request received, six stages, reply sent. Your question's words do **not** appear |

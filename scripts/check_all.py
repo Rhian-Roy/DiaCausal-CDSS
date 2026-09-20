@@ -349,8 +349,26 @@ def check_live(node: str) -> None:
         check(reply.get("outcome") == "blocked" and reply.get("reason_code") == "language" and rude not in text,
               "foul language is blocked by the server guard without repeating the word", text)
 
+        patient = {"type": "patient", "age_years": 58, "hba1c_percent": 8.4, "egfr_ml_min_1_73m2": 62,
+                   "bmi_kg_m2": 31.2, "past_dka": False, "past_hypoglycaemia": "none"}
+        body = chat("HbA1c 8.4% on metformin, which add-on?", trace)
+        body["parts"] = [patient, *body["parts"]]
+        status, text, _ = call(api_url + "/api/v1/chat", body)
+        check(status == 200 and parse(text).get("outcome") == "answered",
+              "the patient panel's details are accepted with the question", text)
+
+        bad = {"type": "patient", "hba1c_percent": 45}
+        body = chat("what next?", trace)
+        body["parts"] = [bad, *body["parts"]]
+        status, text, _ = call(api_url + "/api/v1/chat", body)
+        message = str(parse(text).get("message", ""))
+        check(status == 422 and "outside the expected range 4.0-20.0" in message.replace("–", "-"),
+              "an impossible patient value is refused with the expected range (422)", text)
+
         time.sleep(0.5)
         log = read(logs / "backend.log")
+        check("patient details: age_years" in log and "8.4" not in log.split("chat request received")[-1],
+              "the log says which patient fields arrived, never their values", log)
         check(rude not in log and "726018159082" not in log and "guard rules version" in log,
               "the backend log shows the guard rules version, never the blocked word or identifier", log)
         needed = ["chat request received", *[f"{name}:" for name in STAGES], "reply sent"]

@@ -130,6 +130,22 @@ test('the conversation scrolls and stays on the newest answer', async () => {
   expect(scrollTop + clientHeight).toBeGreaterThan(scrollHeight - 5) // scrolled to the bottom
 })
 
+test('the patient panel: example data, a bad value caught, "New patient" clears everything', async () => {
+  const panel = page.getByRole('complementary', { name: 'Patient details' })
+  await expect(panel.getByText('Example data')).toBeVisible()
+  await expect(panel.getByLabel('HbA1c')).toHaveValue('8.4')
+  await expect(panel.getByText('Category: Obese (≥25)')).toBeVisible() // Asian-Indian cut-offs
+
+  await panel.getByLabel('HbA1c').fill('45')
+  await expect(panel.getByRole('alert')).toContainText('expected 4.0–20.0 %')
+
+  await panel.getByLabel('HbA1c').fill('8.4')
+  await panel.getByRole('button', { name: 'New patient' }).click()
+  await expect(panel.getByLabel('HbA1c')).toHaveValue('')
+  await expect(panel.getByText('Not filled in')).toBeVisible()
+  await expect(page.getByText('Question number 8', { exact: false })).toHaveCount(0) // conversation cleared
+})
+
 test('the microphone button is ready to use', async () => {
   // Voice is built (docs/prompts/11-voice.md), so the button is enabled and labelled for
   // dictation. Recording itself needs a real microphone, so it is not clicked here.

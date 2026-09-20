@@ -5,10 +5,11 @@ that does not fit is rejected with HTTP 422 and a plain-English message (see err
 """
 
 from enum import StrEnum
-from typing import Literal
+from typing import Annotated, Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from app.patient_ranges import RANGES
 from app.settings import INTENDED_USE, MAX_PARTS, MAX_TEXT_CHARS, TRACE_ID_PATTERN
 
 
@@ -26,18 +27,56 @@ class TextPart(StrictModel):
     text: str = Field(max_length=MAX_TEXT_CHARS)
 
 
-# A message is a list of typed parts so new kinds of input can be added later
-# without changing the shape of the request. Today the only type is "text".
-# To add one (say "image"): define ImagePart above, then change this line to
-#     Part = Annotated[TextPart | ImagePart, Field(discriminator="type")]
-# and add "image" to SUPPORTED_PART_TYPES in settings.py.
-Part = TextPart
+def _limits(field: str) -> dict:
+    """The plausibility range for one field, as Pydantic wants it (app/patient_ranges.py)."""
+    low, high, *_ = RANGES[field]
+    return {"ge": low, "le": high}
+
+
+class PatientPart(StrictModel):
+    """The patient details from the panel (design/v1/13-16). Every field is optional:
+    the panel starts empty, and the clinical guardrails decide what they need.
+
+    Values are structured, never parsed out of the doctor's sentence, and never logged.
+    """
+
+    type: Literal["patient"]
+    age_years: int | None = Field(default=None, **_limits("age_years"))
+    diabetes_duration_years: float | None = Field(default=None, **_limits("diabetes_duration_years"))
+    hba1c_percent: float | None = Field(default=None, **_limits("hba1c_percent"))
+    egfr_ml_min_1_73m2: float | None = Field(default=None, **_limits("egfr_ml_min_1_73m2"))
+    bmi_kg_m2: float | None = Field(default=None, **_limits("bmi_kg_m2"))
+    established_ascvd: bool | None = None  # established atherosclerotic cardiovascular disease
+    ckd: bool | None = None
+    heart_failure: bool | None = None
+    past_dka: bool | None = None  # needed by the SGLT2 inhibitor rules in clinical/guardrails.v1.yaml
+    recurrent_genital_or_urinary_infection: bool | None = None
+    past_pancreatitis: bool | None = None  # needed by the DPP-4 inhibitor rules
+    past_hypoglycaemia: Literal["none", "mild", "severe"] | None = None
+    budget_inr_per_month: int | None = Field(default=None, **_limits("budget_inr_per_month"))
+
+    def filled_fields(self) -> list[str]:
+        """Which fields were filled in — safe to log; the values are not."""
+        return [name for name, value in self.model_dump(exclude={"type"}).items() if value is not None]
+
+
+# A message is a list of typed parts, so new kinds of input can be added later without
+# changing the shape of the request. The "type" field picks the model (a tagged union).
+# To add one (say "image"): define ImagePart above, add it to this union, and add the
+# name to SUPPORTED_PART_TYPES in settings.py.
+Part = Annotated[TextPart | PatientPart, Field(discriminator="type")]
 
 
 class ChatRequest(StrictModel):
     schema_version: Literal["1.0"]
     client_trace_id: str = Field(pattern=TRACE_ID_PATTERN)
     parts: list[Part] = Field(min_length=1, max_length=MAX_PARTS)
+
+    @model_validator(mode="after")
+    def at_most_one_patient_part(self) -> Self:
+        if sum(isinstance(part, PatientPart) for part in self.parts) > 1:
+            raise ValueError("one patient part")
+        return self
 
 
 # ── Response ─────────────────────────────────────────────────────────────────
