@@ -23,7 +23,7 @@ python3.12 scripts/setup.py      # any OS; Windows: py -3.12 scripts\setup.py (s
 ## Check everything (tests, build, lint, live backend + page on spare ports)
 
 ```bash
-python3 scripts/check_all.py     # must end with "ALL 32 CHECKS PASSED"; Windows: py scripts\check_all.py
+python3 scripts/check_all.py     # must end with "ALL 34 CHECKS PASSED"; Windows: py scripts\check_all.py
 ```
 
 If you add a requirement, add a check for it here or in the tests, and update
@@ -92,15 +92,20 @@ If you add a requirement, add a check for it here or in the tests, and update
   codes, CAPTCHA answers or message text. First admin: `scripts/create_admin.py`.
 - Tests: the `client` fixture is already signed in; use `anon` for a stranger.
 
+## Voice (built) — see docs/explain/12-voice.md
+
+`POST /api/v1/transcribe` runs faster-whisper (`base`, int8) on this computer;
+`frontend/src/features/voice/` records and puts the text **in the message box**, never
+sends it. Never keep the audio; never log the transcript.
+
 ## Not built yet — where each piece goes
 
 | Piece | Backend | Frontend / other |
 |---|---|---|
-| Voice (speech-to-text) | `backend/app/voice/` | `frontend/src/features/voice/` (mic button is disabled) |
 | Docker | — | `docker/` |
 | Clinical guardrails, causal engine, RAG, LLM | `backend/app/pipeline/<stage>.py` | — |
 
-Each folder's README says how it connects. Search the code for `LOGIN:` and `VOICE:`.
+Each folder's README says how it connects.
 
 ## Tooling
 

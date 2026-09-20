@@ -1,12 +1,16 @@
-# voice — microphone input (not built yet)
+# voice — microphone input (built)
 
-**What goes here:** the logic behind the mic button in `src/components/chat/Composer.tsx`
-(currently disabled).
+The mic button in `src/components/chat/Composer.tsx`.
 
-**How it will connect:** press to record (browser `MediaRecorder`), press again to stop;
-the clip goes to the backend (`backend/app/voice/README.md`), and the returned text is put
-**into the message box** for the clinician to check. Nothing is sent to the chat until
-they press Enter, so the usual guards and trace-ID console lines still apply.
+| File | Does |
+|---|---|
+| `useVoiceInput.ts` | press to record (`MediaRecorder`; microphone permission is asked for only on press), press again or 30 s to stop, sends the clip, hands back the text |
+| `api.ts` | `POST /api/v1/transcribe` with the CSRF token and a trace ID |
+| `HighlightNumbers.tsx` | shows the dictated text with every number marked |
 
-**Rules:** ask for microphone permission only when the button is pressed; show clearly
-while recording; never auto-send a transcript.
+**Rules:** never auto-send a transcript — it goes into the message box, and the doctor
+presses Enter, so the usual guards and console lines still apply; show clearly while
+recording and release the microphone when it stops.
+
+Console: `[id] voice: 4.2 s recorded`, `[id] voice: transcript put in the message box (not sent)`.
+Tests: `voice.test.tsx` (fake microphone). Backend: `backend/app/voice/README.md`.

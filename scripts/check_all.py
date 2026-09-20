@@ -105,11 +105,12 @@ signed_in: dict[str, str] = {}
 
 
 def call(url: str, body: dict | None = None, raw: bytes | None = None, *, as_user: bool = True,
-         csrf: bool = True) -> tuple[int, str, dict]:
-    """GET (no body) or POST JSON, as the signed-in user unless as_user=False.
+         csrf: bool = True, extra: dict | None = None) -> tuple[int, str, dict]:
+    """GET (no body) or POST JSON (or raw bytes), as the signed-in user unless as_user=False.
     Returns (status, text, headers)."""
     data = raw if raw is not None else (json.dumps(body).encode() if body is not None else None)
     headers = {"Content-Type": "application/json"} if data is not None else {}
+    headers.update(extra or {})
     if as_user and "cookie" in signed_in:
         headers["Cookie"] = signed_in["cookie"]
         if csrf:
@@ -363,6 +364,16 @@ def check_live(node: str) -> None:
               and all(r[1] == trace and r[2] == user_id for r in rows)
               and secret_word not in everything and password not in everything,
               "every chat request is in audit_log with its request_id and trace ID, never its text", str(rows))
+
+        clip = BACKEND / "tests" / "voice_clips" / "1-hba1c-metformin.wav"
+        status, text, _ = call(api_url + "/api/v1/transcribe", raw=clip.read_bytes(),
+                               extra={"Content-Type": "audio/wav", "X-Trace-Id": trace})
+        said = str(parse(text).get("transcript", "")).lower()
+        check(status == 200 and "metformin" in said and "8.4" in said,
+              "speech-to-text: a recorded clip comes back as text (faster-whisper on this computer)", text)
+        status, text, _ = call(api_url + "/api/v1/transcribe", raw=b"not audio at all",
+                               extra={"Content-Type": "audio/wav", "X-Trace-Id": trace}, as_user=False)
+        check(status == 401, "speech-to-text is refused when not signed in", text)
 
         status, _, _ = call(api_url + "/api/v1/auth/logout", {})
         after, text, _ = call(api_url + "/api/v1/chat", chat("Hello", trace))

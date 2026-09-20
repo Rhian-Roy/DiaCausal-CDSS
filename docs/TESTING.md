@@ -14,8 +14,8 @@ report one.
 (First time on a computer? Do the setup in [SETUP.md](SETUP.md) first.)
 
 It takes a few seconds and prints `[PASS]` or `[FAIL]` per line, ending with
-`ALL 32 CHECKS PASSED`. Those 32 lines are: 4 tool checks, 1 line for all 283 backend
-tests, 1 line for all 191 frontend tests, build, lint, then 24 live checks. It starts its
+`ALL 34 CHECKS PASSED`. Those 34 lines are: 4 tool checks, 1 line for all 306 backend
+tests, 1 line for all 202 frontend tests, build, lint, then 26 live checks. It starts its
 own copy of the app on spare ports, so it does not disturb servers you already have
 running.
 
@@ -44,6 +44,7 @@ green tick or red cross next to each commit, or the **Actions** tab.
 | Chat only for signed-in users; CSRF token required | Section 2 `test_chat_without_a_session_is_401`, `test_chat_without_the_csrf_header_is_403`; section 6 *"chat without signing in is refused (401)"*, *"…without the CSRF token is refused (403)"* |
 | Master login = admin role (no shared login) | Section 2 `backend/tests/test_admin.py`; section 6 *"scripts/create_admin.py creates an admin account"* |
 | Every chat request in the audit log (request_id + trace ID, no text) | Section 2 `test_every_chat_request_is_audited…`; section 6 *"every chat request is in audit_log…"* |
+| Voice: Python speech-to-text, transcript into the box (never auto-sent), numbers marked, audio deleted | Section 2 `backend/tests/test_voice.py` (5 recorded clips through the real model, limits, deletion); section 3 `frontend/src/features/voice/voice.test.tsx`; section 6 *"speech-to-text: a recorded clip comes back as text"* |
 | Message text never written to the log | Section 2 (`test_message_text_is_never_logged`) and section 6 |
 | The code type-checks, builds and has no lint problems | Sections 4 and 5 |
 | Colours, fonts, layout match `design/` | By eye only: part 2, steps 1 and 7 |
@@ -80,6 +81,7 @@ terminal side by side.
 | 5 | Press **Enter** on an empty box | "Type a question first." under the box; console shows `input passed` then a yellow warning `ui guard blocked`; nothing new in terminal 1 |
 | 6 | Type a line, press **Shift+Enter**, type another | A new line in the box; nothing is sent |
 | 7 | Open the device toolbar (**⌘⇧M** Mac / **Ctrl+Shift+M** Windows, with the console open), pick an iPhone | Compare with `design/chat-phone.png`: "PROTOTYPE" badge, short patient line, "Ask a question" placeholder |
+| 7b | Press the **microphone**, say "HbA1c 8.4 percent on metformin, eGFR 62", press the square to stop | "Recording 0:03 / 0:30" while you speak, then the words appear **in the message box** (not sent) with the numbers marked underneath; console: `voice: … s recorded`, `voice: transcript put in the message box (not sent)` |
 | 8 | Press **Tab** until the green send button is selected | A thick pine-green outline around it (keyboard users can see where they are) |
 | 9 | Stop terminal 1 (**Ctrl+C**), then send a question | Red box "Couldn't get a reply … Check that the backend is running." Start terminal 1 again afterwards |
 | 10 | Open http://localhost:8000 (needs internet: the page loads its look from a CDN) | The API's own documentation page (`/docs`); **POST /api/v1/chat → Try it out → Execute** sends a request by hand |
@@ -89,6 +91,7 @@ terminal side by side.
 | Not tested | Why |
 |---|---|
 | Docker | Not built yet (`docker/README.md`) |
+| Voice with a real microphone and a real human voice | By hand only: the automated tests use five synthetic clips (`backend/tests/voice_clips/`) and, in the browser tests, a fake microphone |
 | Scanning the QR code with a real phone | By hand only (SETUP.md step 5c); the automated checks compute the code from the key, as the phone would |
 | The four clinical stages (guardrails, causal engine, RAG, LLM) | Not connected yet; they return `skipped` |
 | Whether the guard lists are clinically right | `rules.v1.json` is a **draft**: Member D must review every list and the collaborating doctor the clinical ones (status field in the file) |

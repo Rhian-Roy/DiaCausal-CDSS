@@ -72,7 +72,8 @@ that changed `requirements` or `package-lock.json`, **after stopping both server
 |---|---|
 | `python3.12 scripts/setup.py` | `py -3.12 scripts/setup.py` |
 
-It also makes **`backend/.env`**, which holds the secret key that encrypts everyone's
+It also downloads the **speech-to-text model** (about 145 MB, once per computer) and
+makes **`backend/.env`**, which holds the secret key that encrypts everyone's
 authenticator secrets. It is never committed and never overwritten; keep it (losing it
 means everyone must set up their authenticator app again).
 
@@ -89,7 +90,7 @@ It runs every automated test, then starts the real app on spare ports and sends 
 messages through it. It should end with:
 
 ```
-ALL 32 CHECKS PASSED
+ALL 34 CHECKS PASSED
 ```
 
 What each check proves, and what to do if one fails: [TESTING.md](TESTING.md).
