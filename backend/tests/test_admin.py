@@ -101,6 +101,20 @@ def test_a_long_passphrase_is_fine():
     assert passwords.password_problem("correct horse battery staple", "dr.rao") is None
 
 
+def test_without_a_terminal_it_explains_instead_of_crashing(monkeypatch, capsys):
+    """`!` in an editor, a script or CI has no terminal, so the hidden prompt cannot work."""
+    monkeypatch.setattr("sys.stdin", io.StringIO(""))  # StringIO.isatty() is False
+    code = cli.main(["create-first-admin", "demo.admin", "Dr Demo"])
+    out = capsys.readouterr()
+    assert code == 1 and "needs a real terminal" in out.err and "--password-stdin" in out.err
+    assert "Traceback" not in out.err
+
+
+def test_empty_stdin_is_refused_politely(monkeypatch, capsys):
+    code, _, err = run_cli(monkeypatch, capsys, ["create-first-admin", "demo.admin", "Dr Demo"], "")
+    assert code == 1 and "No password arrived" in err
+
+
 def test_user_ids_are_simple_ascii():
     with pytest.raises(Refused):
         cli.normalise_user_id("dr rao!")

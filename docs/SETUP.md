@@ -107,9 +107,14 @@ disable, unlock and reset other accounts. Make the first one:
 |---|---|
 | `python3 scripts/create_admin.py your.id "Dr Your Name"` | `py scripts/create_admin.py your.id "Dr Your Name"` |
 
-It asks for a password twice (typing shows nothing; that is normal). At least 12
-characters: a short sentence works well. There is no default password anywhere. It works
-only while there is no admin yet.
+Run it in a **real terminal window** (Terminal or iTerm). It asks for a password twice;
+typing shows nothing, which is normal. At least 12 characters — a short sentence works
+well. There is no default password anywhere, and it works only while there is no admin yet.
+
+An editor's built-in console has no real terminal, so the hidden prompt cannot work there;
+the script says so and suggests
+`echo 'the password' | python3 scripts/create_admin.py USER_ID "Name" --password-stdin`
+(that leaves the password in your shell history, so change it afterwards).
 
 ### 5b. Start the two servers
 

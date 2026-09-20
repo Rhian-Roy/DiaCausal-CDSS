@@ -14,7 +14,7 @@ report one.
 (First time on a computer? Do the setup in [SETUP.md](SETUP.md) first.)
 
 It takes a few seconds and prints `[PASS]` or `[FAIL]` per line, ending with
-`ALL 34 CHECKS PASSED`. Those 34 lines are: 4 tool checks, 1 line for all 306 backend
+`ALL 34 CHECKS PASSED`. Those 34 lines are: 4 tool checks, 1 line for all 308 backend
 tests, 1 line for all 203 frontend tests, build, lint, then 26 live checks. It starts its
 own copy of the app on spare ports, so it does not disturb servers you already have
 running.

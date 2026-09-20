@@ -33,7 +33,20 @@ class Refused(Exception):
 
 def _read_password(prompt: str, from_stdin: bool) -> str:
     if from_stdin:
-        return sys.stdin.readline().rstrip("\n")
+        line = sys.stdin.readline()
+        if not line:
+            raise Refused("No password arrived on standard input.")
+        return line.rstrip("\n")
+    if not sys.stdin.isatty():
+        # No real terminal (an editor's console, a script, a CI job): getpass cannot hide
+        # typing, so say what to do instead of failing with a traceback.
+        raise Refused(
+            "This needs a real terminal so the password stays hidden while you type it.\n"
+            "       Open Terminal (or iTerm) and run the same command there, or pipe the\n"
+            "       password in:  echo 'your password' | python3 scripts/create_admin.py "
+            "USER_ID \"Display name\" --password-stdin\n"
+            "       (piping puts the password in your shell history — change it afterwards)."
+        )
     return getpass.getpass(prompt)
 
 
