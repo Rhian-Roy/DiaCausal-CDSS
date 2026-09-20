@@ -1,7 +1,12 @@
 """The API's URLs."""
 
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Depends, Request, Response
+from sqlalchemy.orm import Session
 
+from app.auth import audit
+from app.auth.deps import Signed, client_ip, require_clinician
+from app.auth.schemas import AuthError
+from app.db import get_db
 from app.pipeline import run_pipeline
 from app.schemas import ChatRequest, ChatResponse, ErrorResponse, HealthResponse
 from app.tracing import log, trace_context
@@ -17,18 +22,30 @@ def health() -> HealthResponse:
 
 @router.post(
     "/v1/chat",
-    responses={422: {"model": ErrorResponse, "description": "The request did not match the contract."}},
+    responses={
+        401: {"model": AuthError, "description": "Not signed in (or the session timed out)."},
+        403: {"model": AuthError, "description": "Missing CSRF token, or intended use not acknowledged."},
+        422: {"model": ErrorResponse, "description": "The request did not match the contract."},
+    },
 )
-def chat(request: ChatRequest, response: Response) -> ChatResponse:
+def chat(
+    request: ChatRequest,
+    response: Response,
+    http: Request,
+    signed: Signed = Depends(require_clinician),
+    db: Session = Depends(get_db),
+) -> ChatResponse:
     """Run one message through the pipeline and return the reply plus every stage's result.
-
-    LOGIN: once sign-in exists, add a parameter here such as
-    `clinician: Clinician = Depends(require_clinician)` — see app/auth/README.md.
-    """
+    Signed-in clinicians only; every request is written to audit_log (never its text)."""
     with trace_context(request.client_trace_id):
         characters = sum(len(part.text) for part in request.parts)
         log.info("chat request received: %d part(s), %d characters", len(request.parts), characters)
         result = run_pipeline(request)
+        stages = ",".join(f"{stage.name}={stage.status}" for stage in result.stages)
+        result.request_id = audit.record(
+            db, "chat", result.outcome, user_id=signed.user.user_id,
+            client_trace_id=request.client_trace_id, detail=stages, ip=client_ip(http),
+        )
         log.info("reply sent: outcome=%s", result.outcome)
 
     response.headers["X-Trace-Id"] = request.client_trace_id

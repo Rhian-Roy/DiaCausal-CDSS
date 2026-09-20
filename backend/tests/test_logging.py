@@ -4,6 +4,7 @@ import logging
 
 import pytest
 
+from app.pipeline.blocklist import RULES_VERSION
 from app.tracing import log
 from conftest import TRACE
 
@@ -34,6 +35,7 @@ def test_log_shows_request_each_stage_and_reply(client, chat_body, app_logs):
     messages = [r.getMessage() for r in app_logs.records if r.name == "diacausal"]
     assert messages == [
         "chat request received: 1 part(s), 5 characters",
+        f"guard rules version {RULES_VERSION}",
         "backend_guard: passed",
         "clinical_guardrails: skipped",
         "causal_engine: skipped",

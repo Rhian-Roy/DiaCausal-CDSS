@@ -3,3 +3,19 @@
 fastapi==0.141.1
 uvicorn[standard]==0.53.0
 pydantic==2.13.5
+regex==2026.9.10  # Unicode word classes (\p{L}\p{M}\p{N}) for the shared guard rules
+# Sign-in (app/auth/) and database (app/db/)
+sqlalchemy==2.0.54
+alembic==1.20.0
+pwdlib[argon2]==0.3.1  # Argon2id password hashes
+argon2-cffi==25.1.0
+pyotp==2.10.0  # 6-digit authenticator codes (TOTP)
+cryptography==50.0.1  # Fernet: encrypts each MFA secret at rest
+captcha==0.7.1  # offline image + audio CAPTCHA
+pillow==12.3.0
+qrcode==8.2  # QR code for authenticator set-up
+python-dotenv==1.2.3  # reads backend/.env
+# Voice (app/voice/): speech-to-text on our own server, CPU, int8
+faster-whisper==1.2.1
+ctranslate2==4.8.2
+av==18.1.0  # decodes the browser's WebM/Opus or MP4/AAC recordings

@@ -15,7 +15,8 @@ What it does, in order:
   5. lint       oxlint finds no problems
   6. live API   starts the real backend on a spare port and sends it real
                 requests: a question, an image part, 8001 characters, an empty
-                message; checks the replies and the trace ID in the backend log
+                message, an identifier, foul language; checks the replies and the
+                trace ID in the backend log
   7. live page  starts the real frontend on a spare port and sends a message
                 through its /api proxy to that backend
 Servers you may already have running on 8000/5173 are not touched.
@@ -23,12 +24,17 @@ Servers you may already have running on 8000/5173 are not touched.
 
 from __future__ import annotations
 
+import base64
+import hashlib
+import hmac
 import json
 import os
 import re
 import secrets
 import shutil
 import socket
+import sqlite3
+import struct
 import subprocess
 import sys
 import tempfile
@@ -94,16 +100,48 @@ def free_port() -> int:
         return sock.getsockname()[1]
 
 
-def call(url: str, body: dict | None = None, raw: bytes | None = None) -> tuple[int, str, dict]:
-    """GET (no body) or POST JSON. Returns (status, text, headers)."""
+# The signed-in browser we pretend to be: its session cookie and CSRF token (set by sign_in).
+signed_in: dict[str, str] = {}
+
+
+def call(url: str, body: dict | None = None, raw: bytes | None = None, *, as_user: bool = True,
+         csrf: bool = True, extra: dict | None = None) -> tuple[int, str, dict]:
+    """GET (no body) or POST JSON (or raw bytes), as the signed-in user unless as_user=False.
+    Returns (status, text, headers)."""
     data = raw if raw is not None else (json.dumps(body).encode() if body is not None else None)
     headers = {"Content-Type": "application/json"} if data is not None else {}
+    headers.update(extra or {})
+    if as_user and "cookie" in signed_in:
+        headers["Cookie"] = signed_in["cookie"]
+        if csrf:
+            headers["X-CSRF-Token"] = signed_in["csrf"]
     request = urllib.request.Request(url, data=data, headers=headers)
     try:
         with http.open(request, timeout=20) as response:
             return response.status, response.read().decode("utf-8", "replace"), dict(response.headers)
     except urllib.error.HTTPError as error:
         return error.code, error.read().decode("utf-8", "replace"), dict(error.headers)
+
+
+def session_cookie(headers: dict) -> str | None:
+    match = re.search(r"(__Host-diacausal_session=[^;]+)", headers.get("set-cookie", headers.get("Set-Cookie", "")))
+    return match[1] if match else None
+
+
+def totp(secret_b32: str, at: float | None = None) -> str:
+    """The 6-digit code an authenticator app shows (RFC 6238), with the standard library only."""
+    counter = int((time.time() if at is None else at) // 30)
+    digest = hmac.new(base64.b32decode(secret_b32), struct.pack(">Q", counter), hashlib.sha1).digest()
+    offset = digest[-1] & 0x0F
+    return f"{(struct.unpack('>I', digest[offset:offset + 4])[0] & 0x7FFFFFFF) % 1_000_000:06d}"
+
+
+def captcha_answer(db_file: Path, captcha_id: str) -> str:
+    """Read the CAPTCHA answer from the server's database — only possible with server access,
+    which is exactly why a bot on the network cannot."""
+    with sqlite3.connect(db_file) as db:
+        row = db.execute("SELECT answer FROM captcha_challenges WHERE id = ?", (captcha_id,)).fetchone()
+    return row[0] if row else ""
 
 
 def wait_until_up(url: str, process: subprocess.Popen, seconds: int = 60) -> bool:
@@ -202,9 +240,17 @@ def check_live(node: str) -> None:
     api_url = f"http://127.0.0.1:{api_port}"
     web_url = f"http://127.0.0.1:{web_port}"
 
+    # A throwaway database and secret key: the real backend/diacausal.db is never touched.
+    db_file = logs / "check.db"
+    backend_env = {
+        "DIACAUSAL_DATABASE_URL": f"sqlite:///{db_file.as_posix()}",
+        "DIACAUSAL_SECRET_KEY": base64.urlsafe_b64encode(secrets.token_bytes(32)).decode(),
+    }
+    user_id, password = "check.admin", "check " + secrets.token_hex(12)
+
     section(6, f"Live backend (real server on port {api_port})")
     api = start([VENV_PY, "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", str(api_port)],
-                BACKEND, logs / "backend.log")
+                BACKEND, logs / "backend.log", env=backend_env)
     try:
         if not check(wait_until_up(api_url + "/api/health", api), "backend starts", read(logs / "backend.log")):
             return
@@ -213,8 +259,56 @@ def check_live(node: str) -> None:
         check(status == 200 and parse(text) == {"status": "ok", "schema_version": "1.0"},
               "GET /api/health says ok", text)
 
+        status, text, _ = call(api_url + "/api/v1/chat", chat("Hello", trace), as_user=False)
+        check(status == 401 and parse(text).get("error") == "not_signed_in",
+              "chat without signing in is refused (401)", text)
+
+        made = subprocess.run(
+            [sys.executable, ROOT / "scripts" / "create_admin.py", "--password-stdin", user_id, "Check Admin"],
+            input=password + "\n", capture_output=True, text=True, env={**os.environ, **backend_env},
+        )
+        check(made.returncode == 0, "scripts/create_admin.py creates an admin account (the master login)",
+              made.stdout + made.stderr)
+
+        def login(with_password: str) -> tuple[int, str, dict]:
+            _, text, _ = call(api_url + "/api/v1/auth/captcha", as_user=False)
+            captcha_id = parse(text).get("captcha_id", "")
+            return call(api_url + "/api/v1/auth/login", {
+                "client_trace_id": trace, "user_id": user_id, "password": with_password,
+                "captcha_id": captcha_id, "captcha_answer": captcha_answer(db_file, captcha_id),
+            }, as_user=False)
+
+        status, text, _ = call(api_url + "/api/v1/auth/captcha", as_user=False)
+        audio_url = parse(text).get("audio_url", "/none")
+        audio_status, audio, _ = call(api_url + audio_url, as_user=False)
+        check(status == 200 and parse(text).get("image", "").startswith("data:image/png")
+              and audio_status == 200 and audio.startswith("RIFF"),
+              "the CAPTCHA comes as an image and as audio", text[:300])
+
+        status, text, _ = login("a wrong password")
+        check(status == 401 and parse(text).get("message") == "Those details did not match",
+              'a wrong password gets "Those details did not match"', text)
+
+        status, text, headers = login(password)
+        step1 = parse(text)
+        signed_in.update(cookie=session_cookie(headers) or "", csrf=step1.get("csrf_token", ""))
+        _, text, _ = call(api_url + "/api/v1/auth/mfa/setup", {})
+        secret = "".join(parse(text).get("key_groups", []))
+        status, text, headers = call(api_url + "/api/v1/auth/mfa/confirm",
+                                     {"client_trace_id": trace, "code": totp(secret) if secret else "000000"})
+        info = parse(text)
+        signed_in.update(cookie=session_cookie(headers) or "", csrf=info.get("csrf_token", ""))
+        call(api_url + "/api/v1/auth/acknowledge", {"version": info.get("intended_use_version", "")})
+        check(step1.get("next") == "mfa_setup" and status == 200 and info.get("stage") == "full"
+              and "Secure" in headers.get("set-cookie", headers.get("Set-Cookie", "")),
+              "sign-in works: user ID + password + CAPTCHA, then authenticator set-up and a 6-digit code", text)
+
+        status, text, _ = call(api_url + "/api/v1/chat", chat("Hello", trace), csrf=False)
+        check(status == 403 and parse(text).get("error") == "csrf_failed",
+              "chat without the CSRF token is refused (403)", text)
+
         status, text, headers = call(api_url + "/api/v1/chat", chat(f"Test question {secret_word}: what next?", trace))
-        reply = parse(text) if status == 200 else {}
+        reply = first_reply = parse(text) if status == 200 else {}
         stages = [(s.get("name"), s.get("status")) for s in reply.get("stages", [])]
         expected = [(name, "passed" if name in ("backend_guard", "output_guard") else "skipped") for name in STAGES]
         first_part = (reply.get("parts") or [{}])[0]
@@ -239,13 +333,56 @@ def check_live(node: str) -> None:
         check(blocked.get("outcome") == "blocked" and (blocked.get("stages") or [{}])[0].get("status") == "blocked",
               "an empty message is blocked by backend_guard", text)
 
+        status, text, _ = call(api_url + "/api/v1/chat", chat("Patient Aadhaar 726018159082, HbA1c 8.4%", trace))
+        reply = parse(text) if status == 200 else {}
+        check(reply.get("outcome") == "blocked" and reply.get("reason_code") == "identifier"
+              and "726018159082" not in text,
+              "a patient identifier is blocked by the server guard (notice 09)", text)
+
+        rude = "bullshit"  # from shared/guard_rules/rules.v1.json
+        status, text, _ = call(api_url + "/api/v1/chat", chat(f"what {rude} answer is this", trace))
+        reply = parse(text) if status == 200 else {}
+        check(reply.get("outcome") == "blocked" and reply.get("reason_code") == "language" and rude not in text,
+              "foul language is blocked by the server guard without repeating the word", text)
+
         time.sleep(0.5)
         log = read(logs / "backend.log")
+        check(rude not in log and "726018159082" not in log and "guard rules version" in log,
+              "the backend log shows the guard rules version, never the blocked word or identifier", log)
         needed = ["chat request received", *[f"{name}:" for name in STAGES], "reply sent"]
         tagged = [line for line in log.splitlines() if f"[{trace}]" in line]
         check(all(any(word in line for line in tagged) for word in needed),
               f"backend log shows [{trace}] on the request, every stage and the reply", log)
-        check(secret_word not in log, "the message text never appears in the backend log", log)
+        check(secret_word not in log and password not in log and secret not in log,
+              "the message text, password and MFA secret never appear in the backend log", log)
+
+        with sqlite3.connect(db_file) as db:
+            rows = db.execute("SELECT request_id, client_trace_id, user_id, detail FROM audit_log "
+                              "WHERE event = 'chat'").fetchall()
+            everything = str(db.execute("SELECT * FROM audit_log").fetchall())
+        check(bool(rows) and first_reply.get("request_id") in [r[0] for r in rows]
+              and all(r[1] == trace and r[2] == user_id for r in rows)
+              and secret_word not in everything and password not in everything,
+              "every chat request is in audit_log with its request_id and trace ID, never its text", str(rows))
+
+        clip = BACKEND / "tests" / "voice_clips" / "1-hba1c-metformin.wav"
+        status, text, _ = call(api_url + "/api/v1/transcribe", raw=clip.read_bytes(),
+                               extra={"Content-Type": "audio/wav", "X-Trace-Id": trace})
+        said = str(parse(text).get("transcript", "")).lower()
+        check(status == 200 and "metformin" in said and "8.4" in said,
+              "speech-to-text: a recorded clip comes back as text (faster-whisper on this computer)", text)
+        status, text, _ = call(api_url + "/api/v1/transcribe", raw=b"not audio at all",
+                               extra={"Content-Type": "audio/wav", "X-Trace-Id": trace}, as_user=False)
+        check(status == 401, "speech-to-text is refused when not signed in", text)
+
+        status, _, _ = call(api_url + "/api/v1/auth/logout", {})
+        after, text, _ = call(api_url + "/api/v1/chat", chat("Hello", trace))
+        check(status == 204 and after == 401, "after signing out the old session no longer works", text)
+        status, text, headers = login(password)
+        signed_in.update(cookie=session_cookie(headers) or "", csrf=parse(text).get("csrf_token", ""))
+        status, text, headers = call(api_url + "/api/v1/auth/mfa",
+                                     {"client_trace_id": trace, "code": totp(secret, time.time() + 30)})
+        signed_in.update(cookie=session_cookie(headers) or "", csrf=parse(text).get("csrf_token", ""))
 
         section(7, f"Live page (real frontend on port {web_port}, /api forwarded to port {api_port})")
         web = start([node, VITE, "--host", "127.0.0.1", "--port", str(web_port), "--strictPort"],

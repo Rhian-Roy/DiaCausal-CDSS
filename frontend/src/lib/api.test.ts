@@ -1,6 +1,7 @@
 import { answeredReply, blockedReply, jsonResponse, stages, stubBackend } from '@/test/fakeBackend'
 import { describe, expect, it, vi } from 'vitest'
 import { checkOutput, postChat } from './api'
+import { setCsrfToken, setSessionEndedHandler } from './authSession'
 
 describe('postChat', () => {
   it('sends the contract request to /api/v1/chat', async () => {
@@ -16,6 +17,32 @@ describe('postChat', () => {
       client_trace_id: 'a1b2c3d4',
       parts: [{ type: 'text', text: 'Hello' }],
     })
+  })
+
+  it('sends the CSRF token and the session cookie', async () => {
+    const fetchMock = stubBackend((request) => answeredReply(request.client_trace_id))
+    setCsrfToken('token-123')
+
+    await postChat('Hello', 'a1b2c3d4')
+
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({
+      credentials: 'same-origin',
+      headers: expect.objectContaining({ 'X-CSRF-Token': 'token-123' }),
+    })
+    setCsrfToken(null)
+  })
+
+  it('a 401 means the session ended: it says so and tells the app', async () => {
+    stubBackend(() => jsonResponse({ error: 'session_expired', message: 'Your session has ended.' }, 401))
+    const ended = vi.fn()
+    setSessionEndedHandler(ended)
+
+    expect(await postChat('x', 'a1b2c3d4')).toEqual({
+      kind: 'failed',
+      message: 'Your session has ended. Please sign in again.',
+    })
+    expect(ended).toHaveBeenCalledOnce()
+    setSessionEndedHandler(null)
   })
 
   it('returns the body of a 200 reply', async () => {
@@ -106,8 +133,16 @@ describe('checkOutput', () => {
     ['an unknown outcome', { outcome: 'maybe', blocked_reason: 'x' }],
     ['no intended-use notice', { intended_use: undefined }],
     ['an unknown stage status', { stages: stages({ causal_engine: 'weird' as never }) }],
+    ['an unknown reason_code', { reason_code: 'rude' }],
+    ['a missing reason_code', { reason_code: undefined }],
+    ['an unknown scope_topic', { scope_topic: 'gout' }],
+    ['no request_id', { request_id: undefined }],
   ])('rejects a reply with %s', (_, patch) => {
     expect(checkOutput({ ...answeredReply('a1b2c3d4'), ...patch }, 'a1b2c3d4').ok).toBe(false)
+  })
+
+  it('accepts a blocked reply with a known reason_code and topic', () => {
+    expect(checkOutput(blockedReply('a1b2c3d4', 'x', 'out_of_scope', 'pregnancy'), 'a1b2c3d4').ok).toBe(true)
   })
 
   it('rejects a blocked reply that does not say why', () => {

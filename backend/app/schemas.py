@@ -71,14 +71,30 @@ class Outcome(StrEnum):
     BLOCKED = "blocked"
 
 
+class ReasonCode(StrEnum):
+    """Why backend_guard blocked a message; the page shows the matching notice (designs 09-12)."""
+
+    IDENTIFIER = "identifier"  # notice 09: a patient identifier (Aadhaar, phone, PAN, email, ABHA)
+    OUT_OF_SCOPE = "out_of_scope"  # notice 10: see scope_topic
+    EMERGENCY = "emergency"  # notice 11: no treatment content at all
+    LANGUAGE = "language"  # notice 12: foul language
+
+
+# Which out-of-scope topic (only with reason_code "out_of_scope").
+ScopeTopic = Literal["type_1", "pregnancy", "under_18", "dka_hhs", "insulin_start"]
+
+
 class ChatResponse(StrictModel):
     schema_version: Literal["1.0"] = "1.0"
     trace_id: str
     outcome: Outcome
     parts: list[Part]  # the reply; empty when the message was blocked
     blocked_reason: str | None = None
+    reason_code: ReasonCode | None = None  # set when backend_guard blocked by a guard rule
+    scope_topic: ScopeTopic | None = None
     stages: list[StageResult]
     intended_use: str = INTENDED_USE
+    request_id: str | None = None  # server-generated UUID, the row in audit_log
 
 
 class HealthResponse(StrictModel):

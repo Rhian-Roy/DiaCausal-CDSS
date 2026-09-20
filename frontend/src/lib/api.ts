@@ -3,8 +3,11 @@
  * in development Vite forwards /api to FastAPI on port 8000 (vite.config.ts).
  */
 
+import { csrfHeaders, markActivity, sessionEnded } from './authSession'
 import {
+  REASON_CODES,
   SCHEMA_VERSION,
+  SCOPE_TOPICS,
   STAGE_ORDER,
   type ChatRequest,
   type ChatResponse,
@@ -33,7 +36,8 @@ export async function postChat(message: string, traceId: string, fetchImpl?: typ
   try {
     response = await send(CHAT_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
+      credentials: 'same-origin',
       body: JSON.stringify(request),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     })
@@ -48,7 +52,14 @@ export async function postChat(message: string, traceId: string, fetchImpl?: typ
   }
 
   const body: unknown = await response.json().catch(() => null)
-  if (response.ok) return { kind: 'ok', body }
+  if (response.status === 401) {
+    sessionEnded() // timed out or signed out: the page goes back to sign-in
+    return { kind: 'failed', message: 'Your session has ended. Please sign in again.' }
+  }
+  if (response.ok) {
+    markActivity()
+    return { kind: 'ok', body }
+  }
   if (response.status === 422 && isErrorResponse(body)) return { kind: 'rejected', message: body.message }
   return {
     kind: 'failed',
@@ -74,6 +85,13 @@ export function checkOutput(body: unknown, traceId: string): OutputCheck {
   if (!Array.isArray(body.parts) || !body.parts.every(isTextPart)) return fail('the reply parts are not all text')
   if (!hasAllStagesInOrder(body.stages)) return fail('the pipeline stages are missing or out of order')
   if (typeof body.intended_use !== 'string') return fail('the intended-use notice is missing')
+  if (body.reason_code !== null && !(REASON_CODES as readonly unknown[]).includes(body.reason_code)) {
+    return fail('unknown reason_code')
+  }
+  if (body.scope_topic !== null && !(SCOPE_TOPICS as readonly unknown[]).includes(body.scope_topic)) {
+    return fail('unknown scope_topic')
+  }
+  if (typeof body.request_id !== 'string') return fail('the request_id is missing')
 
   if (body.outcome === 'answered') {
     if (!body.parts.some((part) => part.text.trim() !== '')) return fail('the answer is empty')

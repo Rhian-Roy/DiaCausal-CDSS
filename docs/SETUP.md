@@ -72,6 +72,11 @@ that changed `requirements` or `package-lock.json`, **after stopping both server
 |---|---|
 | `python3.12 scripts/setup.py` | `py -3.12 scripts/setup.py` |
 
+It also downloads the **speech-to-text model** (about 145 MB, once per computer) and
+makes **`backend/.env`**, which holds the secret key that encrypts everyone's
+authenticator secrets. It is never committed and never overwritten; keep it (losing it
+means everyone must set up their authenticator app again).
+
 It ends with `Setup finished.` Lines starting with `npm warn` (on a Mac, one about
 `fsevents`) are harmless; only a line starting with `[FAIL]` needs action.
 
@@ -85,12 +90,33 @@ It runs every automated test, then starts the real app on spare ports and sends 
 messages through it. It should end with:
 
 ```
-ALL 21 CHECKS PASSED
+ALL 34 CHECKS PASSED
 ```
 
 What each check proves, and what to do if one fails: [TESTING.md](TESTING.md).
 
 ## 5. Try it yourself
+
+### 5a. Create the first admin account (once per computer)
+
+Every person has their own account; there is no shared login and no "sign up" button.
+The whiteboard's **master login** is an **admin** account: a person who can create,
+disable, unlock and reset other accounts. Make the first one:
+
+| macOS / Linux | Windows |
+|---|---|
+| `python3 scripts/create_admin.py your.id "Dr Your Name"` | `py scripts/create_admin.py your.id "Dr Your Name"` |
+
+Run it in a **real terminal window** (Terminal or iTerm). It asks for a password twice;
+typing shows nothing, which is normal. At least 12 characters — a short sentence works
+well. There is no default password anywhere, and it works only while there is no admin yet.
+
+An editor's built-in console has no real terminal, so the hidden prompt cannot work there;
+the script says so and suggests
+`echo 'the password' | python3 scripts/create_admin.py USER_ID "Name" --password-stdin`
+(that leaves the password in your shell history, so change it afterwards).
+
+### 5b. Start the two servers
 
 Two terminal windows, both in the `DiaCausal-CDSS` folder.
 
@@ -106,11 +132,48 @@ Two terminal windows, both in the `DiaCausal-CDSS` folder.
 loaded because running scripts is disabled`, type `npm.cmd run dev` instead (or use
 Command Prompt).
 
-Open **http://localhost:5173**, then the browser's console:
+### 5c. Sign in (use Chrome)
+
+Open **http://localhost:5173** in **Chrome** (the sign-in cookie is marked *Secure*;
+Chrome accepts that on `localhost`, Safari may not), then the browser's console:
 **⌥⌘J** (Chrome, Mac), **Ctrl+Shift+J** (Chrome, Windows/Linux), or F12 → Console.
+
+1. **Step 1:** your user ID, your password, and the 6 digits in the picture
+   (**Play audio** reads them out; **New image** gives another). Click **Sign in**.
+   Console: `login input passed`, `captcha passed`, `password passed`.
+2. **First time only — set up your authenticator app** (design 06): on your phone install
+   **Google Authenticator** (or Microsoft Authenticator). Tap **+** → **Scan a QR code**,
+   point the camera at the QR code on the screen. The app now shows **DiaCausal** with a
+   6-digit number that changes every 30 seconds. Type the number shown now and click
+   **Confirm and finish setup**. (No camera? Tap **+** → **Enter a setup key** and type the
+   key shown in groups of 4; type: time based.)
+3. **Every later time:** step 2 asks for the 6-digit code from the app.
+4. **First time only:** read "How to use DiaCausal", tick **I understand**, **Continue**.
+
+Console: `mfa passed`. Your name and **Sign out** appear top right. After 13 minutes
+without activity a box warns you; at 15 minutes you are signed out and the conversation is
+cleared from the screen.
+
 Type a question and press **Enter**. You should see four lines that start with the same
 8-character ID, the dummy reply in the chat, and the same ID on 8 lines in terminal 1.
 Stop either server with **Ctrl+C**.
+
+### 5d. Accounts for the rest of the team (admins only)
+
+Each admin action asks for **your** admin password and your current 6-digit code, and is
+written to the audit log.
+
+```bash
+python3 scripts/admin.py --as your.id create-user dr.mehta "Dr Mehta"            # a clinician
+python3 scripts/admin.py --as your.id create-user dr.shah "Dr Shah" --role admin  # another admin
+python3 scripts/admin.py --as your.id unlock dr.mehta       # after 5 wrong tries (or wait 15 minutes)
+python3 scripts/admin.py --as your.id reset-mfa dr.mehta    # lost phone: sets up the app again
+python3 scripts/admin.py --as your.id disable dr.mehta      # and: enable
+python3 scripts/admin.py --as your.id list
+```
+
+(Windows: `py` instead of `python3`.) The new person signs in with the password you set
+and sets up their own authenticator app on first sign-in.
 
 ## 6. Working together
 

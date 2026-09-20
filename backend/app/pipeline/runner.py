@@ -68,5 +68,7 @@ def run_pipeline(request: ChatRequest) -> ChatResponse:
         outcome=Outcome.BLOCKED if is_blocked else Outcome.ANSWERED,
         parts=[] if is_blocked else ctx.reply_parts,
         blocked_reason=ctx.blocked_reason,
+        reason_code=ctx.reason_code,
+        scope_topic=ctx.scope_topic,
         stages=results,
     )

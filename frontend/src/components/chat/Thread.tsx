@@ -33,7 +33,11 @@ export function Thread({ turns }: { turns: Turn[] }) {
           <Fragment key={turn.traceId}>
             <section className="flex max-w-[900px] flex-col gap-2">
               <span className="text-sm font-bold tracking-[0.08em] text-ink-muted uppercase">You asked</span>
-              <p className="m-0 whitespace-pre-wrap wrap-break-word">{turn.question}</p>
+              {turn.question === null ? (
+                <p className="m-0 text-ink-muted italic">Message not shown.</p>
+              ) : (
+                <p className="m-0 whitespace-pre-wrap wrap-break-word">{turn.question}</p>
+              )}
             </section>
             <AnswerCard answer={turn.answer} traceId={turn.traceId} />
           </Fragment>
