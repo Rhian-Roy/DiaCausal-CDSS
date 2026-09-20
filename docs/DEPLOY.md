@@ -75,6 +75,35 @@ docker compose logs -f app                                 # one line per stage,
 Then by hand: sign in, ask a question, check the console lines, try the microphone, and
 press **New patient**. `docs/TESTING.md` part 2 is the by-eye list.
 
+## 5b. Use it on your phone, on the same Wi-Fi (no internet needed)
+
+Handy for showing the team, and the only way to try the **microphone** on a phone.
+
+1. Find the Mac's Bonjour name: `scutil --get LocalHostName` → e.g. `Rhians-MacBook-Air`.
+2. Add it to `.env` (keep `localhost` as well, it must come first):
+   ```
+   SITE_ADDRESS=localhost, Rhians-MacBook-Air.local
+   ```
+   Then `docker compose up -d proxy && docker compose restart proxy`.
+3. On the phone, with Wi-Fi on the same network, open
+   **https://Rhians-MacBook-Air.local:8443**
+
+The certificate is Caddy's own, so the phone warns about it. To get past that — and the
+microphone will **not** work until you do, because browsers refuse it on an untrusted
+page — install the local authority on the phone:
+
+```bash
+docker compose cp proxy:/data/caddy/pki/authorities/local/root.crt ~/Desktop/DiaCausal-local-CA.crt
+```
+
+**iPhone:** AirDrop that file to the phone → Settings → *Profile Downloaded* → **Install**
+→ then Settings → General → About → **Certificate Trust Settings** → turn on full trust
+for "Caddy Local Authority". **Android:** Settings → Security → Encryption & credentials →
+Install a certificate → CA certificate.
+
+Only do this on phones you control; it tells that phone to trust certificates this Mac
+issues. To undo it, delete the profile (iPhone) or the certificate (Android).
+
 ## 6. A real address (for a clinic or a demo others can reach)
 
 1. Point a DNS `A` record at the machine (e.g. `diacausal.example.org`).
@@ -150,7 +179,8 @@ and **DiaCausal must not be used with real patients until they are done**.
 | `DIACAUSAL_SECRET_KEY ... not a valid key` | `.env` missing or the key was pasted with a line break | Make a new key (step 2); it ends with `=` |
 | Browser warns about the certificate on `localhost` | Caddy's own certificate, expected on a laptop | Accept once, or use a real name (step 6) |
 | Sign-in bounces back to the sign-in page | The browser dropped the cookie — you are on plain `http` on a real host | Use HTTPS (step 6). On `localhost` this works in any browser |
-| The microphone button does nothing | Not HTTPS, or permission refused | Step 6, then allow the microphone in the address bar |
+| The microphone button does nothing | Not HTTPS, permission refused, or the certificate is not trusted on that device | Step 6 (or 5b on a phone), then allow the microphone in the address bar |
+| The phone cannot find `…​.local` | The phone is on mobile data or a different Wi-Fi, or the network blocks Bonjour | Same Wi-Fi; otherwise use step 6 with a real name |
 | `port is already allocated` | Something else uses 8080/8443 | Change `HTTP_PORT` / `HTTPS_PORT` in `.env` |
 | The first recording is slow | The model is loading (about a second, once) | Nothing — later ones are fast |
 | `clinical rule NOT in use — …` in the log | A rule has a TODO or no source | Expected until Member D fills it in; that rule never fires |
