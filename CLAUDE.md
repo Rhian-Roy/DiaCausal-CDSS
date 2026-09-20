@@ -23,7 +23,7 @@ python3.12 scripts/setup.py      # any OS; Windows: py -3.12 scripts\setup.py (s
 ## Check everything (tests, build, lint, live backend + page on spare ports)
 
 ```bash
-python3 scripts/check_all.py     # must end with "ALL 41 CHECKS PASSED"; Windows: py scripts\check_all.py
+python3 scripts/check_all.py     # must end with "ALL 43 CHECKS PASSED"; Windows: py scripts\check_all.py
 ```
 
 If you add a requirement, add a check for it here or in the tests, and update
@@ -114,11 +114,17 @@ applies it **before** the causal stage, removing any "do not use" option. Never 
 clinical number in code, and never let a later stage put a removed option back.
 Check the table with `.venv/bin/python -m app.clinical.check`.
 
+## Deployment (built) — see docs/DEPLOY.md and docs/explain/11-deploy.md
+
+`docker compose up --build -d` serves the page and the API from **one origin** with HTTPS
+in front (Caddy). Security headers live in `backend/app/web.py` only; `/docs` is off when
+`DIACAUSAL_ENV=production`; secrets come from `.env` at run time, never from the image.
+The evaluation pack is `eval/` (25 synthetic vignettes + the SUS and feedback forms).
+
 ## Not built yet — where each piece goes
 
 | Piece | Backend | Frontend / other |
 |---|---|---|
-| Docker | — | `docker/` |
 | Causal engine, RAG, LLM explanation | `backend/app/pipeline/<stage>.py` | — |
 
 Each folder's README says how it connects.

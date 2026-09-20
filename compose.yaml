@@ -1,0 +1,47 @@
+# DiaCausal for an evaluation machine. Two containers:
+#   app    — the page and the API (one origin, port 8000 inside the network only)
+#   proxy  — Caddy, which gives HTTPS and passes everything through to the app
+#
+# HTTPS is not optional: browsers refuse the microphone and a Secure cookie without it.
+#
+#   cp .env.example .env   (then put a real DIACAUSAL_SECRET_KEY in it)
+#   docker compose up --build -d
+#   docker compose exec app python ../scripts/create_admin.py your.id "Dr Your Name"
+#
+# Full instructions, including a real domain and backups: docs/DEPLOY.md
+
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    environment:
+      DIACAUSAL_SECRET_KEY: ${DIACAUSAL_SECRET_KEY:?set it in .env — see .env.example}
+      DIACAUSAL_ENV: production
+    volumes:
+      - diacausal-data:/data # the database lives here, not in the image
+    expose:
+      - "8000"
+    # Not published to the machine's network: the only way in is through the proxy.
+
+  proxy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "${HTTP_PORT:-8080}:80"
+      - "${HTTPS_PORT:-8443}:443"
+    environment:
+      # A real name (diacausal.example.org) gets a real certificate automatically.
+      # The default, `localhost`, gets Caddy's own local certificate — fine for a laptop
+      # demo, and the browser will ask you to trust it once.
+      SITE_ADDRESS: ${SITE_ADDRESS:-localhost}
+    volumes:
+      - ./docker/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data # the certificates
+      - caddy-config:/config
+
+volumes:
+  diacausal-data:
+  caddy-data:
+  caddy-config:

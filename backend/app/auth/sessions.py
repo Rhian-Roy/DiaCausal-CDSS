@@ -1,8 +1,14 @@
 """Sessions: a random token in a cookie; the database keeps only its SHA-256.
 
 Cookie `__Host-diacausal_session`: HttpOnly (page scripts cannot read it), Secure (HTTPS
-only; browsers treat http://localhost as secure), SameSite=Strict (never sent from
-another site), Path=/ and no Domain (the __Host- prefix makes the browser insist on these).
+only), SameSite=Strict (never sent from another site), Path=/ and no Domain (the __Host-
+prefix makes the browser insist on these).
+
+One exception, for development only: over **plain http to localhost** Safari and Brave
+drop a `Secure` cookie entirely, so signing in cannot work at all. There the cookie is
+sent under a plain name without `Secure` (still HttpOnly and SameSite=Strict), and the
+server says so in the log. Anything else — any real host, any HTTPS — always gets the
+`__Host-` cookie, so a deployment cannot silently end up with the weaker one.
 
 Two stages: "password_ok" after step 1 (user ID + password + CAPTCHA; lasts 5 minutes,
 enough to type the 6-digit code) and "full" after step 2. The token is replaced at each
@@ -17,15 +23,18 @@ import secrets
 from dataclasses import dataclass
 from datetime import timedelta
 
-from fastapi import Response
+from fastapi import Request, Response
 from sqlalchemy import delete
 from sqlalchemy.orm import Session
 
 from app.auth import clock
 from app.db.models import AuthSession, User
+from app.tracing import log
 from app.settings import LOGIN_PENDING_SECONDS, SESSION_ABSOLUTE_SECONDS, SESSION_IDLE_SECONDS
 
 COOKIE = "__Host-diacausal_session"
+DEV_COOKIE = "diacausal_session_dev"  # plain http on localhost only (see the note above)
+LOCAL_HOSTS = ("localhost", "127.0.0.1", "[::1]", "::1")
 CSRF_HEADER = "X-CSRF-Token"
 PASSWORD_OK = "password_ok"
 FULL = "full"
@@ -35,13 +44,29 @@ def _hash(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
 
 
+def is_local_http(request: Request) -> bool:
+    """A browser on http://localhost — the one case where a Secure cookie cannot work."""
+    host = request.url.hostname or ""
+    return request.url.scheme == "http" and host in LOCAL_HOSTS
+
+
+def cookie_name(request: Request) -> str:
+    return DEV_COOKIE if is_local_http(request) else COOKIE
+
+
+def token_from(request: Request) -> str | None:
+    """The session token this browser sent, whichever of the two names it used."""
+    return request.cookies.get(cookie_name(request)) or request.cookies.get(COOKIE)
+
+
 @dataclass
 class Current:
     session: AuthSession
     user: User
 
 
-def start(db: Session, response: Response, user: User, stage: str, replacing: AuthSession | None = None) -> AuthSession:
+def start(db: Session, request: Request, response: Response, user: User, stage: str,
+          replacing: AuthSession | None = None) -> AuthSession:
     """Create a session (replacing an earlier one) and set its cookie."""
     if replacing is not None:
         db.delete(replacing)
@@ -54,12 +79,25 @@ def start(db: Session, response: Response, user: User, stage: str, replacing: Au
     db.add(session)
     db.commit()
     max_age = LOGIN_PENDING_SECONDS if stage == PASSWORD_OK else SESSION_ABSOLUTE_SECONDS
-    response.set_cookie(COOKIE, token, max_age=max_age, path="/", secure=True, httponly=True, samesite="strict")
+    local_http = is_local_http(request)
+    if local_http:
+        log.warning(
+            "development sign-in over plain http://%s: the session cookie is not marked Secure. "
+            "Deploy behind HTTPS (docs/DEPLOY.md) for the real cookie.", request.url.hostname
+        )
+    response.set_cookie(
+        cookie_name(request), token, max_age=max_age, path="/",
+        secure=not local_http, httponly=True, samesite="strict",
+    )
     return session
 
 
-def clear_cookie(response: Response) -> None:
-    response.delete_cookie(COOKIE, path="/", secure=True, httponly=True, samesite="strict")
+def clear_cookie(response: Response, request: Request | None = None) -> None:
+    """Clear both names: the browser only has one, and deleting the other is harmless."""
+    for name in (COOKIE, DEV_COOKIE):
+        secure = name == COOKIE
+        response.delete_cookie(name, path="/", secure=secure, httponly=True, samesite="strict")
+    del request  # kept for callers that know the request
 
 
 def expired_reason(session: AuthSession) -> str | None:

@@ -6,7 +6,11 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { authApi, type MfaSetup, type SessionInfo } from './api'
 import { Alert, AuthShell, Card, CodeField, GhostButton, Heading, IntendedUseNotice, PrimaryButton } from './ui'
 
-type Props = { onVerified: (info: SessionInfo) => void; onLocked: (message: string) => void; onStartAgain: () => void }
+type Props = {
+  onVerified: (info: SessionInfo) => void
+  onLocked: (message: string) => void
+  onStartAgain: (why?: string) => void
+}
 
 export function MfaSetupPage({ onVerified, onLocked, onStartAgain }: Props) {
   const [setup, setSetup] = useState<MfaSetup | null>(null)
@@ -21,7 +25,7 @@ export function MfaSetupPage({ onVerified, onLocked, onStartAgain }: Props) {
     void authApi.mfaSetup().then((result) => {
       if (!live) return
       if (result.ok) setSetup(result.data)
-      else if (result.status === 401) onStartAgain()
+      else if (result.status === 401) onStartAgain(result.problem.message)
       else setLoadError(result.problem.message)
     })
     return () => {
@@ -60,7 +64,7 @@ export function MfaSetupPage({ onVerified, onLocked, onStartAgain }: Props) {
     log.warn(`mfa failed (HTTP ${result.status})`)
     setCode('')
     if (result.problem.error === 'locked') return onLocked(result.problem.message)
-    if (result.status === 401 && result.problem.error !== 'code_failed') return onStartAgain()
+    if (result.status === 401 && result.problem.error !== 'code_failed') return onStartAgain(result.problem.message)
     setError(
       result.problem.error === 'code_failed'
         ? 'That code did not work. Check the app shows "DiaCausal" and enter the code showing now.'

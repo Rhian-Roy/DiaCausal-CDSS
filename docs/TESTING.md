@@ -15,7 +15,7 @@ report one.
 
 It takes a few seconds and prints `[PASS]` or `[FAIL]` per line, ending with
 `ALL 35 CHECKS PASSED`. Those 35 lines are: 4 tool checks, 1 line for all 310 backend
-tests, 1 line for all 204 frontend tests, build, lint, 26 live checks and 1 real-browser line. It starts its
+tests, 1 line for all 204 frontend tests, build, lint, 26 live checks, the evaluation vignettes and 1 real-browser line. It starts its
 own copy of the app on spare ports, so it does not disturb servers you already have
 running.
 
@@ -55,6 +55,9 @@ green tick or red cross next to each commit, or the **Actions** tab.
 | A rule with a TODO or no source never fires | Section 2 `test_the_incomplete_rule_is_refused_and_never_fires`, `test_strict_loading_raises_so_review_cannot_miss_it`; by hand: `.venv/bin/python -m app.clinical.check` |
 | Without eGFR the stage abstains instead of guessing | Section 2 `test_without_egfr_the_stage_abstains_instead_of_guessing`, section 6 *"without eGFR the clinical guardrails abstain…"* |
 | Every reply says the rules are a draft until a doctor reviews them | Section 2 `test_every_reply_says_the_table_is_a_draft`, section 3 `options.test.tsx`, section 6 |
+| The deployed container works: HTTPS, security headers, no API docs in production, a body over 4 MB refused | Section 2 `backend/tests/test_health.py`; by hand: `docs/DEPLOY.md` checklist |
+| The 25 evaluation vignettes behave as their table says | Section 8 (`eval/run_vignettes.py`, also runnable inside the container) |
+| Two sign-in set-up requests at once give the same authenticator key | Section 2 `test_two_setup_requests_at_once_give_the_same_key` |
 | Message text never written to the log | Section 2 (`test_message_text_is_never_logged`) and section 6 |
 | The code type-checks, builds and has no lint problems | Sections 4 and 5 |
 | The whole app really works in a real browser | Section 8: 9 Playwright tests in Google Chrome |

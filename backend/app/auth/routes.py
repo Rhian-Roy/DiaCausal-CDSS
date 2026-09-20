@@ -12,7 +12,7 @@ Never logged or stored: passwords, codes, CAPTCHA answers.
 """
 
 from fastapi import APIRouter, Depends, Request, Response
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from app.auth import audit, captcha, clock, mfa, passwords, sessions, throttle
@@ -141,7 +141,7 @@ def login(body: LoginRequest, request: Request, response: Response, db: Session 
                                                attempts_left=throttle.attempts_left(counter)))
         log.info("login: password passed")
 
-        session = sessions.start(db, response, user, sessions.PASSWORD_OK)
+        session = sessions.start(db, request, response, user, sessions.PASSWORD_OK)
         audit.record(db, "sign_in_step1", "passed", user_id=user_id, client_trace_id=body.client_trace_id, ip=ip)
         return LoginResponse(next="mfa" if user.mfa_enrolled else "mfa_setup", user_id=user.user_id,
                              csrf_token=session.csrf_token)
@@ -186,7 +186,7 @@ def _check_code(db: Session, signed: Signed, body: CodeRequest, request: Request
             user.mfa_enrolled = True
             audit.record(db, "mfa_enrolled", "passed", user_id=user.user_id, client_trace_id=body.client_trace_id, ip=ip)
         throttle.clear(user)
-        full = sessions.start(db, response, user, sessions.FULL, replacing=signed.session)
+        full = sessions.start(db, request, response, user, sessions.FULL, replacing=signed.session)
         log.info("login: mfa passed")
         audit.record(db, "sign_in", "passed", user_id=user.user_id, client_trace_id=body.client_trace_id, ip=ip)
         return session_info(Signed(full, user))
@@ -200,8 +200,17 @@ def mfa_setup(signed: Signed = Depends(require_csrf_session), db: Session = Depe
     if user.mfa_enrolled:
         raise AuthProblem(409, "wrong_step", "Your authenticator app is already set up.")
     if user.totp_secret_enc is None:
-        user.totp_secret_enc = mfa.encrypt(mfa.new_secret())
+        # Two requests can arrive at once (a browser that retries, or React's development
+        # double-render). Only the first may create the secret, or one browser would show
+        # a QR code for a secret the database has already replaced. The condition in the
+        # UPDATE makes the database decide the winner; then we read back what it kept.
+        db.execute(
+            update(User)
+            .where(User.id == user.id, User.totp_secret_enc.is_(None))
+            .values(totp_secret_enc=mfa.encrypt(mfa.new_secret()))
+        )
         db.commit()
+        db.refresh(user)
     secret = mfa.decrypt(user.totp_secret_enc)
     return MfaSetupResponse(
         qr_image=mfa.qr_svg_data_url(mfa.provisioning_uri(secret, user.user_id)),
@@ -269,7 +278,7 @@ def keepalive(signed: Signed = Depends(require_csrf_session), db: Session = Depe
 @router.post("/logout", status_code=204, responses=ERRORS)
 def logout(request: Request, response: Response, db: Session = Depends(get_db)) -> Response:
     """Sign out: the session is deleted on the server, not just forgotten by the browser."""
-    session = sessions.find(db, request.cookies.get(sessions.COOKIE))
+    session = sessions.find(db, sessions.token_from(request))
     if session is not None:
         if not sessions.csrf_ok(session, request.headers.get(sessions.CSRF_HEADER)):
             raise AuthProblem(403, "csrf_failed", "This request is missing its security token. Reload the page.")

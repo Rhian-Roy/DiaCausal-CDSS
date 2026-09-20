@@ -134,7 +134,7 @@ export function SignInPage({ onSignedIn, notice }: Props) {
       >
         <Heading step="Step 1 of 2" title="Sign in" lede="Second-line therapy support for adults already taking metformin." />
 
-        {notice && <Alert tone="info" word="Signed out">{notice}</Alert>}
+        {notice && <Alert tone="info" word="Please sign in again">{notice}</Alert>}
         {mismatch && (
           <Alert tone="danger" word="Those details did not match">
             Enter your user ID, password and a new set of digits, then try again.

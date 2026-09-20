@@ -9,7 +9,7 @@ type Props = {
   userId: string
   onVerified: (info: SessionInfo) => void
   onLocked: (message: string) => void
-  onStartAgain: () => void
+  onStartAgain: (why?: string) => void
 }
 
 export function CodePage({ userId, onVerified, onLocked, onStartAgain }: Props) {
@@ -40,7 +40,8 @@ export function CodePage({ userId, onVerified, onLocked, onStartAgain }: Props) 
     log.warn(`mfa failed (HTTP ${result.status})`)
     setCode('')
     if (result.problem.error === 'locked') return onLocked(result.problem.message)
-    if (result.status === 401 && result.problem.error !== 'code_failed') return onStartAgain() // 5 minutes passed
+    // 5 minutes passed, or the browser did not keep the sign-in cookie.
+    if (result.status === 401 && result.problem.error !== 'code_failed') return onStartAgain(result.problem.message)
     const wrong = result.problem.error === 'code_failed'
     setWrongCode(wrong)
     setError(wrong ? null : result.problem.message)
@@ -68,7 +69,9 @@ export function CodePage({ userId, onVerified, onLocked, onStartAgain }: Props) 
         <div className="flex flex-wrap gap-3">
           <PrimaryButton type="submit" disabled={busy}>{busy ? 'Checking…' : 'Verify and continue'}</PrimaryButton>
         </div>
-        <LinkButton onClick={onStartAgain}>Use a different account</LinkButton>
+        <LinkButton onClick={() => onStartAgain('Signed out. Sign in with the account you want.')}>
+          Use a different account
+        </LinkButton>
         <IntendedUseNotice />
       </form>
     </AuthShell>

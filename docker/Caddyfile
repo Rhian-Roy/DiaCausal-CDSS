@@ -1,0 +1,25 @@
+# Caddy in front of DiaCausal: HTTPS, and nothing else.
+#
+# SITE_ADDRESS may list more than one address, e.g. "localhost, 192.168.1.39", so a phone
+# on the same Wi-Fi can reach it. A browser that connects to a bare IP sends no server
+# name, so `default_sni` tells Caddy which site that is.
+# SITE_ADDRESS is `localhost` by default (Caddy's own local certificate) or a real
+# hostname, which gets a free Let's Encrypt certificate automatically.
+
+{
+	default_sni localhost
+}
+
+{$SITE_ADDRESS} {
+	encode zstd gzip
+
+	# Everything goes to the app container; it serves both the page and /api.
+	reverse_proxy app:8000
+
+	# Caddy adds HSTS itself for a real certificate; the app adds the rest of the
+	# headers (see backend/app/web.py), so they are set in one place only.
+	log {
+		output stdout
+		format console
+	}
+}

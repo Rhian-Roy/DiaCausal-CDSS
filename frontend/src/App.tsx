@@ -23,6 +23,9 @@ type Screen =
   | { name: 'chat'; info: SessionInfo }
 
 const ENDED = 'Your session has ended. Please sign in again.'
+const STEP_LOST =
+  'That took too long, or your browser did not keep the sign-in. Please sign in again — ' +
+  'if this keeps happening, use Google Chrome, or open the site over https (see docs/DEPLOY.md).'
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>({ name: 'loading' })
@@ -31,7 +34,7 @@ export default function App() {
     setScreen(info.needs_acknowledgement ? { name: 'acknowledge', info } : { name: 'chat', info })
   }, [])
   const backToSignIn = useCallback((notice?: string) => setScreen({ name: 'signin', notice }), [])
-  const startAgain = useCallback(() => backToSignIn(), [backToSignIn])
+  const startAgain = useCallback((why?: string) => backToSignIn(why ?? STEP_LOST), [backToSignIn])
 
   useEffect(() => {
     // Already signed in (e.g. the page was reloaded)? The cookie decides; the page cannot read it.

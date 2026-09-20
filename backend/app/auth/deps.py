@@ -50,7 +50,7 @@ class Signed:
 
 
 def _live_session(request: Request, db: Session) -> Signed:
-    session = sessions.find(db, request.cookies.get(sessions.COOKIE))
+    session = sessions.find(db, sessions.token_from(request))
     if session is None:
         raise AuthProblem(401, "not_signed_in", NOT_SIGNED_IN, clear_cookie=True)
     user = db.get(User, session.user_pk)

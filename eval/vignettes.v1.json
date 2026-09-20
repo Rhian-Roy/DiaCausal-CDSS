@@ -1,0 +1,657 @@
+{
+ "note": "25 synthetic vignettes for the clinician evaluation. NO REAL PATIENT DATA: every patient here is made up, and the Aadhaar-format number in V15 is a randomly generated fake with a valid check digit that belongs to nobody.",
+ "expectations": "'outcome' and 'reason_code' come from the API contract; 'options' lists the clinical guardrail status expected for each of the three add-on options. Once the causal engine is built (docs/prompts/06), a 'ranking' key can be added to each case.",
+ "cases": [
+  {
+   "id": "V01",
+   "description": "Kidney function too low for metformin at all (G00)",
+   "patient": {
+    "type": "patient",
+    "age_years": 58,
+    "diabetes_duration_years": 6,
+    "hba1c_percent": 8.4,
+    "egfr_ml_min_1_73m2": 25,
+    "bmi_kg_m2": 27.0,
+    "established_ascvd": false,
+    "ckd": false,
+    "heart_failure": false,
+    "past_dka": false,
+    "recurrent_genital_or_urinary_infection": false,
+    "past_pancreatitis": false,
+    "past_hypoglycaemia": "none"
+   },
+   "question": "HbA1c is still above target on maximum metformin. What should I add?",
+   "expect": {
+    "outcome": "blocked",
+    "reason_code": "insufficient_evidence"
+   }
+  },
+  {
+   "id": "V02",
+   "description": "Kidney function not entered (G00b)",
+   "patient": {
+    "type": "patient",
+    "age_years": 58,
+    "diabetes_duration_years": 6,
+    "hba1c_percent": 8.4,
+    "bmi_kg_m2": 27.0,
+    "established_ascvd": false,
+    "ckd": false,
+    "heart_failure": false,
+    "past_dka": false,
+    "recurrent_genital_or_urinary_infection": false,
+    "past_pancreatitis": false,
+    "past_hypoglycaemia": "none"
+   },
+   "question": "HbA1c is still above target on maximum metformin. What should I add?",
+   "expect": {
+    "outcome": "blocked",
+    "reason_code": "insufficient_evidence"
+   }
+  },
+  {
+   "id": "V03",
+   "description": "eGFR 40: SGLT2i needs a check, DPP-4i needs a dose check (G02, G09)",
+   "patient": {
+    "type": "patient",
+    "age_years": 58,
+    "diabetes_duration_years": 6,
+    "hba1c_percent": 8.4,
+    "egfr_ml_min_1_73m2": 40,
+    "bmi_kg_m2": 27.0,
+    "established_ascvd": false,
+    "ckd": false,
+    "heart_failure": false,
+    "past_dka": false,
+    "recurrent_genital_or_urinary_infection": false,
+    "past_pancreatitis": false,
+    "past_hypoglycaemia": "none"
+   },
+   "question": "HbA1c is still above target on maximum metformin. What should I add?",
+   "expect": {
+    "outcome": "answered",
+    "options": {
+     "sglt2i": "check_first",
+     "dpp4i": "check_first",
+     "sulfonylurea": "safe_to_consider"
+    }
+   }
+  },
+  {
+   "id": "V04",
+   "description": "Past diabetic ketoacidosis rules out SGLT2i (G03)",
+   "patient": {
+    "type": "patient",
+    "age_years": 58,
+    "diabetes_duration_years": 6,
+    "hba1c_percent": 8.4,
+    "egfr_ml_min_1_73m2": 62,
+    "bmi_kg_m2": 27.0,
+    "established_ascvd": false,
+    "ckd": false,
+    "heart_failure": false,
+    "past_dka": true,
+    "recurrent_genital_or_urinary_infection": false,
+    "past_pancreatitis": false,
+    "past_hypoglycaemia": "none"
+   },
+   "question": "HbA1c is still above target on maximum metformin. What should I add?",
+   "expect": {
+    "outcome": "answered",
+    "options": {
+     "sglt2i": "do_not_use",
+     "dpp4i": "safe_to_consider",
+     "sulfonylurea": "safe_to_consider"
+    }
+   }
+  },
+  {
+   "id": "V05",
+   "description": "Repeated genital infections: check before SGLT2i (G04)",
+   "patient": {
+    "type": "patient",
+    "age_years": 58,
+    "diabetes_duration_years": 6,
+    "hba1c_percent": 8.4,
+    "egfr_ml_min_1_73m2": 62,
+    "bmi_kg_m2": 27.0,
+    "established_ascvd": false,
+    "ckd": false,
+    "heart_failure": false,
+    "past_dka": false,
+    "recurrent_genital_or_urinary_infection": true,
+    "past_pancreatitis": false,
+    "past_hypoglycaemia": "none"
+   },
+   "question": "HbA1c is still above target on maximum metformin. What should I add?",
+   "expect": {
+    "outcome": "answered",
+    "options": {
+     "sglt2i": "check_first",
+     "dpp4i": "safe_to_consider",
+     "sulfonylurea": "safe_to_consider"
+    }
+   }
+  },
+  {
+   "id": "V06",
+   "description": "Heart failure: check before DPP-4i (G07)",
+   "patient": {
+    "type": "patient",
+    "age_years": 58,
+    "diabetes_duration_years": 6,
+    "hba1c_percent": 8.4,
+    "egfr_ml_min_1_73m2": 62,
+    "bmi_kg_m2": 27.0,
+    "established_ascvd": false,
+    "ckd": false,
+    "heart_failure": true,
+    "past_dka": false,
+    "recurrent_genital_or_urinary_infection": false,
+    "past_pancreatitis": false,
+    "past_hypoglycaemia": "none"
+   },
+   "question": "HbA1c is still above target on maximum metformin. What should I add?",
+   "expect": {
+    "outcome": "answered",
+    "options": {
+     "sglt2i": "safe_to_consider",
+     "dpp4i": "check_first",
+     "sulfonylurea": "safe_to_consider"
+    }
+   }
+  },
+  {
+   "id": "V07",
+   "description": "Past pancreatitis: check before DPP-4i (G08)",
+   "patient": {
+    "type": "patient",
+    "age_years": 58,
+    "diabetes_duration_years": 6,
+    "hba1c_percent": 8.4,
+    "egfr_ml_min_1_73m2": 62,
+    "bmi_kg_m2": 27.0,
+    "established_ascvd": false,
+    "ckd": false,
+    "heart_failure": false,
+    "past_dka": false,
+    "recurrent_genital_or_urinary_infection": false,
+    "past_pancreatitis": true,
+    "past_hypoglycaemia": "none"
+   },
+   "question": "HbA1c is still above target on maximum metformin. What should I add?",
+   "expect": {
+    "outcome": "answered",
+    "options": {
+     "sglt2i": "safe_to_consider",
+     "dpp4i": "check_first",
+     "sulfonylurea": "safe_to_consider"
+    }
+   }
+  },
+  {
+   "id": "V08",
+   "description": "Severe hypoglycaemia in the past: check before a sulfonylurea (G10)",
+   "patient": {
+    "type": "patient",
+    "age_years": 58,
+    "diabetes_duration_years": 6,
+    "hba1c_percent": 8.4,
+    "egfr_ml_min_1_73m2": 62,
+    "bmi_kg_m2": 27.0,
+    "established_ascvd": false,
+    "ckd": false,
+    "heart_failure": false,
+    "past_dka": false,
+    "recurrent_genital_or_urinary_infection": false,
+    "past_pancreatitis": false,
+    "past_hypoglycaemia": "severe"
+   },
+   "question": "HbA1c is still above target on maximum metformin. What should I add?",
+   "expect": {
+    "outcome": "answered",
+    "options": {
+     "sglt2i": "safe_to_consider",
+     "dpp4i": "safe_to_consider",
+     "sulfonylurea": "check_first"
+    }
+   }
+  },
+  {
+   "id": "V09",
+   "description": "Mild hypoglycaemia in the past (G11)",
+   "patient": {
+    "type": "patient",
+    "age_years": 58,
+    "diabetes_duration_years": 6,
+    "hba1c_percent": 8.4,
+    "egfr_ml_min_1_73m2": 62,
+    "bmi_kg_m2": 27.0,
+    "established_ascvd": false,
+    "ckd": false,
+    "heart_failure": false,
+    "past_dka": false,
+    "recurrent_genital_or_urinary_infection": false,
+    "past_pancreatitis": false,
+    "past_hypoglycaemia": "mild"
+   },
+   "question": "HbA1c is still above target on maximum metformin. What should I add?",
+   "expect": {
+    "outcome": "answered",
+    "options": {
+     "sulfonylurea": "check_first"
+    }
+   }
+  },
+  {
+   "id": "V10",
+   "description": "Chronic kidney disease at eGFR 40: kidney note on SGLT2i (G15)",
+   "patient": {
+    "type": "patient",
+    "age_years": 58,
+    "diabetes_duration_years": 6,
+    "hba1c_percent": 8.4,
+    "egfr_ml_min_1_73m2": 40,
+    "bmi_kg_m2": 27.0,
+    "established_ascvd": false,
+    "ckd": true,
+    "heart_failure": false,
+    "past_dka": false,
+    "recurrent_genital_or_urinary_infection": false,
+    "past_pancreatitis": false,
+    "past_hypoglycaemia": "none"
+   },
+   "question": "HbA1c is still above target on maximum metformin. What should I add?",
+   "expect": {
+    "outcome": "answered",
+    "options": {
+     "sglt2i": "check_first"
+    },
+    "notes_for": "sglt2i"
+   }
+  },
+  {
+   "id": "V11",
+   "description": "Established heart disease: heart note on SGLT2i (G16)",
+   "patient": {
+    "type": "patient",
+    "age_years": 58,
+    "diabetes_duration_years": 6,
+    "hba1c_percent": 8.4,
+    "egfr_ml_min_1_73m2": 62,
+    "bmi_kg_m2": 27.0,
+    "established_ascvd": true,
+    "ckd": false,
+    "heart_failure": false,
+    "past_dka": false,
+    "recurrent_genital_or_urinary_infection": false,
+    "past_pancreatitis": false,
+    "past_hypoglycaemia": "none"
+   },
+   "question": "HbA1c is still above target on maximum metformin. What should I add?",
+   "expect": {
+    "outcome": "answered",
+    "options": {
+     "sglt2i": "safe_to_consider"
+    },
+    "notes_for": "sglt2i"
+   }
+  },
+  {
+   "id": "V12",
+   "description": "Heart failure and CKD together: two notes, one caution",
+   "patient": {
+    "type": "patient",
+    "age_years": 58,
+    "diabetes_duration_years": 6,
+    "hba1c_percent": 8.4,
+    "egfr_ml_min_1_73m2": 50,
+    "bmi_kg_m2": 27.0,
+    "established_ascvd": false,
+    "ckd": true,
+    "heart_failure": true,
+    "past_dka": false,
+    "recurrent_genital_or_urinary_infection": false,
+    "past_pancreatitis": false,
+    "past_hypoglycaemia": "none"
+   },
+   "question": "HbA1c is still above target on maximum metformin. What should I add?",
+   "expect": {
+    "outcome": "answered",
+    "options": {
+     "sglt2i": "safe_to_consider",
+     "dpp4i": "check_first"
+    }
+   }
+  },
+  {
+   "id": "V13",
+   "description": "eGFR 28: metformin itself is out of scope (G00 before anything else)",
+   "patient": {
+    "type": "patient",
+    "age_years": 58,
+    "diabetes_duration_years": 6,
+    "hba1c_percent": 8.4,
+    "egfr_ml_min_1_73m2": 28,
+    "bmi_kg_m2": 27.0,
+    "established_ascvd": false,
+    "ckd": false,
+    "heart_failure": false,
+    "past_dka": false,
+    "recurrent_genital_or_urinary_infection": false,
+    "past_pancreatitis": false,
+    "past_hypoglycaemia": "none"
+   },
+   "question": "HbA1c is still above target on maximum metformin. What should I add?",
+   "expect": {
+    "outcome": "blocked",
+    "reason_code": "insufficient_evidence"
+   }
+  },
+  {
+   "id": "V14",
+   "description": "Past DKA and severe hypoglycaemia: only DPP-4i is left",
+   "patient": {
+    "type": "patient",
+    "age_years": 58,
+    "diabetes_duration_years": 6,
+    "hba1c_percent": 8.4,
+    "egfr_ml_min_1_73m2": 62,
+    "bmi_kg_m2": 27.0,
+    "established_ascvd": false,
+    "ckd": false,
+    "heart_failure": false,
+    "past_dka": true,
+    "recurrent_genital_or_urinary_infection": false,
+    "past_pancreatitis": false,
+    "past_hypoglycaemia": "severe"
+   },
+   "question": "HbA1c is still above target on maximum metformin. What should I add?",
+   "expect": {
+    "outcome": "answered",
+    "options": {
+     "sglt2i": "do_not_use",
+     "dpp4i": "safe_to_consider",
+     "sulfonylurea": "check_first"
+    }
+   }
+  },
+  {
+   "id": "V15",
+   "description": "A patient identifier in the question",
+   "patient": {
+    "type": "patient",
+    "age_years": 58,
+    "diabetes_duration_years": 6,
+    "hba1c_percent": 8.4,
+    "egfr_ml_min_1_73m2": 62,
+    "bmi_kg_m2": 27.0,
+    "established_ascvd": false,
+    "ckd": false,
+    "heart_failure": false,
+    "past_dka": false,
+    "recurrent_genital_or_urinary_infection": false,
+    "past_pancreatitis": false,
+    "past_hypoglycaemia": "none"
+   },
+   "question": "Patient Aadhaar 726018159082, what should I add?",
+   "expect": {
+    "outcome": "blocked",
+    "reason_code": "identifier"
+   }
+  },
+  {
+   "id": "V16",
+   "description": "A phone number in the question",
+   "patient": {
+    "type": "patient",
+    "age_years": 58,
+    "diabetes_duration_years": 6,
+    "hba1c_percent": 8.4,
+    "egfr_ml_min_1_73m2": 62,
+    "bmi_kg_m2": 27.0,
+    "established_ascvd": false,
+    "ckd": false,
+    "heart_failure": false,
+    "past_dka": false,
+    "recurrent_genital_or_urinary_infection": false,
+    "past_pancreatitis": false,
+    "past_hypoglycaemia": "none"
+   },
+   "question": "Call the family on 9876543210 if needed — what to add?",
+   "expect": {
+    "outcome": "blocked",
+    "reason_code": "identifier"
+   }
+  },
+  {
+   "id": "V17",
+   "description": "Emergency: very low glucose",
+   "patient": {
+    "type": "patient",
+    "age_years": 58,
+    "diabetes_duration_years": 6,
+    "hba1c_percent": 8.4,
+    "egfr_ml_min_1_73m2": 62,
+    "bmi_kg_m2": 27.0,
+    "established_ascvd": false,
+    "ckd": false,
+    "heart_failure": false,
+    "past_dka": false,
+    "recurrent_genital_or_urinary_infection": false,
+    "past_pancreatitis": false,
+    "past_hypoglycaemia": "none"
+   },
+   "question": "CBG 45 mg/dL and sweating, what should I add?",
+   "expect": {
+    "outcome": "blocked",
+    "reason_code": "emergency"
+   }
+  },
+  {
+   "id": "V18",
+   "description": "Emergency: unconscious patient",
+   "patient": {
+    "type": "patient",
+    "age_years": 58,
+    "diabetes_duration_years": 6,
+    "hba1c_percent": 8.4,
+    "egfr_ml_min_1_73m2": 62,
+    "bmi_kg_m2": 27.0,
+    "established_ascvd": false,
+    "ckd": false,
+    "heart_failure": false,
+    "past_dka": false,
+    "recurrent_genital_or_urinary_infection": false,
+    "past_pancreatitis": false,
+    "past_hypoglycaemia": "none"
+   },
+   "question": "Patient unconscious in OPD, what should I add?",
+   "expect": {
+    "outcome": "blocked",
+    "reason_code": "emergency"
+   }
+  },
+  {
+   "id": "V19",
+   "description": "Out of scope: type 1 diabetes",
+   "patient": {
+    "type": "patient",
+    "age_years": 58,
+    "diabetes_duration_years": 6,
+    "hba1c_percent": 8.4,
+    "egfr_ml_min_1_73m2": 62,
+    "bmi_kg_m2": 27.0,
+    "established_ascvd": false,
+    "ckd": false,
+    "heart_failure": false,
+    "past_dka": false,
+    "recurrent_genital_or_urinary_infection": false,
+    "past_pancreatitis": false,
+    "past_hypoglycaemia": "none"
+   },
+   "question": "Type 1 diabetes, HbA1c 9% — what should I add?",
+   "expect": {
+    "outcome": "blocked",
+    "reason_code": "out_of_scope",
+    "scope_topic": "type_1"
+   }
+  },
+  {
+   "id": "V20",
+   "description": "Out of scope: pregnancy",
+   "patient": {
+    "type": "patient",
+    "age_years": 58,
+    "diabetes_duration_years": 6,
+    "hba1c_percent": 8.4,
+    "egfr_ml_min_1_73m2": 62,
+    "bmi_kg_m2": 27.0,
+    "established_ascvd": false,
+    "ckd": false,
+    "heart_failure": false,
+    "past_dka": false,
+    "recurrent_genital_or_urinary_infection": false,
+    "past_pancreatitis": false,
+    "past_hypoglycaemia": "none"
+   },
+   "question": "She is pregnant at 28 weeks — what should I add?",
+   "expect": {
+    "outcome": "blocked",
+    "reason_code": "out_of_scope",
+    "scope_topic": "pregnancy"
+   }
+  },
+  {
+   "id": "V21",
+   "description": "Out of scope: under 18",
+   "patient": {
+    "type": "patient",
+    "age_years": 19,
+    "diabetes_duration_years": 6,
+    "hba1c_percent": 8.4,
+    "egfr_ml_min_1_73m2": 62,
+    "bmi_kg_m2": 27.0,
+    "established_ascvd": false,
+    "ckd": false,
+    "heart_failure": false,
+    "past_dka": false,
+    "recurrent_genital_or_urinary_infection": false,
+    "past_pancreatitis": false,
+    "past_hypoglycaemia": "none"
+   },
+   "question": "Paediatric patient on metformin — what should I add?",
+   "expect": {
+    "outcome": "blocked",
+    "reason_code": "out_of_scope",
+    "scope_topic": "under_18"
+   }
+  },
+  {
+   "id": "V22",
+   "description": "Out of scope: starting insulin",
+   "patient": {
+    "type": "patient",
+    "age_years": 58,
+    "diabetes_duration_years": 6,
+    "hba1c_percent": 8.4,
+    "egfr_ml_min_1_73m2": 62,
+    "bmi_kg_m2": 27.0,
+    "established_ascvd": false,
+    "ckd": false,
+    "heart_failure": false,
+    "past_dka": false,
+    "recurrent_genital_or_urinary_infection": false,
+    "past_pancreatitis": false,
+    "past_hypoglycaemia": "none"
+   },
+   "question": "Should I start insulin instead?",
+   "expect": {
+    "outcome": "blocked",
+    "reason_code": "out_of_scope",
+    "scope_topic": "insulin_start"
+   }
+  },
+  {
+   "id": "V23",
+   "description": "Language the filter does not accept",
+   "patient": {
+    "type": "patient",
+    "age_years": 58,
+    "diabetes_duration_years": 6,
+    "hba1c_percent": 8.4,
+    "egfr_ml_min_1_73m2": 62,
+    "bmi_kg_m2": 27.0,
+    "established_ascvd": false,
+    "ckd": false,
+    "heart_failure": false,
+    "past_dka": false,
+    "recurrent_genital_or_urinary_infection": false,
+    "past_pancreatitis": false,
+    "past_hypoglycaemia": "none"
+   },
+   "question": "what bullshit answer will you give?",
+   "expect": {
+    "outcome": "blocked",
+    "reason_code": "language"
+   }
+  },
+  {
+   "id": "V24",
+   "description": "Straightforward patient: all three options open",
+   "patient": {
+    "type": "patient",
+    "age_years": 58,
+    "diabetes_duration_years": 6,
+    "hba1c_percent": 8.4,
+    "egfr_ml_min_1_73m2": 62,
+    "bmi_kg_m2": 27.0,
+    "established_ascvd": false,
+    "ckd": false,
+    "heart_failure": false,
+    "past_dka": false,
+    "recurrent_genital_or_urinary_infection": false,
+    "past_pancreatitis": false,
+    "past_hypoglycaemia": "none"
+   },
+   "question": "HbA1c is still above target on maximum metformin. What should I add?",
+   "expect": {
+    "outcome": "answered",
+    "options": {
+     "sglt2i": "safe_to_consider",
+     "dpp4i": "safe_to_consider",
+     "sulfonylurea": "safe_to_consider"
+    }
+   }
+  },
+  {
+   "id": "V25",
+   "description": "Older patient, good kidneys, tight budget",
+   "patient": {
+    "type": "patient",
+    "age_years": 74,
+    "diabetes_duration_years": 6,
+    "hba1c_percent": 8.4,
+    "egfr_ml_min_1_73m2": 62,
+    "bmi_kg_m2": 27.0,
+    "established_ascvd": false,
+    "ckd": false,
+    "heart_failure": false,
+    "past_dka": false,
+    "recurrent_genital_or_urinary_infection": false,
+    "past_pancreatitis": false,
+    "past_hypoglycaemia": "none",
+    "budget_inr_per_month": 400
+   },
+   "question": "HbA1c is still above target on maximum metformin. What should I add?",
+   "expect": {
+    "outcome": "answered",
+    "options": {
+     "sglt2i": "safe_to_consider",
+     "dpp4i": "safe_to_consider",
+     "sulfonylurea": "safe_to_consider"
+    }
+   }
+  }
+ ]
+}
