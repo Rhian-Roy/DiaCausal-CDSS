@@ -286,3 +286,19 @@ describe('guard notices (design/v1/09-12)', () => {
     expect(screen.queryByText('HbA1c 8.4% on metformin')).not.toBeInTheDocument()
   })
 })
+
+describe('the conversation is scrollable (whiteboard: "scrollable")', () => {
+  it('scrolls and keeps the newest answer in view', async () => {
+    stubBackend((request) => answeredReply(request.client_trace_id))
+    const { user, box } = setup()
+    const thread = screen.getByRole('log', { name: 'Conversation' }).parentElement!
+    expect(thread.className).toContain('overflow-y-auto')
+
+    // jsdom gives every element height 0, so pretend the conversation is taller than the window.
+    Object.defineProperty(thread, 'scrollHeight', { value: 2000, configurable: true })
+    await user.type(box, 'HbA1c 8.4% on metformin{Enter}')
+    await screen.findByText('Dummy reply from the DiaCausal backend.')
+
+    expect(thread.scrollTop).toBe(2000) // scrolled to the newest message
+  })
+})
