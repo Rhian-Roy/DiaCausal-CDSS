@@ -1,0 +1,15 @@
+**/node_modules
+**/.venv
+**/dist
+**/__pycache__
+**/.pytest_cache
+.git
+e2e/test-results
+e2e/node_modules
+backend/.env
+backend/*.db
+figures
+Research Papers
+RAG/*.pdf
+Datasets
+*.ipynb

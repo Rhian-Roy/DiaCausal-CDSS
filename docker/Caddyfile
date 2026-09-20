@@ -1,0 +1,17 @@
+# Caddy in front of DiaCausal: HTTPS, and nothing else.
+# SITE_ADDRESS is `localhost` by default (Caddy's own local certificate) or a real
+# hostname, which gets a free Let's Encrypt certificate automatically.
+
+{$SITE_ADDRESS} {
+	encode zstd gzip
+
+	# Everything goes to the app container; it serves both the page and /api.
+	reverse_proxy app:8000
+
+	# Caddy adds HSTS itself for a real certificate; the app adds the rest of the
+	# headers (see backend/app/web.py), so they are set in one place only.
+	log {
+		output stdout
+		format console
+	}
+}

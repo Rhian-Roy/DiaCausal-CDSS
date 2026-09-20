@@ -16,7 +16,10 @@ import sys
 from pathlib import Path
 
 BACKEND = Path(__file__).resolve().parent.parent / "backend"
-VENV_PY = BACKEND / ".venv" / ("Scripts/python.exe" if sys.platform == "win32" else "bin/python")
+VENV = BACKEND / ".venv" / ("Scripts/python.exe" if sys.platform == "win32" else "bin/python")
+# In a container there is no backend/.venv: the libraries are installed for the
+# interpreter running this script, so use that one.
+VENV_PY = VENV if VENV.exists() else Path(sys.executable)
 
 if __name__ == "__main__":
     if not VENV_PY.exists():

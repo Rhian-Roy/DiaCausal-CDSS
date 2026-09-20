@@ -3,6 +3,8 @@
     .venv/bin/python -m uvicorn app.main:app --reload --port 8000
 """
 
+import os
+
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import RedirectResponse
@@ -15,6 +17,7 @@ from app.routes import router
 from app.secrets_env import database_url, secret_key
 from app.settings import INTENDED_USE
 from app.voice.routes import router as voice_router
+from app.web import add_security_headers, serve_built_page
 from app.tracing import configure_logging
 
 
@@ -23,17 +26,28 @@ def create_app(database: str | None = None) -> FastAPI:
     configure_logging()
     secret_key()  # stop now, with a clear message, if backend/.env is missing
     db.configure(database or database_url())
-    app = FastAPI(title="DiaCausal API", version="0.2.0", description=INTENDED_USE)
+    # In production the API's own documentation page is off: it is a development tool,
+    # and it invites poking at an endpoint that answers only signed-in clinicians.
+    production = os.environ.get("DIACAUSAL_ENV", "development") == "production"
+    app = FastAPI(
+        title="DiaCausal API", version="0.2.0", description=INTENDED_USE,
+        docs_url=None if production else "/docs",
+        redoc_url=None,
+        openapi_url=None if production else "/openapi.json",
+    )
     app.add_exception_handler(RequestValidationError, validation_exception_handler)
     app.add_exception_handler(AuthProblem, auth_problem_handler)
     app.include_router(auth_router)
     app.include_router(router)
     app.include_router(voice_router)
+    add_security_headers(app, production=production)
 
-    @app.get("/", include_in_schema=False)
-    def root() -> RedirectResponse:
-        """Opening http://localhost:8000 in a browser shows the API docs."""
-        return RedirectResponse("/docs")
+    if not serve_built_page(app):
+        # Development: Vite serves the page on :5173 and forwards /api here.
+        @app.get("/", include_in_schema=False)
+        def root() -> RedirectResponse:
+            """Opening http://localhost:8000 in a browser shows the API docs."""
+            return RedirectResponse("/docs")
 
     return app
 

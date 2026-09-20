@@ -9,6 +9,10 @@ MAX_TEXT_CHARS = 8000
 # Most parts one message may carry. Stops a single request from being huge.
 MAX_PARTS = 20
 
+# The largest request body the server will read at all, before anything else looks at it.
+# Bigger than a 2 MB voice clip with room to spare; a chat message is a few kilobytes.
+MAX_REQUEST_BYTES = 4 * 1024 * 1024
+
 # Part types the API understands today. Add new ones here *and* in schemas.py.
 # "patient" carries the structured patient details from the panel (app/patient_ranges.py).
 SUPPORTED_PART_TYPES = ("text", "patient")
