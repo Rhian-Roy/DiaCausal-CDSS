@@ -200,7 +200,7 @@ def check_tools(npm: str | None, node: str | None) -> bool:
     node_text, (major, minor) = version_of([node, "--version"]) if node else ("", (0, 0))
     # The pinned test tools (Vitest 5, jsdom 30) support Node 22.22+, 24.15+ and 26+.
     node_ok = (major == 22 and minor >= 22) or (major == 24 and minor >= 15) or major >= 26
-    ok &= check(node_ok, f"Node.js 24 LTS (24.15+) installed (found: {node_text or 'none'})")
+    ok &= check(node_ok, f"Node.js 22.22+ or 24.15+ installed (24 LTS recommended; found: {node_text or 'none'})")
     ok &= check(bool(npm), "npm installed")
     ok &= check((FRONTEND / "node_modules").is_dir(), "frontend libraries installed (frontend/node_modules)")
     if not ok:

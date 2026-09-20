@@ -27,7 +27,7 @@ marketed medical device; not for unsupervised clinical use.
 
 - **10 estimators implemented from scratch** — Naive, Stratification, G-Computation, Propensity Score Matching, IPW, Stabilised IPW, AIPW, S-Learner, T-Learner, X-Learner
 - **Cross-checked against DoWhy & EconML** — every hand-written result is verified to ≤4 decimal places against the standard libraries
-- **RAG-powered guideline citations** — retrieves relevant passages from ADA/IDF clinical guidelines (PDF → TF-IDF → top-k) with page-level citations
+- **Guideline citations (research code)** — retrieves passages with page-level citations from guideline PDFs we are licensed to use (IDF 2025 is cleared; ADA's Standards of Care are **not** licence-cleared, so they are not included). Licences are tracked in `RAG/sources.csv`
 - **Clinical guardrails** — hard safety rules (eGFR thresholds, contraindications) that override any statistical estimate
 - **Interactive Streamlit demo** — move sliders to watch confounding change the answer, and see personalised CATE recommendations update live
 
@@ -51,7 +51,8 @@ marketed medical device; not for unsupervised clinical use.
 ├── tests/
 │   └── test_causal_engine.py       # Comprehensive test suite
 ├── Datasets/
-│   ├── diabetes.csv                # Pima Indians Diabetes dataset
+│   ├── diabetes.csv                # "Pima Indians Diabetes" dataset: women of the
+│   │                               # Akimel O'odham community, Arizona, USA — NOT from India
 │   └── synthetic_diabetes_ehr.csv  # Generated synthetic EHR
 ├── RAG/                            # Clinical guideline PDFs for retrieval
 ├── Research Papers/                # Reference literature
@@ -73,8 +74,8 @@ marketed medical device; not for unsupervised clinical use.
 ### 1. Clone & install dependencies
 
 ```bash
-git clone https://github.com/<your-username>/diacausal-cdss.git
-cd diacausal-cdss
+git clone https://github.com/Rhian-Roy/DiaCausal-CDSS.git
+cd DiaCausal-CDSS
 pip install -r requirements.txt
 ```
 

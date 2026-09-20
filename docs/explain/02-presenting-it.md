@@ -265,10 +265,12 @@ clinician rather than guessed from free text.
 The research engine in `causal_engine/` is not connected to the chat yet. It learns from
 a *synthetic* cohort we generate (`causal_engine/data.py`), where we plant the true
 effect for every patient so we can check which method recovers it — impossible on real
-data, where the true individual effect is never observed. It compares one choice: an
+data, where the true individual effect is never observed. Today it compares one choice: an
 SGLT2 inhibitor vs metformin, using the X-learner by default (`causal_engine/cdss.py`).
-It has not been fitted or checked on real patients. Recommending which class to *add* to
-metformin needs more treatment groups and real data — future work.
+**v1.0 scope, due 30 October, is the three-drug add-on decision** — SGLT2 inhibitor vs
+DPP-4 inhibitor vs sulfonylurea, on top of metformin (`docs/prompts/06-causal-engine.md`).
+What stays future work is validation on real patients: the engine has not been fitted or
+checked on any real cohort, which is exactly what the clinician evaluation is for.
 
 **28. Which language model (LLM) do you use, and how will you stop it inventing a drug or a dose?**
 None yet: `backend/app/pipeline/llm_explanation.py` returns *skipped*, and no model is
