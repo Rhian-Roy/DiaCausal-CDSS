@@ -21,7 +21,7 @@ from app.settings import (
     SESSION_ABSOLUTE_SECONDS,
     SESSION_IDLE_SECONDS,
 )
-from conftest import PASSWORD, TRACE, add_user
+from conftest import PASSWORD, PATIENT, TRACE, add_user
 
 DID_NOT_MATCH = "Those details did not match"
 
@@ -90,7 +90,8 @@ def audit_rows(db, event=None):
 
 def chat(anon, csrf, text="HbA1c 8.4% on metformin"):
     return post(anon, "/api/v1/chat", csrf,
-                {"schema_version": "1.0", "client_trace_id": TRACE, "parts": [{"type": "text", "text": text}]})
+                {"schema_version": "1.0", "client_trace_id": TRACE,
+                 "parts": [{"type": "text", "text": text}, PATIENT]})
 
 
 # ── a whole sign-in ──────────────────────────────────────────────────────────
@@ -458,7 +459,7 @@ def test_every_chat_request_is_audited_with_request_id_and_trace_id(client, chat
     row = audit_rows(db, "chat")[0]
     assert row.request_id == reply["request_id"] and len(row.request_id) == 36
     assert row.client_trace_id == TRACE and row.user_id == "dr.rao" and row.outcome == "answered"
-    assert row.detail.startswith("backend_guard=passed,clinical_guardrails=skipped")
+    assert row.detail.startswith("backend_guard=passed,clinical_guardrails=passed")
     assert "Ramesh" not in str([vars(r) for r in audit_rows(db)])
 
 

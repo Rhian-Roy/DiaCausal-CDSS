@@ -5,9 +5,13 @@ import re
 
 import pytest
 
+from app.clinical.rules import load as load_clinical_rules
 from app.pipeline.blocklist import RULES_VERSION
 from app.tracing import log
 from conftest import TRACE
+
+_clinical = load_clinical_rules()
+CLINICAL_RULES_LINE = f"clinical_guardrails: rules {_clinical.version} ({len(_clinical.rules)} in use)"
 
 
 @pytest.fixture
@@ -37,10 +41,15 @@ def test_log_shows_request_each_stage_and_reply(client, chat_body, app_logs):
     # Each stage line ends with how long it took, e.g. "backend_guard: passed in 0.4 ms".
     timed = re.compile(r"^(\w+): (passed|skipped|blocked) in \d+\.\d ms$")
     assert [timed.sub(r"\1: \2", line) for line in messages] == [
-        "chat request received: 1 part(s), 5 characters",
+        "chat request received: 2 part(s), 5 characters",
+        "patient details: age_years, diabetes_duration_years, hba1c_percent, egfr_ml_min_1_73m2, "
+        "bmi_kg_m2, established_ascvd, ckd, heart_failure, past_dka, "
+        "recurrent_genital_or_urinary_infection, past_pancreatitis, past_hypoglycaemia",
         f"guard rules version {RULES_VERSION}",
         "backend_guard: passed",
-        "clinical_guardrails: skipped",
+        CLINICAL_RULES_LINE,
+        "clinical_guardrails: 3 of 3 options may be used",
+        "clinical_guardrails: passed",
         "causal_engine: skipped",
         "rag_retrieval: skipped",
         "llm_explanation: skipped",

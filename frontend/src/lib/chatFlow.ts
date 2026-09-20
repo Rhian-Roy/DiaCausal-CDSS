@@ -10,16 +10,16 @@
  */
 
 import { checkOutput, postChat } from './api'
-import type { PatientPart, ReasonCode, ScopeTopic, StageResult } from './contract'
+import type { OptionsPart, PatientPart, ReasonCode, ScopeTopic, StageResult } from './contract'
 import { medicalUiGuard, uiGuard } from './guards'
 import type { TraceLogger } from './trace'
 
 export type Answer =
   | { kind: 'pending' }
-  | { kind: 'answered'; text: string; stages: StageResult[] }
+  | { kind: 'answered'; text: string; stages: StageResult[]; options: OptionsPart | null }
   | { kind: 'blocked'; reason: string; stages: StageResult[] }
   // A guard stopped it (designs 09-12): in the browser (never sent, no stages) or on the server.
-  | { kind: 'notice'; code: ReasonCode; topic: ScopeTopic | null; stages: StageResult[] | null }
+  | { kind: 'notice'; code: ReasonCode; topic: ScopeTopic | null; reason: string | null; stages: StageResult[] | null }
   | { kind: 'error'; message: string }
 
 export type InputCheck =
@@ -77,15 +77,17 @@ export async function askDiaCausal(
     const reason = response.blocked_reason ?? 'The message was blocked.'
     log.warn(`backend blocked the message: ${reason}`)
     if (response.reason_code) {
-      return { kind: 'notice', code: response.reason_code, topic: response.scope_topic, stages: response.stages }
+      return { kind: 'notice', code: response.reason_code, topic: response.scope_topic, reason, stages: response.stages }
     }
     return { kind: 'blocked', reason, stages: response.stages }
   }
 
   log.info('output passed')
+  const options = response.parts.find((part) => part.type === 'options') ?? null
   return {
     kind: 'answered',
-    text: response.parts.map((part) => part.text).join('\n\n'),
+    text: response.parts.filter((part) => part.type === 'text').map((part) => part.text).join('\n\n'),
     stages: response.stages,
+    options: options as OptionsPart | null,
   }
 }

@@ -80,6 +80,17 @@ def client() -> TestClient:
     return test_client
 
 
+# Enough patient detail for the clinical guardrails to be able to answer at all: without
+# eGFR they abstain (rule G00b in app/clinical/guardrails.v1.yaml), which is the point of
+# the panel. Tests about missing details send their own parts.
+PATIENT = {
+    "type": "patient", "age_years": 58, "diabetes_duration_years": 6, "hba1c_percent": 8.4,
+    "egfr_ml_min_1_73m2": 62, "bmi_kg_m2": 31.2, "established_ascvd": False, "ckd": False,
+    "heart_failure": False, "past_dka": False, "recurrent_genital_or_urinary_infection": False,
+    "past_pancreatitis": False, "past_hypoglycaemia": "none",
+}
+
+
 @pytest.fixture
 def chat_body() -> Callable[..., dict]:
     """Build a valid request body; override any piece with keyword arguments."""
@@ -88,7 +99,7 @@ def chat_body() -> Callable[..., dict]:
         body = {
             "schema_version": "1.0",
             "client_trace_id": TRACE,
-            "parts": [{"type": "text", "text": text}],
+            "parts": [{"type": "text", "text": text}, PATIENT],
         }
         body.update(overrides)
         return body

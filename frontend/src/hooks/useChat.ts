@@ -42,7 +42,7 @@ export function useChat(patient?: () => PatientPart | null) {
     if (!checked.ok && checked.code) {
       // A guard stopped it: show the notice in the conversation (designs 09-12). Not sent.
       const { code, topic = null } = checked
-      const answer: Answer = { kind: 'notice', code, topic, stages: null }
+      const answer: Answer = { kind: 'notice', code, topic, reason: checked.reason, stages: null }
       setNotice(null)
       setTurns((all) => [...all, { traceId, question: shownQuestion(typed.trim(), code), answer }])
       return true

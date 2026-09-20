@@ -51,6 +51,10 @@ green tick or red cross next to each commit, or the **Actions** tab.
 | Patient panel: every field's range, both sides; unknown field refused; two patient parts refused | Section 2 `backend/tests/test_patient.py` (incl. a test that the browser's copy of the ranges matches the server's), section 3 `frontend/src/features/patient/patient.test.tsx`, section 6 *"the patient panel's details are accepted…"*, *"an impossible patient value is refused…"* |
 | "New patient" clears the panel and the conversation | Section 3 *"New patient clears the panel AND the conversation"*, section 8 (real browser) |
 | Patient values never logged (only which fields arrived) | Section 2 `test_patient_values_are_never_logged`, section 6 *"the log says which patient fields arrived, never their values"* |
+| Clinical guardrails run before ranking; a "do not use" option never reaches the causal engine | Section 2 `backend/tests/test_guardrails.py` (one test per rule, plus the invariants), section 6 *"a contraindicated option is marked do-not-use, with its source"* |
+| A rule with a TODO or no source never fires | Section 2 `test_the_incomplete_rule_is_refused_and_never_fires`, `test_strict_loading_raises_so_review_cannot_miss_it`; by hand: `.venv/bin/python -m app.clinical.check` |
+| Without eGFR the stage abstains instead of guessing | Section 2 `test_without_egfr_the_stage_abstains_instead_of_guessing`, section 6 *"without eGFR the clinical guardrails abstain…"* |
+| Every reply says the rules are a draft until a doctor reviews them | Section 2 `test_every_reply_says_the_table_is_a_draft`, section 3 `options.test.tsx`, section 6 |
 | Message text never written to the log | Section 2 (`test_message_text_is_never_logged`) and section 6 |
 | The code type-checks, builds and has no lint problems | Sections 4 and 5 |
 | The whole app really works in a real browser | Section 8: 9 Playwright tests in Google Chrome |
@@ -103,7 +107,8 @@ terminal side by side.
 | Docker | Not built yet (`docker/README.md`) |
 | Voice with a real microphone and a real human voice | By hand only: the automated tests use five synthetic clips (`backend/tests/voice_clips/`) and, in the browser tests, a fake microphone |
 | Scanning the QR code with a real phone | By hand only (SETUP.md step 5c); the automated checks compute the code from the key, as the phone would |
-| The four clinical stages (guardrails, causal engine, RAG, LLM) | Not connected yet; they return `skipped` |
+| The causal engine, RAG and the explanation | Not connected yet; they return `skipped` (prompts 06, 07, 09) |
+| Whether the clinical rules are **clinically right** | The mechanism is tested; the table itself is a DRAFT until Member D checks every source and the collaborating doctor reviews it. Every answer says so |
 | Whether the guard lists are clinically right | `rules.v1.json` is a **draft**: Member D must review every list and the collaborating doctor the clinical ones (status field in the file) |
 | ~~The real page against the real backend~~ | **Closed.** Section 8 drives real Google Chrome with Playwright (`e2e/tests/chat.spec.js`): sign in with a CAPTCHA and a 6-digit code, ask a question, check the four console lines and the same trace ID in the backend log, the notices, scrolling, and the 390×844 phone layout |
 | `contract.ts` and `schemas.py` staying the same | They are kept in sync by hand; section 6 catches some drift in what the backend sends |

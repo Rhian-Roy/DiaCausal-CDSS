@@ -9,13 +9,13 @@ Later: e.g. withhold any dose that has no guideline citation.
 
 from app.pipeline import blocklist
 from app.pipeline.context import PipelineContext, blocked, passed
-from app.schemas import StageName, StageResult
+from app.schemas import StageName, StageResult, TextPart
 
 NAME = StageName.OUTPUT_GUARD
 
 
 def run(ctx: PipelineContext) -> StageResult:
-    reply_text = "\n\n".join(part.text for part in ctx.reply_parts)
+    reply_text = "\n\n".join(part.text for part in ctx.reply_parts if isinstance(part, TextPart))
     if not reply_text.strip():
         return blocked(ctx, NAME, "The reply was empty, so it was withheld.")
     if blocklist.find_blocked_term(reply_text):

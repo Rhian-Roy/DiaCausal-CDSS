@@ -60,6 +60,35 @@ class PatientPart(StrictModel):
         return [name for name, value in self.model_dump(exclude={"type"}).items() if value is not None]
 
 
+class OptionStatus(StrEnum):
+    """What the clinical guardrails say about one option, before any ranking."""
+
+    SAFE_TO_CONSIDER = "safe_to_consider"
+    CHECK_FIRST = "check_first"
+    DO_NOT_USE = "do_not_use"
+
+
+class OptionResult(StrictModel):
+    """One of the three add-on options. Later stages add their own fields here."""
+
+    option: Literal["sglt2i", "dpp4i", "sulfonylurea"]
+    name: str  # e.g. "SGLT2 inhibitor"
+    status: OptionStatus
+    reasons: list[str] = []  # each reason is a sentence from the cited rules table
+    sources: list[str] = []  # the citation behind each reason
+    notes: list[str] = []  # "info" rules: relevant, but not a restriction
+    rule_ids: list[str] = []  # which rules fired, for the audit trail
+
+
+class OptionsPart(StrictModel):
+    """A reply part carrying the three options and what the guardrails made of them."""
+
+    type: Literal["options"]
+    options: list[OptionResult]
+    rules_version: str
+    draft_warning: str | None = None  # set while the table is not clinically reviewed
+
+
 # A message is a list of typed parts, so new kinds of input can be added later without
 # changing the shape of the request. The "type" field picks the model (a tagged union).
 # To add one (say "image"): define ImagePart above, add it to this union, and add the
@@ -118,6 +147,7 @@ class ReasonCode(StrEnum):
     OUT_OF_SCOPE = "out_of_scope"  # notice 10: see scope_topic
     EMERGENCY = "emergency"  # notice 11: no treatment content at all
     LANGUAGE = "language"  # notice 12: foul language
+    INSUFFICIENT_EVIDENCE = "insufficient_evidence"  # design 19: the clinical rules stop here
 
 
 # Which out-of-scope topic (only with reason_code "out_of_scope").
@@ -128,7 +158,7 @@ class ChatResponse(StrictModel):
     schema_version: Literal["1.0"] = "1.0"
     trace_id: str
     outcome: Outcome
-    parts: list[Part]  # the reply; empty when the message was blocked
+    parts: list[Part | OptionsPart]  # the reply; empty when the message was blocked
     blocked_reason: str | None = None
     reason_code: ReasonCode | None = None  # set when backend_guard blocked by a guard rule
     scope_topic: ScopeTopic | None = None

@@ -31,6 +31,30 @@ export type PatientPart = {
 
 export type Part = TextPart | PatientPart
 
+/** What the clinical guardrails decided about one option (OptionResult in schemas.py). */
+export const OPTION_STATUSES = ['safe_to_consider', 'check_first', 'do_not_use'] as const
+export type OptionStatus = (typeof OPTION_STATUSES)[number]
+
+export type OptionResult = {
+  option: 'sglt2i' | 'dpp4i' | 'sulfonylurea'
+  name: string
+  status: OptionStatus
+  reasons: string[]
+  sources: string[]
+  notes: string[]
+  rule_ids: string[]
+}
+
+/** A reply part carrying the three options (OptionsPart in schemas.py). */
+export type OptionsPart = {
+  type: 'options'
+  options: OptionResult[]
+  rules_version: string
+  draft_warning: string | null
+}
+
+export type ReplyPart = TextPart | OptionsPart
+
 export type ChatRequest = {
   schema_version: typeof SCHEMA_VERSION
   client_trace_id: string
@@ -54,7 +78,7 @@ export type StageStatus = 'passed' | 'blocked' | 'skipped'
 export type StageResult = { name: StageName; status: StageStatus; detail: string; duration_ms: number }
 
 /** Why backend_guard blocked a message; the page shows the matching notice (designs 09-12). */
-export const REASON_CODES = ['identifier', 'out_of_scope', 'emergency', 'language'] as const
+export const REASON_CODES = ['identifier', 'out_of_scope', 'emergency', 'language', 'insufficient_evidence'] as const
 export type ReasonCode = (typeof REASON_CODES)[number]
 
 /** Which out-of-scope topic (only with reason_code "out_of_scope"). */
@@ -65,7 +89,7 @@ export type ChatResponse = {
   schema_version: typeof SCHEMA_VERSION
   trace_id: string
   outcome: 'answered' | 'blocked'
-  parts: TextPart[] // a reply is always text
+  parts: ReplyPart[] // text, plus the options part once the guardrails have run
   blocked_reason: string | null
   reason_code: ReasonCode | null
   scope_topic: ScopeTopic | null
