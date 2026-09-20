@@ -568,3 +568,28 @@ def test_a_real_host_over_http_still_gets_the_strict_cookie(db):
                                                       "password": PASSWORD, "captcha_id": cid,
                                                       "captcha_answer": answer})
     assert reply.headers["set-cookie"].startswith("__Host-diacausal_session=")
+
+
+def test_two_setup_requests_at_once_give_the_same_key(anon, db):
+    """A browser that asks twice (React's development double-render, or a retry) must not
+    end up showing a QR code for a secret the database has already replaced."""
+    add_user()
+    csrf = login(anon, db).json()["csrf_token"]
+
+    first = post(anon, "/api/v1/auth/mfa/setup", csrf).json()
+    second = post(anon, "/api/v1/auth/mfa/setup", csrf).json()
+
+    assert first["key_groups"] == second["key_groups"]
+    assert "".join(first["key_groups"]) == secret_of(db)  # and it is the one that was stored
+
+
+def test_a_code_for_the_key_that_was_shown_is_accepted(anon, db, frozen):
+    """The whole point of the test above: the code from the shown key must work."""
+    add_user()
+    csrf = login(anon, db).json()["csrf_token"]
+    shown = "".join(post(anon, "/api/v1/auth/mfa/setup", csrf).json()["key_groups"])
+    post(anon, "/api/v1/auth/mfa/setup", csrf)  # a second request, as the page makes
+
+    confirmed = post(anon, "/api/v1/auth/mfa/confirm", csrf,
+                     {"client_trace_id": TRACE, "code": pyotp.TOTP(shown).at(clock.now())})
+    assert confirmed.status_code == 200 and confirmed.json()["stage"] == "full"

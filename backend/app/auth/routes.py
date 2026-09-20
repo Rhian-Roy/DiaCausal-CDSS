@@ -12,7 +12,7 @@ Never logged or stored: passwords, codes, CAPTCHA answers.
 """
 
 from fastapi import APIRouter, Depends, Request, Response
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from app.auth import audit, captcha, clock, mfa, passwords, sessions, throttle
@@ -200,8 +200,17 @@ def mfa_setup(signed: Signed = Depends(require_csrf_session), db: Session = Depe
     if user.mfa_enrolled:
         raise AuthProblem(409, "wrong_step", "Your authenticator app is already set up.")
     if user.totp_secret_enc is None:
-        user.totp_secret_enc = mfa.encrypt(mfa.new_secret())
+        # Two requests can arrive at once (a browser that retries, or React's development
+        # double-render). Only the first may create the secret, or one browser would show
+        # a QR code for a secret the database has already replaced. The condition in the
+        # UPDATE makes the database decide the winner; then we read back what it kept.
+        db.execute(
+            update(User)
+            .where(User.id == user.id, User.totp_secret_enc.is_(None))
+            .values(totp_secret_enc=mfa.encrypt(mfa.new_secret()))
+        )
         db.commit()
+        db.refresh(user)
     secret = mfa.decrypt(user.totp_secret_enc)
     return MfaSetupResponse(
         qr_image=mfa.qr_svg_data_url(mfa.provisioning_uri(secret, user.user_id)),

@@ -19,7 +19,8 @@ What it does, in order:
                 trace ID in the backend log
   7. live page  starts the real frontend on a spare port and sends a message
                 through its /api proxy to that backend
-  8. browser    Playwright drives real Google Chrome through the whole app: sign in
+  8. vignettes  the 25 synthetic evaluation vignettes (eval/) behave as their table says
+  9. browser    Playwright drives real Google Chrome through the whole app: sign in
                 with a CAPTCHA and a 6-digit code, ask a question, check the four
                 console lines, the notices, scrolling and the phone layout
 Servers you may already have running on 8000/5173 are not touched.
@@ -462,8 +463,16 @@ def check_live(node: str) -> None:
         stop(api)
 
 
+def check_vignettes() -> None:
+    section(8, "Evaluation vignettes (eval/, 25 synthetic patients)")
+    code, out = run([VENV_PY, ROOT / "eval" / "run_vignettes.py"], BACKEND, timeout=300)
+    matched = re.search(r"(\d+) of (\d+) vignettes behaved as the table says", out)
+    check(code == 0 and matched is not None and matched[1] == matched[2],
+          f"{matched[0] if matched else 'the vignettes did not run'}", out)
+
+
 def check_browser(npm: str) -> None:
-    section(8, "Real browser (Playwright drives Google Chrome through the whole app)")
+    section(9, "Real browser (Playwright drives Google Chrome through the whole app)")
     if not (E2E / "node_modules").is_dir():
         check(False, "end-to-end libraries installed (e2e/node_modules)", f"Run the setup again:  {SETUP}")
         return
@@ -492,6 +501,7 @@ def main() -> None:
     check_backend_tests()
     check_frontend(npm)  # type: ignore[arg-type]
     check_live(node)  # type: ignore[arg-type]
+    check_vignettes()
     check_browser(npm)  # type: ignore[arg-type]
 
     failed = results.count(False)
