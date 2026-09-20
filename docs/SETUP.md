@@ -83,7 +83,7 @@ It runs every automated test, then starts the real app on spare ports and sends 
 messages through it. It should end with:
 
 ```
-ALL 34 CHECKS PASSED
+ALL 35 CHECKS PASSED
 ```
 
 What each check proves, and what to do if one fails: [TESTING.md](TESTING.md).

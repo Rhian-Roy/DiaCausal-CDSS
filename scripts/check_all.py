@@ -19,6 +19,9 @@ What it does, in order:
                 trace ID in the backend log
   7. live page  starts the real frontend on a spare port and sends a message
                 through its /api proxy to that backend
+  8. browser    Playwright drives real Google Chrome through the whole app: sign in
+                with a CAPTCHA and a 6-digit code, ask a question, check the four
+                console lines, the notices, scrolling and the phone layout
 Servers you may already have running on 8000/5173 are not touched.
 """
 
@@ -46,6 +49,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 BACKEND = ROOT / "backend"
 FRONTEND = ROOT / "frontend"
+E2E = ROOT / "e2e"
 WINDOWS = sys.platform == "win32"
 VENV_PY = BACKEND / ".venv" / ("Scripts/python.exe" if WINDOWS else "bin/python")
 VITE = FRONTEND / "node_modules" / "vite" / "bin" / "vite.js"
@@ -403,6 +407,21 @@ def check_live(node: str) -> None:
         stop(api)
 
 
+def check_browser(npm: str) -> None:
+    section(8, "Real browser (Playwright drives Google Chrome through the whole app)")
+    if not (E2E / "node_modules").is_dir():
+        check(False, "end-to-end libraries installed (e2e/node_modules)", f"Run the setup again:  {SETUP}")
+        return
+    code, out = run([npm, "test"], E2E, timeout=900)
+    passed = re.search(r"(\d+) passed", out)
+    if "Chromium distribution 'chrome' is not found" in out or "Executable doesn't exist" in out:
+        check(False, "Google Chrome is installed (the end-to-end tests drive it)",
+              "Install Google Chrome from https://www.google.com/chrome/ and run this again.")
+        return
+    check(code == 0, f"{passed[1] if passed else 0} real-browser tests passed "
+                     "(sign-in with CAPTCHA + 6-digit code, four console lines, notices, phone layout)", out)
+
+
 def main() -> None:
     # Show each line as it happens, and never crash on a character the terminal can't show
     # (e.g. Windows when the output goes to a file or Git Bash).
@@ -418,6 +437,7 @@ def main() -> None:
     check_backend_tests()
     check_frontend(npm)  # type: ignore[arg-type]
     check_live(node)  # type: ignore[arg-type]
+    check_browser(npm)  # type: ignore[arg-type]
 
     failed = results.count(False)
     print(f"\n{'=' * 64}")

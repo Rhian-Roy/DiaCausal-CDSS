@@ -28,6 +28,31 @@ jobs:
       - name: Check everything
         run: python scripts/check_all.py
 
+  # The real-browser tests need Chrome; the Linux runner has it. The matrix job above
+  # already runs everything else on Linux, Windows and macOS.
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+      - name: One-time setup
+        run: python scripts/setup.py
+      - name: End-to-end tests in Chrome
+        working-directory: e2e
+        run: npm test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: e2e/test-results/
+          retention-days: 7
+
   # Known security problems in the libraries we depend on. Separate from `check` so a
   # newly published advisory does not hide a real test failure (and the other way round).
   audit:

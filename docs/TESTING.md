@@ -14,13 +14,16 @@ report one.
 (First time on a computer? Do the setup in [SETUP.md](SETUP.md) first.)
 
 It takes a few seconds and prints `[PASS]` or `[FAIL]` per line, ending with
-`ALL 34 CHECKS PASSED`. Those 34 lines are: 4 tool checks, 1 line for all 308 backend
-tests, 1 line for all 203 frontend tests, build, lint, then 26 live checks. It starts its
+`ALL 35 CHECKS PASSED`. Those 35 lines are: 4 tool checks, 1 line for all 310 backend
+tests, 1 line for all 204 frontend tests, build, lint, 26 live checks and 1 real-browser line. It starts its
 own copy of the app on spare ports, so it does not disturb servers you already have
 running.
 
+It needs **Google Chrome** installed (section 8 drives it).
+
 **On GitHub, automatically:** `.github/workflows/check.yml` runs the same two commands
-(setup, then check) on Linux, Windows and macOS for every push and pull request. See the
+(setup, then check) on Linux, Windows and macOS for every push and pull request, plus the
+real-browser tests and a security audit (`pip-audit`, `npm audit`) on Linux. See the
 green tick or red cross next to each commit, or the **Actions** tab.
 
 ### Which check proves which requirement
@@ -47,6 +50,9 @@ green tick or red cross next to each commit, or the **Actions** tab.
 | Voice: Python speech-to-text, transcript into the box (never auto-sent), numbers marked, audio deleted | Section 2 `backend/tests/test_voice.py` (5 recorded clips through the real model, limits, deletion); section 3 `frontend/src/features/voice/voice.test.tsx`; section 6 *"speech-to-text: a recorded clip comes back as text"* |
 | Message text never written to the log | Section 2 (`test_message_text_is_never_logged`) and section 6 |
 | The code type-checks, builds and has no lint problems | Sections 4 and 5 |
+| The whole app really works in a real browser | Section 8: 9 Playwright tests in Google Chrome |
+| Each stage says how long it took | Section 2 `test_every_stage_reports_how_long_it_took`, section 3 *"shows the time beside each stage"* |
+| No known security problems in our libraries | The `audit` job in CI (`pip-audit`, `npm audit --omit=dev`), weekly Dependabot pull requests |
 | Colours, fonts, layout match `design/` | By eye only: part 2, steps 1 and 7 |
 
 **Are the tests themselves any good?** During development, AI review agents working under
@@ -95,9 +101,9 @@ terminal side by side.
 | Scanning the QR code with a real phone | By hand only (SETUP.md step 5c); the automated checks compute the code from the key, as the phone would |
 | The four clinical stages (guardrails, causal engine, RAG, LLM) | Not connected yet; they return `skipped` |
 | Whether the guard lists are clinically right | `rules.v1.json` is a **draft**: Member D must review every list and the collaborating doctor the clinical ones (status field in the file) |
-| The real page against the real backend, automatically | The page's tests use a fake backend (`frontend/src/test/fakeBackend.ts`); `check_all` section 7 sends a request through the page's server but does not run the page's JavaScript. The two together were checked by hand in a browser (part 2). A browser-automation test (e.g. Playwright) would close this gap |
+| ~~The real page against the real backend~~ | **Closed.** Section 8 drives real Google Chrome with Playwright (`e2e/tests/chat.spec.js`): sign in with a CAPTCHA and a 6-digit code, ask a question, check the four console lines and the same trace ID in the backend log, the notices, scrolling, and the 390×844 phone layout |
 | `contract.ts` and `schemas.py` staying the same | They are kept in sync by hand; section 6 catches some drift in what the backend sends |
-| Every browser | Automated page tests run in a simulated browser (jsdom). Tried by hand in Chrome/Chromium. Safari's special keyboard behaviour for Hindi/Japanese input is covered by a simulated test only |
+| Every browser | Automated page tests run in a simulated browser (jsdom) plus real Google Chrome (section 8). Safari and Firefox tried by hand only. Safari's special keyboard behaviour for Hindi/Japanese input is covered by a simulated test only |
 | Windows and Linux setup by a person | Run by hand on macOS only. GitHub's automatic check runs setup + check on Linux, Windows and macOS for every push — all three passed all 21 checks (pull request #1) |
 
 ## Part 4 — when something fails

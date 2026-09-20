@@ -49,3 +49,7 @@ backend/.env
 *.db-journal
 *.db-wal
 *.db-shm
+
+# ── Playwright (end-to-end tests) ────────────────────────────────────────────
+e2e/test-results/
+e2e/playwright-report/
