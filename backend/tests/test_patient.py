@@ -2,6 +2,7 @@
 
 import json
 import logging
+from pathlib import Path
 
 import pytest
 
@@ -161,3 +162,22 @@ def test_ranges_are_plausibility_limits_not_clinical_thresholds():
     from app import patient_ranges
 
     assert "plausibility limits, not clinical thresholds" in patient_ranges.__doc__
+
+
+def test_the_browser_copy_of_the_ranges_matches_this_one():
+    """frontend/src/features/patient/ranges.ts must hold the same numbers, or the page
+    would accept a value the server refuses (or the other way round)."""
+    import re
+
+    from app.patient_ranges import RANGES as MINE
+
+    source = (Path(__file__).parents[2] / "frontend" / "src" / "features" / "patient" / "ranges.ts").read_text(
+        encoding="utf-8"
+    )
+    found = {
+        match["field"]: (float(match["low"].replace("_", "")), float(match["high"].replace("_", "")))
+        for match in re.finditer(
+            r"(?P<field>\w+): \{ low: (?P<low>[\d_.]+), high: (?P<high>[\d_.]+)", source
+        )
+    }
+    assert found == {field: (limits.low, limits.high) for field, limits in MINE.items()}

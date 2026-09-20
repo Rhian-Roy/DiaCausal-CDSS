@@ -10,7 +10,7 @@
  */
 
 import { checkOutput, postChat } from './api'
-import type { ReasonCode, ScopeTopic, StageResult } from './contract'
+import type { PatientPart, ReasonCode, ScopeTopic, StageResult } from './contract'
 import { medicalUiGuard, uiGuard } from './guards'
 import type { TraceLogger } from './trace'
 
@@ -54,8 +54,9 @@ export async function askDiaCausal(
   traceId: string,
   log: TraceLogger,
   fetchImpl?: typeof fetch,
+  patient?: PatientPart | null,
 ): Promise<Answer> {
-  const result = await postChat(message, traceId, fetchImpl)
+  const result = await postChat(message, traceId, fetchImpl, patient)
   if (result.kind === 'rejected') {
     log.error(`backend rejected the request: ${result.message}`)
     return { kind: 'error', message: result.message }

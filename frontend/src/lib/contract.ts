@@ -10,13 +10,35 @@ export const INTENDED_USE =
   'Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.'
 
 export type TextPart = { type: 'text'; text: string }
-export type Part = TextPart
+
+/** The patient details from the panel (design/v1/13-16). Mirrors PatientPart in schemas.py. */
+export type PatientPart = {
+  type: 'patient'
+  age_years?: number | null
+  diabetes_duration_years?: number | null
+  hba1c_percent?: number | null
+  egfr_ml_min_1_73m2?: number | null
+  bmi_kg_m2?: number | null
+  established_ascvd?: boolean | null
+  ckd?: boolean | null
+  heart_failure?: boolean | null
+  past_dka?: boolean | null
+  recurrent_genital_or_urinary_infection?: boolean | null
+  past_pancreatitis?: boolean | null
+  past_hypoglycaemia?: 'none' | 'mild' | 'severe' | null
+  budget_inr_per_month?: number | null
+}
+
+export type Part = TextPart | PatientPart
 
 export type ChatRequest = {
   schema_version: typeof SCHEMA_VERSION
   client_trace_id: string
   parts: Part[]
 }
+
+/** Part types this version of the API understands (SUPPORTED_PART_TYPES in settings.py). */
+export const SUPPORTED_PART_TYPES = ['text', 'patient'] as const
 
 export const STAGE_ORDER = [
   'backend_guard',
@@ -43,7 +65,7 @@ export type ChatResponse = {
   schema_version: typeof SCHEMA_VERSION
   trace_id: string
   outcome: 'answered' | 'blocked'
-  parts: Part[]
+  parts: TextPart[] // a reply is always text
   blocked_reason: string | null
   reason_code: ReasonCode | null
   scope_topic: ScopeTopic | null

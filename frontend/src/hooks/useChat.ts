@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
 import { askDiaCausal, checkInput, type Answer } from '@/lib/chatFlow'
-import type { ReasonCode } from '@/lib/contract'
+import type { PatientPart, ReasonCode } from '@/lib/contract'
 import { redactIdentifiers } from '@/lib/guards'
 import { newTraceId, traceLogger } from '@/lib/trace'
 
@@ -18,10 +18,16 @@ function shownQuestion(message: string, code: ReasonCode): string | null {
 const WAIT_NOTICE = 'Please wait for the current answer.'
 
 /** The conversation on screen, and `send` for a new message. */
-export function useChat() {
+export function useChat(patient?: () => PatientPart | null) {
   const [turns, setTurns] = useState<Turn[]>([])
   const [notice, setNotice] = useState<string | null>(null)
   const waiting = turns.some((turn) => turn.answer.kind === 'pending')
+
+  /** Forget the conversation (a new patient must not inherit the last one's answers). */
+  function clearConversation() {
+    setTurns([])
+    setNotice(null)
+  }
 
   /** Returns true if the message was accepted (so the box can be cleared). */
   function send(typed: string): boolean {
@@ -61,7 +67,7 @@ export function useChat() {
       )
       setNotice((current) => (current === WAIT_NOTICE ? null : current)) // no longer true
     }
-    askDiaCausal(checked.message, traceId, log)
+    askDiaCausal(checked.message, traceId, log, undefined, patient?.())
       .then(setAnswer)
       .catch((error: unknown) => {
         log.error(`unexpected error: ${String(error)}`)
@@ -70,5 +76,5 @@ export function useChat() {
     return true
   }
 
-  return { turns, notice, waiting, send, clearNotice: () => setNotice(null) }
+  return { turns, notice, waiting, send, clearConversation, clearNotice: () => setNotice(null) }
 }

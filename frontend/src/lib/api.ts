@@ -12,8 +12,9 @@ import {
   type ChatRequest,
   type ChatResponse,
   type ErrorResponse,
-  type Part,
+  type PatientPart,
   type StageStatus,
+  type TextPart,
 } from './contract'
 
 export const CHAT_URL = '/api/v1/chat'
@@ -24,12 +25,18 @@ export type PostResult =
   | { kind: 'rejected'; message: string } // HTTP 422: the backend explained what was wrong
   | { kind: 'failed'; message: string } // no answer, or an unexpected one
 
-export async function postChat(message: string, traceId: string, fetchImpl?: typeof fetch): Promise<PostResult> {
+export async function postChat(
+  message: string,
+  traceId: string,
+  fetchImpl?: typeof fetch,
+  patient?: PatientPart | null,
+): Promise<PostResult> {
   const send = fetchImpl ?? ((input, init) => globalThis.fetch(input, init))
   const request: ChatRequest = {
     schema_version: SCHEMA_VERSION,
     client_trace_id: traceId,
-    parts: [{ type: 'text', text: message }],
+    // The panel first, then the question: one patient part at most (schemas.py).
+    parts: patient ? [patient, { type: 'text', text: message }] : [{ type: 'text', text: message }],
   }
 
   let response: Response
@@ -83,6 +90,7 @@ export function checkOutput(body: unknown, traceId: string): OutputCheck {
   if (body.trace_id !== traceId) return fail(`the reply is for trace ${JSON.stringify(body.trace_id)}, not ${traceId}`)
   if (body.outcome !== 'answered' && body.outcome !== 'blocked') return fail('unknown outcome')
   if (!Array.isArray(body.parts) || !body.parts.every(isTextPart)) return fail('the reply parts are not all text')
+  const replyParts: TextPart[] = body.parts // a reply is always text, never a patient part
   if (!hasAllStagesInOrder(body.stages)) return fail('the pipeline stages are missing or out of order')
   if (typeof body.intended_use !== 'string') return fail('the intended-use notice is missing')
   if (body.reason_code !== null && !(REASON_CODES as readonly unknown[]).includes(body.reason_code)) {
@@ -94,7 +102,7 @@ export function checkOutput(body: unknown, traceId: string): OutputCheck {
   if (typeof body.request_id !== 'string') return fail('the request_id is missing')
 
   if (body.outcome === 'answered') {
-    if (!body.parts.some((part) => part.text.trim() !== '')) return fail('the answer is empty')
+    if (!replyParts.some((part) => part.text.trim() !== '')) return fail('the answer is empty')
     if (body.stages.at(-1)?.status !== 'passed') return fail('the output guard did not pass')
   } else if (typeof body.blocked_reason !== 'string') {
     return fail('a blocked reply must say why')
@@ -107,7 +115,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-function isTextPart(value: unknown): value is Part {
+function isTextPart(value: unknown): value is TextPart {
   return isRecord(value) && value.type === 'text' && typeof value.text === 'string'
 }
 

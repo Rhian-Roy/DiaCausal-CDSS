@@ -56,7 +56,8 @@ describe('pressing Enter on a message', () => {
     await user.type(box, '  HbA1c 8.4% on metformin  {Enter}')
 
     // getByText ignores outer spaces, so check the trimming on what was actually sent.
-    expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body)).parts[0].text).toBe('HbA1c 8.4% on metformin')
+    const sent = JSON.parse(String(fetchMock.mock.calls[0][1]?.body)).parts
+    expect(sent.find((part: { type: string }) => part.type === 'text').text).toBe('HbA1c 8.4% on metformin')
 
     expect(screen.getByText('You asked')).toBeInTheDocument()
     expect(screen.getByText('HbA1c 8.4% on metformin')).toBeInTheDocument()

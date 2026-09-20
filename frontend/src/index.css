@@ -56,6 +56,8 @@
 
   /* The design switches to phone layout at max-width:760px, so `md:` starts at 761px. */
   --breakpoint-md: 761px;
+  /* The patient panel moves beside the conversation above 900px, so `lg:` starts at 901px. */
+  --breakpoint-lg: 901px;
 }
 
 /* shadcn/ui's own colour names, pointed at the design tokens above. */
