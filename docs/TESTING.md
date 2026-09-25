@@ -14,8 +14,8 @@ report one.
 (First time on a computer? Do the setup in [SETUP.md](SETUP.md) first.)
 
 It takes a few seconds and prints `[PASS]` or `[FAIL]` per line, ending with
-`ALL 35 CHECKS PASSED`. Those 35 lines are: 4 tool checks, 1 line for all 310 backend
-tests, 1 line for all 204 frontend tests, build, lint, 26 live checks, the evaluation vignettes and 1 real-browser line. It starts its
+`ALL 43 CHECKS PASSED`. Those 43 lines are: 4 tool checks, 1 line for all 392 backend
+tests, 1 line for all 238 frontend tests, build, lint, 33 live checks, the evaluation vignettes and 1 real-browser line. It starts its
 own copy of the app on spare ports, so it does not disturb servers you already have
 running.
 
@@ -80,6 +80,41 @@ You can also run the parts separately:
 | Frontend tests | `cd frontend` then `npm test` |
 | Type-check + build | `cd frontend` then `npm run build` |
 | Lint | `cd frontend` then `npm run lint` |
+
+## Part 1b — the causal engine (its own command)
+
+The 3-arm causal engine (`diacausal_engine/`, `demo/`, `data/`) has its own pinned
+libraries and its own tests, so it does not need the chat app's setup:
+
+```bash
+python3.12 -m venv .venv && source .venv/bin/activate    # once
+pip install -r requirements-engine.txt                    # once
+python -m pytest tests/engine -q                          # about 40 s; must end "130 passed"
+```
+
+On GitHub the `engine` job in `.github/workflows/check.yml` runs the same tests, the quick
+benchmark and `pip-audit` on Linux and macOS. `scripts/check_all.py` is unchanged (43 checks).
+
+| Requirement | Proved by (`tests/engine/…`) |
+|---|---|
+| Every generator/engine number has a source and a status (CITED, ASSUMED-DIRECTIONAL, TEAM-SET); an unsourced one stops the program | `test_a_cohort.py`: *every_parameter_has_a_source*, *parameter_without_a_source_is_refused*, *invented_status*, *bare_number* |
+| Synthetic cohort: 3 options, confounding by indication, all three true outcomes stored | `test_a_cohort.py`: *all_three_options_appear*, *confounding_by_indication_exists*, *true_potential_outcomes_are_stored* |
+| The DAG decides what we adjust for; mediators never | `test_a_cohort.py`: *dag_adjustment_set_excludes_mediators*, *generator_only_uses_arrows_drawn_in_the_dag* |
+| Asian-Indian BMI cut-offs (23 / 25) and plausibility ranges match the chat app | `test_a_cohort.py`: *bmi_cutoffs_match_the_backend*, *plausibility_ranges_match*; `test_h_demo.py`: *bmi_uses_asian_indian_cutoffs* |
+| `data/rules.csv` is exactly Part 6 of the build guide; each rule has a source; bad rows refused; thresholds never in code | `test_b_guardrails.py` (all), incl. *no_clinical_threshold_is_typed_into_the_engine_code* |
+| Safety rules run before any estimate; excluded options never get a number | `test_h_demo.py`: *safety_rules_run_before_the_estimate*; `test_j_invariants.py`: *excluded_options_always_cite_a_rule* |
+| Cross-fitted multinomial propensity; propensity below 0.05 → "insufficient evidence" | `test_c_propensity.py` (all); `test_h_demo.py`: *rare_patient_gets_insufficient_evidence*; `test_j_invariants.py`: *low_propensity_always_means_insufficient_evidence* |
+| Naive, IPW, matching, AIPW with 95% CIs; the correction works | `test_d_average_effects.py` (worked example −0.425 vs −0.15; viva IPW example; AIPW covers the truth) |
+| DR-learner patient-level effects, each with a 95% interval | `test_e_dr_learner.py` |
+| Bias, RMSE, coverage, PEHE, policy regret, balance | `test_f_metrics.py` |
+| Benchmark writes `results/` (table, CSV, five figures) | `test_g_benchmark.py` |
+| Every screen and API response shows the intended-use statement | `test_h_demo.py`: *demo_shows_the_intended_use*; `test_i_api.py`: *bad_requests_get_422…with_intended_use*, *unknown_route_still_carries_intended_use*; `test_j_invariants.py` |
+| No drug doses anywhere | `test_h_demo.py`: *dose_pattern_catches_dose_text*, *rule_messages_themselves_contain_no_doses*; `test_j_invariants.py`: *no_reply_ever_contains_dose_text* (300 random patients) |
+| Never green for "recommended"; red / amber / grey | `test_h_demo.py`: *demo_never_uses_green_success_boxes*; by eye (screens/) |
+| Prices say "price unavailable" until confirmed | `test_h_demo.py`: *prices_stay_unavailable_until_confirmed* |
+| API: unknown fields and implausible values rejected (422, plain English, value not echoed) | `test_i_api.py` |
+| Logs and the audit trail never contain patient values | `test_h_demo.py`: *audit_log_records_decisions_but_never_patient_values*; `test_i_api.py`: *logs_carry_ids…no_patient_values* |
+| No secrets in the repo; exact version pins | `test_j_invariants.py`: *no_secrets_are_committed*, *requirements_are_exactly_pinned* |
 
 ## Part 2 — check by eye in a real browser (about 10 minutes)
 

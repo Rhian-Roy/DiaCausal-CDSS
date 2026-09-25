@@ -1,0 +1,23 @@
+{
+  "engine_version": "0.3.0",
+  "intended_use": "Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.",
+  "data": "synthetic India-calibrated cohort (data/params.yaml); no real patients",
+  "reps": 20,
+  "n_patients": 5000,
+  "n_test_patients": 2000,
+  "base_seed": 7,
+  "psm_bootstrap": 100,
+  "params_version": "0.3.0",
+  "params_sha": "7be8339ba2",
+  "rules_sha": "23fcccf59e",
+  "true_population_effects": {
+    "SGLT2i": -0.96146283,
+    "DPP4i": -0.75046544,
+    "SU": -1.0069405150000001,
+    "SGLT2i-DPP4i": -0.21099738999999995,
+    "SU-DPP4i": -0.2564750750000001,
+    "SGLT2i-SU": 0.045477685000000156
+  },
+  "python": "3.12.3",
+  "seconds": 94.8
+}
