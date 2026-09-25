@@ -39,7 +39,8 @@ cd DiaCausal-CDSS
 source .venv/bin/activate
 
 python -m pytest tests/engine -q                  # the tests: must end "138 passed" (about 3 min)
-python -m diacausal_engine.benchmark --quick      # quick benchmark (about 15 s)
+python -m pytest tests/rag -q                     # the RAG skeleton tests (12, about 2 s)
+python -m diacausal_engine.benchmark --quick      # quick benchmark (about 30 s)
 python -m diacausal_engine.benchmark              # full benchmark: 20 x 5,000 patients (about 3 min), rewrites results/
 streamlit run demo/streamlit_app.py               # the demo; opens http://localhost:8501
 uvicorn diacausal_engine.api:app --port 8001      # the API; docs at http://localhost:8001/docs
@@ -91,6 +92,11 @@ way to run the demo**, and the recorded video stays the backup.
 | `demo/streamlit_app.py` | The demo screen |
 | `tests/engine/` | The tests: 138 of them, one file per build step (a–k) |
 | `docs/REPO_INVENTORY.md`, `docs/CAUSAL_PLAN.md` | What the repo contains, and how the engine was planned and connects to the chat app |
+| `docs/explain/07-causal-engine.md` | **Start here for the viva:** every idea with an analogy, a tiny worked example and the one-sentence answer |
+| `docs/RESULTS_SUMMARY.md` | The benchmark results in plain English, and how to read each figure |
+| `docs/SYSTEM_REQUIREMENTS.md`, `docs/SYSTEM_DESIGN.md` | Mid-sem items 2 and 4: requirements mapped to tests; architecture, DFDs, use case, sequence, data and API design |
+| `rag/`, `tests/rag/`, `docs/SOURCES.md` | Early RAG skeleton (next phase) with its licence gate, and the licence table |
+| `docs/INTEGRATING_A_TEAMMATE_ENGINE.md` | How a teammate adds their own causal code without overwriting `main` |
 
 ## 💬 Chat app (walking skeleton)
 
