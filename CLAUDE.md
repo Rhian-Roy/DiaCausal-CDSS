@@ -75,7 +75,7 @@ If you add a requirement, add a check for it here or in the tests, and update
   `SUPPORTED_PART_TYPES`. Never loosen validation to "accept anything".
 - Every reply lists six stages in this order: `backend_guard`, `clinical_guardrails`,
   `causal_engine`, `rag_retrieval`, `llm_explanation`, `output_guard` (one file each in
-  `app/pipeline/`). Today only the first and last run; the rest return `"skipped"`.
+  `app/pipeline/`). Today `backend_guard`, `clinical_guardrails` and `output_guard` run; the rest return `"skipped"`.
   After a stage blocks, later stages are `"skipped"` and `outcome` is `"blocked"` (HTTP 200).
 - Every app log line (logger `diacausal`, app/tracing.py) carries `[client_trace_id]` after
   the time and level (`[-]` when there is no valid ID, e.g. a rejected request), e.g. `19:33:11 INFO    [efc1a658] backend_guard: passed`. Uvicorn's own
@@ -121,11 +121,52 @@ in front (Caddy). Security headers live in `backend/app/web.py` only; `/docs` is
 `DIACAUSAL_ENV=production`; secrets come from `.env` at run time, never from the image.
 The evaluation pack is `eval/` (25 synthetic vignettes + the SUS and feedback forms).
 
+## Causal engine v0.3 (built, standalone) — see docs/CAUSAL_PLAN.md
+
+`diacausal_engine/` compares three options added to metformin (SGLT2i, DPP-4i, sulfonylurea)
+for one patient: the expected 6-month HbA1c change with a 95% interval. It is the "Causal
+Inference Pipeline" column of the team flow chart and returns a structured **Causal Output**
+(`schemas.CausalOutput`: APPLICABLE/NOT_APPLICABLE, intervention, outcome, effect, confidence,
+assumptions) for the Evidence Fusion layer. Separate venv at the repo root:
+
+```bash
+python3.12 -m venv .venv && .venv/bin/pip install -r requirements-engine.txt   # once
+.venv/bin/python -m pytest tests/engine -q                                      # 130 tests
+.venv/bin/python -m diacausal_engine.benchmark --quick                          # full: drop --quick
+.venv/bin/streamlit run demo/streamlit_app.py                                   # the demo
+.venv/bin/uvicorn diacausal_engine.api:app --port 8001                          # POST /api/v1/recommend
+```
+
+Rules that must never be broken:
+
+1. Decision support only; the clinician decides. Every screen and API response (errors too)
+   shows: "Research prototype for clinician evaluation; not a marketed medical device; not for
+   unsupervised clinical use."
+2. Safety rules run **before** any estimate. The engine's contraindication and kidney-function
+   thresholds live only in `data/rules.csv` (Part 6 of docs/02_Causal_Engine_Build_Guide.md,
+   verbatim; a test compares them), each with a source. Never hard-code or invent them (a test
+   scans the code). An excluded option is never estimated. Never show drug doses (output check +
+   tests). The chat app still uses `backend/app/clinical/guardrails.v1.yaml`; the two tables
+   differ (docs/CAUSAL_PLAN.md §4) — when joined, the stricter action wins until the doctor decides.
+3. Every estimate has a 95% interval. Propensity below 0.05 (`engine.overlap_min_propensity`)
+   → "insufficient evidence", never a number.
+4. Synthetic data only. Every number in `data/params.yaml` has a `source` and a `status`
+   (CITED, ASSUMED-DIRECTIONAL or TEAM-SET); the loader refuses anything else. The Pima dataset
+   is not Indian data and is not used.
+5. Units: HbA1c %, change in percentage points, eGFR mL/min/1.73m2, cost INR/month. Asian-Indian
+   BMI cut-offs (overweight >= 23, obese >= 25). Prices stay "price unavailable" until confirmed
+   in `data/prices.csv` with a date and source.
+6. Never weaken or delete a test to make it pass. No API keys or secrets in this public repo.
+   Never log patient values (audit lines hold IDs, versions, statuses and rule IDs only).
+
+After changing params.yaml or the estimators, rerun the full benchmark and commit `results/`.
+
 ## Not built yet — where each piece goes
 
 | Piece | Backend | Frontend / other |
 |---|---|---|
-| Causal engine, RAG, LLM explanation | `backend/app/pipeline/<stage>.py` | — |
+| Causal engine in the chat app (October) | `backend/app/pipeline/causal_engine.py` calls `diacausal_engine` on `ctx.options` only | designs 17 and 19; `contract.ts` + `schemas.py` together |
+| RAG, evidence fusion, LLM explanation | `backend/app/pipeline/<stage>.py` | — |
 
 Each folder's README says how it connects.
 

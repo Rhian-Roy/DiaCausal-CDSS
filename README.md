@@ -6,6 +6,71 @@ A transparent, from-scratch implementation of causal inference methods applied t
 
 > Every causal quantity is computed **by hand** in NumPy so that each step can be explained, line by line, to a non-specialist. Nothing is hidden behind a library call.
 
+## 🧪 Causal engine v0.3 — the mid-sem demo (start here)
+
+> Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.
+
+For one adult with type 2 diabetes **already on metformin**, DiaCausal compares three add-on
+options: an **SGLT2 inhibitor**, a **DPP-4 inhibitor** and a **sulfonylurea**. It works in this order:
+
+1. It removes unsafe options first, using cited drug-label rules in [`data/rules.csv`](data/rules.csv).
+2. It estimates each remaining option's **6-month HbA1c change with a 95% range**.
+3. It says **"insufficient evidence"** when too few similar patients got an option.
+
+The clinician decides. All data is **synthetic**: an India-calibrated cohort whose every number
+has a source and a status in [`data/params.yaml`](data/params.yaml).
+
+### On a MacBook (Terminal)
+
+Install Python 3.12 from python.org first. Then, once:
+
+```bash
+git clone https://github.com/Rhian-Roy/DiaCausal-CDSS.git
+cd DiaCausal-CDSS
+python3.12 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements-engine.txt
+```
+
+Every time, in a new Terminal window:
+
+```bash
+cd DiaCausal-CDSS
+source .venv/bin/activate
+
+python -m pytest tests/engine -q                  # the tests: must end "130 passed" (about 40 s)
+python -m diacausal_engine.benchmark --quick      # quick benchmark (about 15 s)
+python -m diacausal_engine.benchmark              # full benchmark: 20 x 5,000 patients (about 2 min), rewrites results/
+streamlit run demo/streamlit_app.py               # the demo; opens http://localhost:8501
+uvicorn diacausal_engine.api:app --port 8001      # the API; docs at http://localhost:8001/docs
+```
+
+- **Demo:** the demo takes about 5 seconds to warm up the first time. Then use the three preset
+  buttons on the left:
+  1. a typical patient;
+  2. eGFR 40 with past pancreatitis: a red exclusion and amber cautions, each with its source;
+  3. an older patient with past hypoglycaemia: grey "insufficient evidence".
+- **Stopping:** press `Ctrl+C` in the Terminal to stop the demo or the API.
+- **Try the API:**
+  ```bash
+  curl -s -X POST localhost:8001/api/v1/recommend -H 'content-type: application/json' \
+    -d '{"schema_version":"1.0","patient":{"age":60,"sex":"female","duration_years":8,"hba1c":8.2,"egfr":40,"bmi":25.5,"pancreatitis_history":true}}'
+  ```
+
+### What is where
+
+| Path | What it is |
+|---|---|
+| `diacausal_engine/` | The engine. Its parts follow the "Causal Inference Pipeline" of our flow chart: the dataset (`cohort.py`), the DAG (`dag.py`), safety rules (`guardrails.py`), propensity and overlap (`propensity.py`), naive / IPW / matching / AIPW and the DR-learner (`estimators.py`), metrics, the benchmark, the one-patient **Causal Output** (`recommend.py`, `schemas.py`) and the API (`api.py`) |
+| `data/rules.csv` | Safety rules R01–R10, each with a source (Part 6 of `docs/02_Causal_Engine_Build_Guide.md`, verbatim) |
+| `data/params.yaml` | Every generator and engine number, each with `source` and `status` (CITED / ASSUMED-DIRECTIONAL / TEAM-SET) |
+| `data/prices.csv` | Prices: "price unavailable" until confirmed on the Jan Aushadhi list, with a date |
+| `results/` | Committed benchmark output: `results_table.tex`, `benchmark_summary.csv`, `run_info.json`, `figures/` (overlap, love plot, ATE vs truth, CATE recovery, calibration) |
+| `screens/` | Screenshots of the three demo presets |
+| `demo/streamlit_app.py` | The demo screen |
+| `tests/engine/` | The tests: 130 of them, one file per build step (a–j) |
+| `docs/REPO_INVENTORY.md`, `docs/CAUSAL_PLAN.md` | What the repo contains, and how the engine was planned and connects to the chat app |
+
 ## 💬 Chat app (walking skeleton)
 
 A clinician-facing chat page (`frontend/`, React + Vite) talking to a FastAPI backend
@@ -27,7 +92,7 @@ marketed medical device; not for unsupervised clinical use.
 
 - **10 estimators implemented from scratch** — Naive, Stratification, G-Computation, Propensity Score Matching, IPW, Stabilised IPW, AIPW, S-Learner, T-Learner, X-Learner
 - **Cross-checked against DoWhy & EconML** — every hand-written result is verified to ≤4 decimal places against the standard libraries
-- **Guideline citations (research code)** — retrieves passages with page-level citations from guideline PDFs we are licensed to use (IDF 2025 is cleared; ADA's Standards of Care are **not** licence-cleared, so they are not included). Licences are tracked in `RAG/sources.csv`
+- **Guideline citations (research code)** — retrieves passages with page-level citations from guideline PDFs we are licensed to use (IDF 2025 is **not** licence-cleared — `RAG/sources.csv` S11 says "all rights reserved"; ADA's Standards of Care are not cleared either). Licences are tracked in `RAG/sources.csv`
 - **Clinical guardrails** — hard safety rules (eGFR thresholds, contraindications) that override any statistical estimate
 - **Interactive Streamlit demo** — move sliders to watch confounding change the answer, and see personalised CATE recommendations update live
 
@@ -69,7 +134,7 @@ marketed medical device; not for unsupervised clinical use.
 └── pytest.ini                                # Test configuration
 ```
 
-## 🚀 Quick Start
+## 🚀 Quick Start — older 2-arm research code (notebooks)
 
 ### 1. Clone & install dependencies
 
@@ -117,12 +182,17 @@ python -m pytest tests/ -q -m "not slow"      # skip library cross-checks (~37s)
 
 ## 🛡️ Clinical Guardrails
 
-The system includes hard safety constraints that **override** any statistical estimate:
+Safety rules run **before** any estimate and override it. Their thresholds are never typed into code:
 
-- eGFR < 30 → contraindicate SGLT2i
-- eGFR < 45 → flag metformin dose adjustment
-- Known allergies / contraindications
-- Confidence-interval-too-wide warnings
+- **Causal engine v0.3:** [`data/rules.csv`](data/rules.csv), rules R01–R10 with the drug-label
+  source and section of each. For example, R01 excludes an SGLT2 inhibitor for glucose lowering
+  when eGFR < 45, and R10 excludes a sulfonylurea when eGFR < 30. Rules marked UNVERIFIED await
+  review by the collaborating doctor.
+- **Chat app:** [`backend/app/clinical/guardrails.v1.yaml`](backend/app/clinical/guardrails.v1.yaml),
+  a draft table that differs from `rules.csv`. [`docs/CAUSAL_PLAN.md`](docs/CAUSAL_PLAN.md) §4
+  lists every difference for the doctor to resolve.
+- The older 2-arm research code in `causal_engine/guardrails.py` still has numbers in code. It is
+  kept for the notebooks only; don't use it for the demo.
 
 ## 📦 Dependencies
 

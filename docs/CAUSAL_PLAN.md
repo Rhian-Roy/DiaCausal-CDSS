@@ -10,6 +10,24 @@ when the data can't answer fairly. The clinician decides.
 The reference tables come from `docs/02_Causal_Engine_Build_Guide.md` Part 6 and are used exactly.
 What the repo already has is in `docs/REPO_INVENTORY.md`.
 
+## 0. Status (27 Sep build) and how it maps onto our flow chart
+
+**Built: steps a–j.** There are 130 tests in `tests/engine/`, and the full benchmark results are
+committed in `results/`. The flow chart has two columns that run in parallel with no router: RAG
+and the Causal Inference Pipeline. **v0.3 is the whole Causal Inference Pipeline column.** Its
+last box (the structured Causal Output) is the hand-off to the Evidence Fusion layer, which we
+build in October together with RAG and the LLM.
+
+| Flow-chart box | Where it is |
+|---|---|
+| Causal dataset ingestion (observational data, preprocessing, variables; distinct from the RAG documents) | `cohort.py`: `generate_cohort` (synthetic), `load_dataset` (a real de-identified CSV later), `observed_view` (hides the truth) |
+| Causal inference engine: DAG formulation, treatment and outcome identification | `dag.py` plus the `dag:` section of `data/params.yaml`: treatment, outcome, adjustment set; mediators are never adjusted for |
+| Model selection and estimation: DML, propensity scores, CATE | `propensity.py` (cross-fitted multinomial propensity); `estimators.py` (naive, IPW, propensity-score matching, AIPW, which is the cross-fitted DML score; DR-learner CATE; T- and S-learners) |
+| Causal analysis: counterfactual reasoning | `recommend.py`: the expected outcome under **each** option for this patient, plus the fair pairwise differences |
+| Causal output: structured JSON (Applicable, Intervention, Outcome, Effect, Confidence, Assumptions) or NOT_APPLICABLE | `schemas.CausalOutput`, returned by `POST /api/v1/recommend` and shown in the demo |
+| Safety + validation layer (disclaimer) | Already present on the causal side: the `data/rules.csv` guardrails run first; `check_output` refuses dose text and numbers without an interval; the intended-use statement is on every response |
+| RAG pipeline, Evidence Fusion, prompt builder, diabetes-focused LLM | October (docs/03, prompts 07–09) |
+
 ## 1. The six rules we never break
 
 1. Decision support only; the clinician decides. Every screen and API response shows the
