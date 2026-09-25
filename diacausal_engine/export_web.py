@@ -99,7 +99,7 @@ def copy_figures(width: int = 1100) -> None:
         img = Image.open(ROOT / "results/figures" / f"{name}.png").convert("RGB")
         if img.width > width:
             img = img.resize((width, round(img.height * width / img.width)), Image.LANCZOS)
-        img.save(out / f"{name}.png", optimize=True)
+        img.quantize(colors=128, method=Image.Quantize.MEDIANCUT).save(out / f"{name}.png", optimize=True)
 
 
 def export(engine: Engine | None = None) -> dict:

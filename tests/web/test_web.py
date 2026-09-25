@@ -144,3 +144,36 @@ def test_results_and_docs_are_copied_for_the_site():
         assert (WEB / "results" / f"{name}.png").exists()
     assert (WEB / "docs/causal-engine.md").read_text() == (ROOT / "docs/explain/07-causal-engine.md").read_text()
     assert (WEB / "docs/results-summary.md").read_text() == (ROOT / "docs/RESULTS_SUMMARY.md").read_text()
+
+
+def _chromium():
+    for path in ("/opt/pw-browsers/chromium",):
+        if Path(path).exists():
+            return path
+    return None
+
+
+@pytest.mark.skipif(NODE is None or _chromium() is None or not (ROOT / "e2e/node_modules/playwright").exists(),
+                    reason="needs Node, Playwright (e2e/node_modules) and a Chromium binary")
+def test_the_site_works_on_an_iphone_sized_screen(tmp_path):
+    """Loads the real page at 393x852, runs the three presets, Results, Learn and About."""
+    import functools
+    import http.server
+    import os
+    import threading
+
+    handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(WEB))
+    handler.log_message = lambda *a: None
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    try:
+        out = subprocess.run([NODE, str(ROOT / "tests/web/phone_check.cjs"), f"http://127.0.0.1:{server.server_port}/", str(tmp_path)],
+                             capture_output=True, text=True, timeout=180, env={**os.environ, "CHROMIUM_PATH": _chromium()})
+    finally:
+        server.shutdown()
+    assert out.returncode == 0, out.stderr[-2000:]
+    report = json.loads(out.stdout.strip().splitlines()[-1])
+    c = report["checks"]
+    assert report["errors"] == []
+    assert c["intended"] and c["excluded"] == 1 and c["caution"] >= 1 and c["insufficient"] >= 1
+    assert c["tiles"] == 8 and c["docHeadings"] > 10 and c["horizontalOverflow"] is False
