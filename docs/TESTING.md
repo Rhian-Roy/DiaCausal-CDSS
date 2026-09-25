@@ -89,7 +89,7 @@ libraries and its own tests, so it does not need the chat app's setup:
 ```bash
 python3.12 -m venv .venv && source .venv/bin/activate    # once
 pip install -r requirements-engine.txt                    # once
-python -m pytest tests/engine -q                          # about 40 s; must end "130 passed"
+python -m pytest tests/engine -q                          # about 3 min; must end "139 passed"
 ```
 
 On GitHub the `engine` job in `.github/workflows/check.yml` runs the same tests, the quick
@@ -115,6 +115,17 @@ benchmark and `pip-audit` on Linux and macOS. `scripts/check_all.py` is unchange
 | API: unknown fields and implausible values rejected (422, plain English, value not echoed) | `test_i_api.py` |
 | Logs and the audit trail never contain patient values | `test_h_demo.py`: *audit_log_records_decisions_but_never_patient_values*; `test_i_api.py`: *logs_carry_ids…no_patient_values* |
 | No secrets in the repo; exact version pins | `test_j_invariants.py`: *no_secrets_are_committed*, *requirements_are_exactly_pinned* |
+| Refutation (placebo treatment x20, random common cause, 80% subset) and E-value sensitivity; saved to `results/refutation.csv`, `results/evalues.csv` | `test_k_refute.py` |
+
+**RAG early skeleton** (`python -m pytest tests/rag -q`, 12 tests, about 2 s):
+
+| Requirement | Proved by (`tests/rag/test_rag_skeleton.py`) |
+|---|---|
+| Only sources with bucket `cleared_ingest` in `RAG/sources.csv` are ingested (IDF, ADA, NICE refused) | *only_licence_cleared_sources_are_ingested*, *real_licence_table_refuses_idf_and_admits_who* |
+| Chunks never cross a section and carry source, version, section and page | *sections_are_never_mixed*, *long_sections_are_cut_to_the_chunk_size* |
+| Hybrid BM25 + vector search with reciprocal rank fusion returns cited passages | *hybrid_search_finds_the_right_section_with_a_citation*, *reciprocal_rank_fusion* |
+| Unsupported questions get INSUFFICIENT_EVIDENCE; passages with doses are withheld | *unsupported_questions*, *empty_index_abstains*, *passages_with_dose_text_are_withheld* |
+| `docs/SOURCES.md` always matches the licence CSV | *sources_md_is_in_sync* |
 
 ## Part 2 — check by eye in a real browser (about 10 minutes)
 

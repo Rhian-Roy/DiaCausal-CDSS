@@ -1,0 +1,11 @@
+# Libraries the Streamlit demo needs — used by Streamlit Community Cloud, which reads the
+# requirements file next to the app first. Same exact pins as ../requirements-engine.txt
+# (a test in tests/engine/test_h_demo.py keeps them identical).
+numpy==2.5.3
+pandas==3.0.6
+scipy==1.18.1
+scikit-learn==1.9.1
+matplotlib==3.11.2
+PyYAML==6.0.3
+pydantic==2.13.5
+streamlit==1.64.0

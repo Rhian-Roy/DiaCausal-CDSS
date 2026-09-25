@@ -106,3 +106,19 @@ def test_requirements_are_exactly_pinned():
         line = line.strip()
         if line and not line.startswith("#"):
             assert re.fullmatch(r"[A-Za-z0-9_.-]+==[0-9][0-9.]*", line), line
+
+
+def test_no_two_paths_differ_only_by_letter_case():
+    """macOS and Windows ignore case: `rag/` next to `RAG/` becomes one folder and breaks imports."""
+    files = subprocess.run(["git", "ls-files"], cwd=ROOT, capture_output=True, text=True, check=True).stdout.split("\n")
+    paths = set()
+    for f in filter(None, files):
+        parts = f.split("/")
+        paths.update("/".join(parts[:i]) for i in range(1, len(parts) + 1))
+    seen: dict[str, str] = {}
+    clashes = []
+    for p in sorted(paths):
+        other = seen.setdefault(p.lower(), p)
+        if other != p:
+            clashes.append((other, p))
+    assert not clashes, clashes

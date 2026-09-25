@@ -1,0 +1,8 @@
+# RAG settings (early skeleton — the full RAG is the October phase, docs/03_RAG_Build_Guide.md).
+# Same rule as data/params.yaml: every number has a source and a status.
+chunk_words: {value: 400, source: "docs/03_RAG_Build_Guide.md Step 2 (about 400 words, never crossing a section)", status: TEAM-SET}
+top_k: {value: 5, source: "docs/03_RAG_Build_Guide.md Step 2 (keep the best 5)", status: TEAM-SET}
+rrf_k: {value: 60, source: "Cormack GV, Clarke CLA, Buettcher S. Reciprocal rank fusion outperforms Condorcet and individual rank learning methods. SIGIR 2009", status: CITED}
+bm25_k1: {value: 1.5, source: "Robertson S, Zaragoza H. The Probabilistic Relevance Framework: BM25 and Beyond. Found Trends Inf Retr 2009 (common default range 1.2-2.0)", status: ASSUMED-DIRECTIONAL}
+bm25_b: {value: 0.75, source: "Robertson S, Zaragoza H. 2009 (common default)", status: ASSUMED-DIRECTIONAL}
+min_bm25_score: {value: 1.0, source: "Group 28 team choice — below this the best passage is too weak; tune on the gold set (Step R5)", status: TEAM-SET}

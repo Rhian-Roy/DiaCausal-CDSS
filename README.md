@@ -38,9 +38,10 @@ Every time, in a new Terminal window:
 cd DiaCausal-CDSS
 source .venv/bin/activate
 
-python -m pytest tests/engine -q                  # the tests: must end "130 passed" (about 40 s)
-python -m diacausal_engine.benchmark --quick      # quick benchmark (about 15 s)
-python -m diacausal_engine.benchmark              # full benchmark: 20 x 5,000 patients (about 2 min), rewrites results/
+python -m pytest tests/engine -q                  # the tests: must end "139 passed" (about 3 min)
+python -m pytest tests/rag -q                     # the RAG skeleton tests (12, about 2 s)
+python -m diacausal_engine.benchmark --quick      # quick benchmark (about 30 s)
+python -m diacausal_engine.benchmark              # full benchmark: 20 x 5,000 patients (about 3 min), rewrites results/
 streamlit run demo/streamlit_app.py               # the demo; opens http://localhost:8501
 uvicorn diacausal_engine.api:app --port 8001      # the API; docs at http://localhost:8001/docs
 ```
@@ -57,6 +58,27 @@ uvicorn diacausal_engine.api:app --port 8001      # the API; docs at http://loca
     -d '{"schema_version":"1.0","patient":{"age":60,"sex":"female","duration_years":8,"hba1c":8.2,"egfr":40,"bmi":25.5,"pancreatitis_history":true}}'
   ```
 
+### Put the demo online (free, optional backup link)
+
+Streamlit Community Cloud can host the demo so anyone with the link can open it. You have to do
+this once, signed in with **your own** GitHub account; nobody else can do it for you.
+
+1. Go to <https://share.streamlit.io> and choose **Continue with GitHub**. Allow access to
+   `Rhian-Roy/DiaCausal-CDSS`.
+2. Click **Create app**, then **Deploy a public app from GitHub**.
+3. Fill in:
+   - Repository: `Rhian-Roy/DiaCausal-CDSS`
+   - Branch: `main`
+   - Main file path: `demo/streamlit_app.py`
+4. Open **Advanced settings** and set **Python version: 3.12**. It needs no secrets.
+5. Click **Deploy**. The first start takes a few minutes, because it installs `demo/requirements.txt`.
+   After that, each visit takes about 5 seconds to warm up.
+6. Copy the `https://….streamlit.app` link into the team chat and the slides.
+
+The app is public, but it holds only synthetic data and no secrets. It goes to sleep after a few
+days unused; open the link once before the presentation to wake it up. **The laptop stays the main
+way to run the demo**, and the recorded video stays the backup.
+
 ### What is where
 
 | Path | What it is |
@@ -65,11 +87,16 @@ uvicorn diacausal_engine.api:app --port 8001      # the API; docs at http://loca
 | `data/rules.csv` | Safety rules R01–R10, each with a source (Part 6 of `docs/02_Causal_Engine_Build_Guide.md`, verbatim) |
 | `data/params.yaml` | Every generator and engine number, each with `source` and `status` (CITED / ASSUMED-DIRECTIONAL / TEAM-SET) |
 | `data/prices.csv` | Prices: "price unavailable" until confirmed on the Jan Aushadhi list, with a date |
-| `results/` | Committed benchmark output: `results_table.tex`, `benchmark_summary.csv`, `run_info.json`, `figures/` (overlap, love plot, ATE vs truth, CATE recovery, calibration) |
+| `results/` | Committed benchmark output: `results_table.tex`, `benchmark_summary.csv`, `refutation.csv`, `evalues.csv`, `run_info.json`, `figures/` (overlap, love plot, ATE vs truth, CATE recovery, calibration) |
 | `screens/` | Screenshots of the three demo presets |
 | `demo/streamlit_app.py` | The demo screen |
-| `tests/engine/` | The tests: 130 of them, one file per build step (a–j) |
+| `tests/engine/` | The tests: 139 of them, one file per build step (a–k) |
 | `docs/REPO_INVENTORY.md`, `docs/CAUSAL_PLAN.md` | What the repo contains, and how the engine was planned and connects to the chat app |
+| `docs/explain/07-causal-engine.md` | **Start here for the viva:** every idea with an analogy, a tiny worked example and the one-sentence answer |
+| `docs/RESULTS_SUMMARY.md` | The benchmark results in plain English, and how to read each figure |
+| `docs/SYSTEM_REQUIREMENTS.md`, `docs/SYSTEM_DESIGN.md` | Mid-sem items 2 and 4: requirements mapped to tests; architecture, DFDs, use case, sequence, data and API design |
+| `diacausal_rag/`, `tests/rag/`, `docs/SOURCES.md` | Early RAG skeleton (next phase) with its licence gate, and the licence table |
+| `docs/INTEGRATING_A_TEAMMATE_ENGINE.md` | How a teammate adds their own causal code without overwriting `main` |
 
 ## 💬 Chat app (walking skeleton)
 

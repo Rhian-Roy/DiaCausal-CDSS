@@ -1,0 +1,10 @@
+check,contrast,original_estimate,original_se,new_estimate,new_ci_low,new_ci_high,criterion,passed
+placebo treatment,SGLT2i-DPP4i,-0.1564,0.0256,0.0069,-0.0360,0.0499,100% of 20 placebo CIs contain 0 (need >= 85%),yes
+random common cause,SGLT2i-DPP4i,-0.1564,0.0256,-0.1551,-0.2053,-0.1050,within 2 SE of original,yes
+data subset,SGLT2i-DPP4i,-0.1564,0.0256,-0.1528,-0.2076,-0.0979,within 2 SE of original,yes
+placebo treatment,SU-DPP4i,-0.2718,0.0270,0.0043,-0.0401,0.0487,90% of 20 placebo CIs contain 0 (need >= 85%),yes
+random common cause,SU-DPP4i,-0.2718,0.0270,-0.2631,-0.3163,-0.2100,within 2 SE of original,yes
+data subset,SU-DPP4i,-0.2718,0.0270,-0.2594,-0.3155,-0.2033,within 2 SE of original,yes
+placebo treatment,SGLT2i-SU,0.1155,0.0249,0.0026,-0.0393,0.0445,90% of 20 placebo CIs contain 0 (need >= 85%),yes
+random common cause,SGLT2i-SU,0.1155,0.0249,0.1080,0.0592,0.1568,within 2 SE of original,yes
+data subset,SGLT2i-SU,0.1155,0.0249,0.1066,0.0533,0.1600,within 2 SE of original,yes
