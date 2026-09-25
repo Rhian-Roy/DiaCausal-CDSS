@@ -19,8 +19,8 @@ from collections import Counter
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS, TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-from rag import INTENDED_USE
-from rag.ingest import Chunk, load_config
+from diacausal_rag import INTENDED_USE
+from diacausal_rag.ingest import Chunk, load_config
 
 TOKEN = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 DOSE = re.compile(r"\b\d+(\.\d+)?\s*(mg|mcg|µg)\b|\b(once|twice)\s+daily\b|\bmg\s*/\s*day\b", re.I)

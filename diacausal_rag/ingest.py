@@ -31,7 +31,7 @@ def load_config(path: Path = CONFIG) -> dict:
     raw = yaml.safe_load(Path(path).read_text())
     for key, entry in raw.items():
         if not entry.get("source") or entry.get("status") not in ("CITED", "ASSUMED-DIRECTIONAL", "TEAM-SET"):
-            raise ValueError(f"rag/config.yaml: {key} needs a source and a valid status")
+            raise ValueError(f"diacausal_rag/config.yaml: {key} needs a source and a valid status")
     return {k: v["value"] for k, v in raw.items()}
 
 

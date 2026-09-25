@@ -153,13 +153,13 @@ sequenceDiagram
 | `recommend.py`, `schemas.py` | One patient → Causal Output; output check; audit | `Engine.recommend`, `check_output`, `CausalOutput` | Built |
 | `api.py` | REST API | `POST /api/v1/recommend`, `GET /api/v1/health` | Built |
 | `demo/streamlit_app.py` | Demo screen | — | Built |
-| `rag/` | Ingest, retrieve, evidence JSON | skeleton only | Planned |
+| `diacausal_rag/` | Ingest, retrieve, evidence JSON | skeleton only | Planned |
 
 **Implementation status for the "25%" slide:**
 
 | Component | Status |
 |---|---|
-| Causal engine | Built: all 10 steps a–j plus refutation, 138 tests |
+| Causal engine | Built: all 10 steps a–j plus refutation, 139 tests |
 | Chat app | Built: sign-in, guards, patient panel, clinical rules, voice, deployment |
 | RAG, fusion and LLM | Planned; see the RAG plan |
 

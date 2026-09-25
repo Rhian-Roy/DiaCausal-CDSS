@@ -2,8 +2,8 @@
 
 > Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.
 
-Generated from `RAG/sources.csv` by `python -m rag.sources_table`. Edit the CSV, then regenerate.
-`rag/ingest.py` ingests **only** rows whose bucket is exactly `cleared_ingest`; every other row is refused.
+Generated from `RAG/sources.csv` by `python -m diacausal_rag.sources_table`. Edit the CSV, then regenerate.
+`diacausal_rag/ingest.py` ingests **only** rows whose bucket is exactly `cleared_ingest`; every other row is refused.
 Every row is still a draft until Member B confirms the licence and fills "Checked by".
 
 | ID | Source | Version / year | Licence bucket | Use in DiaCausal | Checked on | Checked by |

@@ -131,7 +131,7 @@ assumptions) for the Evidence Fusion layer. Separate venv at the repo root:
 
 ```bash
 python3.12 -m venv .venv && .venv/bin/pip install -r requirements-engine.txt   # once
-.venv/bin/python -m pytest tests/engine -q                                      # 138 tests
+.venv/bin/python -m pytest tests/engine -q                                      # 139 tests
 .venv/bin/python -m diacausal_engine.benchmark --quick                          # full: drop --quick
 .venv/bin/streamlit run demo/streamlit_app.py                                   # the demo
 .venv/bin/uvicorn diacausal_engine.api:app --port 8001                          # POST /api/v1/recommend
@@ -166,7 +166,7 @@ After changing params.yaml or the estimators, rerun the full benchmark and commi
 | Piece | Backend | Frontend / other |
 |---|---|---|
 | Causal engine in the chat app (October) | `backend/app/pipeline/causal_engine.py` calls `diacausal_engine` on `ctx.options` only | designs 17 and 19; `contract.ts` + `schemas.py` together |
-| RAG (early skeleton in `rag/`: licence gate, chunking, BM25 + vector, RRF, evidence JSON; `tests/rag`), evidence fusion, LLM explanation | `backend/app/pipeline/<stage>.py` | `docs/03_RAG_Build_Guide.md`; only `cleared_ingest` sources |
+| RAG (early skeleton in `diacausal_rag/`: licence gate, chunking, BM25 + vector, RRF, evidence JSON; `tests/rag`), evidence fusion, LLM explanation | `backend/app/pipeline/<stage>.py` | `docs/03_RAG_Build_Guide.md`; only `cleared_ingest` sources |
 
 Each folder's README says how it connects.
 

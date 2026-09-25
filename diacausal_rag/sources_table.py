@@ -1,11 +1,11 @@
 """Write docs/SOURCES.md (RAG guide step R1) from RAG/sources.csv — the licence table.
 
-    python -m rag.sources_table        # regenerate after editing RAG/sources.csv
+    python -m diacausal_rag.sources_table        # regenerate after editing RAG/sources.csv
 """
 
 from __future__ import annotations
 
-from rag.ingest import CLEARED, ROOT, load_sources
+from diacausal_rag.ingest import CLEARED, ROOT, load_sources
 
 OUT = ROOT / "docs" / "SOURCES.md"
 COLS = [("id", "ID"), ("title", "Source"), ("version", "Version / year"), ("bucket", "Licence bucket"),
@@ -23,8 +23,8 @@ def render() -> str:
         "",
         "> Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.",
         "",
-        "Generated from `RAG/sources.csv` by `python -m rag.sources_table`. Edit the CSV, then regenerate.",
-        f"`rag/ingest.py` ingests **only** rows whose bucket is exactly `{CLEARED}`; every other row is refused.",
+        "Generated from `RAG/sources.csv` by `python -m diacausal_rag.sources_table`. Edit the CSV, then regenerate.",
+        f"`diacausal_rag/ingest.py` ingests **only** rows whose bucket is exactly `{CLEARED}`; every other row is refused.",
         "Every row is still a draft until Member B confirms the licence and fills \"Checked by\".",
         "",
         "| " + " | ".join(h for _, h in COLS) + " |",

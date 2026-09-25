@@ -11,9 +11,9 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
-from rag import INTENDED_USE  # noqa: E402
-from rag.ingest import CLEARED, LicenceError, chunk_document, ingest, load_config, load_sources, split_sections  # noqa: E402
-from rag.retrieve import WITHHELD, Retriever, rrf  # noqa: E402
+from diacausal_rag import INTENDED_USE  # noqa: E402
+from diacausal_rag.ingest import CLEARED, LicenceError, chunk_document, ingest, load_config, load_sources, split_sections  # noqa: E402
+from diacausal_rag.retrieve import WITHHELD, Retriever, rrf  # noqa: E402
 
 DOC = """[page 1]
 ## Choosing a second medicine
@@ -99,6 +99,6 @@ def test_the_committed_corpus_is_empty_until_licences_are_confirmed():
 
 
 def test_sources_md_is_in_sync_with_the_licence_csv():
-    from rag.sources_table import OUT, render
+    from diacausal_rag.sources_table import OUT, render
 
-    assert OUT.read_text(encoding="utf-8") == render(), "run: python -m rag.sources_table"
+    assert OUT.read_text(encoding="utf-8") == render(), "run: python -m diacausal_rag.sources_table"

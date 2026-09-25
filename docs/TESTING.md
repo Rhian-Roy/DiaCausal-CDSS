@@ -89,7 +89,7 @@ libraries and its own tests, so it does not need the chat app's setup:
 ```bash
 python3.12 -m venv .venv && source .venv/bin/activate    # once
 pip install -r requirements-engine.txt                    # once
-python -m pytest tests/engine -q                          # about 3 min; must end "138 passed"
+python -m pytest tests/engine -q                          # about 3 min; must end "139 passed"
 ```
 
 On GitHub the `engine` job in `.github/workflows/check.yml` runs the same tests, the quick

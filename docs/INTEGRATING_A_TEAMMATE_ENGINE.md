@@ -33,7 +33,7 @@ Please **never upload to `main`**, and never upload:
 | 6 | Does every data number have a **source and status**? | Yes (`data/params.yaml`) |
 | 7 | Are there no drug doses and no secrets? | Yes (tests) |
 | 8 | Is it synthetic or licence-cleared data only (not Pima presented as Indian data)? | Yes |
-| 9 | Are there automated tests? | 138 |
+| 9 | Are there automated tests? | 139 |
 | 10 | Does it return the flow chart's **Causal Output** (applicable, intervention, outcome, effect, confidence, assumptions)? | Yes (`schemas.CausalOutput`) |
 
 ## 3. What happens next

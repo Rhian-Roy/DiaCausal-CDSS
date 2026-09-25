@@ -34,7 +34,7 @@ marks work for October; "Not measured" means we have no evidence yet, so do not 
 | FR-11 | Demo with preset patients and a "Why causal?" explanation | Built | `demo/streamlit_app.py`; `screens/`; `test_h_demo.py` |
 | FR-12 | Chat app: sign-in with password, CAPTCHA and an authenticator code; message guards; patient panel | Built | `backend/app/auth/`, `pipeline/`; `scripts/check_all.py` (43 checks) |
 | FR-13 | Voice input put into the message box (never sent automatically) | Built | `backend/app/voice/`; `backend/tests/test_voice.py` |
-| FR-14 | Evidence retrieval with a citation for every sentence (RAG), refusing when unsupported | **Planned (1–16 Oct)** | `docs/03_RAG_Build_Guide.md`; `rag/` skeleton |
+| FR-14 | Evidence retrieval with a citation for every sentence (RAG), refusing when unsupported | **Planned (1–16 Oct)** | `docs/03_RAG_Build_Guide.md`; `diacausal_rag/` skeleton |
 | FR-15 | Causal engine inside the chat app (designs 17–19) | **Planned (Oct)** | `docs/CAUSAL_PLAN.md` §6 |
 | FR-16 | Hypoglycaemia risk and weight change per option (from cited tables) | **Planned** | worksheet rows 23–24 still "needs decision" |
 
@@ -52,7 +52,7 @@ marks work for October; "Not measured" means we have no evidence yet, so do not 
 | NFR-8 Reproducibility | Same seed gives the same cohort and results | Identical | `test_a_cohort.py` (same seed, same cohort); `results/run_info.json` stores seeds and file hashes |
 | NFR-9 Accuracy (synthetic) | Corrected estimators are nearly unbiased with about 95% coverage | Bias < 0.05; coverage ≈ 0.95 | `results/benchmark_summary.csv`: AIPW bias ≤ 0.005, coverage 0.90–0.95 |
 | NFR-10 Portability | Runs on macOS, Windows and Linux | 3 OS | GitHub Actions `check` (3 OS) and `engine` (Linux, macOS) jobs |
-| NFR-11 Maintainability | Automated tests for every requirement | All pass | 138 engine tests; 392 backend + 238 frontend tests; 43 live checks |
+| NFR-11 Maintainability | Automated tests for every requirement | All pass | 139 engine tests; 392 backend + 238 frontend tests; 43 live checks |
 | NFR-12 Accessibility | WCAG 2.1 AA; colour never the only signal | AA | Every status also has a text label (EXCLUDED, CAUTION, INSUFFICIENT EVIDENCE). **Not measured** against WCAG yet. |
 | NFR-13 Test coverage | At least 80% line coverage | ≥ 80% | **Not measured yet** (coverage tool not run) |
 
