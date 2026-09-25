@@ -28,6 +28,31 @@ jobs:
       - name: Check everything
         run: python scripts/check_all.py
 
+  # The 3-arm causal engine (diacausal_engine/, demo/, data/rules.csv, data/params.yaml).
+  # Its own pinned requirements, so the chat app's setup above is not needed.
+  engine:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install the engine's libraries
+        run: python -m pip install --disable-pip-version-check -q -r requirements-engine.txt
+      - name: Engine tests
+        run: python -m pytest tests/engine -q
+      - name: Quick benchmark (writes to a temporary folder)
+        run: python -m diacausal_engine.benchmark --quick --out "${{ runner.temp }}/results"
+      - name: Known security problems in the engine's libraries (pip-audit)
+        run: |
+          python -m pip install --disable-pip-version-check -q pip-audit==2.9.0
+          python -m pip_audit -r requirements-engine.txt --strict --progress-spinner off
+
   # The real-browser tests need Chrome; the Linux runner has it. The matrix job above
   # already runs everything else on Linux, Windows and macOS.
   browser:
