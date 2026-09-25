@@ -53,3 +53,6 @@ backend/.env
 # ── Playwright (end-to-end tests) ────────────────────────────────────────────
 e2e/test-results/
 e2e/playwright-report/
+
+# ── Causal engine (diacausal_engine/) ────────────────────────────────────────
+logs/

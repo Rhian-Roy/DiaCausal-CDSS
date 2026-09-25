@@ -1,0 +1,210 @@
+# DiaCausal causal engine — every number the synthetic cohort and the engine use.
+#
+# Research prototype for clinician evaluation; not a marketed medical device;
+# not for unsupervised clinical use.
+#
+# RULES (enforced by diacausal_engine/config.py — the engine refuses to start otherwise):
+#   * Every number lives in an entry  {value, unit, source, status, note}.
+#   * `source` is a key of `sources:` below, or a short free-text source.
+#   * `status` is exactly one of:
+#       CITED               the value is taken from the source
+#       ASSUMED-DIRECTIONAL direction and rough size follow the source; the exact number is ours
+#       TEAM-SET            our own choice, labelled as such (a worksheet row may replace it)
+#   * A bare number anywhere under generator/engine/display is refused.
+#
+# SYNTHETIC DATA ONLY. The Pima "Indians" dataset is from the Akimel O'odham community in
+# Arizona, USA — it is NOT Indian data and is not used here.
+# Units: HbA1c in %, change in HbA1c in percentage points, eGFR in mL/min/1.73m2, cost INR/month.
+
+version: 0.3.0
+
+sources:
+  ICMR_INDIAB_17: "Anjana RM et al. Metabolic non-communicable disease health report of India: the ICMR-INDIAB national cross-sectional study (ICMR-INDIAB-17). Lancet Diabetes Endocrinol 2023;11(7):474-489"
+  MISRA_2009: "Misra A, Chowbey P, Makkar BM et al. Consensus statement for diagnosis of obesity, abdominal obesity and the metabolic syndrome for Asian Indians. J Assoc Physicians India 2009;57:163-170 (PMID 19582986)"
+  FDA_METFORMIN_2016: "FDA Drug Safety Communication: FDA revises warnings regarding use of the diabetes medicine metformin in certain patients with reduced kidney function, 8 Apr 2016 (same source as backend guardrail G00)"
+  KDIGO_CKD_2012: "KDIGO 2012 Clinical Practice Guideline for the Evaluation and Management of Chronic Kidney Disease. Kidney Int Suppl 2013;3:1-150 (CKD definition, GFR < 60)"
+  TSAPAS_2020: "Tsapas A et al. Comparative effectiveness of glucose-lowering drugs for type 2 diabetes: a systematic review and network meta-analysis. Ann Intern Med 2020;173(4):278-286"
+  PALMER_2016: "Palmer SC et al. Comparison of clinical outcomes and adverse events associated with glucose-lowering drugs in patients with type 2 diabetes: a meta-analysis. JAMA 2016;316(3):313-324"
+  CANTATA_D: "Lavalle-Gonzalez FJ et al. (CANTATA-D, NCT01106677). Diabetologia 2013;56:2582-2592, PMC3825495 — week 26 on metformin; placebo -0.17 (team worksheet rows 14-15, 20)"
+  DENNIS_2022: "Dennis JM et al. Development of a treatment selection algorithm for SGLT2 and DPP-4 inhibitor therapies in people with type 2 diabetes. Lancet Digit Health 2022;4(12):e873-e883"
+  TRIMASTER_2023: "Shields BM et al. Patient stratification for determining optimal second-line and third-line therapy for type 2 diabetes: the TriMaster study. Nat Med 2023;29:376-383"
+  GUDEMANN_2026: "Gudemann LM et al. Validation of an algorithm for selection of SGLT2 and DPP4 inhibitor therapies across major UK ethnicity groups. Lancet Reg Health Eur 2026;61 (article number to confirm: 101547 in the PPT guide, 101456 in the worksheet)"
+  AUSTIN_2009: "Austin PC. Balance diagnostics for comparing the distribution of baseline covariates between treatment groups in propensity-score matched samples. Stat Med 2009;28(25):3083-3107"
+  KENNEDY_2023: "Kennedy EH. Towards optimal doubly robust estimation of heterogeneous causal effects. Electron J Stat 2023;17(2):3008-3049"
+  TEAM: "Group 28 team choice (docs/02_Causal_Engine_Build_Guide.md Part 6: 'Everything else — team choice, labelled as such')"
+  TEAM_WORKSHEET: "Group 28 team choice; the value to replace it is an outstanding row of docs/research/DiaCausal_parameter_extraction_worksheet.xlsx"
+  PLAUSIBILITY: "Group 28 plausibility limits (typing-slip catcher, not clinical thresholds), identical to backend/app/patient_ranges.py"
+
+# ── The three options (all added to metformin) ───────────────────────────────
+arms:
+  SGLT2i: {name: "SGLT2 inhibitor", example: "dapagliflozin"}
+  DPP4i: {name: "DPP-4 inhibitor", example: "sitagliptin"}
+  SU: {name: "Sulfonylurea", example: "glimepiride"}
+
+# ── The causal diagram (DAG) the generator and the estimators both follow ───────
+# Roles: confounder = affects treatment AND outcome; treatment_predictor = treatment only;
+# outcome_predictor = outcome only; derived = computed from another node;
+# mediator = caused by the treatment (NEVER adjusted for).
+dag:
+  treatment: treatment
+  outcome: hba1c_change_6m
+  nodes:
+    age: treatment_predictor   # reaches the outcome only through eGFR
+    female: outcome_predictor
+    duration_years: confounder
+    hba1c: confounder
+    egfr: confounder
+    bmi: treatment_predictor
+    ascvd: treatment_predictor
+    hf: treatment_predictor
+    hypo_history: treatment_predictor
+    dka_history: treatment_predictor
+    pancreatitis_history: treatment_predictor
+    low_income: treatment_predictor
+    ckd: derived
+    weight_change_6m: mediator
+  edges:
+    - [age, egfr]
+    - [age, treatment]
+    - [duration_years, treatment]
+    - [duration_years, hba1c_change_6m]
+    - [hba1c, treatment]
+    - [hba1c, hba1c_change_6m]
+    - [egfr, treatment]
+    - [egfr, hba1c_change_6m]
+    - [egfr, ckd]
+    - [bmi, treatment]
+    - [ascvd, treatment]
+    - [hf, treatment]
+    - [hypo_history, treatment]
+    - [dka_history, treatment]
+    - [pancreatitis_history, treatment]
+    - [low_income, treatment]
+    - [female, hba1c_change_6m]
+    - [treatment, hba1c_change_6m]
+    - [treatment, weight_change_6m]
+
+generator:
+  n_patients: {value: 5000, unit: patients, source: TEAM, status: TEAM-SET, note: "Build guide Part 1: about 5,000 patients"}
+
+  inclusion:
+    egfr_min: {value: 30, unit: mL/min/1.73m2, source: FDA_METFORMIN_2016, status: CITED, note: "Metformin is contraindicated below eGFR 30, so an 'add to metformin' cohort starts at 30"}
+    hba1c_min: {value: 7.0, unit: "%", source: TEAM_WORKSHEET, status: TEAM-SET, note: "'Inadequately controlled on metformin' — inclusion threshold decision pending (worksheet row 9)"}
+
+  covariates:
+    age:
+      mean: {value: 55, unit: years, source: TEAM_WORKSHEET, status: TEAM-SET, note: "LASI Table 5.1 outstanding (worksheet row 1)"}
+      sd: {value: 10, unit: years, source: TEAM_WORKSHEET, status: TEAM-SET, note: "worksheet row 1"}
+      min: {value: 30, unit: years, source: TEAM, status: TEAM-SET, note: "adult T2D cohort"}
+      max: {value: 85, unit: years, source: TEAM, status: TEAM-SET}
+    female_share: {value: 0.45, unit: proportion, source: TEAM_WORKSHEET, status: TEAM-SET, note: "worksheet row 2"}
+    duration_years:
+      gamma_shape: {value: 2.0, unit: "-", source: TEAM_WORKSHEET, status: TEAM-SET, note: "mean 7 years; worksheet row 11"}
+      gamma_scale: {value: 3.5, unit: years, source: TEAM_WORKSHEET, status: TEAM-SET, note: "worksheet row 11"}
+      max: {value: 30, unit: years, source: TEAM, status: TEAM-SET}
+    hba1c:
+      gamma_shape: {value: 2.5, unit: "-", source: TEAM_WORKSHEET, status: TEAM-SET, note: "HbA1c = inclusion minimum + gamma; mean about 8.6%; worksheet row 9"}
+      gamma_scale: {value: 0.65, unit: "%", source: TEAM_WORKSHEET, status: TEAM-SET}
+      max: {value: 13.0, unit: "%", source: TEAM, status: TEAM-SET}
+    egfr:
+      mean_at_55: {value: 82, unit: mL/min/1.73m2, source: TEAM_WORKSHEET, status: TEAM-SET, note: "worksheet row 10 (LASI-DAD) outstanding"}
+      change_per_year_of_age: {value: -0.8, unit: mL/min/1.73m2 per year, source: TEAM, status: TEAM-SET, note: "kidney function falls with age (direction only)"}
+      sd: {value: 18, unit: mL/min/1.73m2, source: TEAM_WORKSHEET, status: TEAM-SET}
+      max: {value: 120, unit: mL/min/1.73m2, source: TEAM, status: TEAM-SET}
+    bmi:
+      mean: {value: 26.5, unit: kg/m2, source: TEAM_WORKSHEET, status: TEAM-SET, note: "LASI Table 9.22 outstanding (worksheet row 3). Gives most patients BMI >= 25, above the ICMR-INDIAB general-population obesity anchor, as expected for T2D"}
+      sd: {value: 4.0, unit: kg/m2, source: TEAM_WORKSHEET, status: TEAM-SET}
+      min: {value: 16, unit: kg/m2, source: TEAM, status: TEAM-SET}
+      max: {value: 45, unit: kg/m2, source: TEAM, status: TEAM-SET}
+    prevalence:
+      ascvd: {value: 0.15, unit: proportion, source: TEAM_WORKSHEET, status: TEAM-SET, note: "worksheet row 12"}
+      hf: {value: 0.05, unit: proportion, source: TEAM, status: TEAM-SET}
+      hypo_history: {value: 0.08, unit: proportion, source: TEAM, status: TEAM-SET}
+      dka_history: {value: 0.01, unit: proportion, source: TEAM, status: TEAM-SET}
+      pancreatitis_history: {value: 0.015, unit: proportion, source: TEAM, status: TEAM-SET}
+      low_income: {value: 0.40, unit: proportion, source: TEAM_WORKSHEET, status: TEAM-SET, note: "LASI Table 13.13 affordability outstanding (worksheet row 4)"}
+    ckd_egfr_below: {value: 60, unit: mL/min/1.73m2, source: KDIGO_CKD_2012, status: CITED, note: "CKD = eGFR < 60 (albuminuria not simulated)"}
+
+  # Who gets which drug: a multinomial logit, log-odds relative to DPP-4i.
+  # CLINICALLY REASONED, NOT FITTED. Must be reviewed with the collaborating doctor (worksheet row 22).
+  assignment:
+    SGLT2i:
+      intercept: {value: 0.10, unit: log-odds, source: TEAM_WORKSHEET, status: TEAM-SET, note: "prescribing shares, worksheet row 21"}
+      hba1c: {value: 0.45, unit: log-odds per %, source: TEAM, status: TEAM-SET, note: "confounding by indication: higher HbA1c -> more SGLT2i (build guide worked example)"}
+      egfr: {value: 0.04, unit: log-odds per mL/min/1.73m2, source: TEAM, status: TEAM-SET, note: "lower eGFR -> less SGLT2i"}
+      bmi: {value: 0.08, unit: log-odds per kg/m2, source: TEAM, status: TEAM-SET, note: "weight loss wanted"}
+      ascvd: {value: 0.8, unit: log-odds, source: TEAM, status: TEAM-SET}
+      hf: {value: 0.8, unit: log-odds, source: TEAM, status: TEAM-SET}
+      dka_history: {value: -1.5, unit: log-odds, source: TEAM, status: TEAM-SET}
+      pancreatitis_history: {value: 1.0, unit: log-odds, source: TEAM, status: TEAM-SET, note: "doctors avoid DPP-4i after pancreatitis"}
+      low_income: {value: -0.3, unit: log-odds, source: TEAM, status: TEAM-SET}
+    SU:
+      intercept: {value: -0.20, unit: log-odds, source: TEAM_WORKSHEET, status: TEAM-SET, note: "worksheet row 21"}
+      hba1c: {value: 0.35, unit: log-odds per %, source: TEAM, status: TEAM-SET}
+      age: {value: -0.05, unit: log-odds per year, source: TEAM, status: TEAM-SET, note: "older -> less SU (hypoglycaemia)"}
+      duration_years: {value: -0.03, unit: log-odds per year, source: TEAM, status: TEAM-SET}
+      egfr: {value: 0.02, unit: log-odds per mL/min/1.73m2, source: TEAM, status: TEAM-SET}
+      hypo_history: {value: -1.5, unit: log-odds, source: TEAM, status: TEAM-SET}
+      ascvd: {value: -0.5, unit: log-odds, source: TEAM, status: TEAM-SET}
+      pancreatitis_history: {value: 1.0, unit: log-odds, source: TEAM, status: TEAM-SET}
+      low_income: {value: 1.0, unit: log-odds, source: TEAM, status: TEAM-SET, note: "cheapest option"}
+    # centring points for the continuous covariates in the logit
+    centre:
+      hba1c: {value: 8.5, unit: "%", source: TEAM, status: TEAM-SET}
+      egfr: {value: 80, unit: mL/min/1.73m2, source: TEAM, status: TEAM-SET}
+      bmi: {value: 26, unit: kg/m2, source: TEAM, status: TEAM-SET}
+      age: {value: 55, unit: years, source: TEAM, status: TEAM-SET}
+      duration_years: {value: 7, unit: years, source: TEAM, status: TEAM-SET}
+
+  # 6-month HbA1c change under option a:  Y(a) = drift + rtm*(hba1c-8.5) + tau_a(X) + noise
+  outcome:
+    drift: {value: -0.15, unit: percentage points, source: CANTATA_D, status: ASSUMED-DIRECTIONAL, note: "placebo-on-metformin arm changed by -0.17 at 26 weeks"}
+    regression_to_mean: {value: -0.20, unit: points per % above 8.5, source: TEAM, status: TEAM-SET, note: "higher starting HbA1c falls more whatever the drug"}
+    female: {value: 0.0, unit: percentage points, source: TEAM, status: TEAM-SET, note: "no sex difference assumed"}
+    noise_sd: {value: 0.60, unit: percentage points, source: CANTATA_D, status: ASSUMED-DIRECTIONAL, note: "chosen so the SD of 6-month change within each arm is about 0.65-0.8, close to worksheet row 20 (0.060 x sqrt(181) = 0.81)"}
+    effects:
+      SGLT2i:
+        base: {value: -0.75, unit: percentage points, source: TSAPAS_2020, status: ASSUMED-DIRECTIONAL, note: "also Palmer 2016. Set 0.19 below DPP-4i: Gudemann 2026 South Asian SGLT2i benefit over DPP-4i 2.1 mmol/mol x 0.0915"}
+        per_hba1c_pct: {value: -0.20, unit: points per % above 8.5, source: DENNIS_2022, status: ASSUMED-DIRECTIONAL, note: "greater benefit with higher baseline HbA1c"}
+        per_10_egfr: {value: -0.06, unit: points per 10 mL/min/1.73m2 above 80, source: TRIMASTER_2023, status: ASSUMED-DIRECTIONAL, note: "weaker glucose lowering at lower eGFR (also Dennis 2022)"}
+        per_duration_year: {value: 0.0, unit: points per year above 7, source: TEAM, status: TEAM-SET}
+      DPP4i:
+        base: {value: -0.56, unit: percentage points, source: TSAPAS_2020, status: ASSUMED-DIRECTIONAL, note: "also Palmer 2016; CANTATA-D sitagliptin -0.82 change from baseline incl. drift"}
+        per_hba1c_pct: {value: -0.12, unit: points per % above 8.5, source: DENNIS_2022, status: ASSUMED-DIRECTIONAL}
+        per_10_egfr: {value: 0.0, unit: points per 10 mL/min/1.73m2 above 80, source: TRIMASTER_2023, status: ASSUMED-DIRECTIONAL, note: "no eGFR effect assumed for DPP-4i"}
+        per_duration_year: {value: 0.0, unit: points per year above 7, source: TEAM, status: TEAM-SET}
+      SU:
+        base: {value: -0.80, unit: percentage points, source: TSAPAS_2020, status: ASSUMED-DIRECTIONAL, note: "also Palmer 2016; CANTATA-SU glimepiride -0.81 at 52 weeks"}
+        per_hba1c_pct: {value: -0.25, unit: points per % above 8.5, source: DENNIS_2022, status: ASSUMED-DIRECTIONAL, note: "direction only: all classes lower HbA1c more when it starts higher"}
+        per_10_egfr: {value: 0.0, unit: points per 10 mL/min/1.73m2 above 80, source: TEAM, status: TEAM-SET}
+        per_duration_year: {value: 0.02, unit: points per year above 7, source: TEAM, status: TEAM-SET, note: "weaker with longer diabetes duration (beta-cell decline) — team assumption"}
+    centre:
+      hba1c: {value: 8.5, unit: "%", source: TEAM, status: TEAM-SET}
+      egfr: {value: 80, unit: mL/min/1.73m2, source: TEAM, status: TEAM-SET}
+      duration_years: {value: 7, unit: years, source: TEAM, status: TEAM-SET}
+  population_truth_n: {value: 200000, unit: patients, source: TEAM, status: TEAM-SET, note: "size of the draw used to compute the true average effects"}
+
+engine:
+  crossfit_folds: {value: 5, unit: folds, source: TEAM, status: TEAM-SET}
+  overlap_min_propensity: {value: 0.05, unit: probability, source: TEAM, status: TEAM-SET, note: "project rule 3: below 0.05 show 'insufficient evidence'"}
+  propensity_clip: {value: 0.01, unit: probability, source: TEAM, status: TEAM-SET, note: "weights never exceed 1/0.01 in IPW/AIPW"}
+  smd_threshold: {value: 0.1, unit: SMD, source: AUSTIN_2009, status: CITED, note: "the usual 'balanced' rule of thumb"}
+  ci_z: {value: 1.959964, unit: z, source: TEAM, status: TEAM-SET, note: "95% two-sided normal interval"}
+  reference_cohort_seed: {value: 2026, unit: seed, source: TEAM, status: TEAM-SET, note: "the fixed cohort the demo and API are fitted on"}
+  random_seed: {value: 7, unit: seed, source: TEAM, status: TEAM-SET}
+  second_stage: {value: "linear", unit: "-", source: KENNEDY_2023, status: TEAM-SET, note: "DR-learner second stage: OLS with HC3 robust errors"}
+
+display:
+  bmi_underweight_below: {value: 18.5, unit: kg/m2, source: MISRA_2009, status: CITED}
+  bmi_overweight_from: {value: 23.0, unit: kg/m2, source: MISRA_2009, status: CITED, note: "Asian-Indian cut-off"}
+  bmi_obese_from: {value: 25.0, unit: kg/m2, source: MISRA_2009, status: CITED, note: "Asian-Indian cut-off"}
+  input_ranges:
+    age: {value: [18, 110], unit: years, source: PLAUSIBILITY, status: TEAM-SET}
+    duration_years: {value: [0, 80], unit: years, source: PLAUSIBILITY, status: TEAM-SET}
+    hba1c: {value: [4, 20], unit: "%", source: PLAUSIBILITY, status: TEAM-SET}
+    egfr: {value: [0, 150], unit: mL/min/1.73m2, source: PLAUSIBILITY, status: TEAM-SET}
+    bmi: {value: [12, 70], unit: kg/m2, source: PLAUSIBILITY, status: TEAM-SET}
+
+context:
+  india_diabetes_prevalence: {value: 0.114, unit: proportion of adults, source: ICMR_INDIAB_17, status: CITED, note: "context only; the cohort is all diabetic"}
+  india_generalised_obesity: {value: 0.286, unit: proportion of adults, source: ICMR_INDIAB_17, status: CITED, note: "context only (general population, not T2D)"}

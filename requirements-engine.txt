@@ -1,0 +1,18 @@
+# The 3-arm causal engine (diacausal_engine/), its Streamlit demo and its API.
+# Separate from backend/requirements.txt (the chat app) and requirements.txt (the old
+# 2-arm research code). Exact pins, so every laptop gets the same numbers.
+#
+#   python3.12 -m venv .venv && source .venv/bin/activate
+#   pip install -r requirements-engine.txt
+numpy==2.5.3
+pandas==3.0.6
+scipy==1.18.1
+scikit-learn==1.9.1
+matplotlib==3.11.2
+PyYAML==6.0.3
+streamlit==1.64.0
+fastapi==0.141.1
+pydantic==2.13.5
+uvicorn==0.53.0
+httpx==0.28.1
+pytest==9.1.1
