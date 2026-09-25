@@ -161,6 +161,14 @@ Rules that must never be broken:
 
 After changing params.yaml or the estimators, rerun the full benchmark and commit `results/`.
 
+## Website (built) — see docs/WEBSITE.md
+
+Live at https://diacausal.netlify.app. `web/` is a static phone-first PWA; `web/engine.js`
+mirrors `recommend.py` using `web/model.json` from `python -m diacausal_engine.export_web`
+(rerun after any engine change; `tests/web` fails if stale). Never type a threshold into
+`web/*.js`; no inline script or style (strict CSP in `netlify.toml` = `vercel.json`).
+Patient values stay on the device. `.venv/bin/python -m pytest tests/web -q` (9 tests, needs Node).
+
 ## Not built yet — where each piece goes
 
 | Piece | Backend | Frontend / other |

@@ -127,6 +127,18 @@ benchmark and `pip-audit` on Linux and macOS. `scripts/check_all.py` is unchange
 | Unsupported questions get INSUFFICIENT_EVIDENCE; passages with doses are withheld | *unsupported_questions*, *empty_index_abstains*, *passages_with_dose_text_are_withheld* |
 | `docs/SOURCES.md` always matches the licence CSV | *sources_md_is_in_sync* |
 
+**Website** (`python -m pytest tests/web -q`, 9 tests, about 15 s; needs Node):
+
+| Requirement | Proved by (`tests/web/test_web.py`) |
+|---|---|
+| `web/model.json` matches a fresh export of the engine (same params and rules hashes) | *model_json_is_fresh* |
+| The browser engine gives the same statuses, rules and numbers as Python on 155 patients | *browser_engine_gives_the_same_answers_as_python* |
+| Intended-use statement on the page; no dose text anywhere in the site | *site_files_carry_the_intended_use_and_no_doses* |
+| No clinical threshold typed into the website code (all from `model.json`) | *no_clinical_threshold_is_typed_into_the_website_code* |
+| Strict CSP holds (no inline script/style); Netlify and Vercel headers match | *no_inline_script_or_style_so_the_strict_csp_holds* |
+| Installable (manifest, icons); every offline-cached file exists; results and docs copied | *installable_on_a_phone*, *every_file_the_offline_cache_lists_exists*, *results_and_docs_are_copied_for_the_site* |
+| Works on an iPhone-sized screen: red, amber and grey cards, no sideways scrolling | *the_site_works_on_an_iphone_sized_screen* (skips without Chromium) |
+
 ## Part 2 — check by eye in a real browser (about 10 minutes)
 
 Start both servers as in [SETUP.md, step 5](SETUP.md#5-try-it-yourself), open
