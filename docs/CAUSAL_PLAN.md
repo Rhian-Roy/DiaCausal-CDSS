@@ -10,7 +10,7 @@ when the data can't answer fairly. The clinician decides.
 The reference tables come from `docs/02_Causal_Engine_Build_Guide.md` Part 6 and are used exactly.
 What the repo already has is in `docs/REPO_INVENTORY.md`.
 
-## 0. Status (27 Sep build) and how it maps onto our flow chart
+## 0. Status (built 25 Sep 2026) and how it maps onto our flow chart
 
 **Built: steps a–j.** There are 130 tests in `tests/engine/`, and the full benchmark results are
 committed in `results/`. The flow chart has two columns that run in parallel with no router: RAG
