@@ -174,3 +174,16 @@ def test_each_preset_renders_its_story(app, button, expected):
 def test_demo_never_uses_green_success_boxes():
     source = (ROOT / "demo/streamlit_app.py").read_text()
     assert "st.success" not in source and "green" not in source.lower().replace("never green", "")
+
+
+def test_hosting_requirements_match_the_engine_pins():
+    """demo/requirements.txt (Streamlit Community Cloud) must use exactly the engine's pins."""
+
+    def pins(path):
+        return {line.split("==")[0].lower(): line.strip() for line in path.read_text().splitlines()
+                if line.strip() and not line.startswith("#")}
+
+    engine, demo = pins(ROOT / "requirements-engine.txt"), pins(ROOT / "demo/requirements.txt")
+    assert {"streamlit", "numpy", "scikit-learn", "pyyaml", "pydantic"} <= set(demo)
+    for name, line in demo.items():
+        assert engine.get(name) == line, name

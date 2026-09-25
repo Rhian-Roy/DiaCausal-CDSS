@@ -38,7 +38,7 @@ Every time, in a new Terminal window:
 cd DiaCausal-CDSS
 source .venv/bin/activate
 
-python -m pytest tests/engine -q                  # the tests: must end "137 passed" (about 3 min)
+python -m pytest tests/engine -q                  # the tests: must end "138 passed" (about 3 min)
 python -m diacausal_engine.benchmark --quick      # quick benchmark (about 15 s)
 python -m diacausal_engine.benchmark              # full benchmark: 20 x 5,000 patients (about 3 min), rewrites results/
 streamlit run demo/streamlit_app.py               # the demo; opens http://localhost:8501
@@ -57,6 +57,27 @@ uvicorn diacausal_engine.api:app --port 8001      # the API; docs at http://loca
     -d '{"schema_version":"1.0","patient":{"age":60,"sex":"female","duration_years":8,"hba1c":8.2,"egfr":40,"bmi":25.5,"pancreatitis_history":true}}'
   ```
 
+### Put the demo online (free, optional backup link)
+
+Streamlit Community Cloud can host the demo so anyone with the link can open it. You have to do
+this once, signed in with **your own** GitHub account; nobody else can do it for you.
+
+1. Go to <https://share.streamlit.io> and choose **Continue with GitHub**. Allow access to
+   `Rhian-Roy/DiaCausal-CDSS`.
+2. Click **Create app**, then **Deploy a public app from GitHub**.
+3. Fill in:
+   - Repository: `Rhian-Roy/DiaCausal-CDSS`
+   - Branch: `main`
+   - Main file path: `demo/streamlit_app.py`
+4. Open **Advanced settings** and set **Python version: 3.12**. It needs no secrets.
+5. Click **Deploy**. The first start takes a few minutes, because it installs `demo/requirements.txt`.
+   After that, each visit takes about 5 seconds to warm up.
+6. Copy the `https://….streamlit.app` link into the team chat and the slides.
+
+The app is public, but it holds only synthetic data and no secrets. It goes to sleep after a few
+days unused; open the link once before the presentation to wake it up. **The laptop stays the main
+way to run the demo**, and the recorded video stays the backup.
+
 ### What is where
 
 | Path | What it is |
@@ -68,7 +89,7 @@ uvicorn diacausal_engine.api:app --port 8001      # the API; docs at http://loca
 | `results/` | Committed benchmark output: `results_table.tex`, `benchmark_summary.csv`, `refutation.csv`, `evalues.csv`, `run_info.json`, `figures/` (overlap, love plot, ATE vs truth, CATE recovery, calibration) |
 | `screens/` | Screenshots of the three demo presets |
 | `demo/streamlit_app.py` | The demo screen |
-| `tests/engine/` | The tests: 137 of them, one file per build step (a–k) |
+| `tests/engine/` | The tests: 138 of them, one file per build step (a–k) |
 | `docs/REPO_INVENTORY.md`, `docs/CAUSAL_PLAN.md` | What the repo contains, and how the engine was planned and connects to the chat app |
 
 ## 💬 Chat app (walking skeleton)

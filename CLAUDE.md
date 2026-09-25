@@ -131,7 +131,7 @@ assumptions) for the Evidence Fusion layer. Separate venv at the repo root:
 
 ```bash
 python3.12 -m venv .venv && .venv/bin/pip install -r requirements-engine.txt   # once
-.venv/bin/python -m pytest tests/engine -q                                      # 137 tests
+.venv/bin/python -m pytest tests/engine -q                                      # 138 tests
 .venv/bin/python -m diacausal_engine.benchmark --quick                          # full: drop --quick
 .venv/bin/streamlit run demo/streamlit_app.py                                   # the demo
 .venv/bin/uvicorn diacausal_engine.api:app --port 8001                          # POST /api/v1/recommend
