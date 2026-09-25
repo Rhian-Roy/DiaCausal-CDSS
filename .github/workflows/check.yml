@@ -48,6 +48,11 @@ jobs:
         run: python -m pytest tests/engine -q
       - name: RAG skeleton tests
         run: python -m pytest tests/rag -q
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+      - name: Website tests (the browser engine gives the same answers as Python)
+        run: python -m pytest tests/web -q
       - name: Quick benchmark (writes to a temporary folder)
         run: python -m diacausal_engine.benchmark --quick --out "${{ runner.temp }}/results"
       - name: Known security problems in the engine's libraries (pip-audit)

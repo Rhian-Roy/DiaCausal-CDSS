@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>DiaCausal — compare add-ons to metformin</title>
+  <meta name="description" content="DiaCausal compares three drugs added to metformin (SGLT2 inhibitor, DPP-4 inhibitor, sulfonylurea) for one patient using causal inference. Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.">
+  <meta name="theme-color" content="#0e5049">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="DiaCausal">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./vendor/marked.min.js" defer></script>
+  <script src="./engine.js" defer></script>
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <header class="top">
+    <p class="intended" role="note">Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.</p>
+    <div class="bar">
+      <a class="brand" href="#try"><span class="brand__mark" aria-hidden="true">D</span><span class="brand__name">DiaCausal</span></a>
+      <span class="bar__tag">Synthetic data · The clinician decides</span>
+    </div>
+  </header>
+
+  <nav class="tabs" aria-label="Sections">
+    <a href="#try" data-route="try">Try it</a>
+    <a href="#results" data-route="results">Results</a>
+    <a href="#learn" data-route="learn">Learn</a>
+    <a href="#about" data-route="about">About</a>
+  </nav>
+
+  <main id="main">
+    <!-- ───────────── Try it ───────────── -->
+    <section id="view-try" class="view" aria-labelledby="try-h">
+      <h1 id="try-h">Which add-on to metformin, for this patient?</h1>
+      <p class="lead">For an adult with type 2 diabetes already on metformin: each option's expected
+        <strong>6-month change in HbA1c</strong> with a <strong>95% range</strong>, after cited safety rules run first.</p>
+
+      <div class="presets" role="group" aria-label="Preset patients">
+        <button type="button" class="chip" data-preset="0">1 · Typical patient</button>
+        <button type="button" class="chip" data-preset="1">2 · eGFR 40, past pancreatitis</button>
+        <button type="button" class="chip" data-preset="2">3 · Older, past hypoglycaemia</button>
+      </div>
+
+      <form id="patient" class="card form" novalidate>
+        <h2>Patient details</h2>
+        <div class="grid">
+          <label>Age <span class="unit">years</span>
+            <input name="age" type="number" inputmode="numeric" step="1" required></label>
+          <fieldset class="seg"><legend>Sex</legend>
+            <label><input type="radio" name="sex" value="female"> Female</label>
+            <label><input type="radio" name="sex" value="male"> Male</label>
+          </fieldset>
+          <label>Diabetes duration <span class="unit">years</span>
+            <input name="duration_years" type="number" inputmode="decimal" step="0.5" required></label>
+          <label>HbA1c <span class="unit">%</span>
+            <input name="hba1c" type="number" inputmode="decimal" step="0.1" required></label>
+          <label>eGFR <span class="unit">mL/min/1.73m²</span>
+            <input name="egfr" type="number" inputmode="numeric" step="1" required></label>
+          <label>BMI <span class="unit">kg/m²</span>
+            <input name="bmi" type="number" inputmode="decimal" step="0.1" required>
+            <span class="hint" id="bmi-cat" aria-live="polite"></span></label>
+        </div>
+        <fieldset class="flags"><legend>History</legend>
+          <label><input type="checkbox" name="ascvd"> Established heart disease (ASCVD)</label>
+          <label><input type="checkbox" name="hf"> Heart failure</label>
+          <label><input type="checkbox" name="hypo_history"> Past hypoglycaemia</label>
+          <label><input type="checkbox" name="dka_history"> Past diabetic ketoacidosis</label>
+          <label><input type="checkbox" name="pancreatitis_history"> Past pancreatitis</label>
+          <label><input type="checkbox" name="t1d"> Type 1 diabetes</label>
+          <label><input type="checkbox" name="low_income"> Cost is a major concern</label>
+        </fieldset>
+        <p class="errors" id="errors" role="alert" hidden></p>
+        <button type="submit" class="primary">Compare the three options</button>
+      </form>
+
+      <div id="out" aria-live="polite"></div>
+
+      <details class="card why">
+        <summary>Why causal? (the worked example)</summary>
+        <p>In old records doctors gave different drugs to different patients, so a plain comparison is unfair.</p>
+        <div class="scroll"><table>
+          <thead><tr><th>Group</th><th>Got SGLT2i</th><th>Got sulfonylurea</th><th>Difference</th></tr></thead>
+          <tbody>
+            <tr><td>High starting HbA1c</td><td>300 patients, −1.2</td><td>100 patients, −1.0</td><td>−0.2</td></tr>
+            <tr><td>Lower starting HbA1c</td><td>100 patients, −0.6</td><td>300 patients, −0.5</td><td>−0.1</td></tr>
+            <tr><td>Everyone pooled (naive)</td><td>−1.05</td><td>−0.625</td><td><strong>−0.425</strong></td></tr>
+          </tbody>
+        </table></div>
+        <p>Like with like, weighting both groups equally: 0.5 × (−0.2) + 0.5 × (−0.1) = <strong>−0.15</strong>.
+          The naive answer is about three times too big, only because sicker patients got SGLT2i more often
+          (confounding by indication). DiaCausal corrects this with propensity weighting and doubly robust
+          estimation, and says “insufficient evidence” when too few similar patients got an option.
+          <em>Illustrative numbers.</em></p>
+      </details>
+    </section>
+
+    <!-- ───────────── Results ───────────── -->
+    <section id="view-results" class="view" aria-labelledby="res-h" hidden>
+      <h1 id="res-h">Does the method work? (synthetic benchmark)</h1>
+      <p class="lead" id="res-lead"></p>
+      <div class="tiles" id="tiles"></div>
+      <div class="card"><h2>Average effects: bias and 95% coverage</h2><div class="scroll" id="res-table"></div></div>
+      <div class="card"><h2>Refutation tests</h2><div class="scroll" id="ref-table"></div></div>
+      <div id="figures"></div>
+    </section>
+
+    <!-- ───────────── Learn ───────────── -->
+    <section id="view-learn" class="view" aria-labelledby="learn-h" hidden>
+      <h1 id="learn-h">Learn how it works</h1>
+      <div class="presets" role="group" aria-label="Documents">
+        <button type="button" class="chip" data-doc="causal-engine.md">Every idea, explained simply</button>
+        <button type="button" class="chip" data-doc="results-summary.md">Results in plain English</button>
+      </div>
+      <article class="card doc" id="doc"></article>
+    </section>
+
+    <!-- ───────────── About ───────────── -->
+    <section id="view-about" class="view" aria-labelledby="about-h" hidden>
+      <h1 id="about-h">About DiaCausal</h1>
+      <div class="card">
+        <h2>What it is</h2>
+        <p>A decision-support research prototype. For one adult with type 2 diabetes already on metformin it compares
+          an SGLT2 inhibitor, a DPP-4 inhibitor and a sulfonylurea. First it removes unsafe options with cited
+          drug-label rules. Then it estimates each remaining option's 6-month HbA1c change with a 95% range,
+          or says “insufficient evidence”. <strong>The clinician decides.</strong></p>
+        <h2>What it is not</h2>
+        <ul>
+          <li>Not a marketed medical device and not for unsupervised clinical use.</li>
+          <li>Not trained on real patients: every number comes from an India-calibrated <strong>synthetic</strong> cohort.</li>
+          <li>Never shows drug doses.</li>
+        </ul>
+        <h2>Your privacy</h2>
+        <p>Everything is calculated <strong>on this device</strong>. The details you type are never sent anywhere or stored.</p>
+      </div>
+      <div class="card">
+        <h2>Use it like an app on your iPhone</h2>
+        <ol>
+          <li>Open this page in <strong>Safari</strong>.</li>
+          <li>Tap the <strong>Share</strong> button (the square with an arrow).</li>
+          <li>Choose <strong>Add to Home Screen</strong>, then <strong>Add</strong>.</li>
+        </ol>
+        <p>It then opens full-screen from its icon and keeps working without internet. On Android (Chrome), use
+          the ⋮ menu → <strong>Add to Home screen</strong>.</p>
+        <button type="button" class="primary" id="share">Share this website</button>
+        <figure class="qr"><img src="./icons/qr.png" alt="QR code linking to this website" width="220" height="220">
+          <figcaption>Scan with any phone camera to open DiaCausal.</figcaption></figure>
+      </div>
+      <div class="card">
+        <h2>Team</h2>
+        <p>Group 28, B.E. Computer Engineering, Fr. C. Rodrigues Institute of Technology, Vashi (2026–27):
+          Pratham Pawar, Graceton Santhmayor, Rhian Roy Kuttikadan, Advik Saxena. Guide: Dr. Jyoti More.</p>
+        <p>Code and documentation: <a href="https://github.com/Rhian-Roy/DiaCausal-CDSS" rel="noopener">github.com/Rhian-Roy/DiaCausal-CDSS</a></p>
+        <p class="muted" id="versions"></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p>Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.</p>
+    <p>Synthetic data only · Decision support only · The clinician decides.</p>
+  </footer>
+</body>
+</html>

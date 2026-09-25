@@ -6,6 +6,16 @@ A transparent, from-scratch implementation of causal inference methods applied t
 
 > Every causal quantity is computed **by hand** in NumPy so that each step can be explained, line by line, to a non-specialist. Nothing is hidden behind a library call.
 
+## 📱 Use it on your phone — <https://diacausal.netlify.app>
+
+Open the link on any phone or laptop. On an iPhone: Safari → **Share** → **Add to Home Screen**;
+it then opens like an app and works offline. Everything is computed **on your device** — nothing
+you type is sent anywhere. Scan to open:
+
+<img src="web/icons/qr.png" alt="QR code for diacausal.netlify.app" width="160">
+
+How it works and how to update it: [docs/WEBSITE.md](docs/WEBSITE.md).
+
 ## 🧪 Causal engine v0.3 — the mid-sem demo (start here)
 
 > Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.

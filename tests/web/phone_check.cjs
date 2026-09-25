@@ -1,0 +1,41 @@
+// iPhone 15-sized browser run of the website (used by tests/web/test_web.py): node phone_check.cjs URL OUTDIR
+const { chromium, devices } = require(require('path').join(__dirname, '..', '..', 'e2e', 'node_modules', 'playwright'));
+(async () => {
+  const url = process.argv[2], out = process.argv[3];
+  const b = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
+  const ctx = await b.newContext({ viewport: { width: 393, height: 852 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true,
+    userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1' });
+  const p = await ctx.newPage();
+  const errors = [];
+  p.on('pageerror', e => errors.push('pageerror: ' + e.message));
+  p.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
+  await p.goto(url);
+  await p.locator('.opt').first().waitFor({ timeout: 20000 });
+  await p.screenshot({ path: out + '/p0.png', fullPage: true });
+  const checks = {};
+  checks.intended = await p.getByText('Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.').first().isVisible();
+  await p.getByRole('button', { name: /eGFR 40/ }).click();
+  await p.getByText('EXCLUDED').first().waitFor();
+  checks.excluded = await p.locator('.opt--excluded').count();
+  checks.caution = await p.locator('.opt--caution').count();
+  await p.screenshot({ path: out + '/p1.png', fullPage: true });
+  await p.getByRole('button', { name: /Older/ }).click();
+  await p.getByText('INSUFFICIENT EVIDENCE').first().waitFor();
+  checks.insufficient = await p.locator('.opt--insufficient').count();
+  await p.screenshot({ path: out + '/p2.png', fullPage: true });
+  await p.click('a[data-route="results"]');
+  await p.locator('.tile').first().waitFor();
+  checks.tiles = await p.locator('.tile').count();
+  await p.waitForTimeout(800);
+  await p.screenshot({ path: out + '/p3.png', fullPage: false });
+  await p.click('a[data-route="learn"]');
+  await p.locator('#doc h1, #doc h2').first().waitFor();
+  checks.docHeadings = await p.locator('#doc h2').count();
+  await p.screenshot({ path: out + '/p4.png' });
+  await p.click('a[data-route="about"]');
+  await p.screenshot({ path: out + '/p5.png', fullPage: true });
+  const overflow = await p.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+  checks.horizontalOverflow = overflow;
+  console.log(JSON.stringify({ checks, errors }));
+  await b.close();
+})();
