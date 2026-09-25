@@ -192,6 +192,11 @@ engine:
   ci_z: {value: 1.959964, unit: z, source: TEAM, status: TEAM-SET, note: "95% two-sided normal interval"}
   reference_cohort_seed: {value: 2026, unit: seed, source: TEAM, status: TEAM-SET, note: "the fixed cohort the demo and API are fitted on"}
   random_seed: {value: 7, unit: seed, source: TEAM, status: TEAM-SET}
+  psm_bootstrap: {value: 100, unit: resamples, source: TEAM, status: TEAM-SET, note: "95% CI for propensity-score matching by bootstrap (approximate for matching: Abadie & Imbens 2008)"}
+  outcome_model:
+    max_iter: {value: 200, unit: trees, source: TEAM, status: TEAM-SET, note: "HistGradientBoostingRegressor per option, cross-fitted"}
+    learning_rate: {value: 0.05, unit: "-", source: TEAM, status: TEAM-SET}
+    max_depth: {value: 3, unit: levels, source: TEAM, status: TEAM-SET}
   second_stage: {value: "linear", unit: "-", source: KENNEDY_2023, status: TEAM-SET, note: "DR-learner second stage: OLS with HC3 robust errors"}
 
 display:
