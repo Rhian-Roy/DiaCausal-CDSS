@@ -4,7 +4,7 @@
     python -m diacausal_engine.benchmark --quick    # quick check: 3 repeats x 1,500 patients
 
 Writes to results/ (or --out):
-    benchmark_summary.csv, results_table.tex, run_info.json,
+    benchmark_summary.csv, results_table.tex, run_info.json, refutation.csv, evalues.csv,
     figures/overlap.png, love_plot.png, ate_vs_truth.png, cate_recovery.png, calibration.png
 
 SYNTHETIC DATA ONLY: the numbers show whether the METHODS recover a known truth.
@@ -23,7 +23,7 @@ import numpy as np
 
 from diacausal_engine import ARMS, CONTRASTS, INTENDED_USE, __version__
 from diacausal_engine import figures as fig
-from diacausal_engine.cohort import features, generate_cohort, true_population_effects
+from diacausal_engine.cohort import features, generate_cohort, observed_view, treatment_index, true_population_effects
 from diacausal_engine.config import ROOT, load_params
 from diacausal_engine.dag import load_dag
 from diacausal_engine.estimators import (
@@ -40,6 +40,7 @@ from diacausal_engine.fitting import fit_all
 from diacausal_engine.guardrails import load_rules
 from diacausal_engine.metrics import abstention_rate, balance_table, bias, coverage, pehe, policy_regret, rmse
 from diacausal_engine.propensity import predict
+from diacausal_engine.refute import e_value, refute
 
 METHODS = ("naive", "IPW", "matching", "AIPW")
 LEARNERS = ("DR-learner", "T-learner", "S-learner", "naive")
@@ -184,6 +185,26 @@ def write_tex(rows: list[dict], n_reps: int, n: int, path: Path) -> None:
     path.write_text("\n".join(lines))
 
 
+def write_refutation(rows, path: Path) -> None:
+    with path.open("w", newline="") as fh:
+        w = csv.writer(fh)
+        w.writerow(["check", "contrast", "original_estimate", "original_se", "new_estimate", "new_ci_low",
+                    "new_ci_high", "criterion", "passed"])
+        for r in rows:
+            w.writerow([r.check, r.contrast, _fmt(r.original), _fmt(r.original_se), _fmt(r.new_estimate),
+                        _fmt(r.new_ci_low), _fmt(r.new_ci_high), r.criterion, "yes" if r.passed else "NO"])
+
+
+def write_evalues(aipw_estimates: dict, outcome_sd: float, params, path: Path) -> None:
+    with path.open("w", newline="") as fh:
+        w = csv.writer(fh)
+        w.writerow(["contrast", "aipw_estimate", "ci_low", "ci_high", "e_value_estimate", "e_value_ci"])
+        for a, b in CONTRASTS:
+            est = aipw_estimates[f"{a}-{b}"]
+            point, ci = e_value(est, outcome_sd, params)
+            w.writerow([f"{a}-{b}", _fmt(est.value), _fmt(est.low), _fmt(est.high), _fmt(point), _fmt(ci)])
+
+
 def run(reps: int, n: int, n_test: int, out: Path, n_boot: int | None = None, seed: int | None = None) -> list[dict]:
     started = time.time()
     params, rules = load_params(), load_rules()
@@ -221,6 +242,13 @@ def run(reps: int, n: int, n_test: int, out: Path, n_boot: int | None = None, se
     fig.cate_recovery(first["dr"], true_targets, out / "figures/cate_recovery.png")
     fig.calibration(first["dr"], true_targets, out / "figures/calibration.png")
 
+    # Refutation and sensitivity, on the first repeat's cohort.
+    obs = observed_view(generate_cohort(params, n=n, seed=seed))
+    X0, T0, Y0 = features(params, obs), treatment_index(obs), obs["y"].to_numpy(float)
+    ref_rows = refute(params, X0, T0, Y0, seed)
+    write_refutation(ref_rows, out / "refutation.csv")
+    write_evalues(runs[0]["ate"]["AIPW"], float(Y0.std(ddof=1)), params, out / "evalues.csv")
+
     info = {
         "engine_version": __version__,
         "intended_use": INTENDED_USE,
@@ -228,6 +256,7 @@ def run(reps: int, n: int, n_test: int, out: Path, n_boot: int | None = None, se
         "reps": reps, "n_patients": n, "n_test_patients": n_test, "base_seed": seed, "psm_bootstrap": n_boot,
         "params_version": params.version, "params_sha": params.fingerprint, "rules_sha": rules.version,
         "true_population_effects": truth,
+        "refutation_checks_passed": f"{sum(r.passed for r in ref_rows)} of {len(ref_rows)}",
         "python": platform.python_version(),
         "seconds": round(time.time() - started, 1),
     }

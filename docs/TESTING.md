@@ -89,7 +89,7 @@ libraries and its own tests, so it does not need the chat app's setup:
 ```bash
 python3.12 -m venv .venv && source .venv/bin/activate    # once
 pip install -r requirements-engine.txt                    # once
-python -m pytest tests/engine -q                          # about 40 s; must end "130 passed"
+python -m pytest tests/engine -q                          # about 3 min; must end "137 passed"
 ```
 
 On GitHub the `engine` job in `.github/workflows/check.yml` runs the same tests, the quick
@@ -115,6 +115,7 @@ benchmark and `pip-audit` on Linux and macOS. `scripts/check_all.py` is unchange
 | API: unknown fields and implausible values rejected (422, plain English, value not echoed) | `test_i_api.py` |
 | Logs and the audit trail never contain patient values | `test_h_demo.py`: *audit_log_records_decisions_but_never_patient_values*; `test_i_api.py`: *logs_carry_ids…no_patient_values* |
 | No secrets in the repo; exact version pins | `test_j_invariants.py`: *no_secrets_are_committed*, *requirements_are_exactly_pinned* |
+| Refutation (placebo treatment x20, random common cause, 80% subset) and E-value sensitivity; saved to `results/refutation.csv`, `results/evalues.csv` | `test_k_refute.py` |
 
 ## Part 2 — check by eye in a real browser (about 10 minutes)
 

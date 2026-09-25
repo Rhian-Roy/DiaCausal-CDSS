@@ -38,9 +38,9 @@ Every time, in a new Terminal window:
 cd DiaCausal-CDSS
 source .venv/bin/activate
 
-python -m pytest tests/engine -q                  # the tests: must end "130 passed" (about 40 s)
+python -m pytest tests/engine -q                  # the tests: must end "137 passed" (about 3 min)
 python -m diacausal_engine.benchmark --quick      # quick benchmark (about 15 s)
-python -m diacausal_engine.benchmark              # full benchmark: 20 x 5,000 patients (about 2 min), rewrites results/
+python -m diacausal_engine.benchmark              # full benchmark: 20 x 5,000 patients (about 3 min), rewrites results/
 streamlit run demo/streamlit_app.py               # the demo; opens http://localhost:8501
 uvicorn diacausal_engine.api:app --port 8001      # the API; docs at http://localhost:8001/docs
 ```
@@ -65,10 +65,10 @@ uvicorn diacausal_engine.api:app --port 8001      # the API; docs at http://loca
 | `data/rules.csv` | Safety rules R01–R10, each with a source (Part 6 of `docs/02_Causal_Engine_Build_Guide.md`, verbatim) |
 | `data/params.yaml` | Every generator and engine number, each with `source` and `status` (CITED / ASSUMED-DIRECTIONAL / TEAM-SET) |
 | `data/prices.csv` | Prices: "price unavailable" until confirmed on the Jan Aushadhi list, with a date |
-| `results/` | Committed benchmark output: `results_table.tex`, `benchmark_summary.csv`, `run_info.json`, `figures/` (overlap, love plot, ATE vs truth, CATE recovery, calibration) |
+| `results/` | Committed benchmark output: `results_table.tex`, `benchmark_summary.csv`, `refutation.csv`, `evalues.csv`, `run_info.json`, `figures/` (overlap, love plot, ATE vs truth, CATE recovery, calibration) |
 | `screens/` | Screenshots of the three demo presets |
 | `demo/streamlit_app.py` | The demo screen |
-| `tests/engine/` | The tests: 130 of them, one file per build step (a–j) |
+| `tests/engine/` | The tests: 137 of them, one file per build step (a–k) |
 | `docs/REPO_INVENTORY.md`, `docs/CAUSAL_PLAN.md` | What the repo contains, and how the engine was planned and connects to the chat app |
 
 ## 💬 Chat app (walking skeleton)

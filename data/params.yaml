@@ -30,6 +30,7 @@ sources:
   TRIMASTER_2023: "Shields BM et al. Patient stratification for determining optimal second-line and third-line therapy for type 2 diabetes: the TriMaster study. Nat Med 2023;29:376-383"
   GUDEMANN_2026: "Gudemann LM et al. Validation of an algorithm for selection of SGLT2 and DPP4 inhibitor therapies across major UK ethnicity groups. Lancet Reg Health Eur 2026;61 (article number to confirm: 101547 in the PPT guide, 101456 in the worksheet)"
   AUSTIN_2009: "Austin PC. Balance diagnostics for comparing the distribution of baseline covariates between treatment groups in propensity-score matched samples. Stat Med 2009;28(25):3083-3107"
+  VANDERWEELE_DING_2017: "VanderWeele TJ, Ding P. Sensitivity analysis in observational research: introducing the E-value. Ann Intern Med 2017;167(4):268-274 (continuous outcomes: standardised difference d -> risk ratio exp(0.91 d))"
   KENNEDY_2023: "Kennedy EH. Towards optimal doubly robust estimation of heterogeneous causal effects. Electron J Stat 2023;17(2):3008-3049"
   TEAM: "Group 28 team choice (docs/02_Causal_Engine_Build_Guide.md Part 6: 'Everything else — team choice, labelled as such')"
   TEAM_WORKSHEET: "Group 28 team choice; the value to replace it is an outstanding row of docs/research/DiaCausal_parameter_extraction_worksheet.xlsx"
@@ -197,6 +198,12 @@ engine:
     max_iter: {value: 200, unit: trees, source: TEAM, status: TEAM-SET, note: "HistGradientBoostingRegressor per option, cross-fitted"}
     learning_rate: {value: 0.05, unit: "-", source: TEAM, status: TEAM-SET}
     max_depth: {value: 3, unit: levels, source: TEAM, status: TEAM-SET}
+  refutation:
+    placebo_repeats: {value: 20, unit: shuffles, source: TEAM, status: TEAM-SET, note: "one shuffle alone gives a false alarm about 5% of the time by design, so we shuffle 20 times (as DoWhy's refuters do)"}
+    placebo_min_share_containing_zero: {value: 0.85, unit: share of shuffles, source: TEAM, status: TEAM-SET, note: "at least 17 of 20 placebo 95% CIs must contain 0 (expected: 19 of 20)"}
+    subset_fraction: {value: 0.8, unit: share of patients, source: TEAM, status: TEAM-SET, note: "data-subset refuter keeps 80% of patients"}
+    stability_se_multiple: {value: 2.0, unit: standard errors, source: TEAM, status: TEAM-SET, note: "random-common-cause and subset estimates must stay within 2 SE of the original"}
+    evalue_smd_to_log_rr: {value: 0.91, unit: "-", source: VANDERWEELE_DING_2017, status: CITED, note: "approximate conversion of a standardised mean difference to a log risk ratio"}
   second_stage: {value: "linear", unit: "-", source: KENNEDY_2023, status: TEAM-SET, note: "DR-learner second stage: OLS with HC3 robust errors"}
 
 display:

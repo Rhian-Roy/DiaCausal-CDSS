@@ -1,0 +1,4 @@
+contrast,aipw_estimate,ci_low,ci_high,e_value_estimate,e_value_ci
+SGLT2i-DPP4i,-0.1564,-0.2065,-0.1063,1.7216,1.5403
+SU-DPP4i,-0.2718,-0.3248,-0.2189,2.1464,1.9485
+SGLT2i-SU,0.1155,0.0667,0.1642,1.5739,1.3913
