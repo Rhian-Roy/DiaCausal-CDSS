@@ -120,6 +120,10 @@ def test_no_inline_script_or_style_so_the_strict_csp_holds():
     header = {h["key"]: h["value"] for rule in csp["headers"] for h in rule["headers"]}
     assert "script-src 'self'" in header["Content-Security-Policy"]
     assert "unsafe-inline" not in header["Content-Security-Policy"]
+    # The live site is on Netlify: its headers must be the same as Vercel's.
+    toml = (WEB / "netlify.toml").read_text()
+    for key, value in header.items():
+        assert f'{key} = "{value}"' in toml, f"netlify.toml differs from vercel.json on {key}"
 
 
 def test_installable_on_a_phone():
