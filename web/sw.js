@@ -1,16 +1,23 @@
 /* Offline support: after the first visit, DiaCausal opens and works without internet.
-   The cache name changes whenever the model changes, so a new version replaces the old. */
-const VERSION = "diacausal-v1";
+   The cache name changes whenever the site changes, so a new version replaces the old.
+   Only this website's own files are cached; sign-in requests to the account service are never cached.
+   config.json (made at deploy time, not in git) is cached the first time it loads. */
+const VERSION = "diacausal-v2";
 const ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
   "./app.js",
   "./engine.js",
+  "./evidence.js",
+  "./evidence.json",
+  "./auth.js",
+  "./account.js",
   "./model.json",
   "./results.json",
   "./manifest.webmanifest",
   "./vendor/marked.min.js",
+  "./vendor/supabase.min.js",
   "./icons/icon.svg",
   "./icons/apple-touch-icon.png",
   "./icons/icon-192.png",

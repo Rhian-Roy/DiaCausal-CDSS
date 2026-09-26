@@ -21,6 +21,8 @@ const LABEL = { SGLT2i: "SGLT2i", DPP4i: "DPP-4i", SU: "Sulfonylurea" };
 
 let MODEL = null;
 let RESULTS = null;
+let EVIDENCE = null; // web/evidence.json, loaded the first time the Evidence tab opens
+let AUTH = null; // accounts controller (auth.js); null on a local copy without web/config.json
 const $ = (sel) => document.querySelector(sel);
 
 /** Tiny DOM builder: h("p", {class: "x"}, "text", child). Text is never parsed as HTML. */
@@ -232,17 +234,107 @@ async function showDoc(name) {
   }
 }
 
+// ── Evidence (RAG) ────────────────────────────────────────────────────────
+async function loadEvidence() {
+  if (!EVIDENCE) EVIDENCE = await fetch("./evidence.json").then((r) => r.json());
+  if (!$("#ev-sources").childNodes.length) renderSources();
+  return EVIDENCE;
+}
+
+function renderSources() {
+  const label = (s) => (s.bucket === EVIDENCE.cleared_bucket && s.confirmed ? "In the search"
+    : s.bucket === EVIDENCE.cleared_bucket ? "Cleared, waiting for a team check" : s.bucket.replaceAll("_", " "));
+  const kind = (s) => (s.bucket === EVIDENCE.cleared_bucket && s.confirmed ? "ok" : s.bucket === "exclude" ? "no" : "wait");
+  $("#ev-sources").replaceChildren(h("table", {},
+    h("thead", {}, h("tr", {}, ["ID", "Source", "Licence status"].map((t) => h("th", {}, t)))),
+    h("tbody", {}, EVIDENCE.sources.map((s) => h("tr", { class: `src-${kind(s)}` },
+      h("td", {}, s.id), h("td", {}, `${s.title} — ${s.issuer}, ${s.version}`), h("td", {}, label(s)))))));
+}
+
+/** The ~50 words around the question's first matching word, with the whole passage one tap away. */
+function excerpt(text, question) {
+  const words = text.split(/\s+/);
+  if (words.length <= 60) return h("p", { class: "passage__text" }, text);
+  const terms = window.DiaCausalEvidence._internals.bm25Tokens(EVIDENCE, question);
+  const hit = Math.max(0, words.findIndex((w) => terms.some((t) => w.toLowerCase().includes(t))));
+  const from = Math.max(0, Math.min(hit - 15, words.length - 50));
+  const part = (from > 0 ? "… " : "") + words.slice(from, from + 50).join(" ") + (from + 50 < words.length ? " …" : "");
+  return h("div", {}, h("p", { class: "passage__text" }, part),
+    h("details", {}, h("summary", {}, "Read the whole passage"), h("p", { class: "passage__text" }, text)));
+}
+
+async function ask(question) {
+  const out = $("#ev-out");
+  const q = question.trim();
+  if (!q) { out.replaceChildren(h("p", { class: "errors" }, "Please type a question.")); return; }
+  const index = await loadEvidence();
+  const res = window.DiaCausalEvidence.search(index, q);
+  out.replaceChildren();
+  if (res.status === "INSUFFICIENT_EVIDENCE") {
+    out.append(h("div", { class: "notice" }, h("strong", {}, "Insufficient evidence: "), res.reason,
+      h("p", { class: "sub" }, "DiaCausal does not guess. Ask about something the approved sources cover, or check the sources below.")));
+    return;
+  }
+  out.append(h("h2", {}, `${res.passages.length} passages, best match first`));
+  res.passages.forEach((p, i) => {
+    const c = p.citation;
+    out.append(h("article", { class: "card passage" },
+      h("p", { class: "passage__cite" }, `${i + 1}. “${c.section}”, page ${c.page}`),
+      h("p", { class: "src" }, `Source ${c.source_id}: ${c.title}`),
+      excerpt(p.text, q),
+      h("p", { class: "muted" }, `Scores: keyword (BM25) ${p.scores.bm25} · vector ${p.scores.vector} · fused ${p.scores.rrf}`)));
+  });
+  out.append(h("p", { class: "decide" }, "These are source passages, not advice. The clinician decides."));
+  out.append(h("details", { class: "card" }, h("summary", {}, "Structured evidence (JSON)"), h("pre", {}, JSON.stringify(res, null, 1))));
+}
+
 // ── Routing and start-up ──────────────────────────────────────────────────
+const ROUTES = ["try", "evidence", "results", "learn", "about", "account", "signup", "forgot", "admin"];
+let returnTo = "try";
+let lastGate = null;
+
+function show(view) {
+  for (const v of document.querySelectorAll(".view")) v.hidden = v.id !== `view-${view}`;
+}
+
 function route() {
+  if (/access_token=|error_description=/.test(location.hash)) return; // a sign-in link: auth.js reads it first
   const name = (location.hash || "#try").slice(1).split("?")[0];
-  const known = ["try", "results", "learn", "about"].includes(name) ? name : "try";
-  for (const v of document.querySelectorAll(".view")) v.hidden = v.id !== `view-${known}`;
+  const known = ROUTES.includes(name) ? name : "try";
   for (const a of document.querySelectorAll(".tabs a")) {
     if (a.dataset.route === known) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+  }
+  const gate = AUTH ? AUTH.view() : "demo";
+  if (window.DiaCausalAuth.PROTECTED.includes(known) && gate !== "app" && gate !== "demo") {
+    returnTo = known;
+    show("account");
+    window.DiaCausalAccount.render(gate, known);
+  } else if (["account", "signup", "forgot", "admin"].includes(known)) {
+    show("account");
+    window.DiaCausalAccount.render(gate, known);
+  } else {
+    show(known);
+    if (known === "evidence") loadEvidence().catch(() => { $("#ev-sources").textContent = "Could not load the evidence index."; });
   }
   if (known === "results") renderResults();
   if (known === "learn" && !$("#doc").childNodes.length) showDoc("causal-engine.md");
   window.scrollTo(0, 0);
+}
+
+/** After a sign-in step: go back to the page the person wanted, or refresh the current screen. */
+function afterAuthChange() {
+  const acct = $("#acct");
+  const gate = AUTH ? AUTH.view() : "demo";
+  const p = AUTH && AUTH.state.profile;
+  acct.textContent = !AUTH ? "Local copy" : AUTH.state.session ? (p && p.full_name ? p.full_name.split(" ")[0] : "Account") : "Sign in";
+  const name = (location.hash || "#try").slice(1);
+  const opened = gate === "app" && lastGate !== null && lastGate !== "app";
+  lastGate = gate;
+  if (opened && ["account", "signup", "forgot"].includes(name)) {
+    location.hash = "#" + returnTo; // the hashchange event re-routes
+    return;
+  }
+  route();
 }
 
 async function share() {
@@ -254,10 +346,20 @@ async function share() {
 }
 
 async function start() {
-  [MODEL, RESULTS] = await Promise.all([
+  let config;
+  [MODEL, RESULTS, config] = await Promise.all([
     fetch("./model.json").then((r) => r.json()),
     fetch("./results.json").then((r) => r.json()).catch(() => null),
+    fetch("./config.json").then((r) => (r.ok ? r.json() : null)).catch(() => null),
   ]);
+  if (config && config.supabaseUrl && config.supabaseKey && window.supabase) {
+    AUTH = window.DiaCausalAuth.createController(window.supabase, config, window.localStorage);
+    AUTH.onChange(afterAuthChange);
+    for (const ev of ["pointerdown", "keydown", "scroll"]) window.addEventListener(ev, () => AUTH.touch(), { passive: true });
+    setInterval(() => AUTH.idleCheck(), 30 * 1000);
+  } else {
+    $("#demo").hidden = false;
+  }
   $("#versions").textContent = `Engine ${MODEL.versions.engine} · params ${MODEL.versions.params_sha} · rules ${MODEL.versions.rules_sha} · ${MODEL.versions.cohort}`;
   document.querySelectorAll("[data-preset]").forEach((b) => b.addEventListener("click", () => {
     const i = Number(b.dataset.preset);
@@ -268,8 +370,14 @@ async function start() {
   $("#patient").addEventListener("submit", (e) => { e.preventDefault(); pressPreset(-1); run(); $("#out").scrollIntoView({ block: "start" }); });
   $("#patient").addEventListener("input", () => { showBmi(); pressPreset(-1); });
   $("#share").addEventListener("click", share);
+  $("#ask").addEventListener("submit", (e) => { e.preventDefault(); ask($("#ask").elements.q.value); });
+  document.querySelectorAll("[data-ask]").forEach((b) => b.addEventListener("click", () => {
+    $("#ask").elements.q.value = b.dataset.ask; ask(b.dataset.ask);
+  }));
   window.addEventListener("hashchange", route);
   fillForm(PRESETS[0]); pressPreset(0); showBmi(); run();
+  if (AUTH) await AUTH.refresh(); else afterAuthChange();
+  if (/access_token=|error_description=/.test(location.hash)) history.replaceState(null, "", location.pathname + "#account");
   route();
   if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) navigator.serviceWorker.register("./sw.js").catch(() => {});
 }
