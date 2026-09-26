@@ -126,6 +126,16 @@ def test_no_inline_script_or_style_so_the_strict_csp_holds():
         assert f'{key} = "{value}"' in toml, f"netlify.toml differs from vercel.json on {key}"
 
 
+def test_team_details_are_correct():
+    """Group 28 is a B.Tech in Computer Engineering; the guide is Mr. Rahul Jadhav."""
+    html = (WEB / "index.html").read_text()
+    assert "B.Tech in Computer Engineering" in html and "Guide: Mr. Rahul Jadhav." in html
+    for path in [*WEB.rglob("*.html"), *WEB.rglob("*.js"), *(ROOT / "docs").rglob("*.md"), ROOT / "README.md"]:
+        text = path.read_text(encoding="utf-8")
+        assert "Jyoti More" not in text, path
+        assert "B.E. Computer" not in text and "B.E. (Computer)" not in text, path
+
+
 def test_installable_on_a_phone():
     manifest = json.loads((WEB / "manifest.webmanifest").read_text())
     assert manifest["display"] == "standalone" and manifest["start_url"]
