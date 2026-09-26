@@ -151,7 +151,7 @@ The interface is a single consultation screen (Figure~\ref{fig:ui}). Colours car
 \node[box,minimum width=3.4cm] (cor) at (4.1,-6.0) {Licence-cleared\\corpus};
 \draw[->] (ui) -- (auth); \draw[->] (ui) -- (api); \draw[->] (api) -- (au);
 \draw[->] (api) -- (g); \draw[->] (g) -- (c); \draw[->] (c) -- (k);
-\draw[->] (api.east) -| (r); \draw[->] (cor) -- (r);
+\draw[->] ([xshift=1.4cm]api.south) -- ++(0,-0.62) -| (r.north); \draw[->] (cor) -- (r);
 \end{tikzpicture}}
 \caption{Block diagram of DiaCausal}\label{fig:block}\end{figure}
 The website runs the same fitted model and the same evidence search inside the browser (exported from Python as \texttt{model.json} and \texttt{evidence.json}); automated tests check that the browser and Python give identical answers, so patient details never need to leave the device.
