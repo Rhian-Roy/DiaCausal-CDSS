@@ -164,17 +164,22 @@ After changing params.yaml or the estimators, rerun the full benchmark and commi
 ## Website (built) — see docs/WEBSITE.md
 
 Live at https://diacausal.netlify.app. `web/` is a static phone-first PWA; `web/engine.js`
-mirrors `recommend.py` using `web/model.json` from `python -m diacausal_engine.export_web`
-(rerun after any engine change; `tests/web` fails if stale). Never type a threshold into
-`web/*.js`; no inline script or style (strict CSP in `netlify.toml` = `vercel.json`).
-Patient values stay on the device. `.venv/bin/python -m pytest tests/web -q` (9 tests, needs Node).
+mirrors `recommend.py` using `web/model.json` from `python -m diacausal_engine.export_web`, and
+`web/evidence.js` mirrors `diacausal_rag/retrieve.py` using `web/evidence.json` from
+`python -m diacausal_rag.export_web` (rerun after any change; `tests/web` fails if stale).
+Never type a threshold into `web/*.js`; no inline script or style (strict CSP in `netlify.toml` =
+`vercel.json`). Accounts: Supabase project `diacausal` (`supabase/migrations/`, RLS, admin approval,
+TOTP); `web/auth.js` + `account.js`; Try it and Evidence need an approved account. **Never commit
+the Supabase key**: `web/config.json` stays `"accounts": "off"`; `scripts/web_config.py` writes the
+deploy copy only. Patient values and questions stay on the device, never sent to Supabase.
+`.venv/bin/python -m pytest tests/web -q` (16 tests, needs Node). Full chat app hosting: docs/HOSTING_CHAT_APP.md.
 
 ## Not built yet — where each piece goes
 
 | Piece | Backend | Frontend / other |
 |---|---|---|
 | Causal engine in the chat app (October) | `backend/app/pipeline/causal_engine.py` calls `diacausal_engine` on `ctx.options` only | designs 17 and 19; `contract.ts` + `schemas.py` together |
-| RAG (early skeleton in `diacausal_rag/`: licence gate, chunking, BM25 + vector, RRF, evidence JSON; `tests/rag`), evidence fusion, LLM explanation | `backend/app/pipeline/<stage>.py` | `docs/03_RAG_Build_Guide.md`; only `cleared_ingest` sources |
+| RAG (early skeleton in `diacausal_rag/`: licence gate incl. team-confirmed licences, chunking, BM25 + vector, RRF, evidence JSON; `tests/rag`; corpus = FDA S08 metformin/kidney; on the website's Evidence tab), evidence fusion, LLM explanation | `backend/app/pipeline/<stage>.py` | `docs/03_RAG_Build_Guide.md`; only `cleared_ingest` sources |
 
 Each folder's README says how it connects.
 

@@ -9,12 +9,18 @@ A transparent, from-scratch implementation of causal inference methods applied t
 ## 📱 Use it on your phone — <https://diacausal.netlify.app>
 
 Open the link on any phone or laptop. On an iPhone: Safari → **Share** → **Add to Home Screen**;
-it then opens like an app and works offline. Everything is computed **on your device** — nothing
-you type is sent anywhere. Scan to open:
+it then opens like an app and works offline. Scan to open:
 
 <img src="web/icons/qr.png" alt="QR code for diacausal.netlify.app" width="160">
 
-How it works and how to update it: [docs/WEBSITE.md](docs/WEBSITE.md).
+- **Try it** — the causal engine: three add-ons to metformin for one patient, safety rules first.
+- **Evidence** — the RAG part: cited passages from licence-cleared sources, or "insufficient evidence".
+- **Results**, **Learn**, **About** — open to everyone.
+
+Try it and Evidence need an account: **create one, set up an authenticator app, and wait for the
+team's admin to approve it.** Everything is calculated **on your device** — patient details and
+questions are never sent anywhere. How it works, approving accounts, updating the site:
+[docs/WEBSITE.md](docs/WEBSITE.md). The full chat app: [docs/HOSTING_CHAT_APP.md](docs/HOSTING_CHAT_APP.md).
 
 ## 🧪 Causal engine v0.3 — the mid-sem demo (start here)
 
@@ -49,7 +55,7 @@ cd DiaCausal-CDSS
 source .venv/bin/activate
 
 python -m pytest tests/engine -q                  # the tests: must end "139 passed" (about 3 min)
-python -m pytest tests/rag -q                     # the RAG skeleton tests (12, about 2 s)
+python -m pytest tests/rag -q                     # the RAG skeleton tests (13, about 2 s)
 python -m diacausal_engine.benchmark --quick      # quick benchmark (about 30 s)
 python -m diacausal_engine.benchmark              # full benchmark: 20 x 5,000 patients (about 3 min), rewrites results/
 streamlit run demo/streamlit_app.py               # the demo; opens http://localhost:8501

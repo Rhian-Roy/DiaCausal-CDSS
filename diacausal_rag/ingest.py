@@ -27,6 +27,12 @@ class LicenceError(ValueError):
     """A document whose source is not licence-cleared for ingestion."""
 
 
+def is_confirmed(source: dict) -> bool:
+    """A licence counts only after a team member has checked it: "checked_by" filled, not a draft."""
+    who = (source.get("checked_by") or "").strip().lower()
+    return bool(who) and "draft" not in who and "to confirm" not in who
+
+
 def load_config(path: Path = CONFIG) -> dict:
     raw = yaml.safe_load(Path(path).read_text())
     for key, entry in raw.items():
@@ -111,6 +117,9 @@ def ingest(corpus: Path = CORPUS, sources: dict[str, dict] | None = None, chunk_
             source = sources.get(row["source_id"])
             if source is None:
                 raise LicenceError(f"{row['file']}: unknown source id {row['source_id']!r}")
+            if not is_confirmed(source):
+                raise LicenceError(f"{row['file']}: the licence of {source['id']} is still a draft; "
+                                   "a team member must confirm it and fill checked_by first")
             chunks += chunk_document((Path(corpus) / row["file"]).read_text(encoding="utf-8"), source, chunk_words)
     return chunks
 

@@ -1,0 +1,125 @@
+[page 1]
+## Safety Announcement
+[4-8-2016] The U.S. Food and Drug Administration (FDA) is requiring labeling changes
+regarding the recommendations for metformin-containing medicines for diabetes to
+expand metformin’s use in certain patients with reduced kidney function. The current
+labeling strongly recommends against use of metformin in some patients whose kidneys
+do not work normally. We were asked to review numerous medical studies regarding
+the safety of metformin use in patients with mild to moderate impairment in kidney
+function, and to change the measure of kidney function in the metformin drug labeling
+that is used to determine whether a patient can receive metformin. We have concluded
+our review, and are requiring changes to the labeling of all metformin-containing
+medicines to reflect this new information.
+
+Health care professionals should follow the latest recommendations when prescribing
+metformin-containing medicines to patients with impaired kidney function. Patients
+should talk to their health care professionals if they have any questions or concerns about
+taking metformin.
+
+Metformin-containing medicines are available by prescription only and are used along
+with diet and exercise to lower blood sugar levels in patients with type 2 diabetes. When
+untreated, type 2 diabetes can lead to serious problems, including blindness, nerve and
+kidney damage, and heart disease. Metformin-containing medicines are available as
+single-ingredient products and also in combination with other drugs used to treat diabetes
+(see FDA Approved metformin-containing Medicines). The current drug labeling
+strongly recommends against metformin use in some patients whose kidneys do not work
+normally because use of metformin in these patients can increase the risk of developing a
+serious and potentially deadly condition called lactic acidosis, in which too much lactic
+acid builds up in the blood.
+
+We have concluded from the review of studies published in the medical literature that
+metformin can be used safely in patients with mild impairment in kidney function and in
+some patients with moderate impairment in kidney function. We are requiring changes
+to the metformin labeling to reflect this new information and provide specific
+recommendations on the drug’s use in patients with mild to moderate kidney impairment.
+
+[page 2]
+We are also recommending that the measure of kidney function used to determine
+whether a patient can receive metformin be changed from one based on a single
+laboratory parameter (blood creatinine concentration) to one that provides a better
+estimate of kidney function in patients with kidney disease (i.e., glomerular filtration rate
+estimating equation (eGFR)).
+
+Health care professionals and patients should report side effects involving metformin or
+other medicines to the FDA MedWatch program, using the information in the “Contact
+FDA” box at the bottom of this page.
+
+## Facts about metformin
+• Metformin-containing medicines are available by prescription only and are used
+along with diet and exercise to treat type 2 diabetes.
+• Metformin helps control blood sugar in a number of ways. These include helping
+the body respond better to the insulin it makes naturally, decreasing the amount of
+sugar the liver makes, and decreasing the amount of sugar the intestines absorb
+from food.
+• Metformin is available as a single-ingredient product and also in combination
+with other medicines used to treat diabetes. See FDA Approved metformin-containing Medicines.
+• Common side effects of metformin include diarrhea, nausea, and upset stomach.
+[page 3]
+• Although rare, use of metformin can cause low blood sugar if patients do not eat
+enough, if they drink alcohol, or if they take other medicines to lower blood sugar.
+• Approximately 14.4 million unique patients received a dispensed prescription for
+metformin or metformin-containing combination products from U.S. outpatient
+retail pharmacies in 2014.
+## Additional Information for Patients
+• FDA is requiring manufacturers to revise the drug labeling of metformin-containing medicines to indicate that metformin may be safely used in some
+patients whose kidneys do not function normally. We are making this change
+after reviewing studies showing metformin’s safety in patients with mild to
+moderate kidney impairment. See FDA Approved metformin-containing
+Medicines.
+• Before you take a medicine containing metformin, tell your health care
+professional if you have severe kidney problems or if you are going to have dye
+injected into a vein for an X-ray procedure.
+• Do not take metformin if you have severe kidney problems.
+• Read the patient Medication Guide or Patient Package Insert you receive with
+your prescription for a metformin-containing medicine. It explains the benefits
+and risks associated with the use of the medicine.
+• Talk to your health care professional if you have any questions or concerns about
+metformin.
+• Report side effects from metformin or other medicines to the FDA MedWatch
+program, using the information in the "Contact FDA" box at the bottom of this
+page.
+## Additional Information for Health Care Professionals
+• FDA is requiring manufacturers to revise the labeling of metformin-containing
+drugs to indicate that these products may be safely used in patients with mild to
+moderate renal impairment. See FDA Approved metformin-containing
+Medicines.
+• We are also requiring manufacturers to revise the labeling to recommend that the
+measure of kidney function used to determine whether a patient can receive
+metformin be changed from one based on a single laboratory parameter (blood
+creatinine concentration) to one that provides a better estimate of renal function
+(i.e., glomerular filtration rate estimating equation (eGFR)). This is because in
+addition to blood creatinine concentration, the glomerular filtration rate takes into
+account additional parameters that are important, such as the patient’s age, gender,
+race and/or weight.
+• The labeling recommendations on how and when kidney function is measured in
+patients receiving metformin will include the following information:
+• Before starting metformin, obtain the patient’s eGFR.
+• Metformin is contraindicated in patients with an eGFR below 30
+mL/minute/1.73 m2.
+[page 4]
+• Starting metformin in patients with an eGFR between 30-45 mL/minute/1.73 m2 is not recommended.
+• Obtain an eGFR at least annually in all patients taking metformin. In patients
+at increased risk for the development of renal impairment such as the elderly,
+renal function should be assessed more frequently.
+• In patients taking metformin whose eGFR later falls below 45
+mL/minute/1.73 m2, assess the benefits and risks of continuing treatment.
+Discontinue metformin if the patient’s eGFR later falls below 30
+mL/minute/1.73 m2.
+• Discontinue metformin at the time of or before an iodinated contrast imaging
+procedure in patients with an eGFR between 30 and 60 mL/minute/1.73 m2; in
+patients with a history of liver disease, alcoholism, or heart failure; or in
+patients who will be administered intra-arterial iodinated contrast. Re-evaluate eGFR 48 hours after the imaging procedure; restart metformin if
+renal function is stable.
+• Encourage patients to read the Medication Guide or Patient Package Insert they
+receive with their prescriptions for metformin-containing drugs.
+• Report adverse events involving metformin or other drugs to the FDA MedWatch
+program, using the information in the "Contact FDA" box at the bottom of this
+page.
+## Data Summary
+Since FDA approved metformin in 1995, its labeling has included a contraindication
+against use in some patients with renal disease or dysfunction. We recently reviewed
+publications in the medical literature that show that metformin may be safely used in
+patients with mild to moderate renal impairment. In addition, published clinical trials,
+population-based studies, and retrospective case series in the United States and abroad
+indicate that metformin is often used in clinical practice outside of the current labeling
+indications and is prescribed to patients with mild to moderate chronic kidney disease.

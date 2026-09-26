@@ -1,0 +1,4 @@
+{
+ "accounts": "off",
+ "why": "Local copy: sign-in is off. The deploy step (scripts/web_config.py) writes the account-service settings into the deployed copy only; they are never committed."
+}

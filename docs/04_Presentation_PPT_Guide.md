@@ -14,7 +14,7 @@
 - Titles centred, Times New Roman, navy #002060, with a thin navy line under the title across the slide.
 - The college logo (fcritlogo.jpg) in the top-right corner of every content slide.
 - Body text in Calibri, black, 18–24 pt, key words in bold; sub-headings navy, bold and underlined.
-- **Slide 1:** a header box with the logo on the left and, on the right: "Agnel Charities'" (italic), "Fr. C. Rodrigues Institute of Technology, Vashi" (bold, large), "(An Autonomous Institute & Permanently Affiliated to University of Mumbai)" (bold, red), "Computer Engineering Department" (bold). Below it, a large navy banner with white text "Major Project Progress Presentation-II" and "B.E. (Computer) Sem - VII", then "2026-27" in large bold grey.
+- **Slide 1:** a header box with the logo on the left and, on the right: "Agnel Charities'" (italic), "Fr. C. Rodrigues Institute of Technology, Vashi" (bold, large), "(An Autonomous Institute & Permanently Affiliated to University of Mumbai)" (bold, red), "Computer Engineering Department" (bold). Below it, a large navy banner with white text "Major Project Progress Presentation-II" and "B.Tech (Computer) Sem - VII", then "2026-27" in large bold grey.
 - **Slide 2:** a navy banner across the top with the project title in white and the logo at the right; below it the group number, the four names with roll numbers, and the guide.
 - **Last slide:** "Thank You!" in large bold black, framed by four crossing navy lines.
 
@@ -52,15 +52,15 @@ Attach **fcritlogo.jpg** and the department's sample deck PDF, then paste:
 ```text
 Create a 22-slide presentation for our college's mid-semester project review. It must match our college's slide format exactly (described below) — that matters more than style.
 
-Project: DiaCausal — Intelligent Diabetes Clinical Decision Support System using Causal Inference and RAG. Group No. 28, Fr. C. Rodrigues Institute of Technology, Vashi. Members: Pratham Pawar (1023226), Graceton Santhmayor (1022246), Rhian Roy Kuttikadan (1023268), Advik Saxena (1023245). Guide: Dr. Jyoti More. Event: Major Project Progress Presentation-II, B.E. (Computer) Sem VII, 2026-27.
+Project: DiaCausal — Intelligent Diabetes Clinical Decision Support System using Causal Inference and RAG. Group No. 28, Fr. C. Rodrigues Institute of Technology, Vashi. Members: Pratham Pawar (1023226), Graceton Santhmayor (1022246), Rhian Roy Kuttikadan (1023268), Advik Saxena (1023245). Guide: Mr. Rahul Jadhav. Event: Major Project Progress Presentation-II, B.Tech (Computer) Sem VII, 2026-27.
 
 FORMAT (follow exactly):
 - 4:3 slides (10 x 7.5 in), white background.
 - Slide titles centred, Times New Roman, navy #002060, about 36 pt, with a thin navy horizontal line under the title across the slide.
 - The attached college logo at the top-right corner of every content slide.
 - Body text Calibri, black, 18-24 pt; key words bold; sub-headings navy, bold, underlined.
-- Slide 1: a white header box with the logo on the left and, on the right, stacked and centred: "Agnel Charities'" (italic), "Fr. C. Rodrigues Institute of Technology, Vashi" (bold, large), "(An Autonomous Institute & Permanently Affiliated to University of Mumbai)" (bold, red), "Computer Engineering Department" (bold). Below it a large navy #002060 banner with white text on two lines: "Major Project Progress Presentation-II" and "B.E. (Computer) Sem - VII". Below the banner, "2026-27" in large bold grey.
-- Slide 2: a navy banner across the top with the project title in white and the logo at the right. Below it: "Group No. 28", the four names with roll numbers in two columns, and "Guide: Dr. Jyoti More".
+- Slide 1: a white header box with the logo on the left and, on the right, stacked and centred: "Agnel Charities'" (italic), "Fr. C. Rodrigues Institute of Technology, Vashi" (bold, large), "(An Autonomous Institute & Permanently Affiliated to University of Mumbai)" (bold, red), "Computer Engineering Department" (bold). Below it a large navy #002060 banner with white text on two lines: "Major Project Progress Presentation-II" and "B.Tech (Computer) Sem - VII". Below the banner, "2026-27" in large bold grey.
+- Slide 2: a navy banner across the top with the project title in white and the logo at the right. Below it: "Group No. 28", the four names with roll numbers in two columns, and "Guide: Mr. Rahul Jadhav".
 - Final slide: "Thank You!" in large bold black, framed by four long navy lines crossing like a # grid.
 - At most 6 bullets per slide and 12 words per bullet. No stock photos, no emojis. Never use green to mean "recommended" (amber = caution, red = excluded, grey = insufficient evidence). Do not invent any numbers.
 

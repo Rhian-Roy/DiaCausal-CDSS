@@ -20,6 +20,9 @@ from diacausal_engine import INTENDED_USE  # noqa: E402
 from diacausal_engine.export_web import model_dict  # noqa: E402
 from diacausal_engine.recommend import DOSE_PATTERN, Engine  # noqa: E402
 from diacausal_engine.schemas import PatientIn  # noqa: E402
+from diacausal_rag.export_web import evidence_dict  # noqa: E402
+from diacausal_rag.ingest import ingest  # noqa: E402
+from diacausal_rag.retrieve import Retriever  # noqa: E402
 
 WEB = ROOT / "web"
 NODE = shutil.which("node")
@@ -93,6 +96,49 @@ def test_browser_engine_gives_the_same_answers_as_python(engine, model, tmp_path
     assert {"estimate", "excluded", "insufficient_evidence"} <= seen
 
 
+QUESTIONS = [
+    "metformin kidney function eGFR", "Can metformin be used with an eGFR of 35?", "contrast imaging procedure",
+    "lactic acidosis risk", "When should metformin be discontinued?", "heart failure", "saxagliptin heart failure",
+    "creatinine versus glomerular filtration rate", "side effects of metformin diarrhea nausea",
+    "low blood sugar alcohol", "elderly renal function assessed more frequently", "metformin-containing medicines",
+    "MedWatch report side effects", "liver disease alcoholism", "What is the capital of France?", "", "the of and",
+    "SGLT2 inhibitor", "iodinated contrast 48 hours", "eGFR 30 45", "Métformine rénale", "kidney kidney kidney",
+    "blood sugar", "mild to moderate renal impairment", "Before starting metformin obtain eGFR", "annually",
+    "patients with type 2 diabetes", "dye injected into a vein X-ray", "pancreatitis", "hypoglycaemia sulfonylurea",
+    "FDA labeling changes", "measure of kidney function", "safety announcement", "data summary 1995",
+    "chronic kidney disease", "Glucophage", "diet and exercise", "insulin", "heart disease blindness", "eGFR",
+]
+
+
+def test_evidence_json_is_fresh():
+    """web/evidence.json must be the export of the current corpus, licence table and settings."""
+    data = json.loads((WEB / "evidence.json").read_text())
+    assert data == json.loads(json.dumps(evidence_dict())), "run: python -m diacausal_rag.export_web"
+    assert data["chunks"], "the confirmed FDA communication should be in the website index"
+    assert all(c["citation"]["source_id"] == "S08" for c in data["chunks"])
+
+
+@pytest.mark.skipif(NODE is None, reason="Node.js is needed to run web/evidence.js")
+def test_browser_evidence_search_gives_the_same_passages_as_python(tmp_path):
+    chunks = ingest()
+    retriever = Retriever(chunks)
+    (tmp_path / "q.json").write_text(json.dumps(QUESTIONS))
+    js = json.loads(subprocess.run([NODE, str(ROOT / "tests/web/run_evidence.cjs"), str(WEB / "evidence.json"),
+                                    str(tmp_path / "q.json")], capture_output=True, text=True, check=True).stdout)
+    statuses = set()
+    for q, j in zip(QUESTIONS, js):
+        py = retriever.search(q)
+        statuses.add(py["status"])
+        assert j["status"] == py["status"], q
+        assert j.get("reason") == py.get("reason"), q
+        assert [p["citation"] for p in j["passages"]] == [p["citation"] for p in py["passages"]], q
+        assert [p["text"] for p in j["passages"]] == [p["text"] for p in py["passages"]], q
+        for jp, pp in zip(j["passages"], py["passages"]):
+            assert jp["scores"] == pp["scores"], q
+        assert j["intended_use"] == INTENDED_USE
+    assert statuses == {"SUCCESS", "INSUFFICIENT_EVIDENCE"}
+
+
 def test_site_files_carry_the_intended_use_and_no_doses():
     html = (WEB / "index.html").read_text()
     assert INTENDED_USE in html
@@ -124,6 +170,85 @@ def test_no_inline_script_or_style_so_the_strict_csp_holds():
     toml = (WEB / "netlify.toml").read_text()
     for key, value in header.items():
         assert f'{key} = "{value}"' in toml, f"netlify.toml differs from vercel.json on {key}"
+
+
+def test_team_details_are_correct():
+    """Group 28 is a B.Tech in Computer Engineering; the guide is Mr. Rahul Jadhav."""
+    html = (WEB / "index.html").read_text()
+    assert "B.Tech in Computer Engineering" in html and "Guide: Mr. Rahul Jadhav." in html
+    for path in [*WEB.rglob("*.html"), *WEB.rglob("*.js"), *(ROOT / "docs").rglob("*.md"), ROOT / "README.md"]:
+        text = path.read_text(encoding="utf-8")
+        assert "Jyoti More" not in text, path
+        assert "B.E. Computer" not in text and "B.E. (Computer)" not in text, path
+
+
+GATE_CASES = [  # (state, expected screen) — the order is sign in, MFA, approval, intended use
+    ({"configured": False}, "demo"),
+    ({"configured": True}, "signin"),
+    ({"configured": True, "session": {}, "recovery": True}, "new-password"),
+    ({"configured": True, "session": {}, "verifiedFactors": 0}, "mfa-setup"),
+    ({"configured": True, "session": {}, "verifiedFactors": 1, "aal": "aal1"}, "mfa-code"),
+    ({"configured": True, "session": {}, "verifiedFactors": 1, "aal": "aal2"}, "loading"),
+    ({"configured": True, "session": {}, "verifiedFactors": 1, "aal": "aal2", "profileError": "x"}, "error"),
+    ({"configured": True, "session": {}, "verifiedFactors": 1, "aal": "aal2", "profile": {"approved": False, "rejected": True}}, "rejected"),
+    ({"configured": True, "session": {}, "verifiedFactors": 1, "aal": "aal2", "profile": {"approved": False}}, "pending"),
+    ({"configured": True, "session": {}, "verifiedFactors": 1, "aal": "aal2", "profile": {"approved": True}}, "acknowledge"),
+    ({"configured": True, "session": {}, "verifiedFactors": 1, "aal": "aal2",
+      "profile": {"approved": True, "intended_use_ack_at": "2026-09-26"}}, "app"),
+    # approval never skips MFA: an approved person without the code still sees the code screen
+    ({"configured": True, "session": {}, "verifiedFactors": 1, "aal": "aal1",
+      "profile": {"approved": True, "intended_use_ack_at": "2026-09-26"}}, "mfa-code"),
+]
+
+
+@pytest.mark.skipif(NODE is None, reason="Node.js is needed to run web/auth.js")
+def test_sign_in_steps_come_in_the_right_order():
+    script = ("const a=require(process.argv[1]);const c=JSON.parse(process.argv[2]);"
+              "process.stdout.write(JSON.stringify({views:c.map(s=>a.gateView(s)),protected:a.PROTECTED,"
+              "pw:[a.passwordProblems('short',''),a.passwordProblems('password1234',''),a.passwordProblems('a long enough sentence here','')]}))")
+    out = json.loads(subprocess.run([NODE, "-e", script, str(WEB / "auth.js"), json.dumps([c for c, _ in GATE_CASES])],
+                                    capture_output=True, text=True, check=True).stdout)
+    assert out["views"] == [v for _, v in GATE_CASES]
+    assert out["protected"] == ["try", "evidence"]
+    assert out["pw"][0] and out["pw"][1] and out["pw"][2] == []
+
+
+def test_no_account_key_is_committed():
+    """The publishable key goes only into the deployed copy (scripts/web_config.py), never into git."""
+    cfg = json.loads((WEB / "config.json").read_text())
+    assert cfg.get("accounts") == "off" and "supabaseKey" not in cfg and "supabaseUrl" not in cfg
+    for f in [*WEB.rglob("*"), *(ROOT / "scripts").glob("*.py"), *(ROOT / "docs").rglob("*.md")]:
+        if f.is_file() and f.suffix in (".js", ".json", ".html", ".toml", ".py", ".md") and "vendor" not in f.parts:
+            text = f.read_text(encoding="utf-8", errors="ignore")
+            assert not re.search(r"sb_publishable_[A-Za-z0-9_-]{10,}|sb_secret_|eyJhbGciOi", text), f
+    r = subprocess.run([sys.executable, str(ROOT / "scripts/web_config.py"), str(WEB / "config.json")],
+                       capture_output=True, text=True, env={"SUPABASE_URL": "https://abcdefghijabcdefghij.supabase.co",
+                                                            "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_test"})
+    assert r.returncode == 2 and "Refusing" in r.stderr
+    assert json.loads((WEB / "config.json").read_text()) == cfg
+
+
+def test_account_code_never_sends_patient_details():
+    """auth.js and account.js may only touch the profiles table and the two account functions."""
+    code = (WEB / "auth.js").read_text() + (WEB / "account.js").read_text()
+    assert set(re.findall(r"\.from\(\"(\w+)\"\)", code)) == {"profiles"}
+    assert set(re.findall(r"\.rpc\(\"(\w+)\"", code)) == {"acknowledge_intended_use", "approve_user"}
+    for field in PatientIn.model_fields:
+        assert not re.search(rf"\b{field}\b", code), field
+    for name in ("readForm", "recommend(", "DiaCausalEvidence", "EVIDENCE", "MODEL"):
+        assert name not in code, name
+    assert "supabase" not in (WEB / "engine.js").read_text() + (WEB / "evidence.js").read_text()
+
+
+def test_accounts_database_is_locked_down():
+    sql = "\n".join(p.read_text() for p in sorted((ROOT / "supabase/migrations").glob("*.sql")))
+    code = re.sub(r"--[^\n]*|'[^']*'", "", sql).lower()  # without comments and text strings
+    assert "enable row level security" in sql
+    assert "for update" not in sql and "for insert" not in sql and "for delete" not in sql  # nobody writes directly
+    assert "revoke insert, update, delete on table public.profiles from authenticated" in sql
+    assert "'aal2'" in sql  # admins act only after their authenticator code
+    for word in ("hba1c", "egfr", "bmi", "patient", "question", "answer"):
+        assert word not in code, word  # the account database has no place for clinical data
 
 
 def test_installable_on_a_phone():
@@ -181,3 +306,6 @@ def test_the_site_works_on_an_iphone_sized_screen(tmp_path):
     assert report["errors"] == []
     assert c["intended"] and c["excluded"] == 1 and c["caution"] >= 1 and c["insufficient"] >= 1
     assert c["tiles"] == 8 and c["docHeadings"] > 10 and c["horizontalOverflow"] is False
+    assert c["team"] is True
+    assert c["passages"] >= 1 and c["citesFda"] and c["sourcesInSearch"] == 1 and c["abstains"]
+    assert c["demoBanner"] and c["accountDemo"]  # a local copy without account settings says sign-in is off

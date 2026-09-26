@@ -15,20 +15,27 @@
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
   <link rel="stylesheet" href="./styles.css">
   <script src="./vendor/marked.min.js" defer></script>
+  <script src="./vendor/supabase.min.js" defer></script>
   <script src="./engine.js" defer></script>
+  <script src="./evidence.js" defer></script>
+  <script src="./auth.js" defer></script>
   <script src="./app.js" defer></script>
+  <script src="./account.js" defer></script>
 </head>
 <body>
   <header class="top">
     <p class="intended" role="note">Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.</p>
     <div class="bar">
       <a class="brand" href="#try"><span class="brand__mark" aria-hidden="true">D</span><span class="brand__name">DiaCausal</span></a>
-      <span class="bar__tag">Synthetic data · The clinician decides</span>
+      <span class="bar__right"><span class="bar__tag">Synthetic data · The clinician decides</span>
+        <a class="acct" id="acct" href="#account">Sign in</a></span>
     </div>
+    <p class="demo" id="demo" role="note" hidden>Local copy: sign-in is switched off here. The public website asks people to sign in.</p>
   </header>
 
   <nav class="tabs" aria-label="Sections">
     <a href="#try" data-route="try">Try it</a>
+    <a href="#evidence" data-route="evidence">Evidence</a>
     <a href="#results" data-route="results">Results</a>
     <a href="#learn" data-route="learn">Learn</a>
     <a href="#about" data-route="about">About</a>
@@ -100,6 +107,42 @@
       </details>
     </section>
 
+    <!-- ───────────── Evidence (RAG) ───────────── -->
+    <section id="view-evidence" class="view" aria-labelledby="ev-h" hidden>
+      <h1 id="ev-h">Evidence from licence-cleared sources</h1>
+      <p class="lead">The <strong>RAG</strong> part of DiaCausal: it finds the passages of approved documents that best
+        answer a question and shows each one with its citation. It never writes its own answer and never shows doses.
+        Your question stays on this device.</p>
+      <form id="ask" class="card form" role="search">
+        <label>Question <input name="q" type="search" enterkeyhint="search" autocomplete="off" maxlength="300"
+          placeholder="e.g. Can metformin be used with reduced kidney function?"></label>
+        <button type="submit" class="primary">Search the evidence</button>
+      </form>
+      <div class="presets" role="group" aria-label="Example questions">
+        <button type="button" class="chip" data-ask="Can metformin be used with reduced kidney function (eGFR)?">Metformin and kidney function</button>
+        <button type="button" class="chip" data-ask="When should metformin be stopped before contrast imaging?">Contrast imaging</button>
+        <button type="button" class="chip" data-ask="lactic acidosis risk">Lactic acidosis</button>
+        <button type="button" class="chip" data-ask="How much does glimepiride cost in India?">Not in the sources</button>
+      </div>
+      <div id="ev-out" aria-live="polite"></div>
+      <details class="card">
+        <summary>How the evidence search (RAG) works</summary>
+        <ol class="steps">
+          <li><strong>Licence gate.</strong> Only sources whose licence allows copying, confirmed by a team member, are read.</li>
+          <li><strong>Chunks.</strong> Each document is cut into passages of about 400 words that never cross a section, each labelled with source, version, section and page.</li>
+          <li><strong>Two searches.</strong> BM25 finds exact words (“eGFR”); a vector search finds similar wording (TF-IDF today, a medical embedding model in October).</li>
+          <li><strong>Fusion.</strong> Reciprocal rank fusion merges the two rankings; the best 5 passages are kept.</li>
+          <li><strong>Abstain or cite.</strong> If nothing matches well enough the answer is “insufficient evidence”; passages with dose text are withheld.</li>
+          <li><strong>Next (October).</strong> Evidence fusion with the causal engine, and an LLM that explains the result citing only these passages.</li>
+        </ol>
+      </details>
+      <div class="card"><h2>Sources and licences</h2><p class="sub">Only green rows are in the search today.</p>
+        <div class="scroll" id="ev-sources"></div></div>
+    </section>
+
+    <!-- ───────────── Account (sign in, sign up, MFA, approval, admin) ───────────── -->
+    <section id="view-account" class="view" aria-live="polite" hidden></section>
+
     <!-- ───────────── Results ───────────── -->
     <section id="view-results" class="view" aria-labelledby="res-h" hidden>
       <h1 id="res-h">Does the method work? (synthetic benchmark)</h1>
@@ -136,7 +179,12 @@
           <li>Never shows drug doses.</li>
         </ul>
         <h2>Your privacy</h2>
-        <p>Everything is calculated <strong>on this device</strong>. The details you type are never sent anywhere or stored.</p>
+        <p>Everything is calculated <strong>on this device</strong>. The patient details and questions you type are never
+          sent anywhere or stored.</p>
+        <h2>Accounts</h2>
+        <p>Anyone can ask for an account. Each person sets up an authenticator app, and the team's admin approves the
+          account before <strong>Try it</strong> and <strong>Evidence</strong> open. The account service (Supabase, Mumbai
+          region) keeps only your name, email, role and approval date. The Results, Learn and About pages are open to all.</p>
       </div>
       <div class="card">
         <h2>Use it like an app on your iPhone</h2>
@@ -153,8 +201,8 @@
       </div>
       <div class="card">
         <h2>Team</h2>
-        <p>Group 28, B.E. Computer Engineering, Fr. C. Rodrigues Institute of Technology, Vashi (2026–27):
-          Pratham Pawar, Graceton Santhmayor, Rhian Roy Kuttikadan, Advik Saxena. Guide: Dr. Jyoti More.</p>
+        <p>Group 28, B.Tech in Computer Engineering, Fr. C. Rodrigues Institute of Technology, Vashi (2026–27):
+          Pratham Pawar, Graceton Santhmayor, Rhian Roy Kuttikadan, Advik Saxena. Guide: Mr. Rahul Jadhav.</p>
         <p>Code and documentation: <a href="https://github.com/Rhian-Roy/DiaCausal-CDSS" rel="noopener">github.com/Rhian-Roy/DiaCausal-CDSS</a></p>
         <p class="muted" id="versions"></p>
       </div>
