@@ -63,6 +63,7 @@
     if (/email not confirmed/i.test(m)) return "Please confirm your email first (check your inbox), or ask the admin.";
     if (/already registered|already exists/i.test(m)) return "An account with this email already exists. Try signing in.";
     if (/invalid.*(totp|code)|expired/i.test(m)) return "That code did not work. Enter the current 6-digit code from your authenticator app.";
+    if (/ip address/i.test(m)) return "Your internet connection changed during sign-in. Please enter the code again.";
     if (/rate limit|too many/i.test(m)) return "Too many tries. Please wait a few minutes and try again.";
     if (/failed to fetch|network/i.test(m)) return "No internet connection. Please try again when you are online.";
     return m || "Something went wrong. Please try again.";
@@ -161,7 +162,13 @@
         return { factorId: data.id, qr: data.totp.qr_code, secret: data.totp.secret };
       },
       async verifyMfa(code, factorId) {
-        const { error } = await client.auth.mfa.challengeAndVerify({ factorId: factorId || state.factorId, code: code.trim() });
+        let error;
+        // Supabase refuses if the challenge and the answer come from different internet addresses
+        // (a phone switching between Wi-Fi and mobile data); try once more straight away.
+        for (let i = 0; i < 3; i++) {
+          ({ error } = await client.auth.mfa.challengeAndVerify({ factorId: factorId || state.factorId, code: code.trim() }));
+          if (!error || !/ip address/i.test(error.message)) break;
+        }
         if (error) throw new Error(friendly(error));
         lastActive = Date.now();
         await refresh();

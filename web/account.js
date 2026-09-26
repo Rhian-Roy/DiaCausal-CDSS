@@ -192,7 +192,8 @@ window.DiaCausalAccount = (function () {
           no.addEventListener("click", () => decide(false));
           return h("div", { class: "person" },
             h("p", {}, h("strong", {}, x.full_name), ` · ${x.role}`, h("br"), h("span", { class: "sub" }, `${x.email} · asked ${x.created_at.slice(0, 10)}`)),
-            h("div", { class: "actions" }, x.approved ? null : yes, x.rejected ? null : no));
+            x.id === AUTH.state.session.user.id ? h("span", { class: "sub" }, "You")
+              : h("div", { class: "actions" }, x.approved ? null : yes, x.rejected ? null : no));
         };
         list.replaceChildren(
           h("h2", {}, `Waiting for approval (${pending.length})`),
@@ -213,9 +214,15 @@ window.DiaCausalAccount = (function () {
       h("p", {}, h("a", { href: "https://diacausal.netlify.app/#account", rel: "noopener" }, "Open the public website")))];
   }
 
-  /** Draw the screen for this gate state and page. */
+  let drawn = ""; // what is on screen now, so a background refresh never wipes a half-filled form
+
+  /** Draw the screen for this gate state and page (only when it changed). */
   function render(gate, page) {
     const view = $("#view-account");
+    const p = AUTH && AUTH.state.profile;
+    const key = [gate, page, AUTH && Boolean(AUTH.state.session), p && [p.full_name, p.approved, p.rejected, p.is_admin].join()].join("|");
+    if (key === drawn && view.childNodes.length) return;
+    drawn = key;
     let nodes;
     if (gate === "demo") nodes = demo();
     else if (!AUTH.state.session && page === "signup") nodes = signUp();
@@ -236,7 +243,7 @@ window.DiaCausalAccount = (function () {
     } else if (gate === "acknowledge") nodes = acknowledge();
     else if (page === "admin" && AUTH.state.profile && AUTH.state.profile.is_admin) nodes = admin();
     else nodes = account();
-    view.replaceChildren(h("h1", {}, "Your DiaCausal account"), ...nodes);
+    view.replaceChildren(h("h1", {}, "Your DiaCausal account"), ...nodes.filter(Boolean));
     const first = view.querySelector("input:not([type=checkbox])");
     if (first && window.matchMedia("(min-width: 761px)").matches) first.focus();
   }
