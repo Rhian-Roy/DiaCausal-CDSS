@@ -100,7 +100,7 @@ input[type="checkbox"], input[type="radio"] { width: 22px; height: 22px; accent-
 .opt__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
 .opt__name { font-weight: 700; font-size: 17px; }
 .opt__example { font-weight: 400; color: var(--ink-muted); font-size: 14px; }
-.badge { flex: none; border-radius: 999px; padding: 3px 10px; font-size: 12px; font-weight: 700; color: #fff; letter-spacing: .02em; }
+.badge { flex: 0 1 auto; max-width: 58%; text-align: center; line-height: 1.3; border-radius: 999px; padding: 3px 10px; font-size: 12px; font-weight: 700; color: #fff; letter-spacing: .02em; }
 .opt--estimate { border-color: var(--pine); background: var(--pine-fill); } .opt--estimate .badge { background: var(--pine); }
 .opt--caution { border-color: var(--amber-ink); background: var(--amber-fill); } .opt--caution .badge { background: var(--amber-ink); }
 .opt--excluded { border-color: var(--red-ink); background: var(--red-fill); } .opt--excluded .badge { background: var(--red-ink); }
@@ -113,7 +113,7 @@ input[type="checkbox"], input[type="radio"] { width: 22px; height: 22px; accent-
 .src { display: block; color: var(--ink-muted); font-size: 13px; margin-top: 2px; }
 .notice { border-radius: var(--radius); padding: 12px 14px; margin-top: 14px; border: 2px solid var(--grey-line); background: var(--grey-fill); }
 .decide { background: var(--pine-fill); border-left: 6px solid var(--pine); border-radius: var(--radius-s); padding: 12px 14px; font-weight: 700; margin: 14px 0; }
-.forest { width: 100%; height: auto; display: block; }
+.forest { width: 100%; max-width: 620px; height: auto; display: block; }
 .forest text { font: 13px var(--body); fill: var(--ink); }
 .forest .axis { stroke: var(--border-strong); }
 .forest .zero { stroke: var(--ink-muted); stroke-dasharray: 4 3; }
