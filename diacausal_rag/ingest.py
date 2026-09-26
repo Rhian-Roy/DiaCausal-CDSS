@@ -88,16 +88,38 @@ def split_sections(text: str) -> list[tuple[str, str, str]]:
     return sections
 
 
-def chunk_document(text: str, source: dict, chunk_words: int) -> list[Chunk]:
+_SENTENCE_END = re.compile(r"(?<=[.!?])\s+")
+
+
+def _pieces(body: str, chunk_words: int) -> list[str]:
+    """Cut a section into pieces of at most chunk_words words, ending at a sentence end where possible
+    (a single sentence longer than chunk_words is cut by words)."""
+    out: list[list[str]] = []
+    cur: list[str] = []
+    for sentence in _SENTENCE_END.split(body):
+        w = sentence.split()
+        if len(cur) + len(w) > chunk_words and cur:
+            out.append(cur)
+            cur = []
+        while len(w) > chunk_words:
+            out.append(w[:chunk_words])
+            w = w[chunk_words:]
+        cur += w
+    if cur:
+        out.append(cur)
+    return [" ".join(p) for p in out]
+
+
+def chunk_document(text: str, source: dict, chunk_words: int, part: int = 0) -> list[Chunk]:
+    """part: 0 for a source's first file in the manifest, 1, 2, ... for its further files
+    (their chunk IDs become S08.1-..., so two files of one source never share an ID)."""
     if source.get("bucket") != CLEARED:
         raise LicenceError(f"{source.get('id')}: bucket {source.get('bucket')!r} is not {CLEARED!r}; do not ingest")
     chunks = []
     for s, (section, page, body) in enumerate(split_sections(text)):
-        words = body.split()
-        for start in range(0, len(words), chunk_words):
-            piece = " ".join(words[start:start + chunk_words])
+        for k, piece in enumerate(_pieces(body, chunk_words)):
             chunks.append(Chunk(
-                chunk_id=f"{source['id']}-{s:02d}-{start // chunk_words:02d}", text=piece,
+                chunk_id=f"{source['id']}{f'.{part}' if part else ''}-{s:02d}-{k:02d}", text=piece,
                 source_id=source["id"], title=source["title"], version=source["version"],
                 section=section, page=page or "?", licence_bucket=source["bucket"],
             ))
@@ -112,6 +134,7 @@ def ingest(corpus: Path = CORPUS, sources: dict[str, dict] | None = None, chunk_
     if not manifest.exists():
         return []
     chunks: list[Chunk] = []
+    parts: dict[str, int] = {}
     with manifest.open(newline="", encoding="utf-8") as fh:
         for row in csv.DictReader(fh):
             source = sources.get(row["source_id"])
@@ -120,7 +143,9 @@ def ingest(corpus: Path = CORPUS, sources: dict[str, dict] | None = None, chunk_
             if not is_confirmed(source):
                 raise LicenceError(f"{row['file']}: the licence of {source['id']} is still a draft; "
                                    "a team member must confirm it and fill checked_by first")
-            chunks += chunk_document((Path(corpus) / row["file"]).read_text(encoding="utf-8"), source, chunk_words)
+            part = parts.get(source["id"], 0)
+            parts[source["id"]] = part + 1
+            chunks += chunk_document((Path(corpus) / row["file"]).read_text(encoding="utf-8"), source, chunk_words, part)
     return chunks
 
 

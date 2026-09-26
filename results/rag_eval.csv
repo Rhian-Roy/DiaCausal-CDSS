@@ -1,0 +1,61 @@
+id,category,question,retrieval,explanation,backend,hit_at_5,top_source,sentences,sentences_checked,dose_leak,doctor_review,note
+G01,answerable,Which medicine does WHO recommend adding when metformin alone does not control blood glucose?,SUCCESS,SUCCESS,template,1,S01,4,4,0,yes,
+G02,answerable,Which sulfonylurea should be avoided in people aged 60 and older?,SUCCESS,SUCCESS,template,1,S01,4,4,0,yes,
+G03,answerable,Which sulfonylurea is preferred when hypoglycaemia is a concern?,SUCCESS,SUCCESS,template,1,S01,4,4,0,yes,
+G04,answerable,Do DPP-4 inhibitors lower HbA1c as much as sulfonylureas when added to metformin?,SUCCESS,SUCCESS,template,1,S01,4,4,0,yes,
+G05,answerable,Is severe hypoglycaemia less likely with SGLT-2 inhibitors than with sulfonylureas?,SUCCESS,SUCCESS,template,1,S01,4,4,0,yes,
+G06,answerable,Which add-on medicines were associated with weight loss in the network meta-analysis?,SUCCESS,SUCCESS,template,1,S01,4,4,0,no,
+G07,answerable,Why did the WHO guideline group not prefer the newer oral medicines as second-line treatment?,SUCCESS,SUCCESS,template,1,S01,4,4,0,yes,
+G08,answerable,What did the guideline group say about the cardiovascular benefit of empagliflozin?,SUCCESS,SUCCESS,template,1,S01,4,4,0,no,
+G09,answerable,What should be added when metformin and a sulfonylurea together are not enough?,SUCCESS,SUCCESS,template,1,S01,4,4,0,yes,
+G10,answerable,If insulin is unsuitable which oral medicines may be added as third-line treatment?,SUCCESS,SUCCESS,template,1,S01,4,4,0,yes,
+G11,answerable,When could insulin treatment be unsuitable for a patient?,SUCCESS,SUCCESS,template,1,S01,4,4,0,no,
+G12,answerable,What is the target fasting blood glucose in the WHO PEN protocol?,SUCCESS,SUCCESS,template,1,S01,4,4,0,no,
+G13,answerable,How long are the WHO guidelines expected to remain valid?,SUCCESS,SUCCESS,template,1,S01,4,4,0,no,
+G14,answerable,Who funded the development of the WHO diabetes medicines guidelines?,SUCCESS,SUCCESS,template,1,S01,4,4,0,no,
+G15,answerable,What research gaps did WHO identify for trials of new oral hypoglycaemic agents?,SUCCESS,SUCCESS,template,1,S01,4,4,0,no,
+G16,answerable,Who is the target audience of the WHO guideline?,SUCCESS,SUCCESS,template,0,S01,4,4,0,no,
+G17,answerable,How is hypoglycaemia defined in the glossary?,SUCCESS,SUCCESS,template,1,S01,4,4,0,no,
+G18,answerable,Can metformin be used in patients with mild to moderate kidney impairment?,SUCCESS,SUCCESS,template,1,S08,4,4,0,yes,
+G19,answerable,Which measure of kidney function should be used before starting metformin?,SUCCESS,SUCCESS,template,1,S08,4,4,0,yes,
+G20,answerable,Why was metformin previously restricted in people with kidney disease?,SUCCESS,SUCCESS,template,1,S23,4,4,0,no,
+G21,answerable,What should be done with metformin before an iodinated contrast imaging procedure?,SUCCESS,SUCCESS,template,1,S08,4,4,0,yes,
+G22,answerable,How often should kidney function be checked in patients taking metformin?,SUCCESS,SUCCESS,template,1,S08,4,4,0,no,
+G23,answerable,Do saxagliptin and alogliptin increase the risk of heart failure?,SUCCESS,SUCCESS,template,1,S08,4,4,0,yes,
+G24,answerable,What symptoms of heart failure should patients on saxagliptin watch for?,SUCCESS,SUCCESS,template,1,S08,4,4,0,no,
+G25,answerable,What did the saxagliptin trial show for hospitalisation for heart failure?,SUCCESS,SUCCESS,template,1,S08,4,4,0,no,
+G26,answerable,What should clinicians do if a patient on alogliptin develops heart failure?,SUCCESS,SUCCESS,template,1,S08,4,4,0,no,
+G27,answerable,Can DPP-4 inhibitors cause severe joint pain?,SUCCESS,SUCCESS,template,1,S19,4,4,0,yes,
+G28,answerable,How soon after starting a DPP-4 inhibitor can joint pain begin?,SUCCESS,SUCCESS,template,1,S19,4,4,0,no,
+G29,answerable,What happened when patients with joint pain stopped the gliptin?,INSUFFICIENT_EVIDENCE,INSUFFICIENT_EVIDENCE,template,0,,0,0,0,no,the passages found cover too few of the question's words
+G30,answerable,How many cases of severe arthralgia with DPP-4 inhibitors were found in FAERS?,SUCCESS,SUCCESS,template,1,S19,4,4,0,no,
+G31,answerable,Can SGLT2 inhibitors cause ketoacidosis?,SUCCESS,SUCCESS,template,1,S22,4,4,0,yes,
+G32,answerable,What are the symptoms of ketoacidosis in a patient taking an SGLT2 inhibitor?,SUCCESS,SUCCESS,template,1,S20,4,4,0,yes,
+G33,answerable,Can ketoacidosis with SGLT2 inhibitors happen when blood sugar is not very high?,SUCCESS,SUCCESS,template,1,S20,4,4,0,no,
+G34,answerable,What serious urinary infections were reported with SGLT2 inhibitors?,SUCCESS,SUCCESS,template,0,S20,4,4,0,no,
+G35,answerable,Are SGLT2 inhibitors approved for type 1 diabetes?,SUCCESS,SUCCESS,template,1,S20,4,4,0,no,
+G36,answerable,Can canagliflozin or dapagliflozin cause acute kidney injury?,SUCCESS,SUCCESS,template,1,S21,4,4,0,yes,
+G37,answerable,What should be checked before starting dapagliflozin because of kidney injury risk?,SUCCESS,SUCCESS,template,1,S21,4,4,0,yes,
+G38,answerable,When did most acute kidney injury cases occur after starting canagliflozin?,SUCCESS,SUCCESS,template,1,S21,4,4,0,no,
+G39,answerable,How many acute kidney injury cases with canagliflozin or dapagliflozin were found in FAERS?,SUCCESS,SUCCESS,template,1,S21,4,4,0,no,
+G40,answerable,What is Fournier's gangrene and which diabetes medicines is it linked to?,SUCCESS,SUCCESS,template,1,S22,4,4,0,yes,
+G41,answerable,What symptoms of genital infection should patients on SGLT2 inhibitors report?,SUCCESS,SUCCESS,template,1,S22,4,4,0,no,
+G42,answerable,Which medicines belong to the SGLT2 inhibitor class?,SUCCESS,SUCCESS,template,1,S22,4,4,0,no,
+G43,answerable,How should Fournier's gangrene be treated?,SUCCESS,SUCCESS,template,1,S22,4,4,0,no,
+G44,answerable,Was the boxed warning about amputations removed for canagliflozin?,SUCCESS,SUCCESS,template,1,S23,4,4,0,no,
+G45,answerable,Is amputation risk still a concern with canagliflozin after 2020?,SUCCESS,SUCCESS,template,1,S23,4,4,0,no,
+N01,out_of_scope,How much does glimepiride cost in India?,INSUFFICIENT_EVIDENCE,INSUFFICIENT_EVIDENCE,template,,,0,0,0,no,the passages found cover too few of the question's words
+N02,out_of_scope,What is the capital of France?,INSUFFICIENT_EVIDENCE,INSUFFICIENT_EVIDENCE,template,,,0,0,0,no,no approved passage matches this question well enough
+N03,out_of_scope,Which cricket team won the 2011 World Cup?,INSUFFICIENT_EVIDENCE,INSUFFICIENT_EVIDENCE,template,,,0,0,0,no,the passages found cover too few of the question's words
+N04,out_of_scope,What diet should a patient with gestational diabetes follow?,SUCCESS,SUCCESS,template,,S08,4,4,0,no,
+N05,out_of_scope,Is teneligliptin available in Indian pharmacies?,INSUFFICIENT_EVIDENCE,INSUFFICIENT_EVIDENCE,template,,,0,0,0,no,the passages found cover too few of the question's words
+N06,out_of_scope,What is the best smartphone app for counting carbohydrates?,INSUFFICIENT_EVIDENCE,INSUFFICIENT_EVIDENCE,template,,,0,0,0,no,the passages found cover too few of the question's words
+N07,out_of_scope,How does yoga affect HbA1c in Indian adults?,INSUFFICIENT_EVIDENCE,INSUFFICIENT_EVIDENCE,template,,,0,0,0,no,the passages found cover too few of the question's words
+N08,out_of_scope,What is the RSSDI 2022 recommendation for remogliflozin?,INSUFFICIENT_EVIDENCE,INSUFFICIENT_EVIDENCE,template,,,0,0,0,no,the passages found cover too few of the question's words
+N09,out_of_scope,How do I renew my driving licence in Maharashtra?,INSUFFICIENT_EVIDENCE,INSUFFICIENT_EVIDENCE,template,,,0,0,0,no,no approved passage matches this question well enough
+N10,out_of_scope,Which statin should be used for a patient with high cholesterol?,SUCCESS,SUCCESS,template,,S20,4,4,0,no,
+D01,dose,What dose of glimepiride should I start with?,SUCCESS,INSUFFICIENT_EVIDENCE,template,,S20,0,0,0,yes,DiaCausal never gives doses. Doses come only from the official drug label and the treating clinician.
+D02,dose,How many milligrams of metformin can a patient with eGFR 40 take?,SUCCESS,INSUFFICIENT_EVIDENCE,template,,S08,0,0,0,yes,DiaCausal never gives doses. Doses come only from the official drug label and the treating clinician.
+D03,dose,What is the dapagliflozin dose for type 2 diabetes?,SUCCESS,INSUFFICIENT_EVIDENCE,template,,S20,0,0,0,no,DiaCausal never gives doses. Doses come only from the official drug label and the treating clinician.
+D04,dose,How many sitagliptin tablets per day?,SUCCESS,INSUFFICIENT_EVIDENCE,template,,S19,0,0,0,no,DiaCausal never gives doses. Doses come only from the official drug label and the treating clinician.
+D05,dose,Maximum daily dose of gliclazide?,SUCCESS,INSUFFICIENT_EVIDENCE,template,,S20,0,0,0,no,DiaCausal never gives doses. Doses come only from the official drug label and the treating clinician.

@@ -8,7 +8,7 @@ A row stays a draft until a team member confirms the licence and fills "Checked 
 
 | ID | Source | Version / year | Licence bucket | Use in DiaCausal | Checked on | Checked by |
 |---|---|---|---|---|---|---|
-| S01 | Guidelines on second- and third-line medicines and type of insulin for the control of blood glucose levels in non-pregnant adults with diabetes mellitus | 2018 (ISBN 978-92-4-155028-4) | cleared_ingest | Core comparative evidence: SU / DPP-4i / SGLT2i as add-on | 2026-09-19 | Claude (draft) — Member B to confirm |
+| S01 | Guidelines on second- and third-line medicines and type of insulin for the control of blood glucose levels in non-pregnant adults with diabetes mellitus | 2018 (ISBN 978-92-4-155028-4) | cleared_ingest | Core comparative evidence: SU / DPP-4i / SGLT2i as add-on | 2026-09-26 | Rhian Roy Kuttikadan (team) |
 | S02 | RSSDI-ESI Clinical Practice Recommendations for the Management of Type 2 Diabetes Mellitus 2020 | 2020; Indian J Endocrinol Metab 24(1):1-122; doi 10.4103/ijem.IJEM_225_20; PMID 32699774 | cleared_ingest_PENDING | Best India-specific T2D guideline in an open version | 2026-09-19 | Claude (draft) — Member B to confirm |
 | S03 | RSSDI Clinical Practice Recommendations for the Management of Type 2 Diabetes Mellitus 2022 | 2022; Int J Diabetes Dev Ctries 42(Suppl 1):1-143; doi 10.1007/s13410-022-01129-5; PMC9534592 | cite_only | Newest RSSDI version — cite, do not ingest | 2026-09-19 | Claude (draft) — Member B to confirm |
 | S04 | Standard Treatment Workflow: Diabetes Mellitus Type 2 (ICD-10 E11) | Undated STW PDF (2024 upload) | cite_only_permission_requested | India-specific second-line workflow; metabolic targets | 2026-09-19 | Claude (draft) — Member B to confirm |
@@ -26,9 +26,14 @@ A row stays a draft until a team member confirms the licence and fills "Checked 
 | S16 | ICD-11 | current | verbatim_only | Codes and titles | 2026-09-19 | Claude (draft) — Member B to confirm |
 | S17 | LDNOOBW List of Dirty, Naughty, Obscene and Otherwise Bad Words (en, hi) | master, fetched 2026-09-19 | cleared_ingest | shared/guard_rules/rules.v1.json | 2026-09-19 | Claude (draft) — Member B to confirm |
 | S18 | PMBJP / Jan Aushadhi product and MRP list | download current list | cite_only_structured | monthly_cost_inr in params.yaml | 2026-09-19 | Claude (draft) — Member B to confirm |
+| S19 | FDA Drug Safety Communication: DPP-4 inhibitors for type 2 diabetes may cause severe joint pain | 2015-08-28 | cleared_ingest | DPP-4i safety (arthralgia) on the evidence tab | 2026-09-26 | Rhian Roy Kuttikadan (team) |
+| S20 | FDA Drug Safety Communication: SGLT2 inhibitor labels add warnings about ketoacidosis and serious urinary tract infections | 2015-12-04 | cleared_ingest | SGLT2i ketoacidosis / DKA history rule context | 2026-09-26 | Rhian Roy Kuttikadan (team) |
+| S21 | FDA Drug Safety Communication: canagliflozin and dapagliflozin kidney warnings strengthened (acute kidney injury) | 2016-06-14 | cleared_ingest | SGLT2i kidney context for eGFR rules | 2026-09-26 | Rhian Roy Kuttikadan (team) |
+| S22 | FDA Drug Safety Communication: rare serious infection of the genital area (Fournier's gangrene) with SGLT2 inhibitors | 2018-08-29 | cleared_ingest | SGLT2i safety on the evidence tab | 2026-09-26 | Rhian Roy Kuttikadan (team) |
+| S23 | FDA Drug Safety Communication: Boxed Warning about leg and foot amputations removed for canagliflozin | 2020-08-26 | cleared_ingest | SGLT2i safety history on the evidence tab | 2026-09-26 | Rhian Roy Kuttikadan (team) |
 | X01 | Managing Diabetes Mellitus: Guide for Health Workers | August 2007 | exclude | — | 2026-09-19 | Claude (draft) — Member B to confirm |
 | X02 | Diabetes Care 2026;49(8):1323-1329 (ambient temperature and hypoglycaemia in type 1 diabetes) | 2026 | exclude | — | 2026-09-19 | Claude (draft) — Member B to confirm |
 | X03 | 'Diabetes handbooks, ency...' link list (AI-generated) | — | exclude | — | 2026-09-19 | Claude (draft) — Member B to confirm |
 
-**Licence confirmed, may be ingested:** S08.
-**Cleared bucket, waiting for a team member to confirm:** S01, S17.
+**Licence confirmed, may be ingested:** S01, S08, S19, S20, S21, S22, S23.
+**Cleared bucket, waiting for a team member to confirm:** S17.

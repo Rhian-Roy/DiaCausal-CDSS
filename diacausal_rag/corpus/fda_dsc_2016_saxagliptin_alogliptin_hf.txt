@@ -1,0 +1,43 @@
+## Safety Announcement
+[ 4-5-2016 ] A U.S. Food and Drug Administration (FDA) safety review has found that type 2 diabetes medicines containing saxagliptin and alogliptin may increase the risk of heart failure, particularly in patients who already have heart or kidney disease. Heart failure can result in the heart not being able to pump enough blood to meet the body’s needs. As a result, we are adding new warnings to the drug labels about this safety issue.
+Saxagliptin and alogliptin are part of the class of dipeptidyl peptidase-4 (DPP-4) inhibitor drugs, which are used with diet and exercise to lower blood sugar in adults with type 2 diabetes. Untreated, type 2 diabetes can lead to serious health problems, including blindness, nerve and kidney damage, and heart disease (see List of saxagliptin- and alogliptin-containing Medicines).
+Patients taking these medicines should contact their health care professionals right away if they develop signs and symptoms of heart failure such as:
+- Unusual shortness of breath during daily activities
+- Trouble breathing when lying down
+- Tiredness, weakness, or fatigue
+- Weight gain with swelling in the ankles, feet, legs, or stomach
+Patients should not stop taking their medicine without first talking to their health care professionals.
+Health care professionals should consider discontinuing the medicine in patients who develop heart failure and monitor their diabetes control. If a patient’s blood sugar level is not well-controlled with their current treatment, other diabetes medicines may be required.
+List of saxagliptin- and alogliptin-containing Medicines
+We evaluated two large clinical trials conducted in patients with heart disease. These clinical trials were also discussed at the FDA Endocrinologic and Metabolic Drugs Advisory Committee meeting in April 2015. Each trial showed that more patients who received saxagliptin- or alogliptin-containing medicines were hospitalized for heart failure compared to patients who received an inactive treatment called a placebo (see Data Summary). In the saxagliptin trial, 3.5% of patients who received the drug were hospitalized for heart failure versus 2.8% of patients who received a placebo. This is the same as 35 out of every 1,000 patients compared to 28 out of every 1,000 patients. Risk factors included a history of heart failure or kidney impairment. In the alogliptin trial, 3.9% of alogliptin-treated patients were hospitalized for heart failure versus 3.3% in the placebo group. This is the same as 39 out of every 1,000 patients compared to 33 out of every 1,000 patients.
+As a result, we have added new Warnings and Precautions to the labels of medicines that contain saxagliptin or alogliptin to inform of the potential increased risk of heart failure.
+We urge health care professionals and patients to report side effects involving saxagliptin, alogliptin, or other medicines to the FDA MedWatch program, using the information in the “Contact FDA” box at the bottom of the page.
+## Facts about saxagliptin and alogliptin
+- Saxagliptin and alogliptin are part of the class of prescription medicines called dipeptidyl peptidase-4 (DPP-4) inhibitors, which are used with diet and exercise to control high blood sugar in adults with type 2 diabetes.
+- These medicines lower blood sugar by helping the body increase the level of the hormone insulin after meals. Insulin helps move sugar from the blood into the tissues, so the body can use the sugar as a source of energy and keep blood sugar levels stable.
+- In addition to heart failure, other possible side effects of saxagliptin and alogliptin include inflammation of the pancreas (pancreatitis), severe joint pain (arthralgia), allergic reactions, and low blood sugar (hypoglycemia) when combined with other prescription medicines used to treat diabetes.
+- In 2015, approximately 386,000 patients received a dispensed prescription for saxagliptin-containing products (saxagliptin and saxagliptin-metformin), and 56,000 patients received a dispensed prescription for alogliptin-containing products (alogliptin, alogliptin-pioglitazone, and alogliptin-metformin) from the U.S. outpatient retail pharmacy setting.
+## Additional Information for Patients
+- FDA has added warnings about the risk of hospitalization for heart failure to the labels of saxagliptin- and alogliptin-containing type 2 diabetes medicines (see List of saxagliptin or alogliptin-containing Medicines). Heart failure occurs when the heart cannot pump enough blood to meet the body’s needs.
+- Before taking saxagliptin or alogliptin, tell your health care professional if you have a history of heart failure or kidney impairment, as an increased risk of hospitalization for heart failure was found in clinical trials that included patients with these medical issues.
+- Do not stop taking your saxagliptin or alogliptin medicine without first talking to your health care professional.
+- Contact your health care professional right away if you develop signs and symptoms of heart failure when taking saxagliptin or alogliptin, such as:
+- Unusual shortness of breath during daily activities
+- Trouble breathing when lying down
+- Tiredness, weakness, or fatigue
+- Weight gain with swelling in the ankles, feet, legs, or stomach
+- Read the patient Medication Guide you receive with your prescriptions. It explains the benefits and risks associated with the use of the medicine.
+- Talk to your health care professional if you have any questions or concerns about saxagliptin or alogliptin.
+- Report side effects from saxagliptin, alogliptin, or other medicines to the FDA MedWatch program, using the information in the "Contact FDA" box at the bottom of this page.
+## Additional Information for Health Care Professionals
+- FDA has added warnings about the risk of hospitalization for heart failure to the labels of saxagliptin and alogliptin-containing type 2 diabetes medicines (see List of saxagliptin and alogliptin-containing Medicines).
+- Risk factors of hospitalization for heart failure include a history of heart failure or renal impairment, and this safety risk was found in clinical trials among patients with these medical issues.
+- Consider the risk and benefits of saxagliptin or alogliptin prior to initiating treatment in patients at a higher risk for heart failure.
+- Observe patients receiving saxagliptin or alogliptin for signs and symptoms of heart failure.
+- If heart failure develops, consider discontinuing the drug and monitor diabetes control. If blood sugar level is not well-controlled with a patient’s current treatment, other diabetes medicines may be required.
+- Encourage patients to read the Medication Guide they receive with their prescriptions.
+- Report adverse events involving saxagliptin, alogliptin, or other medicines to the FDA MedWatch program, using the information in the "Contact FDA" box at the bottom of this page.
+## Data Summary
+The Saxagliptin Assessment of Vascular Outcomes Recorded in Patients with Diabetes Mellitus (SAVOR) trial was a large, prospective, multicenter, randomized, double-blind, placebo-controlled trial conducted in 16,492 patients with type 2 diabetes mellitus having established cardiovascular disease or at high risk of cardiovascular disease. Patients were followed for a median duration of 2 years and up to a total of approximately 2.8 years. More patients randomized to the saxagliptin group (289/8280, 3.5%) were hospitalized for heart failure compared to patients randomized to placebo (228/8212, 2.8%). In a time to first event analysis, the risk of hospitalization for heart failure was significantly higher in the saxagliptin treatment group (estimated hazard ratio: 1.27; 95% confidence interval: 1.07, 1.51). Identified risk factors in patients hospitalized for heart failure included a history of heart failure or renal impairment.
+The Examination of Cardiovascular Outcomes with Alogliptin versus Standard of Care in Patients with Type 2 Diabetes Mellitus and Acute Coronary Syndrome (EXAMINE) trial was a multicenter, randomized, double-blind, placebo-controlled trial. It enrolled 5,380 patients with type 2 diabetes and established cardiovascular disease who had a recent acute coronary syndrome event (i.e., acute myocardial infarction or unstable angina requiring hospitalization). Patients were followed for 1.5 years on average and up to a total of 3.4 years. More patients randomized to the alogliptin group (106/2701, 3.9%) experienced at least one hospitalization for heart failure compared to patients randomized to placebo (89/2679, 3.3%).
+The results of the SAVOR and EXAMINE trials were discussed at FDA’s Endocrinologic and Metabolic Drugs Advisory Committee meeting held on April 14, 2015.

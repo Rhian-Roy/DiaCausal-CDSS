@@ -10,6 +10,7 @@ const ASSETS = [
   "./app.js",
   "./engine.js",
   "./evidence.js",
+  "./explain.js",
   "./evidence.json",
   "./auth.js",
   "./account.js",

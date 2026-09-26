@@ -110,6 +110,12 @@
     if (Math.max(...bm) < index.config.min_bm25_score) {
       return abstain(index, question, "no approved passage matches this question well enough");
     }
+    const q = new Set(bm25Tokens(index, question));
+    let found = 0;
+    for (const t of q) if (order.some((i) => index.chunks[i].bm25.tf[t])) found++;
+    if (q.size && found / q.size < (index.config.min_query_coverage || 0)) {
+      return abstain(index, question, "the passages found cover too few of the question's words");
+    }
     const dose = new RegExp(index.dose_pattern, "i");
     const passages = order.map((i) => {
       const c = index.chunks[i];

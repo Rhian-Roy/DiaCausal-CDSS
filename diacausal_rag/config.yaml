@@ -6,3 +6,9 @@ rrf_k: {value: 60, source: "Cormack GV, Clarke CLA, Buettcher S. Reciprocal rank
 bm25_k1: {value: 1.5, source: "Robertson S, Zaragoza H. The Probabilistic Relevance Framework: BM25 and Beyond. Found Trends Inf Retr 2009 (common default range 1.2-2.0)", status: ASSUMED-DIRECTIONAL}
 bm25_b: {value: 0.75, source: "Robertson S, Zaragoza H. 2009 (common default)", status: ASSUMED-DIRECTIONAL}
 min_bm25_score: {value: 1.0, source: "Group 28 team choice — below this the best passage is too weak; tune on the gold set (Step R5)", status: TEAM-SET}
+min_query_coverage: {value: 0.6, source: "Group 28 team choice — at least 60% of the question's content words must appear in the retrieved passages, otherwise abstain; tuned on eval/rag_gold.csv (results/rag_eval.csv)", status: TEAM-SET}
+explain_max_sentences: {value: 4, source: "Group 28 team choice — a short answer a clinician can check against the passages", status: TEAM-SET}
+explain_min_support: {value: 0.6, source: "Group 28 team choice — share of a sentence's content words that must appear in the passages it cites (citation checker)", status: TEAM-SET}
+gemini_model: {value: "gemini-flash-latest", source: "Google AI Studio free tier model alias (ai.google.dev/gemini-api/docs/models); change here if Google renames it", status: TEAM-SET}
+ollama_model: {value: "llama3.2:3b", source: "Ollama model library (ollama.com/library/llama3.2), small enough for a laptop without a GPU", status: TEAM-SET}
+ollama_host: {value: "http://localhost:11434", source: "Ollama default local address (github.com/ollama/ollama docs/api.md)", status: TEAM-SET}

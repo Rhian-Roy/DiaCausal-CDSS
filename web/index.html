@@ -18,6 +18,7 @@
   <script src="./vendor/supabase.min.js" defer></script>
   <script src="./engine.js" defer></script>
   <script src="./evidence.js" defer></script>
+  <script src="./explain.js" defer></script>
   <script src="./auth.js" defer></script>
   <script src="./app.js" defer></script>
   <script src="./account.js" defer></script>
@@ -111,8 +112,9 @@
     <section id="view-evidence" class="view" aria-labelledby="ev-h" hidden>
       <h1 id="ev-h">Evidence from licence-cleared sources</h1>
       <p class="lead">The <strong>RAG</strong> part of DiaCausal: it finds the passages of approved documents that best
-        answer a question and shows each one with its citation. It never writes its own answer and never shows doses.
-        Your question stays on this device.</p>
+        answer a question and shows each one with its citation, then quotes the sentences that answer it. It never
+        invents an answer and never shows doses. Your question stays on this device unless you press
+        “Explain in plain words with Gemini (online)”.</p>
       <form id="ask" class="card form" role="search">
         <label>Question <input name="q" type="search" enterkeyhint="search" autocomplete="off" maxlength="300"
           placeholder="e.g. Can metformin be used with reduced kidney function?"></label>
@@ -122,6 +124,9 @@
         <button type="button" class="chip" data-ask="Can metformin be used with reduced kidney function (eGFR)?">Metformin and kidney function</button>
         <button type="button" class="chip" data-ask="When should metformin be stopped before contrast imaging?">Contrast imaging</button>
         <button type="button" class="chip" data-ask="lactic acidosis risk">Lactic acidosis</button>
+        <button type="button" class="chip" data-ask="Which medicine does WHO recommend adding when metformin alone does not control blood glucose?">WHO second-line</button>
+        <button type="button" class="chip" data-ask="Can SGLT2 inhibitors cause ketoacidosis?">SGLT2i and ketoacidosis</button>
+        <button type="button" class="chip" data-ask="Do saxagliptin and alogliptin increase the risk of heart failure?">Gliptins and heart failure</button>
         <button type="button" class="chip" data-ask="How much does glimepiride cost in India?">Not in the sources</button>
       </div>
       <div id="ev-out" aria-live="polite"></div>
@@ -133,7 +138,7 @@
           <li><strong>Two searches.</strong> BM25 finds exact words (“eGFR”); a vector search finds similar wording (TF-IDF today, a medical embedding model in October).</li>
           <li><strong>Fusion.</strong> Reciprocal rank fusion merges the two rankings; the best 5 passages are kept.</li>
           <li><strong>Abstain or cite.</strong> If nothing matches well enough the answer is “insufficient evidence”; passages with dose text are withheld.</li>
-          <li><strong>Next (October).</strong> Evidence fusion with the causal engine, and an LLM that explains the result citing only these passages.</li>
+          <li><strong>Explain.</strong> The best-matching sentences are quoted with their passage numbers. Approved users can ask Gemini (online, free tier) to reword them; every sentence must cite a passage and match its words, otherwise the quotes stay. On a hospital or viva laptop the same check runs with a local model (Ollama), offline.</li>
         </ol>
       </details>
       <div class="card"><h2>Sources and licences</h2><p class="sub">Only green rows are in the search today.</p>

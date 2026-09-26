@@ -194,3 +194,14 @@ blockquote { margin: 0; padding: 8px 12px; border-left: 4px solid var(--pine); b
   .opt { margin-bottom: 8px; }
   .opt, .card { break-inside: avoid; }
 }
+
+/* RAG explanation and option evidence */
+.explain h2 { margin-top: 0; }
+.explain__list { margin: 6px 0; padding-left: 20px; }
+.explain__list li { margin: 4px 0; }
+.explain .cite { color: var(--pine-dark); font-weight: 700; white-space: nowrap; }
+.explain .chip { margin-top: 8px; }
+.opt__ev { margin-top: 8px; font-size: 14px; }
+.opt__ev summary { cursor: pointer; color: var(--pine-dark); font-weight: 600; }
+.ev-quote { margin: 8px 0; padding: 6px 10px; border-left: 3px solid var(--line, #c9d0cc); color: var(--ink); }
+.ev-quote .src { display: block; margin-top: 4px; }

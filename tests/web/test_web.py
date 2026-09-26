@@ -145,7 +145,8 @@ def test_evidence_json_is_fresh():
     data = json.loads((WEB / "evidence.json").read_text())
     assert data == json.loads(json.dumps(evidence_dict())), "run: python -m diacausal_rag.export_web"
     assert data["chunks"], "the confirmed FDA communication should be in the website index"
-    assert all(c["citation"]["source_id"] == "S08" for c in data["chunks"])
+    assert {c["citation"]["source_id"] for c in data["chunks"]} >= {"S01", "S08"}  # WHO 2018 + FDA
+    assert all(c["citation"]["licence_bucket"] == "cleared_ingest" for c in data["chunks"])
 
 
 @pytest.mark.skipif(NODE is None, reason="Node.js is needed to run web/evidence.js")
@@ -166,6 +167,40 @@ def test_browser_evidence_search_gives_the_same_passages_as_python(tmp_path):
         for jp, pp in zip(j["passages"], py["passages"]):
             assert jp["scores"] == pp["scores"], q
         assert j["intended_use"] == INTENDED_USE
+    assert statuses == {"SUCCESS", "INSUFFICIENT_EVIDENCE"}
+
+
+@pytest.mark.skipif(NODE is None, reason="Node.js is needed to run web/explain.js")
+def test_browser_explanations_match_python(tmp_path):
+    """web/explain.js gives the same quoted sentences, abstentions and citation-check verdicts as Python."""
+    from diacausal_rag.evaluate import load_gold
+    from diacausal_rag.explain import explain, sentences
+    from diacausal_rag.ingest import load_config
+
+    cfg = load_config()
+    retriever = Retriever(ingest(), cfg)
+    cases = [{"question": g["question"]} for g in load_gold()] + [{"question": q} for q in QUESTIONS]
+    probe = "Can SGLT2 inhibitors cause ketoacidosis?"
+    first = sentences(retriever.search(probe)["passages"][0]["text"])[0]
+    answers = [f"{first} [1]", f"{first}", f"{first} [7]", "Oranges cure ketoacidosis in a dark room [1].",
+               "Give 10 mg once daily [1].", "INSUFFICIENT_EVIDENCE", f"{first} [1][2] {first} [1]."]
+    cases += [{"question": probe, "answer": a} for a in answers]
+    (tmp_path / "c.json").write_text(json.dumps(cases))
+    js = json.loads(subprocess.run([NODE, str(ROOT / "tests/web/run_explain.cjs"), str(WEB / "evidence.json"),
+                                    str(tmp_path / "c.json")], capture_output=True, text=True, check=True).stdout)
+    statuses = set()
+    for c, j in zip(cases, js):
+        ev = retriever.search(c["question"])
+        assert j["status"] == ev["status"], c["question"]
+        py = explain(c["question"], ev, "template", cfg, idf=retriever.bm25.idf)
+        assert (j["explain"]["status"], j["explain"]["sentences"], j["explain"]["note"]) == \
+            (py["status"], py["sentences"], py["note"]), c["question"]
+        statuses.add(py["status"])
+        if "answer" in c:
+            pm = explain(c["question"], ev, "gemini", cfg, caller=lambda p, cf, a=c["answer"]: a, idf=retriever.bm25.idf)
+            assert (j["model"]["backend"], j["model"]["status"], j["model"]["sentences"]) == \
+                (pm["backend"], pm["status"], pm["sentences"]), c["answer"]
+            assert ("failed the citation check" in j["model"]["note"]) == ("failed the citation check" in pm["note"])
     assert statuses == {"SUCCESS", "INSUFFICIENT_EVIDENCE"}
 
 
@@ -337,7 +372,10 @@ def test_the_site_works_on_an_iphone_sized_screen(tmp_path):
     assert c["intended"] and c["excluded"] == 1 and c["caution"] >= 1 and c["insufficient"] >= 1
     assert c["tiles"] == 8 and c["docHeadings"] > 10 and c["horizontalOverflow"] is False
     assert c["team"] is True
-    assert c["passages"] >= 1 and c["citesFda"] and c["sourcesInSearch"] == 1 and c["abstains"]
+    from diacausal_rag.ingest import CLEARED, is_confirmed, load_sources
+
+    in_search = sum(r["bucket"] == CLEARED and is_confirmed(r) for r in load_sources().values())
+    assert c["passages"] >= 1 and c["citesFda"] and c["sourcesInSearch"] == in_search >= 7 and c["abstains"]
     assert c["demoBanner"] and c["accountDemo"]  # a local copy without account settings says sign-in is off
 
 

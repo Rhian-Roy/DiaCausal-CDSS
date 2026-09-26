@@ -1,2 +1,9 @@
 file,source_id
 fda_dsc_2016_metformin_kidney.txt,S08
+fda_dsc_2016_saxagliptin_alogliptin_hf.txt,S08
+who_2018_second_line.txt,S01
+fda_dsc_2015_dpp4_joint_pain.txt,S19
+fda_dsc_2015_sglt2_ketoacidosis_uti.txt,S20
+fda_dsc_2016_canagliflozin_dapagliflozin_kidney.txt,S21
+fda_dsc_2018_sglt2_genital_infection.txt,S22
+fda_dsc_2020_canagliflozin_amputation.txt,S23

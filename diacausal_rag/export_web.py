@@ -21,9 +21,11 @@ from pathlib import Path
 
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
 
+from diacausal_engine.recommend import DOSE_PATTERN
 from diacausal_rag import INTENDED_USE
+from diacausal_rag.explain import DOSE_QUESTION, NO_DOSE_NOTE
 from diacausal_rag.ingest import CLEARED, CONFIG, CORPUS, ROOT, SOURCES_CSV, ingest, is_confirmed, load_config, load_sources
-from diacausal_rag.retrieve import DOSE, TOKEN, WITHHELD, Retriever, tokens
+from diacausal_rag.retrieve import DOSE, TOKEN, WITHHELD, Retriever, index_text, tokens
 
 WEB = ROOT / "web"
 
@@ -42,12 +44,16 @@ def evidence_dict() -> dict:
     corpus_files = sorted(p for p in CORPUS.iterdir() if p.suffix in (".txt", ".csv"))
     out: dict = {
         "intended_use": INTENDED_USE,
-        "config": {k: cfg[k] for k in ("top_k", "rrf_k", "bm25_k1", "bm25_b", "min_bm25_score")},
+        "config": {k: cfg[k] for k in ("top_k", "rrf_k", "bm25_k1", "bm25_b", "min_bm25_score", "min_query_coverage",
+                                        "explain_max_sentences", "explain_min_support")},
         "stop_words": sorted(ENGLISH_STOP_WORDS),
         "bm25_token_pattern": TOKEN.pattern,
         "tfidf_token_pattern": r"(?u)\b\w\w+\b",
         "dose_pattern": DOSE.pattern,
         "withheld_text": WITHHELD,
+        "strict_dose_pattern": DOSE_PATTERN.pattern,
+        "dose_question_pattern": DOSE_QUESTION.pattern,
+        "no_dose_note": NO_DOSE_NOTE,
         "sources": [{"id": r["id"], "title": r["title"], "issuer": r["issuer"], "version": r["version"],
                      "bucket": r["bucket"], "confirmed": is_confirmed(r), "use": r["use_in_diacausal"]}
                     for r in sources.values()],
@@ -71,7 +77,7 @@ def evidence_dict() -> dict:
             "withheld": withheld,
             "citation": {"source_id": c.source_id, "title": c.title, "version": c.version,
                          "section": c.section, "page": c.page, "licence_bucket": c.licence_bucket},
-            "bm25": {"tf": dict(Counter(tokens(c.text))), "len": len(r.bm25.docs[i])},
+            "bm25": {"tf": dict(Counter(tokens(index_text(c.text)))), "len": len(r.bm25.docs[i])},
             "tfidf": {str(int(j)): float(v) for j, v in zip(row.indices, row.data)},
         })
     out["bm25"] = {"idf": r.bm25.idf, "avgdl": r.bm25.avgdl}
