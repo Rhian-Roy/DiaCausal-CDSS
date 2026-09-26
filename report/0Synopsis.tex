@@ -1,0 +1,77 @@
+% DiaCausal mid-semester report (Group 28, FCRIT Vashi, 2026-27) in the college template.
+% Build: pdflatex 0Synopsis && bibtex 0Synopsis && pdflatex 0Synopsis && pdflatex 0Synopsis
+% (or upload this folder to Overleaf). Numbers come only from ../results (synthetic data).
+\documentclass[12pt]{report}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{ragged2e}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+% ---- added packages (template rule: add packages only here) ----
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[utf8]{inputenc}
+\usepackage{booktabs,longtable,tabularx,array,multirow,float}
+\usepackage[table]{xcolor}
+\usepackage{amsmath,amssymb}
+\usepackage{caption}
+\usepackage{listings}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,shapes.geometric,shapes.multipart,fit,calc}
+\hypersetup{colorlinks=true,linkcolor=black,citecolor=black,urlcolor=blue}
+\lstset{basicstyle=\ttfamily\scriptsize,breaklines=true,frame=single,
+  numbers=left,numberstyle=\tiny,columns=fullflexible,keepspaces=true,
+  showstringspaces=false,language=Python,
+  literate={—}{{---}}1 {─}{{-}}1}
+\newcolumntype{Y}{>{\RaggedRight\arraybackslash}X}
+\titleformat{\chapter}[display]
+{\normalfont\huge\bfseries\centering}{\chaptertitlename\ \thechapter}{24pt}{\Huge}
+\geometry{verbose,a4paper,tmargin=15mm,bmargin=30mm,lmargin=30mm,rmargin=20mm}
+\geometry{headheight=15pt}
+\setcounter{tocdepth}{3}
+\setcounter{secnumdepth}{3}
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{DiaCausal: Causal Inference and RAG CDSS}
+\lfoot{F.C.R.I.T, Vashi}
+\rfoot{\thepage}
+\renewcommand{\footrulewidth}{0.6pt}
+\renewcommand{\headrulewidth}{1.pt}
+\newcommand{\intendeduse}{Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.}
+\begin{document}
+\pagestyle{plain}
+\include{1Title}
+\pagenumbering{roman}
+\include{2Approval}
+\include{3Declaration}
+\newpage
+\addcontentsline{toc}{chapter}{Abstract}
+\include{Abstract}
+\tableofcontents
+\newpage
+\addcontentsline{toc}{chapter}{List of Figures}
+\listoffigures
+\newpage
+\addcontentsline{toc}{chapter}{List of Tables}
+\listoftables
+\newpage
+\pagenumbering{arabic}
+\pagestyle{fancy}
+\include{Chapter1Introduction}
+\include{Chapter2LiteratureSurvey}
+\include{Chapter3ProposedSystem}
+\include{Chapter4Design}
+\include{Chapter5ResultandDiscussion}
+\include{Chapter6Conclusion}
+\addcontentsline{toc}{chapter}{References}
+\bibliographystyle{ieeetr}
+\renewcommand\bibname{References}
+\bibliography{0Synopsis}
+\addcontentsline{toc}{chapter}{Acknowledgement}
+\include{Acknowledgment}
+\addcontentsline{toc}{chapter}{Appendix A: Timeline Chart}
+\include{appendixA}
+\addcontentsline{toc}{chapter}{Appendix B: Publication Details}
+\include{appendixB}
+\end{document}

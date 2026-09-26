@@ -1,0 +1,51 @@
+\chapter{Study Of the System}\label{chap2}
+\newpage
+\section{Literature Survey}
+\textbf{Treatment selection in type 2 diabetes.} Shields et al. ran TriMaster, a randomised, double-blind, three-way crossover trial of sitagliptin, canagliflozin and pioglitazone in 525 participants, and showed that simple features such as BMI and eGFR predict which drug lowers HbA1c more \cite{shields2023}. Dennis et al. developed an algorithm that selects between SGLT2 and DPP-4 inhibitors from routine UK primary-care data \cite{dennis2022}. G\"udemann et al. validated that algorithm across UK ethnic groups and found that the average predicted HbA1c benefit of SGLT2i over DPP-4i was 2.1 mmol/mol (95\% CI 1.6--2.6) in South Asian patients compared with 3.7 mmol/mol (3.5--3.9) in White patients, recommending recalibration before use in new populations \cite{gudemann2025} --- direct evidence that calibration for Indian patients matters.
+
+\textbf{Causal-inference methods.} The potential-outcomes framework \cite{rubin1974}, structural causal models \cite{pearl2009} and target-trial thinking \cite{hernan2020,cashin2025} define what is being estimated. Meta-learners \cite{kunzel2019}, causal forests \cite{wager2018}, the DR-learner \cite{kennedy2023} and double machine learning \cite{chernozhukov2018} estimate effects that vary between patients. Semi-synthetic benchmarks introduced the PEHE error measure \cite{hill2011,shalit2017}, and the open-source libraries DoWhy \cite{dowhy} and EconML \cite{econml} implement many of these estimators.
+
+\textbf{RAG in medicine.} Lewis et al. introduced retrieval-augmented generation \cite{lewis2020}. Almanac improved factuality and safety over a standalone language model on clinical questions \cite{zakka2024}, and the MedRAG toolkit with the MIRAGE benchmark compared many corpus, retriever and model combinations \cite{xiong2024}. RAGAS provides reference-free metrics such as faithfulness for evaluating such systems \cite{es2024}.
+
+\textbf{Causal methods applied in health.} Quaranta and Pietrantuono applied causal discovery and DoWhy counterfactual analysis to the Pima dataset of 768 female patients \cite{quaranta2025}. Hasan et al. used an ensemble of causal trees to formulate oxygen-therapy policy for ventilated patients in MIMIC-III \cite{hasan2025}. Song et al. used causal discovery with heart rate as a confounder in a hierarchical regression model for cuffless blood-pressure estimation \cite{song2024}.
+
+\begin{table}[H]\centering\small
+\caption{Comparison of the reviewed literature}\label{tab:lit}
+\begin{tabularx}{\textwidth}{p{2.9cm}p{2.3cm}YY}
+\toprule
+Paper & Data & Approach & Gap for DiaCausal\\\midrule
+Shields et al. 2023 \cite{shields2023} & TriMaster RCT, UK & Stratified three-way crossover trial & Two simple strata; UK population\\
+Dennis et al. 2022 \cite{dennis2022} & UK primary care & Treatment-selection model, SGLT2i vs DPP-4i & Two drugs only; no sulfonylurea; not Indian\\
+G\"udemann et al. 2026 \cite{gudemann2025} & UK primary care & Validation across ethnic groups & Smaller South Asian benefit; needs recalibration\\
+Quaranta and Pietrantuono 2025 \cite{quaranta2025} & Pima (768) & DirectLiNGAM and DoWhy & Not Indian; no treatment variable\\
+Hasan et al. 2025 \cite{hasan2025} & MIMIC-III & Heterogeneous effects with causal trees & Single ICU dataset; not clinically validated\\
+Song et al. 2024 \cite{song2024} & VitalDB + 17 subjects & Causal discovery, hierarchical regression & Not diabetes; linear assumptions\\
+Zakka et al. 2024 \cite{zakka2024} & 314 clinical questions & RAG over curated sources & No patient-specific causal estimates\\
+Xiong et al. 2024 \cite{xiong2024} & MIRAGE benchmark & Benchmarking medical RAG & Question answering, not decision support\\
+\bottomrule\end{tabularx}\end{table}
+
+\section{Existing systems}
+Four kinds of systems address parts of this problem today.
+
+\textbf{Rule-based guideline tools and calculators} present recommendations as flowcharts or scores. They are transparent but give the same answer to every patient in a category and do not estimate how much a drug would help this patient.
+
+\textbf{Predictive machine-learning systems}, often built on the Pima dataset, predict the risk of diabetes. They answer ``who is at risk'', not ``what would happen under each drug'', and Pima comes from the Akimel O'odham community in Arizona, USA, so it is not Indian data and records no treatment.
+
+\textbf{General-purpose language-model chatbots} answer free-text questions fluently but cannot guarantee sources, may invent facts or doses, and do not produce patient-specific causal estimates.
+
+\textbf{Research treatment-selection models} such as the SGLT2i/DPP-4i algorithm \cite{dennis2022} and the TriMaster strata \cite{shields2023} individualise the choice, but compare two drugs, are built on UK data, and do not include safety rules, abstention or cited explanations.
+
+\begin{table}[H]\centering\small
+\caption{Feature comparison of existing systems and DiaCausal (Y = yes, P = partly, N = no)}\label{tab:feat}
+\begin{tabularx}{\textwidth}{Yccccc}
+\toprule
+Feature & Rules & Pima ML & Chatbot & Selection models & DiaCausal\\\midrule
+Per-patient effect of each drug & N & N & N & P & Y\\
+Uncertainty intervals & N & P & N & Y & Y\\
+Refuses when data is thin & N & N & N & N & Y\\
+Safety rules before any estimate & Y & N & N & N & Y\\
+Cited guideline explanation & P & N & P & N & Y\\
+Indian calibration (cut-offs, INR cost) & P & N & N & N & Y\\
+Audit log of every request & P & N & N & N & Y\\
+Clinician makes the decision & Y & P & N & Y & Y\\
+\bottomrule\end{tabularx}\end{table}

@@ -1,0 +1,24 @@
+\chapter{Introduction}\label{chap1}
+\newpage
+\section{Background}
+Type 2 diabetes is one of India's largest public-health problems. The ICMR-INDIAB national cross-sectional study of 113{,}043 adults reported a weighted diabetes prevalence of 11.4\% (95\% CI 10.2--12.5) and a prediabetes prevalence of 15.3\%, corresponding to an estimated 101 million people with diabetes and 136 million with prediabetes in India \cite{anjana2023}. Worldwide, the IDF Diabetes Atlas estimates that 589 million adults were living with diabetes in 2024 \cite{idf2025}.
+
+Metformin is the usual first-line drug. When it is not enough, the clinician adds a second agent, commonly a sodium--glucose co-transporter-2 inhibitor (SGLT2i), a dipeptidyl peptidase-4 inhibitor (DPP-4i) or a sulfonylurea (SU). These classes differ in glucose-lowering effect, hypoglycaemia risk, effect on weight and cost, and patients do not all respond alike. In the TriMaster crossover trial, participants with an eGFR of 60--90 mL/min/1.73m$^2$ had an HbA1c 2.90 mmol/mol (95\% CI 1.19--4.61) lower on sitagliptin than on canagliflozin, compared with participants whose eGFR was above 90 \cite{shields2023}. A good decision therefore depends on the individual patient.
+
+\section{Motivation}
+Choosing a second-line drug is a counterfactual question: what would this patient's HbA1c be under each option? Routine records cannot answer it directly, because doctors choose drugs according to the patient's condition (confounding by indication). Population averages from network meta-analyses \cite{tsapas2020,palmer2016} do not individualise, and clinical decision support systems can improve care but also carry risks such as alert fatigue, opacity and unsafe output \cite{sutton2020}. Large language models can explain, but may invent doses or citations; retrieval-augmented generation (RAG) grounds answers in source documents \cite{lewis2020,zakka2024}. DiaCausal combines these ideas in a strict order: safety rules first, then causal estimation with honest uncertainty, then a cited explanation --- with the clinician always making the decision.
+
+\section{Aim and Objective}
+\textbf{Aim:} To design and build a clinician-in-the-loop decision-support prototype that estimates the individualised six-month HbA1c change for SGLT2i, DPP-4i and sulfonylurea added to metformin, with uncertainty intervals, abstention when evidence is insufficient, and cited explanations.
+
+\noindent\textbf{Objectives:}
+\begin{enumerate}
+\item Encode contraindication, kidney-function and interaction rules as structured, cited, unit-tested tables that run before any estimate is shown.
+\item Build an India-calibrated synthetic cohort with known true treatment effects, with every parameter's source recorded.
+\item Implement generalised propensity scoring with overlap-based abstention, augmented inverse probability weighting (AIPW) for average effects and a doubly robust learner (DR-learner) for individual effects, all with 95\% intervals.
+\item Build a licence-compliant RAG layer with hybrid retrieval and section-level citations that refuses to answer out of scope.
+\item Evaluate the system with the evaluation matrix of Chapter~\ref{chap5}, including a clinician vignette study.
+\end{enumerate}
+
+\section{Report Outline}
+Chapter~\ref{chap2} reviews the literature and existing systems. Chapter~\ref{chap3} states the problem, the scope and the proposed system. Chapter~\ref{chap4} presents requirement engineering, the hardware and software requirements, and the system design. Chapter~\ref{chap5} reports the implementation completed so far, the initial results, the demo and the evaluation matrix. Chapter~\ref{chap6} concludes and describes the planned work. Appendix~A gives the timeline chart and Appendix~B the publication plan.

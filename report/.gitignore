@@ -1,0 +1,11 @@
+*.aux
+*.log
+*.toc
+*.lof
+*.lot
+*.bbl
+*.blg
+*.out
+bib.log
+last.log
+0Synopsis.pdf
