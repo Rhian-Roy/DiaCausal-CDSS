@@ -1,0 +1,14 @@
+\chapter{Conclusion \& Future Scope}\label{chap6}
+\newpage
+\section{Conclusion}
+DiaCausal treats the choice of a second-line diabetes drug as a question about what would happen to one patient under each option, and answers it with causal inference placed between deterministic safety rules and cited explanation. By the mid-semester review the team has fixed the scope and data strategy, specified the requirements and design, and implemented and tested the causal engine on an India-calibrated synthetic cohort with known true effects: the corrected estimators remove the bias of the naive comparison, their intervals contain the truth close to 95\% of the time, and the system refuses to guess when similar patients are too few. The engine is available on any phone through an installable website with approved accounts, and the first retrieval layer already returns cited passages from licence-cleared sources. Every estimate has an interval, and the clinician always makes the decision.
+
+\section{Future Scope}
+\begin{itemize}
+\item \textbf{October 2026:} hypoglycaemia and weight outcomes with intervals and a printable consultation summary; the RAG layer with cited explanations from more licence-cleared guidelines and its evaluation on gold questions; integration of engine, RAG and chat interface; the full evaluation matrix; a clinician review of realistic cases; and an IEEE-format research paper.
+\item \textbf{Validation on real data:} de-identified Indian clinic records and cohorts such as ICMR-INDIAB, only with ethics committee approval, followed by recalibration.
+\item \textbf{More treatments:} GLP-1 receptor agonists and insulin.
+\item \textbf{Offline hospital installation:} the same system installed on a hospital's own computers, with a local language model and no public access.
+\item \textbf{Prospective evaluation and reporting:} following DECIDE-AI \cite{vasey2022}, TRIPOD+AI \cite{collins2024} and TARGET \cite{cashin2025}, in line with the ICMR ethical guidelines for AI in healthcare \cite{icmr2023}.
+\end{itemize}
+\noindent Intended use: \intendeduse

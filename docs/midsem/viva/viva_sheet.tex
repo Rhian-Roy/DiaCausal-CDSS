@@ -1,0 +1,46 @@
+\documentclass[11pt]{extarticle}
+\usepackage[a4paper,margin=11mm]{geometry}
+\usepackage[T1]{fontenc}\usepackage{lmodern}\usepackage{enumitem,multicol,xcolor}
+\setlist{nosep,leftmargin=*}
+\pagestyle{empty}
+\definecolor{navy}{HTML}{002060}
+\newcommand{\h}[1]{\par\smallskip{\color{navy}\bfseries #1}\par}
+\begin{document}
+{\large\bfseries\color{navy} DiaCausal — mid-sem viva sheet (Group 28, 30 Sept 2026)}\hfill{\small Guide: Mr. Rahul Jadhav}\\
+{\small\itshape Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use. All numbers: synthetic data.}
+\begin{multicols}{2}
+\h{The six items in one sentence each}
+\begin{enumerate}
+\item \textbf{Proposed system:} for an adult on metformin, compare SGLT2i, DPP-4i and sulfonylurea by each one's 6-month HbA1c change with a 95\% range, after cited safety rules remove unsafe options; the clinician decides.
+\item \textbf{Hardware/software:} any 8 GB laptop; Python 3.12 + scikit-learn + FastAPI; phone website on Netlify with Supabase accounts; all free.
+\item \textbf{Timeline:} scope and design (Jul--Sep), engine + website done by 27 Sept; RAG and evaluation 1--23 Oct; paper and report by 30 Oct.
+\item \textbf{Design:} safety rules $\rightarrow$ propensity/overlap $\rightarrow$ AIPW/DR-learner $\rightarrow$ cost $\rightarrow$ cited evidence $\rightarrow$ clinician; audit log without patient values.
+\item \textbf{Implementation:} full causal engine, benchmark, refutation, demo, API, live website with MFA and admin approval, first cited evidence search; 168 tests.
+\item \textbf{Results:} naive bias $-0.159$ $\rightarrow$ AIPW $+0.002$; AIPW coverage 90--95\%; per-patient coverage 92.7--94.7\%; regret 0.011 vs 0.062; balance 0.70 $\rightarrow$ 0.08; refutation 9/9.
+\end{enumerate}
+\h{Key words, one line each}
+\textbf{Confounding by indication:} sicker patients got SGLT2i more, so plain comparisons mislead.
+\textbf{Propensity:} chance a patient like this got each drug (multinomial logistic, cross-fitted).
+\textbf{Overlap/abstain:} propensity $<0.05$ $\Rightarrow$ ``insufficient evidence'', never a guess.
+\textbf{IPW:} weight each patient by 1/propensity so groups look alike.
+\textbf{AIPW (doubly robust):} outcome-model guess + weighted correction; right if either model is right.
+\textbf{DR-learner:} regress AIPW scores on patient details $\Rightarrow$ this patient's effect; HC3 robust 95\% interval.
+\textbf{PEHE:} typical error of one patient's effect. \textbf{Coverage:} how often the 95\% range contains the truth.
+\textbf{E-value:} how strong a hidden confounder must be to explain the effect away (1.57--2.15).
+\h{Ten likely questions}
+\begin{enumerate}[leftmargin=1.3em]
+\item \emph{Why not a normal ML model?} It predicts who does well, not what happens under a different drug; doctors choose drugs, so we need counterfactuals.
+\item \emph{Why synthetic data?} No open Indian dataset records drug and outcome; real data needs ethics approval; synthetic data has a known truth so we can measure error.
+\item \emph{Is Pima Indian data?} No --- Akimel O'odham, Arizona, USA; no treatment variable. Not used.
+\item \emph{How are unsafe drugs handled?} Ten cited rules in rules.csv run first; an excluded drug is never estimated; no doses are ever shown.
+\item \emph{What if a patient is unusual?} Overlap check $\Rightarrow$ ``insufficient evidence'' (2.5\% of test cases).
+\item \emph{Why intervals?} Every estimate is uncertain; a bare number misleads. Coverage shows ours are honest.
+\item \emph{How do you know it works?} 20 synthetic cohorts with a planted truth; bias, coverage, PEHE, regret, balance, refutation all reported.
+\item \emph{What is RAG here?} Search of licence-cleared documents that shows cited passages or abstains; explanation writer comes in October.
+\item \emph{Privacy?} Patient details never leave the device on the website; accounts store only name, email, role, approval.
+\item \emph{What is left?} Secondary outcomes, RAG explanations and evaluation, chat-app integration, clinician review, paper.
+\end{enumerate}
+\h{If something fails}
+Wi-Fi/laptop down $\rightarrow$ play DiaCausal\_demo.mp4 or open the website on a phone (works offline once opened). Unknown question $\rightarrow$ ``We haven't tested that yet; this is how we would.'' Never guess a number.
+\end{multicols}
+\end{document}

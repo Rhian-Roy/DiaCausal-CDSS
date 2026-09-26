@@ -1,0 +1,35 @@
+% DiaCausal causal engine v0.3.0 benchmark: 20 synthetic cohorts x 5000 patients.
+% SYNTHETIC DATA ONLY. Made by the benchmark script (see README); do not edit by hand.
+\begin{tabular}{llrrrr}
+\hline
+Contrast & Method & Truth & Bias & RMSE & 95\% CI coverage \\
+\hline
+SGLT2i vs DPP-4i & naive & $-0.211$ & $-0.159$ & 0.160 & 0.00 \\
+SGLT2i vs DPP-4i & IPW & $-0.211$ & 0.001 & 0.022 & 1.00 \\
+SGLT2i vs DPP-4i & matching & $-0.211$ & $-0.002$ & 0.026 & 0.95 \\
+SGLT2i vs DPP-4i & AIPW & $-0.211$ & 0.002 & 0.023 & 0.95 \\
+\hline
+Sulfonylurea vs DPP-4i & naive & $-0.256$ & $-0.106$ & 0.108 & 0.00 \\
+Sulfonylurea vs DPP-4i & IPW & $-0.256$ & $-0.004$ & 0.025 & 1.00 \\
+Sulfonylurea vs DPP-4i & matching & $-0.256$ & $-0.008$ & 0.028 & 1.00 \\
+Sulfonylurea vs DPP-4i & AIPW & $-0.256$ & $-0.003$ & 0.027 & 0.95 \\
+\hline
+SGLT2i vs Sulfonylurea & naive & 0.045 & $-0.052$ & 0.056 & 0.50 \\
+SGLT2i vs Sulfonylurea & IPW & 0.045 & 0.005 & 0.030 & 0.95 \\
+SGLT2i vs Sulfonylurea & matching & 0.045 & 0.006 & 0.026 & 0.95 \\
+SGLT2i vs Sulfonylurea & AIPW & 0.045 & 0.005 & 0.030 & 0.90 \\
+\hline
+\end{tabular}
+
+\vspace{1em}
+
+\begin{tabular}{lrrrr}
+\hline
+Learner & PEHE SGLT2i vs DPP-4i & PEHE Sulfonylurea vs DPP-4i & PEHE SGLT2i vs Sulfonylurea & Policy regret \\
+\hline
+DR-learner & 0.105 & 0.117 & 0.108 & 0.011 \\
+T-learner & 0.189 & 0.192 & 0.184 & 0.029 \\
+S-learner & 0.103 & 0.104 & 0.110 & 0.012 \\
+naive & 0.214 & 0.197 & 0.169 & 0.062 \\
+\hline
+\end{tabular}

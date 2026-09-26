@@ -1,0 +1,60 @@
+\chapter{Proposed System}\label{chap3}
+\newpage
+\section{Problem Statement}
+For an adult with type 2 diabetes who is already on metformin and inadequately controlled, estimate the six-month HbA1c change under an SGLT2 inhibitor, a DPP-4 inhibitor and a sulfonylurea --- each with an uncertainty interval --- after deterministic safety rules have removed the options that are unsafe for that patient, and explain the result with citations to approved guidelines, leaving the decision to the clinician.
+
+\section{Scope}
+\textbf{In scope.} Adults with type 2 diabetes on metformin; three second-line options; primary outcome the six-month change in HbA1c (\%); secondary outcomes hypoglycaemia risk, weight change (kg) and monthly cost (INR); users are clinicians, evaluators and an administrator.
+
+\textbf{Out of scope (future work).} Insulin and GLP-1 receptor agonists; diagnosis; dosing advice of any kind; use on real patients without ethics approval; causal discovery as the main method (DirectLiNGAM or PC algorithms may only be used to sanity-check the expert-drawn graph).
+
+\textbf{Scope refinement.} The first proposal targeted hospital readmission using the Diabetes 130-US Hospitals dataset, and the second targeted early diagnosis on the Pima, NHANES and MIMIC-III datasets. A dataset review in September 2026 showed that the Diabetes 130-US data predates SGLT2 inhibitors and that the Pima dataset (from the Akimel O'odham community in Arizona, USA; not Indian; no treatment variable; zeros used for missing values) cannot answer a treatment question. The team therefore froze the present scope.
+
+\section{Proposed System}
+\subsection{Why causal inference: a worked example}
+The following illustrative synthetic numbers show why a simple comparison misleads (Table~\ref{tab:confound}).
+\begin{table}[H]\centering\small
+\caption{Confounding by indication (illustrative synthetic numbers; HbA1c change in \%)}\label{tab:confound}
+\begin{tabular}{llll}\toprule
+Patients & Given SGLT2i & Given sulfonylurea & Difference\\\midrule
+High starting HbA1c & 300 patients, $-1.2$ & 100 patients, $-1.0$ & $-0.2$\\
+Lower starting HbA1c & 100 patients, $-0.6$ & 300 patients, $-0.5$ & $-0.1$\\
+All patients (naive) & $-1.05$ & $-0.625$ & $-0.425$\\\bottomrule
+\end{tabular}\end{table}
+Comparing like with like and weighting the two groups equally gives $0.5(-0.2)+0.5(-0.1)=-0.15$. The naive difference of $-0.425$ is about three times too large only because patients with higher HbA1c received SGLT2i more often.
+
+\subsection{Formulation}
+Let $X$ be a patient's baseline characteristics, $T\in\{\text{SGLT2i},\text{DPP-4i},\text{SU}\}$ the drug added, and $Y(t)$ the potential six-month HbA1c change under drug $t$. The quantity of interest for two drugs $j$ and $k$ is the conditional average treatment effect
+\begin{equation}\tau_{jk}(x)=E\left[Y(j)-Y(k)\mid X=x\right].\end{equation}
+It can be estimated from observational data under three assumptions: consistency; conditional exchangeability given the adjustment set from the causal graph; and positivity, $e_t(x)=P(T=t\mid X=x)>\varepsilon$. The average outcome under drug $t$ is estimated by augmented inverse probability weighting (AIPW) with five-fold cross-fitting:
+\begin{equation}\hat\mu_t=\frac1n\sum_{i=1}^n\left[\hat m_t(X_i)+\frac{\mathbf 1\{T_i=t\}\,(Y_i-\hat m_t(X_i))}{\hat e_t(X_i)}\right],\end{equation}
+where $\hat m_t$ is a gradient-boosted outcome model and $\hat e_t$ the multinomial logistic propensity model, both fitted out of fold. The 95\% interval of an average effect uses the standard error of the per-patient scores (their influence function). The DR-learner regresses the difference of these pseudo-outcomes, $\hat\varphi_j-\hat\varphi_k$ with $\hat\varphi_t=\hat m_t(X)+\mathbf 1\{T=t\}(Y-\hat m_t(X))/\hat e_t(X)$, on $X$ with a linear second stage \cite{kennedy2023}; each patient's 95\% interval comes from its heteroscedasticity-robust (HC3) covariance. If an allowed drug has $\hat e_t(x)<0.05$ for this patient, the system shows ``insufficient evidence'' for it instead of a number. Sensitivity to unmeasured confounding is summarised by the E-value $E=RR+\sqrt{RR(RR-1)}$.
+
+\subsection{Variables and causal graph}
+The variables are chosen with clinical knowledge, not discovered from the data (Figure~\ref{fig:dag}). The engine adjusts for age, sex, diabetes duration, baseline HbA1c, eGFR, BMI, established cardiovascular disease, heart failure, past hypoglycaemia, past ketoacidosis, past pancreatitis and affordability (cost concern). Baseline HbA1c, eGFR and sex modify the effect. Excluded because they occur after treatment starts: weight change (a mediator), adherence, three-month laboratory values, drug switching (a collider) and hospitalisation during follow-up. Prescriber preference is also excluded because it predicts the drug but not the outcome, and adjusting for it amplifies bias. BMI categories use Asian-Indian cut-offs (overweight $\geq$23 and obesity $\geq$25 kg/m$^2$) \cite{misra2009}.
+\begin{figure}[H]\centering
+\begin{tikzpicture}[>=Stealth,box/.style={draw,rounded corners,font=\small,align=center,inner sep=5pt}]
+\node[box,fill=gray!8] (C) at (0,2.4) {Confounders: age, sex, duration, baseline HbA1c, eGFR, BMI,\\ASCVD, heart failure, past hypoglycaemia, ketoacidosis, pancreatitis, cost concern};
+\node[box] (T) at (-3.6,0) {Drug added ($T$)};
+\node[box] (Y) at (3.6,0) {Six-month HbA1c change ($Y$)};
+\node[box,dashed] (W) at (0,-1.5) {Weight change (mediator, not adjusted)};
+\draw[->,thick] (C) -- (T); \draw[->,thick] (C) -- (Y); \draw[->,thick] (T) -- (Y);
+\draw[->] (T) |- (W); \draw[->] (W) -| (Y);
+\end{tikzpicture}
+\caption{Expert causal graph (confounders grouped for clarity)}\label{fig:dag}\end{figure}
+
+\subsection{Pipeline and safety rules}
+The request pipeline is: patient input $\rightarrow$ safety rules $\rightarrow$ propensity and overlap check $\rightarrow$ AIPW and DR-learner estimates with intervals $\rightarrow$ cost lookup $\rightarrow$ cited explanation (RAG) $\rightarrow$ clinician decision $\rightarrow$ audit log. The system follows eight rules that are never broken:
+\begin{enumerate}
+\item Decision support only; the clinician always decides.
+\item Safety rules run before any estimate is shown.
+\item Doses, thresholds and contraindications come only from structured, cited tables --- never from a language model. Doses are never shown.
+\item The system abstains rather than guesses.
+\item Every estimate carries an interval.
+\item Every clinical claim cites a specific source, version and section.
+\item Every request is logged and versioned; patient values are never written to the log.
+\item Intended use: \intendeduse
+\end{enumerate}
+
+\subsection{Data strategy}
+No openly downloadable, patient-level Indian dataset records which second-line drug a patient received and what happened afterwards. The system therefore uses three steps. (1) Calibrate with published Indian figures from ICMR-INDIAB \cite{anjana2023} and the Longitudinal Ageing Study in India \cite{lasi2020}. (2) Build an India-calibrated synthetic cohort with known true effects, recording each parameter's source and status (CITED, ASSUMED-DIRECTIONAL or TEAM-SET); drug-effect directions follow network meta-analyses \cite{tsapas2020,palmer2016} and treatment-selection studies \cite{dennis2022,shields2023,gudemann2025}. (3) Validate against the known truth now, and later against real data and a clinician review of realistic cases. Real Indian clinic data will be used only with ethics committee approval.
