@@ -54,7 +54,7 @@ Every time, in a new Terminal window:
 cd DiaCausal-CDSS
 source .venv/bin/activate
 
-python -m pytest tests/engine -q                  # the tests: must end "139 passed" (about 3 min)
+python -m pytest tests/engine -q                  # the tests: must end "148 passed" (about 3 min)
 python -m pytest tests/rag -q                     # the RAG skeleton tests (13, about 2 s)
 python -m diacausal_engine.benchmark --quick      # quick benchmark (about 30 s)
 python -m diacausal_engine.benchmark              # full benchmark: 20 x 5,000 patients (about 3 min), rewrites results/

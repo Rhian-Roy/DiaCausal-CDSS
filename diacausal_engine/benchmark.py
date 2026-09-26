@@ -23,7 +23,14 @@ import numpy as np
 
 from diacausal_engine import ARMS, CONTRASTS, INTENDED_USE, __version__
 from diacausal_engine import figures as fig
-from diacausal_engine.cohort import features, generate_cohort, observed_view, treatment_index, true_population_effects
+from diacausal_engine.cohort import (
+    features,
+    generate_cohort,
+    observed_view,
+    treatment_index,
+    true_population_effects,
+    true_secondary_population,
+)
 from diacausal_engine.config import ROOT, load_params
 from diacausal_engine.dag import load_dag
 from diacausal_engine.estimators import (
@@ -83,7 +90,17 @@ def run_once(params, rules, n: int, n_test: int, seed: int, n_boot: int) -> dict
         "naive": np.tile(naive_means, (len(test), 1)),
     }
     allowed = allowed_matrix(params, rules, test, f.propensity)
+    # Secondary outcomes (FR7): weight change (kg) and hypoglycaemia (probability), same method.
+    secondary = {}
+    for name, truth_col in (("weight", "wmu_true_"), ("hypo", "hp_true_")):
+        phi2, dr2 = getattr(f, f"phi_{name}"), getattr(f, f"dr_{name}")
+        secondary[name] = {
+            "ate": by_target(aipw(phi2, z)),
+            "dr": dr2.predict(Xt, z),
+            "true_levels": test[[f"{truth_col}{a}" for a in ARMS]].to_numpy(),
+        }
     return {
+        "secondary": secondary,
         "ate": ate,
         "levels": levels,
         "dr": dr,
@@ -95,7 +112,7 @@ def run_once(params, rules, n: int, n_test: int, seed: int, n_boot: int) -> dict
     }
 
 
-def summarise(runs: list[dict], truth: dict) -> list[dict]:
+def summarise(runs: list[dict], truth: dict, sec_truth: dict | None = None) -> list[dict]:
     rows = []
     for m in METHODS:
         for a, b in CONTRASTS:
@@ -133,6 +150,37 @@ def summarise(runs: list[dict], truth: dict) -> list[dict]:
         "smd_max_after": np.mean([max(x["smd_after"] for x in r["balance"]) for r in runs]),
         "n_reps": len(runs),
     })
+    if sec_truth:
+        rows += summarise_secondary(runs, sec_truth)
+    return rows
+
+
+def summarise_secondary(runs: list[dict], sec_truth: dict) -> list[dict]:
+    """Rows for the secondary outcomes, appended after the primary rows (which never change)."""
+    rows = []
+    for name, unit in (("weight", "kg"), ("hypo", "probability")):
+        for t in list(ARMS) + [f"{a}-{b}" for a, b in CONTRASTS]:
+            ests = [r["secondary"][name]["ate"][t] for r in runs]
+            true = sec_truth[f"{name}:{t}"]
+            rows.append({
+                "section": f"secondary_{name}", "method": "AIPW", "target": f"{t} ({unit})", "true_value": true,
+                "mean_estimate": np.mean([e.value for e in ests]),
+                "bias": bias([e.value for e in ests], true),
+                "rmse": rmse([e.value for e in ests], true),
+                "coverage_95": coverage([e.low for e in ests], [e.high for e in ests], [true] * len(ests)),
+                "mean_ci_width": np.mean([e.high - e.low for e in ests]),
+                "n_reps": len(runs),
+            })
+        for a in ARMS:
+            p = [pehe(r["secondary"][name]["dr"][a][:, 0], r["secondary"][name]["true_levels"][:, ARMS.index(a)])
+                 for r in runs]
+            cov = [coverage(r["secondary"][name]["dr"][a][:, 1], r["secondary"][name]["dr"][a][:, 2],
+                            r["secondary"][name]["true_levels"][:, ARMS.index(a)]) for r in runs]
+            wid = [np.mean(r["secondary"][name]["dr"][a][:, 2] - r["secondary"][name]["dr"][a][:, 1]) for r in runs]
+            rows.append({
+                "section": f"secondary_{name}", "method": "DR-learner", "target": f"{a} per patient ({unit})",
+                "pehe": np.mean(p), "coverage_95": np.mean(cov), "mean_ci_width": np.mean(wid), "n_reps": len(runs),
+            })
     return rows
 
 
@@ -215,7 +263,8 @@ def run(reps: int, n: int, n_test: int, out: Path, n_boot: int | None = None, se
     for r in range(reps):
         runs.append(run_once(params, rules, n, n_test, seed + r, n_boot))
         print(f"  repeat {r + 1}/{reps} done ({time.time() - started:.0f} s)", flush=True)
-    rows = summarise(runs, truth)
+    sec_truth = true_secondary_population(params)
+    rows = summarise(runs, truth, sec_truth)
     out.mkdir(parents=True, exist_ok=True)
     (out / "figures").mkdir(exist_ok=True)
     write_csv(rows, out / "benchmark_summary.csv")
@@ -256,6 +305,7 @@ def run(reps: int, n: int, n_test: int, out: Path, n_boot: int | None = None, se
         "reps": reps, "n_patients": n, "n_test_patients": n_test, "base_seed": seed, "psm_bootstrap": n_boot,
         "params_version": params.version, "params_sha": params.fingerprint, "rules_sha": rules.version,
         "true_population_effects": truth,
+        "true_secondary_population": sec_truth,
         "refutation_checks_passed": f"{sum(r.passed for r in ref_rows)} of {len(ref_rows)}",
         "python": platform.python_version(),
         "seconds": round(time.time() - started, 1),

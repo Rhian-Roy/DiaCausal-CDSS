@@ -175,3 +175,22 @@ blockquote { margin: 0; padding: 8px 12px; border-left: 4px solid var(--pine); b
   h1 { font-size: 32px; }
 }
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+
+/* Secondary outcomes on an estimate card */
+.sec { margin: 8px 0 0; font-size: 14px; }
+.sec dt { color: var(--ink-muted); margin-top: 4px; }
+.sec dd { margin: 0; }
+
+/* Consultation summary: Print -> Save as PDF prints only the answer */
+.print-only { display: none; }
+@media print {
+  .top, .tabs, .demo, .presets, #patient, .why, .noprint, .foot, #out details, .view:not(#view-try) { display: none !important; }
+  #view-try > h1, #view-try > .lead { display: none; }
+  .print-only { display: block; }
+  .print-head { border: 1px solid #999; border-radius: 6px; padding: 8px 12px; margin-bottom: 10px; font-size: 12px; }
+  .print-head h2 { margin: 0 0 4px; }
+  body { background: #fff; }
+  .cards { display: block !important; }
+  .opt { margin-bottom: 8px; }
+  .opt, .card { break-inside: avoid; }
+}

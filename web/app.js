@@ -89,6 +89,14 @@ function card(o) {
     const e = o.effect;
     body.push(h("p", { class: "est" }, signed(e.value), " ", h("small", {}, `(95% range ${signed(e.ci_low)} to ${signed(e.ci_high)})`)));
     body.push(h("p", { class: "sub" }, `percentage points of HbA1c at 6 months · propensity ${o.confidence.propensity.toFixed(2)}`));
+    if (o.secondary) {
+      const w = o.secondary.weight_change_kg, r = o.secondary.hypo_risk_pct;
+      body.push(h("dl", { class: "sec" },
+        h("dt", {}, "Weight at 6 months"),
+        h("dd", {}, h("strong", {}, `${signed(w.value, 1)} kg`), ` (95% range ${signed(w.ci_low, 1)} to ${signed(w.ci_high, 1)})`),
+        h("dt", {}, "Any low sugar by 6 months"),
+        h("dd", {}, h("strong", {}, `${r.value.toFixed(1)}%`), ` (95% range ${r.ci_low.toFixed(1)} to ${r.ci_high.toFixed(1)})`)));
+    }
   }
   body.push(...ruleLines(o));
   body.push(h("p", { class: "sub" }, `Cost: ${o.cost.label}`));
@@ -124,10 +132,24 @@ function forest(options) {
   return g;
 }
 
+/** Only on paper: what was entered, when, and under which versions (the page itself is never sent anywhere). */
+function printHeader(result) {
+  const p = readForm();
+  const flags = window.DiaCausal.FLAGS.filter((f) => p[f]).map((f) => f.replace(/_/g, " "));
+  return h("div", { class: "print-only print-head" },
+    h("h2", {}, "DiaCausal consultation summary"),
+    h("p", {}, `Printed ${new Date().toLocaleString("en-IN")} · Request ID ${result.request_id}`),
+    h("p", {}, `Patient as entered: age ${p.age}, ${p.sex}, diabetes ${p.duration_years} years, HbA1c ${p.hba1c}%, eGFR ${p.egfr} mL/min/1.73m², BMI ${p.bmi} kg/m²` +
+      (flags.length ? `; history: ${flags.join(", ")}` : "") + "."),
+    h("p", {}, `Engine ${result.versions.engine} · params ${result.versions.params_sha} · rules ${result.versions.rules_sha} · ${result.versions.cohort}. Synthetic data only; no doses are shown.`),
+    h("p", { class: "intended" }, result.intended_use));
+}
+
 function render(result) {
   const out = $("#out");
   out.replaceChildren();
   if (result.error) return;
+  out.append(printHeader(result));
   out.append(h("p", { class: "sub" }, `BMI category: ${result.bmi_category} · Request ID ${result.request_id} · computed on this device`));
   if (result.applicable === "NOT_APPLICABLE") {
     out.append(h("div", { class: "notice" }, h("strong", {}, "Not applicable for this patient: "), result.not_applicable_reasons.join("; ")));
@@ -149,6 +171,12 @@ function render(result) {
       h("p", { class: "sub" }, "Negative = the first option lowers HbA1c more. A range that crosses 0 means no clear difference.")));
   }
   out.append(h("p", { class: "decide" }, result.decision));
+  if (result.options.some((o) => o.secondary)) {
+    out.append(h("p", { class: "sub" }, "Weight and low-sugar figures come from the same synthetic cohort and method as HbA1c; they are secondary outcomes for discussion, not a ranking."));
+  }
+  const printBtn = h("button", { type: "button", class: "chip noprint" }, "Print or save as PDF (consultation summary)");
+  printBtn.addEventListener("click", () => window.print());
+  out.append(printBtn);
   out.append(h("details", { class: "card" }, h("summary", {}, "Assumptions behind these numbers"),
     h("ul", {}, result.assumptions.map((a) => h("li", {}, a))),
     h("p", { class: "muted" }, `Engine ${result.versions.engine} · params ${result.versions.params_sha} · rules ${result.versions.rules_sha} · cohort ${result.versions.cohort}`)));

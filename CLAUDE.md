@@ -124,14 +124,16 @@ The evaluation pack is `eval/` (25 synthetic vignettes + the SUS and feedback fo
 ## Causal engine v0.3 (built, standalone) — see docs/CAUSAL_PLAN.md
 
 `diacausal_engine/` compares three options added to metformin (SGLT2i, DPP-4i, sulfonylurea)
-for one patient: the expected 6-month HbA1c change with a 95% interval. It is the "Causal
+for one patient: the expected 6-month HbA1c change with a 95% interval (plus secondary outcomes:
+weight change in kg and hypoglycaemia risk in %, each with a 95% interval; an option whose range is
+wider than `engine.max_interval_width` abstains as "too uncertain"). It is the "Causal
 Inference Pipeline" column of the team flow chart and returns a structured **Causal Output**
 (`schemas.CausalOutput`: APPLICABLE/NOT_APPLICABLE, intervention, outcome, effect, confidence,
 assumptions) for the Evidence Fusion layer. Separate venv at the repo root:
 
 ```bash
 python3.12 -m venv .venv && .venv/bin/pip install -r requirements-engine.txt   # once
-.venv/bin/python -m pytest tests/engine -q                                      # 139 tests
+.venv/bin/python -m pytest tests/engine -q                                      # 148 tests
 .venv/bin/python -m diacausal_engine.benchmark --quick                          # full: drop --quick
 .venv/bin/streamlit run demo/streamlit_app.py                                   # the demo
 .venv/bin/uvicorn diacausal_engine.api:app --port 8001                          # POST /api/v1/recommend
@@ -172,7 +174,7 @@ Never type a threshold into `web/*.js`; no inline script or style (strict CSP in
 TOTP); `web/auth.js` + `account.js`; Try it and Evidence need an approved account. **Never commit
 the Supabase key**: `web/config.json` stays `"accounts": "off"`; `scripts/web_config.py` writes the
 deploy copy only. Patient values and questions stay on the device, never sent to Supabase.
-`.venv/bin/python -m pytest tests/web -q` (16 tests, needs Node). Full chat app hosting: docs/HOSTING_CHAT_APP.md.
+`.venv/bin/python -m pytest tests/web -q` (18 tests, needs Node). Full chat app hosting: docs/HOSTING_CHAT_APP.md.
 
 ## Not built yet — where each piece goes
 

@@ -100,7 +100,7 @@ fails if a key is ever committed.
 ```bash
 .venv/bin/python -m diacausal_engine.export_web   # after an engine change: model.json, results, figures, docs
 .venv/bin/python -m diacausal_rag.export_web      # after a corpus or RAG change: evidence.json
-.venv/bin/python -m pytest tests/web -q            # 16 tests; fails if either file is stale
+.venv/bin/python -m pytest tests/web -q            # 18 tests; fails if either file is stale
 ```
 
 Then deploy a copy of `web/` with the account settings written in:

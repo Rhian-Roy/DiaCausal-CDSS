@@ -159,7 +159,7 @@ sequenceDiagram
 
 | Component | Status |
 |---|---|
-| Causal engine | Built: all 10 steps a–j plus refutation, 139 tests |
+| Causal engine | Built: all 10 steps a–j plus refutation, 148 tests |
 | Chat app | Built: sign-in, guards, patient panel, clinical rules, voice, deployment |
 | RAG, fusion and LLM | Planned; see the RAG plan |
 

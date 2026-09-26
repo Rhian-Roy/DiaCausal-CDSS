@@ -28,3 +28,21 @@ patient_effect,naive,SU-DPP4i,,,,,,,0.1971,,,,,20
 patient_effect,naive,SGLT2i-SU,,,,,,,0.1686,,,,,20
 policy,naive,choose lowest predicted HbA1c among allowed options,,,,,,,,0.0623,0.0248,,,20
 balance,IPW weights,largest |SMD| over covariates and pairs,,,,,,,,,,0.7038,0.0775,20
+secondary_weight,AIPW,SGLT2i (kg),-2.1256,-2.1328,-0.0072,0.0437,1.0000,0.2187,,,,,,20
+secondary_weight,AIPW,DPP4i (kg),-0.3000,-0.2869,0.0131,0.0635,0.9500,0.2666,,,,,,20
+secondary_weight,AIPW,SU (kg),1.2000,1.1980,-0.0020,0.0611,0.9000,0.2553,,,,,,20
+secondary_weight,AIPW,SGLT2i-DPP4i (kg),-1.8256,-1.8459,-0.0203,0.0860,0.9500,0.3452,,,,,,20
+secondary_weight,AIPW,SU-DPP4i (kg),1.5000,1.4849,-0.0151,0.0844,1.0000,0.3694,,,,,,20
+secondary_weight,AIPW,SGLT2i-SU (kg),-3.3256,-3.3308,-0.0052,0.0662,1.0000,0.3364,,,,,,20
+secondary_weight,DR-learner,SGLT2i per patient (kg),,,,,0.9624,0.7215,0.1924,,,,,20
+secondary_weight,DR-learner,DPP4i per patient (kg),,,,,0.9435,0.9494,0.2750,,,,,20
+secondary_weight,DR-learner,SU per patient (kg),,,,,0.9532,0.9252,0.2563,,,,,20
+secondary_hypo,AIPW,SGLT2i (probability),0.0387,0.0363,-0.0024,0.0045,0.9000,0.0212,,,,,,20
+secondary_hypo,AIPW,DPP4i (probability),0.0387,0.0386,-0.0001,0.0051,1.0000,0.0227,,,,,,20
+secondary_hypo,AIPW,SU (probability),0.1672,0.1641,-0.0031,0.0127,0.9500,0.0529,,,,,,20
+secondary_hypo,AIPW,SGLT2i-DPP4i (probability),0.0000,-0.0023,-0.0023,0.0064,1.0000,0.0310,,,,,,20
+secondary_hypo,AIPW,SU-DPP4i (probability),0.1285,0.1255,-0.0030,0.0122,1.0000,0.0575,,,,,,20
+secondary_hypo,AIPW,SGLT2i-SU (probability),-0.1285,-0.1279,0.0007,0.0124,0.9500,0.0569,,,,,,20
+secondary_hypo,DR-learner,SGLT2i per patient (probability),,,,,0.9397,0.0709,0.0202,,,,,20
+secondary_hypo,DR-learner,DPP4i per patient (probability),,,,,0.9275,0.0805,0.0240,,,,,20
+secondary_hypo,DR-learner,SU per patient (probability),,,,,0.9291,0.1960,0.0604,,,,,20

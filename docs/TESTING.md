@@ -89,7 +89,7 @@ libraries and its own tests, so it does not need the chat app's setup:
 ```bash
 python3.12 -m venv .venv && source .venv/bin/activate    # once
 pip install -r requirements-engine.txt                    # once
-python -m pytest tests/engine -q                          # about 3 min; must end "139 passed"
+python -m pytest tests/engine -q                          # about 3 min; must end "148 passed"
 ```
 
 On GitHub the `engine` job in `.github/workflows/check.yml` runs the same tests, the quick
@@ -116,6 +116,8 @@ benchmark and `pip-audit` on Linux and macOS. `scripts/check_all.py` is unchange
 | Logs and the audit trail never contain patient values | `test_h_demo.py`: *audit_log_records_decisions_but_never_patient_values*; `test_i_api.py`: *logs_carry_ids…no_patient_values* |
 | No secrets in the repo; exact version pins | `test_j_invariants.py`: *no_secrets_are_committed*, *requirements_are_exactly_pinned* |
 | Refutation (placebo treatment x20, random common cause, 80% subset) and E-value sensitivity; saved to `results/refutation.csv`, `results/evalues.csv` | `test_k_refute.py` |
+| FR7 secondary outcomes: 6-month weight change (kg) and any-hypoglycaemia risk (%), each with a 95% interval, recovered from the synthetic truth; the primary cohort and results never change; never shown on an excluded or abstained option | `test_l_secondary.py` (all 9) |
+| Abstain as "too uncertain" when the 95% range is wider than `engine.max_interval_width` (TEAM-SET, 1.5 points) | `test_l_secondary.py`: *too_wide_interval_means_insufficient_evidence*, *width_limit_is_team_set*; web: *browser_abstains_like_python_when_the_range_is_too_wide* |
 
 **RAG early skeleton** (`python -m pytest tests/rag -q`, 13 tests, about 2 s):
 
@@ -128,12 +130,13 @@ benchmark and `pip-audit` on Linux and macOS. `scripts/check_all.py` is unchange
 | `docs/SOURCES.md` always matches the licence CSV | *sources_md_is_in_sync* |
 | The committed corpus holds only `cleared_ingest` sources whose licence a team member confirmed (today S08, the FDA metformin/kidney communication); a draft licence is refused | *committed_corpus_holds_only_confirmed_licence_cleared_sources*, *a_draft_licence_is_refused_even_in_the_cleared_bucket* |
 
-**Website** (`python -m pytest tests/web -q`, 16 tests, about 15 s; needs Node):
+**Website** (`python -m pytest tests/web -q`, 18 tests, about 15 s; needs Node):
 
 | Requirement | Proved by (`tests/web/test_web.py`) |
 |---|---|
 | `web/model.json` matches a fresh export of the engine (same params and rules hashes) | *model_json_is_fresh* |
-| The browser engine gives the same statuses, rules and numbers as Python on 155 patients | *browser_engine_gives_the_same_answers_as_python* |
+| The browser engine gives the same statuses, rules and numbers (HbA1c, weight, hypoglycaemia) as Python on 155 patients | *browser_engine_gives_the_same_answers_as_python* |
+| FR11 consultation summary: Print / Save as PDF shows the answer, the patient as entered, versions and the intended use, not the form | *consultation_summary_prints_the_answer_not_the_form* |
 | Intended-use statement on the page; no dose text anywhere in the site | *site_files_carry_the_intended_use_and_no_doses* |
 | No clinical threshold typed into the website code (all from `model.json`) | *no_clinical_threshold_is_typed_into_the_website_code* |
 | Strict CSP holds (no inline script/style); Netlify and Vercel headers match | *no_inline_script_or_style_so_the_strict_csp_holds* |

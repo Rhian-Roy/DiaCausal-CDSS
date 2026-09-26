@@ -163,6 +163,11 @@ def main() -> None:
                         f"<span style='font-size:0.95rem'>(95% range {e.ci_low:+.2f} to {e.ci_high:+.2f})</span></div>"
                         f"<div style='color:{MUTED};font-size:0.85rem'>percentage points of HbA1c at 6 months · "
                         f"propensity {o.confidence.propensity:.2f}</div>")
+                if o.secondary:
+                    w, h = o.secondary.weight_change_kg, o.secondary.hypo_risk_pct
+                    body += (f"<div style='margin-top:6px;font-size:0.9rem'>Weight: <strong>{w.value:+.1f} kg</strong> "
+                             f"({w.ci_low:+.1f} to {w.ci_high:+.1f})<br>Any low sugar by 6 months: "
+                             f"<strong>{h.value:.1f}%</strong> ({h.ci_low:.1f} to {h.ci_high:.1f})</div>")
                 card(border, fill, title, badge, body + safety_html(o) + cost)
 
     if any(o.status == "estimate" for o in result.options):

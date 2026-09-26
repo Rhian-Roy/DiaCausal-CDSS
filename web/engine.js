@@ -27,14 +27,16 @@
     return String(Number(s));
   }
 
-  // Python round(x, 3): round half to even on the exact binary value.
-  function round3(x) {
-    const scaled = x * 1000;
+  // Python round(x, n): round half to even on the exact binary value.
+  function roundN(x, n) {
+    const f = 10 ** n;
+    const scaled = x * f;
     const r = Math.round(scaled);
     const tie = Math.abs(scaled - Math.trunc(scaled)) === 0.5;
     const v = tie && r % 2 !== 0 ? r - 1 : r;
-    return v / 1000 === 0 ? 0 : v / 1000;
+    return v / f === 0 ? 0 : v / f;
   }
+  function round3(x) { return roundN(x, 3); }
 
   function dot(a, b) { let s = 0; for (let i = 0; i < a.length; i++) s += a[i] * b[i]; return s; }
 
@@ -101,8 +103,7 @@
     return e.map((v) => v / s);
   }
 
-  function drPredict(model, x) {
-    const d = model.dr;
+  function drPredict(model, x, d = model.dr) {
     const b = [1, ...x.map((v, i) => (v - d.mean[i]) / d.scale[i])];
     const out = {};
     model.targets.forEach((t, k) => {
@@ -115,6 +116,23 @@
       const z = model.thresholds.ci_z;
       out[t] = [value, value - z * se, value + z * se];
     });
+    return out;
+  }
+
+
+  /** Weight change (kg, 2 dp) and hypoglycaemia risk (% clipped to 0-100, 1 dp), each with a 95% interval. */
+  function secondaryPredict(model, x) {
+    if (!model.secondary || !model.secondary.weight || !model.secondary.hypo) return {};
+    const w = drPredict(model, x, model.secondary.weight), h = drPredict(model, x, model.secondary.hypo);
+    const out = {};
+    const pct = (v) => roundN(Math.min(100, Math.max(0, 100 * v)), 1);
+    for (const a of model.arms.map((m) => m.arm)) {
+      out[a] = {
+        weight_change_kg: { value: roundN(w[a][0], 2), ci_low: roundN(w[a][1], 2), ci_high: roundN(w[a][2], 2), level: 0.95 },
+        hypo_risk_pct: { value: pct(h[a][0]), ci_low: pct(h[a][1]), ci_high: pct(h[a][2]), level: 0.95 },
+        note: model.secondary_note,
+      };
+    }
     return out;
   }
 
@@ -135,7 +153,12 @@
       if (o.status === "estimate") {
         const e = o.effect;
         if (!e || !(e.ci_low <= e.value && e.value <= e.ci_high) || !o.confidence) throw new Error(`${o.arm}: estimate without interval`);
-      } else if (o.effect) throw new Error(`${o.arm}: ${o.status} options must not carry a number`);
+        if (o.secondary) {
+          for (const iv of [o.secondary.weight_change_kg, o.secondary.hypo_risk_pct]) {
+            if (!(iv.ci_low <= iv.value && iv.value <= iv.ci_high)) throw new Error(`${o.arm}: secondary outcome without interval`);
+          }
+        }
+      } else if (o.effect || o.secondary) throw new Error(`${o.arm}: ${o.status} options must not carry a number`);
       if (o.status === "excluded" && !o.safety.some((s) => s.action === "EXCLUDE")) throw new Error(`${o.arm}: excluded without rule`);
     }
     if (result.applicable === "NOT_APPLICABLE" && result.options.some((o) => o.status === "estimate")) {
@@ -160,8 +183,13 @@
     const p = propensity(model, x); // 4.
     const threshold = model.thresholds.overlap_min_propensity;
     const ok = p.map((v) => v >= threshold);
-    const estimable = model.arms.map((a) => a.arm).filter((a, j) => !verdicts[a].excluded && !outside.length && ok[j]);
+    let estimable = model.arms.map((a) => a.arm).filter((a, j) => !verdicts[a].excluded && !outside.length && ok[j]);
     const pred = estimable.length ? drPredict(model, x) : {}; // 5. only surviving options
+    const width = {};
+    for (const a of estimable) width[a] = pred[a][2] - pred[a][1];
+    const maxWidth = model.thresholds.max_interval_width;
+    estimable = estimable.filter((a) => width[a] <= maxWidth); // too uncertain -> abstain
+    const secondary = estimable.length ? secondaryPredict(model, x) : {};
 
     const options = model.arms.map((a, j) => {
       const v = verdicts[a.arm];
@@ -171,7 +199,7 @@
           rule_id: rule.rule_id, action: rule.action, condition: rule.condition, message: rule.message,
           source: rule.source, section: rule.section, rule_status: rule.status,
         })),
-        effect: null, confidence: null, insufficient_reason: null, cost: model.prices[a.arm],
+        effect: null, confidence: null, insufficient_reason: null, cost: model.prices[a.arm], secondary: null,
       };
       if (v.excluded) return { ...base, status: "excluded" };
       if (outside.length) return { ...base, status: "insufficient_evidence", insufficient_reason: "Outside the cohort: " + outside.join("; ") };
@@ -181,10 +209,17 @@
           insufficient_reason: `Too few similar patients received this option (propensity ${p[j].toFixed(3)}, below ${g(threshold)}). A fair comparison is not possible.`,
         };
       }
+      if (!estimable.includes(a.arm)) {
+        return {
+          ...base, status: "insufficient_evidence",
+          insufficient_reason: `Too uncertain: this patient's 95% range is ${width[a.arm].toFixed(2)} points wide (limit ${g(maxWidth)}). A useful estimate is not possible.`,
+        };
+      }
       const [est, lo, hi] = pred[a.arm];
       return {
         ...base, status: "estimate",
         effect: { value: round3(est), ci_low: round3(lo), ci_high: round3(hi), level: 0.95 },
+        secondary: secondary[a.arm] || null,
         confidence: { propensity: round3(p[j]), overlap_threshold: threshold, interval_level: 0.95, method: model.method },
         _raw: opts.raw ? { value: est, ci_low: lo, ci_high: hi, propensity: p[j] } : undefined,
       };
@@ -199,7 +234,7 @@
     }
     const reasons = [...outside];
     if (model.arms.every((a) => verdicts[a.arm].excluded)) reasons.push("every option is excluded by a safety rule");
-    else if (!estimable.length && !outside.length) reasons.push("no option has enough similar patients for a fair estimate");
+    else if (!estimable.length && !outside.length) reasons.push("no option has enough similar patients (or a narrow enough 95% range) for a useful estimate");
 
     const result = {
       schema_version: "1.0",
@@ -221,5 +256,5 @@
     return opts.raw ? result : clean;
   }
 
-  return { recommend, validate, bmiCategory, FIELDS, FLAGS, _internals: { g, round3, propensity, drPredict, supportCheck, applyRules } };
+  return { recommend, validate, bmiCategory, FIELDS, FLAGS, _internals: { g, round3, roundN, propensity, drPredict, secondaryPredict, supportCheck, applyRules } };
 });
