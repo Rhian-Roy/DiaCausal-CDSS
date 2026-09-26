@@ -85,6 +85,14 @@ class Cost(Strict):
     source: str | None = None
 
 
+class Secondary(Strict):
+    """FR7: this patient's expected 6-month weight change and hypoglycaemia risk under the option."""
+
+    weight_change_kg: Interval  # negative = weight falls
+    hypo_risk_pct: Interval  # chance of any hypoglycaemia by 6 months, %, limited to 0-100
+    note: str = "Secondary outcomes from the same synthetic cohort and method; the clinician decides."
+
+
 class OptionOut(Strict):
     arm: Literal["SGLT2i", "DPP4i", "SU"]
     name: str
@@ -94,6 +102,7 @@ class OptionOut(Strict):
     effect: Interval | None = None  # only when status == "estimate"
     confidence: Confidence | None = None
     insufficient_reason: str | None = None
+    secondary: Secondary | None = None  # only when status == "estimate"
     cost: Cost
 
 

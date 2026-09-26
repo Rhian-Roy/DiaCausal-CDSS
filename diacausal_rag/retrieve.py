@@ -27,6 +27,11 @@ DOSE = re.compile(r"\b\d+(\.\d+)?\s*(mg|mcg|µg)\b|\b(once|twice)\s+daily\b|\bmg
 WITHHELD = "[Passage withheld: it contains dosing text. Doses come only from the official drug label.]"
 
 
+def index_text(text: str) -> str:
+    """The text that is searched: dose-like phrases removed, so no dose ever enters the index."""
+    return DOSE.sub(" ", text)
+
+
 def tokens(text: str) -> list[str]:
     """Lower-case words without common English stop words ("the", "is", "of" carry no evidence)."""
     return [t for t in TOKEN.findall(text.lower()) if t not in ENGLISH_STOP_WORDS]
@@ -70,7 +75,7 @@ class Retriever:
         self.chunks = chunks
         if not chunks:
             return
-        texts = [c.text for c in chunks]
+        texts = [index_text(c.text) for c in chunks]
         self.bm25 = BM25(texts, self.cfg["bm25_k1"], self.cfg["bm25_b"])
         self.vectorizer = TfidfVectorizer(ngram_range=(1, 2), sublinear_tf=True, stop_words="english")
         self.matrix = self.vectorizer.fit_transform(texts)
@@ -91,6 +96,10 @@ class Retriever:
         best = self.rerank(question, sorted(fused, key=lambda i: -fused[i]))[:k]
         if max(bm) < self.cfg["min_bm25_score"]:
             return self._abstain(question, "no approved passage matches this question well enough")
+        q = set(tokens(question))
+        found = q & set().union(*(self.bm25.tf[i].keys() for i in best))
+        if q and len(found) / len(q) < self.cfg.get("min_query_coverage", 0.0):
+            return self._abstain(question, "the passages found cover too few of the question's words")
         passages = []
         for i in best:
             c = self.chunks[i]

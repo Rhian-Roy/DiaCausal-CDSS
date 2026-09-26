@@ -124,14 +124,16 @@ The evaluation pack is `eval/` (25 synthetic vignettes + the SUS and feedback fo
 ## Causal engine v0.3 (built, standalone) — see docs/CAUSAL_PLAN.md
 
 `diacausal_engine/` compares three options added to metformin (SGLT2i, DPP-4i, sulfonylurea)
-for one patient: the expected 6-month HbA1c change with a 95% interval. It is the "Causal
+for one patient: the expected 6-month HbA1c change with a 95% interval (plus secondary outcomes:
+weight change in kg and hypoglycaemia risk in %, each with a 95% interval; an option whose range is
+wider than `engine.max_interval_width` abstains as "too uncertain"). It is the "Causal
 Inference Pipeline" column of the team flow chart and returns a structured **Causal Output**
 (`schemas.CausalOutput`: APPLICABLE/NOT_APPLICABLE, intervention, outcome, effect, confidence,
 assumptions) for the Evidence Fusion layer. Separate venv at the repo root:
 
 ```bash
 python3.12 -m venv .venv && .venv/bin/pip install -r requirements-engine.txt   # once
-.venv/bin/python -m pytest tests/engine -q                                      # 139 tests
+.venv/bin/python -m pytest tests/engine -q                                      # 149 tests
 .venv/bin/python -m diacausal_engine.benchmark --quick                          # full: drop --quick
 .venv/bin/streamlit run demo/streamlit_app.py                                   # the demo
 .venv/bin/uvicorn diacausal_engine.api:app --port 8001                          # POST /api/v1/recommend
@@ -171,15 +173,18 @@ Never type a threshold into `web/*.js`; no inline script or style (strict CSP in
 `vercel.json`). Accounts: Supabase project `diacausal` (`supabase/migrations/`, RLS, admin approval,
 TOTP); `web/auth.js` + `account.js`; Try it and Evidence need an approved account. **Never commit
 the Supabase key**: `web/config.json` stays `"accounts": "off"`; `scripts/web_config.py` writes the
-deploy copy only. Patient values and questions stay on the device, never sent to Supabase.
-`.venv/bin/python -m pytest tests/web -q` (16 tests, needs Node). Full chat app hosting: docs/HOSTING_CHAT_APP.md.
+deploy copy only. Patient values never leave the device. Questions stay on the device unless an approved
+user presses "Explain … with Gemini (online)": then only the question + passage IDs go to the Edge
+Function `supabase/functions/explain/` (key = Supabase secret `GEMINI_API_KEY`; docs/GEMINI_SETUP.md).
+`web/explain.js` mirrors `diacausal_rag/explain.py` (template + citation checker).
+`.venv/bin/python -m pytest tests/web -q` (19 tests, needs Node). Full chat app hosting: docs/HOSTING_CHAT_APP.md.
 
 ## Not built yet — where each piece goes
 
 | Piece | Backend | Frontend / other |
 |---|---|---|
 | Causal engine in the chat app (October) | `backend/app/pipeline/causal_engine.py` calls `diacausal_engine` on `ctx.options` only | designs 17 and 19; `contract.ts` + `schemas.py` together |
-| RAG (early skeleton in `diacausal_rag/`: licence gate incl. team-confirmed licences, chunking, BM25 + vector, RRF, evidence JSON; `tests/rag`; corpus = FDA S08 metformin/kidney; on the website's Evidence tab), evidence fusion, LLM explanation | `backend/app/pipeline/<stage>.py` | `docs/03_RAG_Build_Guide.md`; only `cleared_ingest` sources |
+| RAG in the chat app (built standalone in `diacausal_rag/`: licence gate, WHO 2018 + FDA S08/S19–S23, sentence-aware chunks, BM25 + TF-IDF, RRF, coverage abstention, `explain.py` template/Gemini/Ollama + citation checker, `eval/rag_gold.csv` + `evaluate`; `tests/rag` 33; website Evidence tab). Still to do: medical embedding model, reranker, doctor review of the gold set | `backend/app/pipeline/rag_retrieval.py`, `llm_explanation.py` call `diacausal_rag` | `docs/03_RAG_Build_Guide.md`; only `cleared_ingest` sources |
 
 Each folder's README says how it connects.
 

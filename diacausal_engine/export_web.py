@@ -24,6 +24,7 @@ from diacausal_engine import ARMS, CONTRASTS, INTENDED_USE, __version__
 from diacausal_engine.config import ROOT
 from diacausal_engine.estimators import TARGETS
 from diacausal_engine.recommend import ASSUMPTIONS, DOSE_PATTERN, Engine
+from diacausal_engine.schemas import Secondary
 
 WEB = ROOT / "web"
 FIGURES = ("overlap", "love_plot", "ate_vs_truth", "cate_recovery", "calibration")
@@ -33,6 +34,11 @@ DOCS = {"causal-engine.md": ROOT / "docs/explain/07-causal-engine.md",
 
 def _floats(a) -> list:
     return [float(v) for v in a] if getattr(a, "ndim", 1) == 1 else [_floats(r) for r in a]
+
+
+def _dr(dr) -> dict:
+    return {"mean": _floats(dr.mean_), "scale": _floats(dr.scale_),
+            "beta": _floats(dr.beta_), "cov": [_floats(c) for c in dr.cov_]}
 
 
 def model_dict(engine: Engine) -> dict:
@@ -56,8 +62,10 @@ def model_dict(engine: Engine) -> dict:
         "features": engine.adjustment,
         "propensity": {"mean": _floats(scaler.mean_), "scale": _floats(scaler.scale_),
                        "coef": _floats(logit.coef_), "intercept": _floats(logit.intercept_)},
-        "dr": {"mean": _floats(f.dr.mean_), "scale": _floats(f.dr.scale_),
-               "beta": _floats(f.dr.beta_), "cov": [_floats(c) for c in f.dr.cov_]},
+        "dr": _dr(f.dr),
+        "secondary": {name: _dr(getattr(f, f"dr_{name}")) for name in ("weight", "hypo")
+                      if getattr(f, f"dr_{name}") is not None},
+        "secondary_note": Secondary.model_fields["note"].default,
         "support": support,
         "t1d_in_cohort": bool(obs["t1d"].any()),
         "rules": [{"rule_id": r.rule_id, "arm": r.arm, "field": r.field, "op": r.op, "value": r.value,
@@ -65,6 +73,7 @@ def model_dict(engine: Engine) -> dict:
                    "status": r.status, "condition": r.condition} for r in engine.rules.rules],
         "thresholds": {
             "overlap_min_propensity": engine.threshold,
+            "max_interval_width": engine.max_width,
             "ci_z": engine.z,
             "bmi_underweight_below": p.get("display.bmi_underweight_below"),
             "bmi_overweight_from": p.get("display.bmi_overweight_from"),

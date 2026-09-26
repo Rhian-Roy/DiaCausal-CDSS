@@ -23,7 +23,8 @@ from diacausal_engine.dag import load_dag
 BINARY = ("female", "ascvd", "hf", "hypo_history", "dka_history", "pancreatitis_history", "low_income")
 CONTINUOUS = ("age", "duration_years", "hba1c", "egfr", "bmi")
 # Columns only the simulator knows. observed_view() drops them.
-TRUTH_PREFIXES = ("y_true_", "mu_true_", "e_true_")
+TRUTH_PREFIXES = ("y_true_", "mu_true_", "e_true_", "wmu_true_", "w_true_", "hp_true_", "h_true_")
+SECONDARY_STREAM = 17  # secondary outcomes use rng([seed, 17]): the primary cohort never changes
 
 
 def _clip_normal(rng, mean, sd, lo, hi, n):
@@ -110,6 +111,25 @@ def true_expected_outcomes(params: Params, df: pd.DataFrame) -> np.ndarray:
     return out
 
 
+def true_secondary(params: Params, df: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
+    """Noise-free truth for the secondary outcomes, each (n, 3) in ARMS order:
+    expected 6-month weight change (kg) and the probability of any hypoglycaemia by 6 months."""
+    w, h = "generator.secondary.weight", "generator.secondary.hypo"
+    g = params.get
+    bmi_c = df["bmi"].to_numpy(float) - g(f"{w}.centre_bmi")
+    age_c = df["age"].to_numpy(float) - g("generator.assignment.centre.age")
+    below = np.maximum(0.0, (g("generator.assignment.centre.egfr") - df["egfr"].to_numpy(float)) / 10.0)
+    weight = np.empty((len(df), len(ARMS)))
+    logit = np.empty((len(df), len(ARMS)))
+    base_logit = (g(f"{h}.intercept") + g(f"{h}.hypo_history") * df["hypo_history"].to_numpy(float)
+                  + g(f"{h}.age_per_year") * age_c + g(f"{h}.egfr_per_10_below_80") * below)
+    for j, arm in enumerate(ARMS):
+        weight[:, j] = g(f"{w}.drift") + g(f"{w}.{arm}.base") + g(f"{w}.{arm}.per_bmi") * bmi_c
+        extra = g(f"{h}.su_extra_age_per_year") * age_c if arm == "SU" else 0.0
+        logit[:, j] = base_logit + g(f"{h}.{arm}") + extra
+    return weight, 1.0 / (1.0 + np.exp(-logit))
+
+
 def generate_cohort(params: Params, n: int | None = None, seed: int = 0) -> pd.DataFrame:
     """One synthetic cohort: covariates, the drug received, the observed outcome, and the truth."""
     n = int(n or params.get("generator.n_patients"))
@@ -126,6 +146,18 @@ def generate_cohort(params: Params, n: int | None = None, seed: int = 0) -> pd.D
         df[f"mu_true_{arm}"] = mu[:, j]
         df[f"y_true_{arm}"] = y_all[:, j]
     df["y"] = y_all[np.arange(n), idx]
+    # Secondary outcomes from their own stream (so the primary draws above are unchanged).
+    rng2 = np.random.default_rng([seed, SECONDARY_STREAM])
+    w_mu, h_p = true_secondary(params, df)
+    w_all = w_mu + rng2.normal(0.0, params.get("generator.secondary.weight.noise_sd"), (n, len(ARMS)))
+    h_all = (rng2.random((n, 1)) < h_p).astype(int)  # one shared uniform: potential outcomes are coupled
+    for j, arm in enumerate(ARMS):
+        df[f"wmu_true_{arm}"] = w_mu[:, j]
+        df[f"w_true_{arm}"] = w_all[:, j]
+        df[f"hp_true_{arm}"] = h_p[:, j]
+        df[f"h_true_{arm}"] = h_all[:, j]
+    df["weight_change_6m"] = np.round(w_all[np.arange(n), idx], 2)
+    df["hypo_6m"] = h_all[np.arange(n), idx]
     return df
 
 
@@ -152,6 +184,20 @@ def true_population_effects(params: Params, seed: int = 12345) -> dict[str, floa
     out = {arm: float(mu[:, j].mean()) for j, arm in enumerate(ARMS)}
     for a, b in CONTRASTS:
         out[f"{a}-{b}"] = out[a] - out[b]
+    return out
+
+
+def true_secondary_population(params: Params, seed: int = 12345) -> dict[str, float]:
+    """True average weight change (kg) and hypoglycaemia risk under each arm, and their contrasts."""
+    n = int(params.get("generator.population_truth_n"))
+    df = draw_covariates(params, n, np.random.default_rng(seed))
+    w, h = true_secondary(params, df)
+    out: dict[str, float] = {}
+    for name, m in (("weight", w), ("hypo", h)):
+        for j, arm in enumerate(ARMS):
+            out[f"{name}:{arm}"] = float(m[:, j].mean())
+        for a, b in CONTRASTS:
+            out[f"{name}:{a}-{b}"] = out[f"{name}:{a}"] - out[f"{name}:{b}"]
     return out
 
 

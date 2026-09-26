@@ -2,7 +2,7 @@
    The cache name changes whenever the site changes, so a new version replaces the old.
    Only this website's own files are cached; sign-in requests to the account service are never cached.
    config.json (made at deploy time, not in git) is cached the first time it loads. */
-const VERSION = "diacausal-v2";
+const VERSION = "diacausal-v3";
 const ASSETS = [
   "./",
   "./index.html",
@@ -10,6 +10,7 @@ const ASSETS = [
   "./app.js",
   "./engine.js",
   "./evidence.js",
+  "./explain.js",
   "./evidence.json",
   "./auth.js",
   "./account.js",

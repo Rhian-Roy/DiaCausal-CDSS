@@ -118,6 +118,24 @@ interval from −0.207 to −0.106. That interval just misses the true −0.211.
 ~5% of cohorts where a 95% interval is expected to miss. Across all 20 cohorts, AIPW's coverage
 was 90–95% (section 2).
 
+## 7b. Secondary outcomes: weight and hypoglycaemia (FR7)
+
+Same cohorts, same propensities, same AIPW and DR-learner method; the outcomes come from a
+separate random stream, so every number above is unchanged. Truth: `generator.secondary` in
+`data/params.yaml` (directions from Palmer 2016 / Tsapas 2020, ASSUMED-DIRECTIONAL; sizes TEAM-SET).
+Rows `secondary_weight` and `secondary_hypo` in `results/benchmark_summary.csv` (20 × 5,000):
+
+| Outcome | Option or contrast | Truth | AIPW estimate | Bias | 95% coverage |
+|---|---|---|---|---|---|
+| Weight change (kg) | SGLT2i vs SU | −3.33 | −3.33 | −0.005 | 1.00 |
+| Weight change (kg) | SU vs DPP-4i | +1.50 | +1.48 | −0.015 | 1.00 |
+| Any hypoglycaemia (risk) | SU vs DPP-4i | +12.9 points | +12.6 points | −0.3 points | 1.00 |
+| Any hypoglycaemia (risk) | SGLT2i vs DPP-4i | 0 | −0.2 points | −0.2 points | 1.00 |
+
+Per patient, the DR-learner's 95% intervals cover the true weight change 94–96% of the time and the
+true hypoglycaemia risk 93–94% of the time. The website shows both on every estimate card, as
+secondary outcomes for discussion, not as a ranking.
+
 ## 8. The five figures, and how to read each one
 
 | Figure | How to read it |
@@ -127,6 +145,24 @@ was 90–95% (section 2).
 | `results/figures/ate_vs_truth.png` | For each comparison, each method's average estimate with its 95% interval; the black vertical line is the truth. Naive (grey) misses it; IPW, matching and AIPW sit on it. |
 | `results/figures/cate_recovery.png` | Each dot is one test patient: true effect (across) against the DR-learner's estimate (up). Dots near the dashed diagonal are accurate. The small off-diagonal cluster in the middle panel is the rare-patient limitation. |
 | `results/figures/calibration.png` | Patients grouped into tenths by predicted effect: the average predicted vs the average true effect. Points on the diagonal mean the predictions are well calibrated. |
+
+## 8b. RAG evaluation (evidence search and explanations)
+
+`python -m diacausal_rag.evaluate` on `eval/rag_gold.csv` (45 answerable questions with the source and
+section that answer them, 10 out of scope, 5 dose requests). Numbers from `results/rag_eval_summary.csv`
+(template back-end):
+
+| Metric | Value | Team target |
+|---|---|---|
+| Recall@5 (right source and section in the top 5) | 0.933 | ≥ 0.80 |
+| Answerable questions answered | 0.978 | — |
+| Out-of-scope questions refused | 0.800 | ≥ 0.95 (not met) |
+| Citation precision (explanation sentences passing the checker) | 1.000 | ≥ 0.95 |
+| Dose leaks | 0 | 0 |
+
+Honest notes: the retrieval thresholds were tuned on this same set, so the numbers are optimistic;
+the doctor must review the 20 flagged questions; the quoted (template) explanation is extractive, so
+its citation precision is 1.0 by construction — the checker matters for the Gemini and Ollama back-ends.
 
 ## 9. What this does *not* show
 

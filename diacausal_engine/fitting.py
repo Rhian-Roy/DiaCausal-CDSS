@@ -26,6 +26,14 @@ class Fitted:
     propensity: Pipeline  # full-data model for new patients
     dr: DRLearner
     observed: pd.DataFrame
+    # Secondary outcomes (FR7): same propensities, own outcome models and DR-learners.
+    phi_weight: np.ndarray | None = None
+    dr_weight: DRLearner | None = None
+    phi_hypo: np.ndarray | None = None
+    dr_hypo: DRLearner | None = None
+
+
+SECONDARY = {"weight": "weight_change_6m", "hypo": "hypo_6m"}
 
 
 def fit_all(params: Params, cohort: pd.DataFrame, seed: int) -> Fitted:
@@ -35,4 +43,13 @@ def fit_all(params: Params, cohort: pd.DataFrame, seed: int) -> Fitted:
     e = clip(crossfit_propensity(X, T, folds, seed), params.get("engine.propensity_clip"))
     mu = crossfit_outcomes(X, T, Y, folds, params.group("engine.outcome_model"), seed)
     phi = aipw_scores(Y, T, e, mu)
-    return Fitted(X, T, Y, e, mu, phi, fit_full(X, T), DRLearner().fit(X, phi), obs)
+    fitted = Fitted(X, T, Y, e, mu, phi, fit_full(X, T), DRLearner().fit(X, phi), obs)
+    settings = params.group("engine.outcome_model")
+    for name, col in SECONDARY.items():
+        if col not in obs:
+            continue  # a real dataset without secondary outcomes: primary only
+        y2 = obs[col].to_numpy(float)
+        phi2 = aipw_scores(y2, T, e, crossfit_outcomes(X, T, y2, folds, settings, seed))
+        setattr(fitted, f"phi_{name}", phi2)
+        setattr(fitted, f"dr_{name}", DRLearner().fit(X, phi2))
+    return fitted

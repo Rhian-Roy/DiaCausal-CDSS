@@ -89,14 +89,54 @@ function card(o) {
     const e = o.effect;
     body.push(h("p", { class: "est" }, signed(e.value), " ", h("small", {}, `(95% range ${signed(e.ci_low)} to ${signed(e.ci_high)})`)));
     body.push(h("p", { class: "sub" }, `percentage points of HbA1c at 6 months · propensity ${o.confidence.propensity.toFixed(2)}`));
+    if (o.secondary) {
+      const w = o.secondary.weight_change_kg, r = o.secondary.hypo_risk_pct;
+      body.push(h("dl", { class: "sec" },
+        h("dt", {}, "Weight at 6 months"),
+        h("dd", {}, h("strong", {}, `${signed(w.value, 1)} kg`), ` (95% range ${signed(w.ci_low, 1)} to ${signed(w.ci_high, 1)})`),
+        h("dt", {}, "Any low sugar by 6 months"),
+        h("dd", {}, h("strong", {}, `${r.value.toFixed(1)}%`), ` (95% range ${r.ci_low.toFixed(1)} to ${r.ci_high.toFixed(1)})`)));
+    }
   }
   body.push(...ruleLines(o));
   body.push(h("p", { class: "sub" }, `Cost: ${o.cost.label}`));
+  body.push(optionEvidence(o));
   return h("div", { class: `opt opt--${kind}` },
     h("div", { class: "opt__head" },
       h("div", {}, h("div", { class: "opt__name" }, o.name), h("div", { class: "opt__example" }, `e.g. ${o.example_molecule}`)),
       h("span", { class: "badge" }, badge)),
     ...body);
+}
+
+/** Evidence fusion: the licence-cleared passages about this option (and its fired rules), loaded on tap. */
+function optionEvidence(o) {
+  const d = h("details", { class: "opt__ev noprint" }, h("summary", {}, "Evidence for this option"));
+  d.addEventListener("toggle", async () => {
+    if (!d.open || d.dataset.done) return;
+    d.dataset.done = "1";
+    const index = await loadEvidence();
+    const conds = o.safety.map((s) => s.condition).join(" ");
+    const keys = [o.name.split(" ")[0].toLowerCase(), o.example_molecule.toLowerCase()];
+    const about = (p) => p.text !== index.withheld_text && keys.some((k) => p.text.toLowerCase().includes(k));
+    const seen = new Set();
+    const shown = [];
+    for (const q of [`${o.name} ${conds}`, `${o.name} safety`, o.name]) {
+      const res = window.DiaCausalEvidence.search(index, q);
+      for (const p of res.passages.filter(about)) {
+        const key = `${p.citation.source_id}|${p.citation.section}|${p.text.slice(0, 40)}`;
+        if (!seen.has(key) && shown.length < 2) { seen.add(key); shown.push(p); }
+      }
+      if (shown.length >= 2) break;
+    }
+    if (!shown.length) { d.append(h("p", { class: "sub" }, "No licence-cleared passage about this option yet.")); return; }
+    for (const p of shown) {
+      const c = p.citation;
+      d.append(h("blockquote", { class: "ev-quote" }, p.text.split(/\s+/).slice(0, 60).join(" ") + (p.text.split(/\s+/).length > 60 ? " …" : ""),
+        h("span", { class: "src" }, `Source ${c.source_id}: ${c.title} — “${c.section}”`)));
+    }
+    d.append(h("p", { class: "muted" }, "Source passages, not advice. More on the Evidence tab."));
+  });
+  return d;
 }
 
 function forest(options) {
@@ -124,10 +164,24 @@ function forest(options) {
   return g;
 }
 
+/** Only on paper: what was entered, when, and under which versions (the page itself is never sent anywhere). */
+function printHeader(result) {
+  const p = readForm();
+  const flags = window.DiaCausal.FLAGS.filter((f) => p[f]).map((f) => f.replace(/_/g, " "));
+  return h("div", { class: "print-only print-head" },
+    h("h2", {}, "DiaCausal consultation summary"),
+    h("p", {}, `Printed ${new Date().toLocaleString("en-IN")} · Request ID ${result.request_id}`),
+    h("p", {}, `Patient as entered: age ${p.age}, ${p.sex}, diabetes ${p.duration_years} years, HbA1c ${p.hba1c}%, eGFR ${p.egfr} mL/min/1.73m², BMI ${p.bmi} kg/m²` +
+      (flags.length ? `; history: ${flags.join(", ")}` : "") + "."),
+    h("p", {}, `Engine ${result.versions.engine} · params ${result.versions.params_sha} · rules ${result.versions.rules_sha} · ${result.versions.cohort}. Synthetic data only; no doses are shown.`),
+    h("p", { class: "intended" }, result.intended_use));
+}
+
 function render(result) {
   const out = $("#out");
   out.replaceChildren();
   if (result.error) return;
+  out.append(printHeader(result));
   out.append(h("p", { class: "sub" }, `BMI category: ${result.bmi_category} · Request ID ${result.request_id} · computed on this device`));
   if (result.applicable === "NOT_APPLICABLE") {
     out.append(h("div", { class: "notice" }, h("strong", {}, "Not applicable for this patient: "), result.not_applicable_reasons.join("; ")));
@@ -149,6 +203,12 @@ function render(result) {
       h("p", { class: "sub" }, "Negative = the first option lowers HbA1c more. A range that crosses 0 means no clear difference.")));
   }
   out.append(h("p", { class: "decide" }, result.decision));
+  if (result.options.some((o) => o.secondary)) {
+    out.append(h("p", { class: "sub" }, "Weight and low-sugar figures come from the same synthetic cohort and method as HbA1c; they are secondary outcomes for discussion, not a ranking."));
+  }
+  const printBtn = h("button", { type: "button", class: "chip noprint" }, "Print or save as PDF (consultation summary)");
+  printBtn.addEventListener("click", () => window.print());
+  out.append(printBtn);
   out.append(h("details", { class: "card" }, h("summary", {}, "Assumptions behind these numbers"),
     h("ul", {}, result.assumptions.map((a) => h("li", {}, a))),
     h("p", { class: "muted" }, `Engine ${result.versions.engine} · params ${result.versions.params_sha} · rules ${result.versions.rules_sha} · cohort ${result.versions.cohort}`)));
@@ -263,23 +323,70 @@ function excerpt(text, question) {
     h("details", {}, h("summary", {}, "Read the whole passage"), h("p", { class: "passage__text" }, text)));
 }
 
+/** The explanation card: quoted (template) or a checked model answer, every sentence with its passage number. */
+function explanationView(r) {
+  const title = r.backend === "template" ? "Explanation (sentences quoted from the passages below)" : `Explanation (${r.backend}, checked against the passages below)`;
+  const wrap = h("div", {}, h("h2", {}, title));
+  if (r.status !== "SUCCESS") {
+    wrap.append(h("p", { class: "sub" }, `No explanation: ${r.note}`));
+    return wrap;
+  }
+  wrap.append(h("ul", { class: "explain__list" }, r.sentences.map((s) => h("li", {},
+    r.backend === "template" ? `“${s.text}”` : s.text, " ", h("span", { class: "cite" }, s.cites.map((c) => `[${c}]`).join(""))))));
+  if (r.note) wrap.append(h("p", { class: "muted" }, r.note));
+  wrap.append(h("p", { class: "muted" }, "Numbers in brackets point to the passages below. The clinician decides."));
+  return wrap;
+}
+
+/** Opt-in online rewrite: the server rebuilds the passages from their IDs; the answer is checked here. */
+async function onlineExplanation(index, question, res, chunkIds) {
+  try {
+    const { data, error } = await AUTH.client.functions.invoke("explain", { body: { question, chunk_ids: chunkIds } });
+    if (error || !data || typeof data.text !== "string") throw new Error((data && data.error) || "unavailable");
+    return window.DiaCausalExplain.fromModel(index, question, res, "Gemini", data.text);
+  } catch (e) {
+    const fallback = window.DiaCausalExplain.explain(index, question, res);
+    fallback.note = "Gemini is not available right now (the free key may not be set up yet, or the daily quota is used up); showing quoted sentences instead.";
+    return fallback;
+  }
+}
+
 async function ask(question) {
   const out = $("#ev-out");
   const q = question.trim();
   if (!q) { out.replaceChildren(h("p", { class: "errors" }, "Please type a question.")); return; }
   const index = await loadEvidence();
-  const res = window.DiaCausalEvidence.search(index, q);
+  const raw = window.DiaCausalEvidence.search(index, q, { raw: true });
+  const chunkIds = raw.passages.map((p) => p._raw.chunk_id);
+  const res = JSON.parse(JSON.stringify({ ...raw, passages: raw.passages.map(({ _raw, ...p }) => p) }));
   out.replaceChildren();
+  const note = window.DiaCausalExplain.explain(index, q, res);
+  if (res.status === "SUCCESS" && note.status !== "SUCCESS" && note.note === index.no_dose_note) {
+    out.append(h("div", { class: "notice" }, h("strong", {}, "No doses: "), index.no_dose_note));
+  }
   if (res.status === "INSUFFICIENT_EVIDENCE") {
     out.append(h("div", { class: "notice" }, h("strong", {}, "Insufficient evidence: "), res.reason,
       h("p", { class: "sub" }, "DiaCausal does not guess. Ask about something the approved sources cover, or check the sources below.")));
     return;
   }
+  const box = h("div", { class: "card explain" });
+  box.append(explanationView(note));
+  if (note.status === "SUCCESS" && AUTH && AUTH.view() === "app") {
+    const btn = h("button", { type: "button", class: "chip" }, "Explain in plain words with Gemini (online)");
+    const warn = h("p", { class: "muted" }, "Sends your question and the passage numbers (never patient details) to Google Gemini through DiaCausal's server. The answer is checked against the passages; if any sentence fails, the quotes stay.");
+    btn.addEventListener("click", async () => {
+      btn.disabled = true;
+      btn.textContent = "Asking Gemini…";
+      box.replaceChildren(explanationView(await onlineExplanation(index, q, res, chunkIds)));
+    });
+    box.append(btn, warn);
+  }
+  out.append(box);
   out.append(h("h2", {}, `${res.passages.length} passages, best match first`));
   res.passages.forEach((p, i) => {
     const c = p.citation;
     out.append(h("article", { class: "card passage" },
-      h("p", { class: "passage__cite" }, `${i + 1}. “${c.section}”, page ${c.page}`),
+      h("p", { class: "passage__cite" }, `${i + 1}. “${c.section}”, ${c.page === "?" ? "web page" : `page ${c.page}`}`),
       h("p", { class: "src" }, `Source ${c.source_id}: ${c.title}`),
       excerpt(p.text, q),
       h("p", { class: "muted" }, `Scores: keyword (BM25) ${p.scores.bm25} · vector ${p.scores.vector} · fused ${p.scores.rrf}`)));

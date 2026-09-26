@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 from diacausal_rag import INTENDED_USE  # noqa: E402
-from diacausal_rag.ingest import CLEARED, LicenceError, chunk_document, ingest, load_config, load_sources, split_sections  # noqa: E402
+from diacausal_rag.ingest import CLEARED, CORPUS, LicenceError, chunk_document, ingest, load_config, load_sources, split_sections  # noqa: E402
 from diacausal_rag.retrieve import WITHHELD, Retriever, rrf  # noqa: E402
 
 DOC = """[page 1]
@@ -75,7 +75,11 @@ def test_unsupported_questions_get_insufficient_evidence(retriever):
 
 
 def test_passages_with_dose_text_are_withheld(retriever):
-    out = retriever.search("dosing start once daily")
+    # with the default settings a dose question finds too little to answer: nothing is shown
+    assert not any("mg" in p["text"] for p in retriever.search("dosing start once daily")["passages"])
+    # and even when a dose passage is retrieved (coverage check off), its text is withheld
+    loose = Retriever(retriever.chunks, {**retriever.cfg, "min_query_coverage": 0.0})
+    out = loose.search("dosing start once daily")
     texts = [p["text"] for p in out["passages"]]
     assert WITHHELD in texts and not any("mg" in t for t in texts)
 
@@ -104,7 +108,14 @@ def test_the_committed_corpus_holds_only_confirmed_licence_cleared_sources():
     for c in chunks:
         assert c.licence_bucket == CLEARED and is_confirmed(sources[c.source_id]), c.chunk_id
     assert {c.source_id for c in chunks} <= {k for k, r in sources.items() if r["bucket"] == CLEARED and is_confirmed(r)}
-    assert "S01" not in {c.source_id for c in chunks}  # WHO 2018 waits for Member B
+    # WHO 2018 (S01) is in only because a team member confirmed its CC BY-NC-SA 3.0 IGO licence
+    assert "S01" in {c.source_id for c in chunks} and is_confirmed(sources["S01"])
+    assert "CC BY-NC-SA 3.0 IGO" in sources["S01"]["licence_as_found"]
+    # every text file in the corpus folder is listed in the manifest (nothing slips in unlisted)
+    listed = {row.split(",")[0] for row in (CORPUS / "manifest.csv").read_text().splitlines()[1:] if row}
+    assert {f.name for f in CORPUS.glob("*.txt")} == listed
+    # never ingested: IDF, ADA, NICE, KDIGO, RSSDI 2022 (cite only / excluded)
+    assert not {c.source_id for c in chunks} & {"S03", "S09", "S10", "S11", "S12"}
 
 
 def test_a_draft_licence_is_refused_even_in_the_cleared_bucket(tmp_path):
@@ -119,3 +130,35 @@ def test_sources_md_is_in_sync_with_the_licence_csv():
     from diacausal_rag.sources_table import OUT, render
 
     assert OUT.read_text(encoding="utf-8") == render(), "run: python -m diacausal_rag.sources_table"
+
+
+def test_pdf_pages_become_corpus_text_with_page_markers_and_headings(tmp_path):
+    """RAG step R2: an approved PDF becomes '[page N]' + '## heading' text that ingest.py reads."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    from matplotlib.backends.backend_pdf import PdfPages
+    import matplotlib.pyplot as plt
+
+    from diacausal_rag.pdf_text import pdf_to_corpus_text
+
+    pdf = tmp_path / "doc.pdf"
+    with PdfPages(pdf) as out:
+        for lines in (["Contents", "1.1 Scope ........ 3"], ["1.1 Scope of the guideline", "Adults with type 2 diabetes-", "mellitus on metformin."],
+                      ["3.1 Second-line treatment", "Add a sulfonylurea when metformin alone", "is not enough.", "7"]):
+            fig = plt.figure()
+            for i, ln in enumerate(lines):
+                fig.text(0.1, 0.9 - 0.08 * i, ln)
+            out.savefig(fig)
+            plt.close(fig)
+    text = pdf_to_corpus_text(pdf, 2, 3, r"^\d+\.\d+\s+[A-Z].*$")
+    assert "Contents" not in text  # page 1 left out
+    assert text.splitlines()[:2] == ["[page 2]", "## 1.1 Scope of the guideline"]
+    assert "diabetes-mellitus" in text and "\n7\n" not in text  # hyphen joined; page number dropped
+    sections = split_sections(text)
+    assert [(s, p) for s, p, _ in sections] == [("1.1 Scope of the guideline", "2"), ("3.1 Second-line treatment", "3")]
+
+
+def test_chunk_ids_are_unique_even_when_one_source_has_several_files():
+    ids = [c.chunk_id for c in ingest()]
+    assert len(ids) == len(set(ids))

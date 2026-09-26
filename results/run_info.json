@@ -8,7 +8,7 @@
   "base_seed": 7,
   "psm_bootstrap": 100,
   "params_version": "0.3.0",
-  "params_sha": "7a8d386eb1",
+  "params_sha": "49f7cd717c",
   "rules_sha": "23fcccf59e",
   "true_population_effects": {
     "SGLT2i": -0.96146283,
@@ -18,7 +18,21 @@
     "SU-DPP4i": -0.2564750750000001,
     "SGLT2i-SU": 0.045477685000000156
   },
+  "true_secondary_population": {
+    "weight:SGLT2i": -2.125616025,
+    "weight:DPP4i": -0.29999999999999993,
+    "weight:SU": 1.1999999999999997,
+    "weight:SGLT2i-DPP4i": -1.825616025,
+    "weight:SU-DPP4i": 1.4999999999999996,
+    "weight:SGLT2i-SU": -3.3256160249999995,
+    "hypo:SGLT2i": 0.03869394258855962,
+    "hypo:DPP4i": 0.03869394258855962,
+    "hypo:SU": 0.1672391208947944,
+    "hypo:SGLT2i-DPP4i": 0.0,
+    "hypo:SU-DPP4i": 0.12854517830623477,
+    "hypo:SGLT2i-SU": -0.12854517830623477
+  },
   "refutation_checks_passed": "9 of 9",
   "python": "3.12.3",
-  "seconds": 145.8
+  "seconds": 861.9
 }

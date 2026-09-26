@@ -1,0 +1,72 @@
+## Safety Announcement
+[12-4-2015] A U.S. Food and Drug Administration (FDA) safety review has resulted in adding warnings to the labels of a specific class of type 2 diabetes medicines called sodium-glucose cotransporter-2 (SGLT2) inhibitors about the risks of too much acid in the blood and of serious urinary tract infections. Both conditions can result in hospitalization.
+Patients should stop taking their SGLT2 inhibitor and seek medical attention immediately if they have any symptoms of ketoacidosis, a serious condition in which the body produces high levels of blood acids called ketones. Symptoms of ketoacidosis include nausea, vomiting, abdominal pain, tiredness, and trouble breathing. Patients should also be alert for signs and symptoms of a urinary tract infection, such as a feeling of burning when urinating or the need to urinate often or right away; pain in the lower part of the stomach area or pelvis; fever; or blood in the urine. Contact a health care professional if you experience any of these symptoms.
+Health care professionals should assess for ketoacidosis and urinary tract infections in patients taking SGLT2 inhibitors who present with suggestive symptoms. Ketoacidosis associated with the use of SGLT2 inhibitors can occur even if the blood sugar level is not very high. If ketoacidosis is suspected, the SGLT2 inhibitor should be discontinued and treatment instituted promptly.
+SGLT2 inhibitors are a class of prescription medicines that are FDA-approved for use with diet and exercise to lower blood sugar in adults with type 2 diabetes. When untreated, type 2 diabetes can lead to serious problems, including blindness, nerve and kidney damage, and heart disease. Medicines in the SGLT2 inhibitor class include canagliflozin, dapagliflozin, and empagliflozin (see section on List of FDA-approved SGLT2 Inhibitors for Type 2 Diabetes). SGLT2 inhibitors are not FDA-approved for use in patients with type 1 diabetes.
+We issued a Drug Safety Communication in May 2015 warning about the risk of ketoacidosis with SGLT2 inhibitors and alerting that we would continue to evaluate this safety issue. Our review of the FDA Adverse Event Reporting System (FAERS) database from March 2013 to May 2015 identified 73 cases of ketoacidosis in patients with type 1 or type 2 diabetes treated with SGLT2 inhibitors (see Data Summary). FAERS includes only reports submitted to FDA, so there are likely additional cases about which we are unaware. All patients required hospitalization or treatment in an emergency department. In many cases, ketoacidosis was not immediately recognized because the blood glucose levels were below those typically expected for diabetic ketoacidosis. As a result, treatment of the ketoacidosis was delayed in some cases.
+We also identified 19 cases of life-threatening blood infections (urosepsis) and kidney infections (pyelonephritis) that started as urinary tract infections with the SGLT2 inhibitors reported to FAERS from March 2013 through October 2014. All 19 patients were hospitalized, and a few required admission to an intensive care unit or dialysis in order to treat kidney failure.
+As a result, we have added new Warnings and Precautions to the labels of all SGLT2 inhibitors to describe these two safety issues, and to provide prescribing and monitoring recommendations. We are also requiring manufacturers of SGLT2 inhibitors to conduct a required postmarketing study. This required enhanced pharmacovigilance study requests that manufacturers perform analyses of spontaneous postmarketing reports of ketoacidosis in patients treated with SGLT2 inhibitors, including specialized follow-up to collect additional information, for a period of 5 years.
+We urge health care professionals and patients to report side effects involving SGLT2 inhibitors to the FDA MedWatch program, using the information in the “Contact FDA” box at the bottom of the page.
+## Facts about Sodium-glucose Cotransporter-2 (SGLT2) Inhibitors
+- SGLT2 inhibitors are a class of prescription medicines that are FDA-approved for use with diet and exercise to lower blood sugar in adults with type 2 diabetes.
+- The safety and efficacy of SGLT2 inhibitors have not been established in patients with type 1 diabetes, and FDA has not approved them for use in these patients.
+- Medicines in the SGLT2 inhibitor class include canagliflozin, dapagliflozin, and empagliflozin. They are available as single-ingredient products and also in combination with other diabetes medicines such as metformin (see section on List of FDA-approved SGLT2 Inhibitors for Type 2 Diabetes)
+- SGLT2 inhibitors lower blood sugar by causing the kidneys to remove sugar from the body through the urine.
+- In addition to ketoacidosis and serious urinary tract infections, possible side effects of SGLT2 inhibitors include dehydration, kidney problems, increased cholesterol, and yeast infections.
+- During the 12-month period from October 2014 to September 2015, approximately 1.7 million unique patients received a dispensed prescription for an SGLT2 inhibitor (single-ingredient or combination product) in the outpatient U.S. retail pharmacy setting.
+## Additional Information for Patients
+- FDA has added warnings about two safety issues to the labels of the class of type 2 diabetes medicines called sodium-glucose cotransporter-2 (SGLT2) inhibitors: ketoacidosis, a serious condition in which there is too much acid in the blood; and serious urinary tract infections. Both conditions can require hospitalization. See section on List of FDA-approved SGLT2 Inhibitors for Type 2 Diabetes.
+Ketoacidosis
+- The safety and efficacy of SGLT2 inhibitors have not been established in patients with type 1 diabetes, and FDA has not approved them for use in these patients.
+- In patients taking an SGLT2 inhibitor, ketoacidosis can occur even if the blood sugar is less than 250 mg/dL.
+- Before taking an SGLT2 inhibitor, inform your health care professional if you are:
+- Having surgery
+- Eating less due to illness, surgery, dieting, or any other reason
+- Having or have had problems with your pancreas, including pancreatitis or surgery on your pancreas
+- Drinking alcohol very often or drink a lot of alcohol in a short time period (“binge” drinking)
+- Pay close attention for any symptoms of ketoacidosis such as:
+- Nausea
+- Vomiting
+- Stomach-area (abdominal) pain
+- Unusual tiredness
+- Trouble breathing
+- If any of these symptoms occur while taking an SGLT2 inhibitor:
+- Stop taking the medicine and seek medical attention immediately
+- If possible, use a ketone dipstick to check for ketones in your urine
+Serious Urinary Tract Infections
+- Before taking an SGLT2 inhibitor, inform your health care professional if you have a history of problems urinating; or infections in the bladder, kidneys, or urinary tract.
+- Contact your health care professional right away if you have any signs or symptoms of a urinary tract infection such as:
+- A burning feeling when urinating
+- A need to urinate often
+- The need to urinate right away
+- Pain in the lower part of your stomach area (pelvis)
+- Blood in the urine
+- Sometimes patients may also have a fever, back pain, nausea, or vomiting.
+General Information
+- Read the patient Medication Guide or Patient Package Insert that you receive with your SGLT2 inhibitor prescription. It explains the benefits and risks associated with the use of the medicine.
+- Talk to your health care professional if you have questions or concerns about SGLT2 inhibitors or any of your other diabetes medicines.
+- Report side effects from SGLT2 inhibitors to the FDA MedWatch program, using the information in the "Contact FDA" box at the bottom of this page.
+## Additional Information for Health Care Professionals
+- FDA has added warnings about ketoacidosis and serious urinary tract infections, including urosepsis and pyelonephritis, to the labels of the sodium-glucose cotransporter-2 (SGLT2) inhibitors. Both conditions may require hospitalization. See section on List of FDA-approved SGLT2 Inhibitors for Type 2 Diabetes.
+Ketoacidosis
+- SGLT2 inhibitors are not FDA-approved to treat patients with type 1 diabetes mellitus.
+- Before initiating an SGLT2 inhibitor, consider factors in the patients’ histories that may predispose them to ketoacidosis, including pancreatic insulin deficiency from any cause, caloric restriction, and alcohol abuse.
+- Patients treated with an SGLT2 inhibitor who present with signs and symptoms consistent with severe metabolic acidosis should be assessed for ketoacidosis, regardless of the presenting blood glucose levels. Ketoacidosis associated with SGLT2 inhibitors may be present even if blood glucose levels are less than 250 mg/dL.
+- In many of the reported cases, particularly in patients with type 1 diabetes, the presence of ketoacidosis was not immediately recognized, and treatment was delayed because the presenting blood glucose levels were below those typically expected for diabetic ketoacidosis (often less than 250 mg/dL).
+- If ketoacidosis is suspected, discontinue the SGLT2 inhibitor. Evaluate the patient and institute treatment, which may include insulin, fluids, and carbohydrate replacement.
+- Signs and symptoms at presentation were consistent with severe metabolic acidosis and included nausea, vomiting, abdominal pain, generalized malaise, and shortness of breath.
+- In some cases, predisposing factors for ketoacidosis were identified. These included: reduction of insulin dose, acute febrile illness, reduced caloric intake due to illness or surgery, pancreatic disorders suggesting insulin deficiency (e.g., type 1 diabetes, history of pancreatitis or pancreatic surgery), and alcohol abuse.
+- In patients treated with an SGLT2 inhibitor, consider monitoring for ketoacidosis and temporarily discontinuing the drug in clinical situations known to predispose to ketoacidosis, such as prolonged fasting due to acute illness or surgery.
+Urosepsis and Pyelonephritis
+- Evaluate patients for signs and symptoms of urinary tract infections, and treat promptly if indicated.
+- Counsel patients about the signs and symptoms of a urinary tract infection, and advise them to seek medical advice if such symptoms occur.
+General Information
+- Encourage patients to read the Medication Guide or Patient Package Insert that they receive with their SGLT2 inhibitor prescriptions.
+- Report adverse events involving SGLT2 inhibitors to the FDA MedWatch program, using the information in the "Contact FDA" box at the bottom of this page.
+## Data Summary
+FDA reviewed cases of ketoacidosis and serious urinary tract infections reported in the FDA Adverse Event Reporting System (FAERS) database associated with sodium-glucose cotransporter-2 (SGLT2) inhibitor treatment.
+Ketoacidosis
+A search of FAERS from March 2013 (approval of the first drug in the class) to May 2015 identified 73 cases of ketoacidosis reported with the SGLT2 inhibitors (canagliflozin [n=48], dapagliflozin [n=21], and empagliflozin [n=4]). In all cases, the patients were hospitalized or treated in the emergency department. Forty-four of the 73 cases occurred in patients with type 2 diabetes mellitus. Fifteen cases were reported in patients with type 1 diabetes, for which the SGLT2 inhibitors are not FDA-approved for use. In the 13 cases not reporting a diabetes type, 10 patients were treated concomitantly with oral antidiabetic agents, suggesting these patients may have had type 2 diabetes mellitus. One case was reported in a patient with latent autoimmune diabetes. Of the 34 type 2 diabetes cases that provided information about concurrent insulin use, 16 patients were also using insulin and 18 were not.
+Of the 73 total cases, 44 reported at least one diagnostic laboratory criteria suggestive of ketoacidosis, such as a high anion gap metabolic acidosis, ketonemia, or reduced serum bicarbonate. Blood glucose levels were reported in 40 cases and ranged from 90 mg/dL to 1,366 mg/dL (median 211 mg/dL). Two additional cases reported mild hyperglycemia or normoglycemia. The median time from initiation of an SGLT2 inhibitor or an increase in dose to the onset of the reported ketoacidosis was 43 days (range 1 day to 1 year). The majority of cases (53/73) reported a concurrent event associated with ketoacidosis, the most common of which were dehydration, infection, and changes in insulin dose. The SGLT2 inhibitor was discontinued in 57 of the 73 cases. No trend demonstrating a relationship between the dose of SGLT2 inhibitor and the risk of ketoacidosis could be identified. Potential risk factors for developing ketoacidosis with an SGLT2 inhibitor identified in the 73 cases included: infection, low carbohydrate diet or an overall reduction of caloric intake, reduction in dose of exogenous insulin or discontinuation of exogenous insulin, discontinuation of an oral insulin secretagogue, and alcohol use.
+Serious Urinary Tract Infections
+A search of FAERS from March 2013 through October 2014 identified 19 cases of urosepsis reported with the SGLT2 inhibitors (canagliflozin [n=10] and dapagliflozin [n=9]). All cases resulted in hospitalization. No deaths were reported. Four patients required admission to the intensive care unit, and two required hemodialysis to treat renal failure. The median time to onset was 45 days (range 2 to 270 days). Discontinuation of the SGLT2 inhibitor was reported in 15 cases. Details regarding whether or not there was a prior history of urinary tract infection was not available for most of the cases. Eight of the 19 reports documented blood culture results with E. coli as the isolated organism in each. Eleven cases contained no information about blood culture testing. There were no reports of fungal urosepsis. Details regarding the administered antibiotic agent, course of antibiotic treatment, and evidence of relapse or recurrent infection were not provided in any of the cases.

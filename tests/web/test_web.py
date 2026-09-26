@@ -61,11 +61,15 @@ def test_model_json_is_fresh(engine, model):
     """web/model.json must be the export of the current params, rules and code."""
     fresh = json.loads(json.dumps(model_dict(engine)))
     assert model["versions"] == fresh["versions"], "run: python -m diacausal_engine.export_web"
-    for key in ("features", "rules", "thresholds", "support", "prices", "assumptions", "arms"):
+    for key in ("features", "rules", "thresholds", "support", "prices", "assumptions", "arms", "secondary_note"):
         assert model[key] == fresh[key], key
     for part in ("propensity", "dr"):
         for k, v in fresh[part].items():
             assert np.allclose(np.array(model[part][k]), np.array(v), rtol=0, atol=1e-12), f"{part}.{k}"
+    assert set(model["secondary"]) == set(fresh["secondary"]) == {"weight", "hypo"}
+    for name, part in fresh["secondary"].items():
+        for k, v in part.items():
+            assert np.allclose(np.array(model["secondary"][name][k]), np.array(v), rtol=0, atol=1e-12), f"{name}.{k}"
 
 
 @pytest.mark.skipif(NODE is None, reason="Node.js is needed to run web/engine.js")
@@ -91,9 +95,35 @@ def test_browser_engine_gives_the_same_answers_as_python(engine, model, tmp_path
                 assert np.allclose([jo["_raw"]["value"], jo["_raw"]["ci_low"], jo["_raw"]["ci_high"]], raw, atol=1e-9)
                 for k in ("value", "ci_low", "ci_high"):
                     assert abs(jo["effect"][k] - getattr(po.effect, k)) <= 0.0011
+                    # secondary outcomes (FR7): same numbers, rounded the same way
+                    assert abs(jo["secondary"]["weight_change_kg"][k] - getattr(po.secondary.weight_change_kg, k)) <= 0.011
+                    assert abs(jo["secondary"]["hypo_risk_pct"][k] - getattr(po.secondary.hypo_risk_pct, k)) <= 0.11
+            else:
+                assert jo["secondary"] is None and po.secondary is None
         assert [(c["first"], c["second"]) for c in j["comparisons"]] == [(c.first, c.second) for c in py.comparisons]
         assert j["intended_use"] == INTENDED_USE
     assert {"estimate", "excluded", "insufficient_evidence"} <= seen
+
+
+
+@pytest.mark.skipif(NODE is None, reason="Node.js is needed to run web/engine.js")
+def test_browser_abstains_like_python_when_the_range_is_too_wide(engine, model, tmp_path, monkeypatch):
+    """Width abstention (engine.max_interval_width): force a tiny limit in both and compare."""
+    tight = {**model, "thresholds": {**model["thresholds"], "max_interval_width": 0.1}}
+    (tmp_path / "m.json").write_text(json.dumps(tight))
+    (tmp_path / "p.json").write_text(json.dumps(PRESETS[:3]))
+    js = json.loads(subprocess.run([NODE, str(ROOT / "tests/web/run_engine.cjs"), str(tmp_path / "m.json"),
+                                    str(tmp_path / "p.json")], capture_output=True, text=True, check=True).stdout)
+    monkeypatch.setattr(engine, "max_width", 0.1)
+    reasons = set()
+    for p, j in zip(PRESETS[:3], js):
+        py = engine.recommend(PatientIn(**p), audit=False)
+        for jo, po in zip(j["options"], py.options):
+            assert (jo["status"], jo["insufficient_reason"]) == (po.status, po.insufficient_reason)
+            assert jo["secondary"] is None and jo["effect"] is None
+            reasons.add((jo["insufficient_reason"] or "")[:14])
+        assert j["comparisons"] == [] and j["not_applicable_reasons"] == py.not_applicable_reasons
+    assert "Too uncertain:" in reasons
 
 
 QUESTIONS = [
@@ -115,7 +145,8 @@ def test_evidence_json_is_fresh():
     data = json.loads((WEB / "evidence.json").read_text())
     assert data == json.loads(json.dumps(evidence_dict())), "run: python -m diacausal_rag.export_web"
     assert data["chunks"], "the confirmed FDA communication should be in the website index"
-    assert all(c["citation"]["source_id"] == "S08" for c in data["chunks"])
+    assert {c["citation"]["source_id"] for c in data["chunks"]} >= {"S01", "S08"}  # WHO 2018 + FDA
+    assert all(c["citation"]["licence_bucket"] == "cleared_ingest" for c in data["chunks"])
 
 
 @pytest.mark.skipif(NODE is None, reason="Node.js is needed to run web/evidence.js")
@@ -136,6 +167,40 @@ def test_browser_evidence_search_gives_the_same_passages_as_python(tmp_path):
         for jp, pp in zip(j["passages"], py["passages"]):
             assert jp["scores"] == pp["scores"], q
         assert j["intended_use"] == INTENDED_USE
+    assert statuses == {"SUCCESS", "INSUFFICIENT_EVIDENCE"}
+
+
+@pytest.mark.skipif(NODE is None, reason="Node.js is needed to run web/explain.js")
+def test_browser_explanations_match_python(tmp_path):
+    """web/explain.js gives the same quoted sentences, abstentions and citation-check verdicts as Python."""
+    from diacausal_rag.evaluate import load_gold
+    from diacausal_rag.explain import explain, sentences
+    from diacausal_rag.ingest import load_config
+
+    cfg = load_config()
+    retriever = Retriever(ingest(), cfg)
+    cases = [{"question": g["question"]} for g in load_gold()] + [{"question": q} for q in QUESTIONS]
+    probe = "Can SGLT2 inhibitors cause ketoacidosis?"
+    first = sentences(retriever.search(probe)["passages"][0]["text"])[0]
+    answers = [f"{first} [1]", f"{first}", f"{first} [7]", "Oranges cure ketoacidosis in a dark room [1].",
+               "Give 10 mg once daily [1].", "INSUFFICIENT_EVIDENCE", f"{first} [1][2] {first} [1]."]
+    cases += [{"question": probe, "answer": a} for a in answers]
+    (tmp_path / "c.json").write_text(json.dumps(cases))
+    js = json.loads(subprocess.run([NODE, str(ROOT / "tests/web/run_explain.cjs"), str(WEB / "evidence.json"),
+                                    str(tmp_path / "c.json")], capture_output=True, text=True, check=True).stdout)
+    statuses = set()
+    for c, j in zip(cases, js):
+        ev = retriever.search(c["question"])
+        assert j["status"] == ev["status"], c["question"]
+        py = explain(c["question"], ev, "template", cfg, idf=retriever.bm25.idf)
+        assert (j["explain"]["status"], j["explain"]["sentences"], j["explain"]["note"]) == \
+            (py["status"], py["sentences"], py["note"]), c["question"]
+        statuses.add(py["status"])
+        if "answer" in c:
+            pm = explain(c["question"], ev, "gemini", cfg, caller=lambda p, cf, a=c["answer"]: a, idf=retriever.bm25.idf)
+            assert (j["model"]["backend"], j["model"]["status"], j["model"]["sentences"]) == \
+                (pm["backend"], pm["status"], pm["sentences"]), c["answer"]
+            assert ("failed the citation check" in j["model"]["note"]) == ("failed the citation check" in pm["note"])
     assert statuses == {"SUCCESS", "INSUFFICIENT_EVIDENCE"}
 
 
@@ -307,5 +372,19 @@ def test_the_site_works_on_an_iphone_sized_screen(tmp_path):
     assert c["intended"] and c["excluded"] == 1 and c["caution"] >= 1 and c["insufficient"] >= 1
     assert c["tiles"] == 8 and c["docHeadings"] > 10 and c["horizontalOverflow"] is False
     assert c["team"] is True
-    assert c["passages"] >= 1 and c["citesFda"] and c["sourcesInSearch"] == 1 and c["abstains"]
+    from diacausal_rag.ingest import CLEARED, is_confirmed, load_sources
+
+    in_search = sum(r["bucket"] == CLEARED and is_confirmed(r) for r in load_sources().values())
+    assert c["passages"] >= 1 and c["citesFda"] and c["sourcesInSearch"] == in_search >= 7 and c["abstains"]
     assert c["demoBanner"] and c["accountDemo"]  # a local copy without account settings says sign-in is off
+
+
+def test_consultation_summary_prints_the_answer_not_the_form():
+    """FR11: Print -> Save as PDF gives a one-document summary with the intended use and versions."""
+    app = (WEB / "app.js").read_text(encoding="utf-8")
+    css = (WEB / "styles.css").read_text(encoding="utf-8")
+    assert "window.print()" in app and "DiaCausal consultation summary" in app
+    assert "result.intended_use" in app[app.index("function printHeader"):app.index("function render")]
+    block = css[css.index("@media print"):]
+    for hidden in (".tabs", "#patient", ".noprint", ".view:not(#view-try)"):
+        assert hidden in block.split("}")[0], hidden

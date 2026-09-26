@@ -83,10 +83,20 @@ def test_the_sweep_exercises_every_outcome(sweep):
 
 
 SECRET = re.compile(
-    r"sk-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{30,}|xox[bap]-[A-Za-z0-9-]{10,}|"
+    # a real key starts after a non-letter (quote, space, "="), so "risk-leg-and-foot" is not "sk-..."
+    r"(?<![A-Za-z0-9])(?:sk-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{30,}|xox[bap]-[A-Za-z0-9-]{10,}|"
+    r"AIza[0-9A-Za-z_-]{35})|"
     r"-----BEGIN [A-Z ]*PRIVATE KEY-----|(api[_-]?key|secret|token|password)\s*[:=]\s*['\"][A-Za-z0-9/+_-]{16,}['\"]",
     re.I,
 )
+
+
+def test_the_secret_scanner_catches_real_looking_keys():
+    fake = "sk-" + "a1B2" * 6
+    for text in (f'KEY="{fake}"', f"key: {fake}", "AKIA" + "ABCD1234EFGH5678", "ghp_" + "x" * 36,
+                 "AIza" + "Sy" + "A" * 33, 'password = "' + "Zq9" * 6 + '"'):
+        assert SECRET.search(text), text
+    assert not SECRET.search("fda-removes-boxed-warning-about-risk-leg-and-foot-amputations-diabetes-medicine")
 
 
 def test_no_secrets_are_committed():

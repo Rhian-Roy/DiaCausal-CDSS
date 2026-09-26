@@ -183,6 +183,31 @@ generator:
       hba1c: {value: 8.5, unit: "%", source: TEAM, status: TEAM-SET}
       egfr: {value: 80, unit: mL/min/1.73m2, source: TEAM, status: TEAM-SET}
       duration_years: {value: 7, unit: years, source: TEAM, status: TEAM-SET}
+  # Secondary outcomes (FR7). Drawn from their OWN random stream (seed, 17), so adding them never
+  # changes the primary HbA1c cohort or any primary result.
+  secondary:
+    weight:  # 6-month weight change, kg:  W(a) = drift + base_a + per_bmi_a*(bmi-26) + noise
+      drift: {value: -0.3, unit: kg, source: TEAM, status: TEAM-SET, note: "small loss on metformin whatever is added"}
+      noise_sd: {value: 2.0, unit: kg, source: TEAM, status: TEAM-SET}
+      centre_bmi: {value: 26, unit: kg/m2, source: TEAM, status: TEAM-SET}
+      SGLT2i:
+        base: {value: -1.8, unit: kg, source: PALMER_2016, status: ASSUMED-DIRECTIONAL, note: "SGLT2 inhibitors reduce weight (also Tsapas 2020); exact value is a team choice"}
+        per_bmi: {value: -0.05, unit: kg per kg/m2 above 26, source: TEAM, status: TEAM-SET, note: "a little more loss at higher BMI (direction only)"}
+      DPP4i:
+        base: {value: 0.0, unit: kg, source: PALMER_2016, status: ASSUMED-DIRECTIONAL, note: "DPP-4 inhibitors are weight-neutral"}
+        per_bmi: {value: 0.0, unit: kg per kg/m2 above 26, source: TEAM, status: TEAM-SET}
+      SU:
+        base: {value: 1.5, unit: kg, source: PALMER_2016, status: ASSUMED-DIRECTIONAL, note: "sulfonylureas increase weight"}
+        per_bmi: {value: 0.0, unit: kg per kg/m2 above 26, source: TEAM, status: TEAM-SET}
+    hypo:  # any hypoglycaemia within 6 months (yes/no): logit P = intercept + arm + modifiers
+      intercept: {value: -3.5, unit: log-odds, source: TEAM, status: TEAM-SET, note: "about 3% on DPP-4i for a typical patient"}
+      SGLT2i: {value: 0.0, unit: log-odds vs DPP-4i, source: PALMER_2016, status: ASSUMED-DIRECTIONAL, note: "low hypoglycaemia risk, similar to DPP-4i"}
+      DPP4i: {value: 0.0, unit: log-odds vs DPP-4i, source: TEAM, status: TEAM-SET, note: "reference"}
+      SU: {value: 1.6, unit: log-odds vs DPP-4i, source: PALMER_2016, status: ASSUMED-DIRECTIONAL, note: "sulfonylureas markedly raise hypoglycaemia risk (odds about 5x here; exact value is a team choice)"}
+      hypo_history: {value: 1.2, unit: log-odds, source: TEAM, status: TEAM-SET, note: "a past episode raises the risk (direction per glimepiride label 5.1)"}
+      age_per_year: {value: 0.03, unit: log-odds per year above 55, source: TEAM, status: TEAM-SET}
+      su_extra_age_per_year: {value: 0.02, unit: log-odds per year above 55, source: TEAM, status: TEAM-SET, note: "older patients on SU at higher risk (glimepiride label 8.5, direction only)"}
+      egfr_per_10_below_80: {value: 0.10, unit: log-odds per 10 mL/min/1.73m2 below 80, source: TEAM, status: TEAM-SET}
   population_truth_n: {value: 200000, unit: patients, source: TEAM, status: TEAM-SET, note: "size of the draw used to compute the true average effects"}
 
 engine:
@@ -204,6 +229,7 @@ engine:
     subset_fraction: {value: 0.8, unit: share of patients, source: TEAM, status: TEAM-SET, note: "data-subset refuter keeps 80% of patients"}
     stability_se_multiple: {value: 2.0, unit: standard errors, source: TEAM, status: TEAM-SET, note: "random-common-cause and subset estimates must stay within 2 SE of the original"}
     evalue_smd_to_log_rr: {value: 0.91, unit: "-", source: VANDERWEELE_DING_2017, status: CITED, note: "approximate conversion of a standardised mean difference to a log risk ratio"}
+  max_interval_width: {value: 1.5, unit: percentage points, source: TEAM, status: TEAM-SET, note: "if this patient's 95% range for an option is wider than this, show 'insufficient evidence (too uncertain)' instead; to confirm with the collaborating doctor"}
   second_stage: {value: "linear", unit: "-", source: KENNEDY_2023, status: TEAM-SET, note: "DR-learner second stage: OLS with HC3 robust errors"}
 
 display:

@@ -175,3 +175,33 @@ blockquote { margin: 0; padding: 8px 12px; border-left: 4px solid var(--pine); b
   h1 { font-size: 32px; }
 }
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+
+/* Secondary outcomes on an estimate card */
+.sec { margin: 8px 0 0; font-size: 14px; }
+.sec dt { color: var(--ink-muted); margin-top: 4px; }
+.sec dd { margin: 0; }
+
+/* Consultation summary: Print -> Save as PDF prints only the answer */
+.print-only { display: none; }
+@media print {
+  .top, .tabs, .demo, .presets, #patient, .why, .noprint, .foot, #out details, .view:not(#view-try) { display: none !important; }
+  #view-try > h1, #view-try > .lead { display: none; }
+  .print-only { display: block; }
+  .print-head { border: 1px solid #999; border-radius: 6px; padding: 8px 12px; margin-bottom: 10px; font-size: 12px; }
+  .print-head h2 { margin: 0 0 4px; }
+  body { background: #fff; }
+  .cards { display: block !important; }
+  .opt { margin-bottom: 8px; }
+  .opt, .card { break-inside: avoid; }
+}
+
+/* RAG explanation and option evidence */
+.explain h2 { margin-top: 0; }
+.explain__list { margin: 6px 0; padding-left: 20px; }
+.explain__list li { margin: 4px 0; }
+.explain .cite { color: var(--pine-dark); font-weight: 700; white-space: nowrap; }
+.explain .chip { margin-top: 8px; }
+.opt__ev { margin-top: 8px; font-size: 14px; }
+.opt__ev summary { cursor: pointer; color: var(--pine-dark); font-weight: 600; }
+.ev-quote { margin: 8px 0; padding: 6px 10px; border-left: 3px solid var(--line, #c9d0cc); color: var(--ink); }
+.ev-quote .src { display: block; margin-top: 4px; }
