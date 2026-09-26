@@ -94,8 +94,25 @@ def test_config_numbers_are_sourced():
     assert cfg["chunk_words"] == 400 and cfg["top_k"] == 5 and cfg["rrf_k"] == 60
 
 
-def test_the_committed_corpus_is_empty_until_licences_are_confirmed():
-    assert ingest() == []
+def test_the_committed_corpus_holds_only_confirmed_licence_cleared_sources():
+    """Every committed document maps to a cleared_ingest source whose licence a team member confirmed."""
+    from diacausal_rag.ingest import is_confirmed
+
+    sources = load_sources()
+    chunks = ingest()
+    assert chunks, "the corpus should hold the confirmed FDA communication (S08)"
+    for c in chunks:
+        assert c.licence_bucket == CLEARED and is_confirmed(sources[c.source_id]), c.chunk_id
+    assert {c.source_id for c in chunks} <= {k for k, r in sources.items() if r["bucket"] == CLEARED and is_confirmed(r)}
+    assert "S01" not in {c.source_id for c in chunks}  # WHO 2018 waits for Member B
+
+
+def test_a_draft_licence_is_refused_even_in_the_cleared_bucket(tmp_path):
+    (tmp_path / "doc.txt").write_text(DOC)
+    (tmp_path / "manifest.csv").write_text("file,source_id\ndoc.txt,T1\n")
+    with pytest.raises(LicenceError, match="still a draft"):
+        ingest(tmp_path, sources={"T1": SRC | {"checked_by": "Claude (draft) — Member B to confirm"}})
+    assert ingest(tmp_path, sources={"T1": SRC | {"checked_by": "Team member"}})
 
 
 def test_sources_md_is_in_sync_with_the_licence_csv():
