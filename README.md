@@ -14,7 +14,7 @@ it then opens like an app and works offline. Scan to open:
 <img src="web/icons/qr.png" alt="QR code for diacausal.netlify.app" width="160">
 
 - **Try it** — the causal engine: three add-ons to metformin for one patient, safety rules first.
-- **Evidence** — the RAG part: cited passages from licence-cleared sources, or "insufficient evidence".
+- **Evidence** — the RAG part: cited passages from licence-cleared sources (WHO 2018, FDA safety communications), a quoted explanation, an optional Gemini rewrite checked against the passages, or "insufficient evidence".
 - **Results**, **Learn**, **About** — open to everyone.
 
 Try it and Evidence need an account: **create one, set up an authenticator app, and wait for the
@@ -54,8 +54,10 @@ Every time, in a new Terminal window:
 cd DiaCausal-CDSS
 source .venv/bin/activate
 
-python -m pytest tests/engine -q                  # the tests: must end "148 passed" (about 3 min)
-python -m pytest tests/rag -q                     # the RAG skeleton tests (13, about 2 s)
+python -m pytest tests/engine -q                  # the tests: must end "149 passed" (about 3 min)
+python -m pytest tests/rag -q                     # the RAG tests (33, about 3 s)
+python -m diacausal_rag.evaluate                  # RAG evaluation on the 60-question gold set -> results/rag_eval*.csv
+python -m diacausal_rag.explain "Can SGLT2 inhibitors cause ketoacidosis?"   # cited explanation (add --backend ollama offline)
 python -m diacausal_engine.benchmark --quick      # quick benchmark (about 30 s)
 python -m diacausal_engine.benchmark              # full benchmark: 20 x 5,000 patients (about 3 min), rewrites results/
 streamlit run demo/streamlit_app.py               # the demo; opens http://localhost:8501
@@ -111,7 +113,7 @@ way to run the demo**, and the recorded video stays the backup.
 | `docs/explain/07-causal-engine.md` | **Start here for the viva:** every idea with an analogy, a tiny worked example and the one-sentence answer |
 | `docs/RESULTS_SUMMARY.md` | The benchmark results in plain English, and how to read each figure |
 | `docs/SYSTEM_REQUIREMENTS.md`, `docs/SYSTEM_DESIGN.md` | Mid-sem items 2 and 4: requirements mapped to tests; architecture, DFDs, use case, sequence, data and API design |
-| `diacausal_rag/`, `tests/rag/`, `docs/SOURCES.md` | Early RAG skeleton (next phase) with its licence gate, and the licence table |
+| `diacausal_rag/`, `tests/rag/`, `eval/rag_gold.csv`, `docs/SOURCES.md` | RAG: licence gate, WHO 2018 + FDA safety communications, hybrid search, cited explanations (template / Gemini / Ollama), gold set and evaluation |
 | `docs/INTEGRATING_A_TEAMMATE_ENGINE.md` | How a teammate adds their own causal code without overwriting `main` |
 
 ## 💬 Chat app (walking skeleton)

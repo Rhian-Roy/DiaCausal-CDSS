@@ -88,9 +88,19 @@ fails if a key is ever committed.
   (BM25), its TF-IDF vector and its citation. `web/evidence.js` repeats `diacausal_rag/retrieve.py`:
   BM25 + vector search → reciprocal rank fusion → best 5, or "insufficient evidence". Passages with
   dose text are withheld before export.
-- **Today's evidence:** the FDA Drug Safety Communication on metformin and reduced kidney function
-  (8 April 2016; source S08, US government work, licence confirmed by the team). WHO 2018 (S01)
-  waits for Member B's licence check; the FDA saxagliptin/alogliptin communication is next.
+- **Today's evidence (78 passages):** WHO 2018 second- and third-line medicines guideline (S01,
+  CC BY-NC-SA 3.0 IGO) and seven FDA Drug Safety Communications (S08, S19–S23, US government works):
+  metformin and kidney function, saxagliptin/alogliptin and heart failure, DPP-4i joint pain, SGLT2i
+  ketoacidosis and urinary infections, acute kidney injury, Fournier's gangrene, canagliflozin amputations.
+- **Explanation:** `web/explain.js` (mirror of `diacausal_rag/explain.py`) quotes the sentences that
+  best answer the question, each with its passage number. Approved, signed-in users may press
+  "Explain in plain words with Gemini (online)": the browser sends **only the question and the passage
+  IDs** to the Supabase Edge Function `explain` (`supabase/functions/explain/`), which rebuilds the
+  passages from the published index, calls Gemini's free tier with the key held as a Supabase secret,
+  and returns text that the browser checks sentence by sentence; anything unsupported falls back to
+  the quotes. Patient values are never sent. Set-up: `docs/GEMINI_SETUP.md`.
+- **Evidence fusion:** each option card on Try it has "Evidence for this option": the licence-cleared
+  passages about that drug class and its fired rules.
 - **Viva sentence:** "The website runs the exact same fitted causal model and the exact same
   evidence search in the browser; tests check them against Python on 155 patients and 40
   questions, so the phone and the server always agree."

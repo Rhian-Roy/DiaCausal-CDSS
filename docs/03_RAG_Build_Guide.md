@@ -2,6 +2,23 @@
 
 **For:** the RAG owner and Rhian · Your guide's order: causal inference first, RAG after the mid-sem.
 
+## Status (26 September 2026): steps 1–4 built early, standalone
+
+| Step | Status |
+|---|---|
+| Sources and licences | WHO 2018 (S01) + FDA S08, S19–S23 ingested; licences confirmed by the team; RSSDI-ESI 2020 (S02) still waits for its own PMC licence line |
+| PDF → sections with pages; search index | Built (`pdf_text.py`, `ingest.py`, `retrieve.py`); 78 passages |
+| Answers with citations; refuse when unsupported | Built (`explain.py`: template / Gemini / Ollama + citation checker) |
+| Gold set + evaluation | Built (`eval/rag_gold.csv`, `python -m diacausal_rag.evaluate`); the doctor still has to review the 20 flagged questions |
+| Connect to engine and UI | Website: Evidence tab explanation + "Evidence for this option" on each card. Chat app: not yet |
+
+Results (`results/rag_eval_summary.csv`, template back-end) against the targets below: recall@5 0.933
+(target ≥ 0.80, met); citation precision 1.000 (≥ 0.95, met); doses 0 (met); abstention accuracy
+0.800 (target ≥ 0.95, **not met**: 2 of 10 out-of-scope questions — gestational-diabetes diet and
+statins — still get passages). The coverage threshold was tuned on this same gold set, so these
+numbers are optimistic; a held-out set written by the doctor is the honest next test. Faithfulness
+for the Gemini back-end is measured once the key is set (`--backend gemini`).
+
 ## What RAG does in DiaCausal
 
 After the engine shows the numbers, RAG explains them in words — but only using sentences found in approved guideline documents, and it shows exactly where each sentence came from: document, version, section and page. If nothing in the documents supports an answer, it says so. It never writes doses or thresholds; those come only from the rules table.

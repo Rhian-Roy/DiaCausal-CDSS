@@ -146,6 +146,24 @@ secondary outcomes for discussion, not as a ranking.
 | `results/figures/cate_recovery.png` | Each dot is one test patient: true effect (across) against the DR-learner's estimate (up). Dots near the dashed diagonal are accurate. The small off-diagonal cluster in the middle panel is the rare-patient limitation. |
 | `results/figures/calibration.png` | Patients grouped into tenths by predicted effect: the average predicted vs the average true effect. Points on the diagonal mean the predictions are well calibrated. |
 
+## 8b. RAG evaluation (evidence search and explanations)
+
+`python -m diacausal_rag.evaluate` on `eval/rag_gold.csv` (45 answerable questions with the source and
+section that answer them, 10 out of scope, 5 dose requests). Numbers from `results/rag_eval_summary.csv`
+(template back-end):
+
+| Metric | Value | Team target |
+|---|---|---|
+| Recall@5 (right source and section in the top 5) | 0.933 | ≥ 0.80 |
+| Answerable questions answered | 0.978 | — |
+| Out-of-scope questions refused | 0.800 | ≥ 0.95 (not met) |
+| Citation precision (explanation sentences passing the checker) | 1.000 | ≥ 0.95 |
+| Dose leaks | 0 | 0 |
+
+Honest notes: the retrieval thresholds were tuned on this same set, so the numbers are optimistic;
+the doctor must review the 20 flagged questions; the quoted (template) explanation is extractive, so
+its citation precision is 1.0 by construction — the checker matters for the Gemini and Ollama back-ends.
+
 ## 9. What this does *not* show
 
 - **No real-world effect:** it says nothing about real-world drug effects, because the data is synthetic and the effect sizes are ASSUMED-DIRECTIONAL.

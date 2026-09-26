@@ -89,7 +89,7 @@ libraries and its own tests, so it does not need the chat app's setup:
 ```bash
 python3.12 -m venv .venv && source .venv/bin/activate    # once
 pip install -r requirements-engine.txt                    # once
-python -m pytest tests/engine -q                          # about 3 min; must end "148 passed"
+python -m pytest tests/engine -q                          # about 3 min; must end "149 passed"
 ```
 
 On GitHub the `engine` job in `.github/workflows/check.yml` runs the same tests, the quick
@@ -114,12 +114,12 @@ benchmark and `pip-audit` on Linux and macOS. `scripts/check_all.py` is unchange
 | Prices say "price unavailable" until confirmed | `test_h_demo.py`: *prices_stay_unavailable_until_confirmed* |
 | API: unknown fields and implausible values rejected (422, plain English, value not echoed) | `test_i_api.py` |
 | Logs and the audit trail never contain patient values | `test_h_demo.py`: *audit_log_records_decisions_but_never_patient_values*; `test_i_api.py`: *logs_carry_ids…no_patient_values* |
-| No secrets in the repo; exact version pins | `test_j_invariants.py`: *no_secrets_are_committed*, *requirements_are_exactly_pinned* |
+| No secrets in the repo (scanner self-tested, incl. Google keys); exact version pins | `test_j_invariants.py`: *no_secrets_are_committed*, *secret_scanner_catches_real_looking_keys*, *requirements_are_exactly_pinned* |
 | Refutation (placebo treatment x20, random common cause, 80% subset) and E-value sensitivity; saved to `results/refutation.csv`, `results/evalues.csv` | `test_k_refute.py` |
 | FR7 secondary outcomes: 6-month weight change (kg) and any-hypoglycaemia risk (%), each with a 95% interval, recovered from the synthetic truth; the primary cohort and results never change; never shown on an excluded or abstained option | `test_l_secondary.py` (all 9) |
 | Abstain as "too uncertain" when the 95% range is wider than `engine.max_interval_width` (TEAM-SET, 1.5 points) | `test_l_secondary.py`: *too_wide_interval_means_insufficient_evidence*, *width_limit_is_team_set*; web: *browser_abstains_like_python_when_the_range_is_too_wide* |
 
-**RAG early skeleton** (`python -m pytest tests/rag -q`, 13 tests, about 2 s):
+**RAG** (`python -m pytest tests/rag -q`, 33 tests, about 3 s):
 
 | Requirement | Proved by (`tests/rag/test_rag_skeleton.py`) |
 |---|---|
@@ -128,9 +128,14 @@ benchmark and `pip-audit` on Linux and macOS. `scripts/check_all.py` is unchange
 | Hybrid BM25 + vector search with reciprocal rank fusion returns cited passages | *hybrid_search_finds_the_right_section_with_a_citation*, *reciprocal_rank_fusion* |
 | Unsupported questions get INSUFFICIENT_EVIDENCE; passages with doses are withheld | *unsupported_questions*, *empty_index_abstains*, *passages_with_dose_text_are_withheld* |
 | `docs/SOURCES.md` always matches the licence CSV | *sources_md_is_in_sync* |
-| The committed corpus holds only `cleared_ingest` sources whose licence a team member confirmed (today S08, the FDA metformin/kidney communication); a draft licence is refused | *committed_corpus_holds_only_confirmed_licence_cleared_sources*, *a_draft_licence_is_refused_even_in_the_cleared_bucket* |
+| The committed corpus holds only `cleared_ingest` sources whose licence a team member confirmed (WHO 2018 S01; FDA S08, S19–S23); every corpus file is in the manifest; IDF, ADA, NICE, KDIGO, RSSDI 2022 never ingested; a draft licence is refused | *committed_corpus_holds_only_confirmed_licence_cleared_sources*, *a_draft_licence_is_refused_even_in_the_cleared_bucket* |
+| PDFs become corpus text with page markers and headings; chunk IDs are unique | *pdf_pages_become_corpus_text…*, *chunk_ids_are_unique…* |
+| Explanations quote only passage sentences, each with its passage number; a model answer with an uncited, unsupported, wrongly numbered or dose sentence falls back to the quotes; an unreachable model or missing key falls back too | `test_explain.py`: *template_quotes_passage_sentences_exactly*, *bad_model_answer_falls_back* (4 cases), *unreachable_model*, *gemini_without_a_key* |
+| A dose question never gets an explanation; no evidence means no explanation; the prompt holds only the question and passages | *dose_question_never_gets_an_explanation* (4), *no_evidence_means_no_explanation*, *prompt_holds_only_the_question_and_the_passages* |
+| The online Edge Function uses exactly `prompt.v1.txt`, checks aal2 + approval, never logs, holds no key | *online_function_uses_exactly_the_same_prompt_and_rules* |
+| Gold set (60 questions, 20 for doctor review) is well formed; evaluation meets the bar (0 dose leaks, citation precision 1.0, recall@5 ≥ 0.85, abstention ≥ 0.7) and `results/rag_eval_summary.csv` is fresh | *gold_set_is_well_formed*, *evaluation_meets_the_bar_and_the_saved_results_are_fresh* |
 
-**Website** (`python -m pytest tests/web -q`, 18 tests, about 15 s; needs Node):
+**Website** (`python -m pytest tests/web -q`, 19 tests, about 15 s; needs Node):
 
 | Requirement | Proved by (`tests/web/test_web.py`) |
 |---|---|
@@ -142,6 +147,7 @@ benchmark and `pip-audit` on Linux and macOS. `scripts/check_all.py` is unchange
 | Strict CSP holds (no inline script/style); Netlify and Vercel headers match | *no_inline_script_or_style_so_the_strict_csp_holds* |
 | Installable (manifest, icons); every offline-cached file exists; results and docs copied | *installable_on_a_phone*, *every_file_the_offline_cache_lists_exists*, *results_and_docs_are_copied_for_the_site* |
 | `web/evidence.json` matches a fresh export of the RAG index; the browser search gives the same passages, order and scores as Python on 40 questions | *evidence_json_is_fresh*, *browser_evidence_search_gives_the_same_passages_as_python* |
+| The browser explanation (quotes, abstentions, citation-check verdicts) matches Python on the 60 gold + 40 extra questions and 7 model answers | *browser_explanations_match_python* |
 | Team details: B.Tech in Computer Engineering; Guide Mr. Rahul Jadhav | *team_details_are_correct* |
 | Sign-in order: sign in → authenticator code → admin approval → intended use; Try it and Evidence are the locked pages; weak passwords refused | *sign_in_steps_come_in_the_right_order* |
 | No account key in git (`config.json` says accounts off; the deploy script refuses to write into `web/`) | *no_account_key_is_committed* |
