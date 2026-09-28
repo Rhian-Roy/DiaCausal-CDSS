@@ -66,7 +66,7 @@ works, and the question you are most likely to be asked.
      guardrails, voice input and Docker deployment.
 7. **Next (October).**
    - Plug the engine and RAG into the chat app.
-   - Doctor review of the test questions and 60 vignettes.
+   - Doctor review of the test questions and the clinician vignettes.
    - A better search model.
    - Results frozen on 16 October; then the paper.
 
@@ -478,7 +478,8 @@ Some tests enforce project rules rather than features:
    - the 25-vignette clinician review with the SUS form (`eval/`);
    - confirming the rule cut-offs.
 2. **Thresholds.** Is 1.5 HbA1c points a sensible "too uncertain" limit? Is 60% question
-   coverage a sensible "refuse" limit? Both are TEAM-SET and easy to change in one file.
+   coverage a sensible "refuse" limit? Both are TEAM-SET, one line each (`data/params.yaml`,
+   `diacausal_rag/config.yaml`).
 3. **Sources.** Can the department help obtain written permission for the ICMR / RSSDI 2022
    guidelines? Today they are cite-only.
 4. **Prices.** Is using the Jan Aushadhi list acceptable? Until it's confirmed, the app shows
@@ -544,7 +545,7 @@ screen, and keep each slide under about 45 seconds unless it's the demo.
    cd DiaCausal-CDSS/web && python3 -m http.server 8080
    ```
    Then open http://localhost:8080. It shows "Local copy: sign-in is switched off".
-4. **Backup B:** `docs/midsem/DiaCausal_demo.mp4`, opened and paused on the first frame.
+4. **Backup B:** `docs/midsem/DiaCausal_demo.mp4` (112 s, captioned), opened and paused on the first frame.
 5. Only if the Gemini key has been set **and tested that morning**, the Gemini button may be
    shown. Otherwise don't press it; just say what it does.
 
@@ -555,9 +556,9 @@ screen, and keep each slide under about 45 seconds unless it's the demo.
 | 1 | Try it → **1 · Typical patient** | "Three estimates, each with a 95% range. SGLT2 inhibitor −0.93 (−0.98 to −0.87). Below each: weight change and the risk of any low sugar, e.g. sulfonylurea 9.9% vs DPP-4 inhibitor 1.8%." |
 | 2 | **2 · eGFR 40, past pancreatitis** | "The SGLT2 inhibitor is red: excluded by rule R01 with its FDA label source, and never estimated. The DPP-4 inhibitor is amber: caution for R04 and R05." |
 | 3 | **3 · Older, past hypoglycaemia** | "The sulfonylurea is grey: insufficient evidence. Almost no similar patient got it (propensity 0.006, below 0.05), so we refuse to guess." |
-| 4 | Open **Evidence for this option** on a card | "Evidence fusion: licence-cleared passages about this drug class, with the source." |
+| 4 | Open **Evidence for this option** on the DPP-4 card | "Evidence fusion: licence-cleared passages about this drug class, with the source — here the FDA joint-pain communication." |
 | 5 | **Print or save as PDF** | "A one-page consultation summary: patient as entered, ranges, rule sources, versions, no doses." |
-| 6 | Evidence → **SGLT2i and ketoacidosis** | "The explanation quotes the passages, each sentence numbered to its source, here the FDA 2015 communication." |
+| 6 | Evidence → **SGLT2i and ketoacidosis** | "The explanation quotes the FDA passages, each sentence numbered to its source." |
 | 7 | Evidence → **Not in the sources** | "Glimepiride price in India isn't in our sources, so it says insufficient evidence instead of making something up." |
 | 8 | Type "What dose of glimepiride should I start with?" | "Dose questions are always refused: doses come only from the label and the doctor." |
 | 9 | Results tab | "The benchmark on synthetic data: naive vs corrected, against the known truth." |
@@ -605,7 +606,7 @@ The detailed answers are in `docs/06_Viva_Prep.md`. These are the ones most like
     instead of the truly best allowed drug. DR-learner 0.011 points vs naive 0.062.
 
 ### Data
-15. **Why not Pima or a Kaggle dataset?** Pima is Pima Native American women, with no drug
+15. **Why not Pima or a Kaggle dataset?** Pima is data from Pima (Akimel O'odham) women in Arizona, USA, with no drug
     choice and no follow-up. It cannot answer our question.
 16. **Where do the synthetic numbers come from?** Every one is in `data/params.yaml`, with a
     source and a status. Examples: ICMR-INDIAB, Misra 2009 (BMI cut-offs), Palmer 2016 and
@@ -713,7 +714,7 @@ The detailed answers are in `docs/06_Viva_Prep.md`. These are the ones most like
 **October (as in the Gantt chart)**
 - The engine and RAG inside the chat app pipeline.
 - A medical embedding model and a reranker; a held-out test set.
-- Doctor review of 20 test questions and 25–60 vignettes; the SUS usability study.
+- Doctor review of the 20 flagged test questions and the clinician vignettes; the SUS usability study.
 - Results frozen on 16 October; the IEEE-style paper; the final report.
 - Practical exams 31 Oct – 7 Nov; theory exams 18 – 30 Nov.
 
@@ -756,7 +757,7 @@ All results are on **synthetic data**. Each row names its source file.
 
 | Preset | SGLT2i | DPP-4i | Sulfonylurea |
 |---|---|---|---|
-| 1 · Typical: 52 y, HbA1c 8.4, eGFR 88, BMI 27 | −0.93 (−0.98 to −0.87); −2.2 kg; low sugar 2.5% | −0.70 (−0.76 to −0.64); −0.4 kg; 1.8% | −0.94 (−1.00 to −0.88); +1.0 kg; 9.9% |
+| 1 · Typical: 52 y, HbA1c 8.4, eGFR 88, BMI 27 | −0.93 (−0.98 to −0.87); −2.1 kg; low sugar 2.5% | −0.70 (−0.76 to −0.64); −0.4 kg; 1.8% | −0.94 (−1.00 to −0.88); +1.0 kg; 9.9% |
 | 2 · eGFR 40, past pancreatitis | **Excluded** (R01) | −0.68 (−1.09 to −0.27), caution R04, R05 | −0.82 (−1.21 to −0.42), caution R09 |
 | 3 · 80 y, eGFR 38, past hypoglycaemia | **Excluded** (R01) | −0.63 (−0.86 to −0.41), caution R04 | **Insufficient evidence** (propensity 0.006), caution R07–R09 |
 
