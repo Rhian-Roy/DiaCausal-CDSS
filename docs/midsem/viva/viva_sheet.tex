@@ -11,12 +11,12 @@
 \begin{multicols}{2}
 \h{The six items in one sentence each}
 \begin{enumerate}
-\item \textbf{Proposed system:} for an adult on metformin, compare SGLT2i, DPP-4i and sulfonylurea by each one's 6-month HbA1c change with a 95\% range, after cited safety rules remove unsafe options; the clinician decides.
+\item \textbf{Proposed system:} for an adult on metformin, compare SGLT2i, DPP-4i and sulfonylurea by each one's 6-month HbA1c change (plus weight and low-sugar risk) with 95\% ranges, after cited safety rules remove unsafe options; explained with cited WHO/FDA passages; the clinician decides.
 \item \textbf{Hardware/software:} any 8 GB laptop; Python 3.12 + scikit-learn + FastAPI; phone website on Netlify with Supabase accounts; all free.
-\item \textbf{Timeline:} scope and design (Jul--Sep), engine + website done by 27 Sept; RAG and evaluation 1--23 Oct; paper and report by 30 Oct.
+\item \textbf{Timeline:} scope and design (Jul--Sep); chat app, engine, website and RAG done by 26 Sept (ahead of plan); integration, clinician review, embedding search in Oct; results frozen 16 Oct; paper and report by 30 Oct.
 \item \textbf{Design:} safety rules $\rightarrow$ propensity/overlap $\rightarrow$ AIPW/DR-learner $\rightarrow$ cost $\rightarrow$ cited evidence $\rightarrow$ clinician; audit log without patient values.
-\item \textbf{Implementation:} full causal engine, benchmark, refutation, demo, API, live website with MFA and admin approval, first cited evidence search; 168 tests.
-\item \textbf{Results:} naive bias $-0.159$ $\rightarrow$ AIPW $+0.002$; AIPW coverage 90--95\%; per-patient coverage 92.7--94.7\%; regret 0.011 vs 0.062; balance 0.70 $\rightarrow$ 0.08; refutation 9/9.
+\item \textbf{Implementation:} secure chat app (guards, CAPTCHA+MFA, patient panel, guardrails, voice, Docker; 630 tests); causal engine + benchmark + refutation + secondary outcomes; live website with MFA and approval; RAG with WHO 2018 + 7 FDA notices, quoted/Gemini/Ollama explanations and a citation checker; 201 engine/RAG/web tests.
+\item \textbf{Results:} naive bias $-0.159$ $\rightarrow$ AIPW $+0.002$; AIPW coverage 90--95\%; per-patient coverage 92.7--94.7\%; regret 0.011 vs 0.062; balance 0.70 $\rightarrow$ 0.08; refutation 9/9. RAG (60 questions): recall@5 0.933, citation precision 1.0, 0 dose leaks, abstention 0.80 (target 0.95).
 \end{enumerate}
 \h{Key words, one line each}
 \textbf{Confounding by indication:} sicker patients got SGLT2i more, so plain comparisons mislead.
@@ -36,9 +36,9 @@
 \item \emph{What if a patient is unusual?} Overlap check $\Rightarrow$ ``insufficient evidence'' (2.5\% of test cases).
 \item \emph{Why intervals?} Every estimate is uncertain; a bare number misleads. Coverage shows ours are honest.
 \item \emph{How do you know it works?} 20 synthetic cohorts with a planted truth; bias, coverage, PEHE, regret, balance, refutation all reported.
-\item \emph{What is RAG here?} Search of licence-cleared documents that shows cited passages or abstains; explanation writer comes in October.
+\item \emph{What is RAG here?} Search only licence-cleared WHO/FDA text, quote the sentences that answer, each numbered to its passage; a checker rejects any model sentence not supported by its passage; out-of-scope and dose questions are refused.
 \item \emph{Privacy?} Patient details never leave the device on the website; accounts store only name, email, role, approval.
-\item \emph{What is left?} Secondary outcomes, RAG explanations and evaluation, chat-app integration, clinician review, paper.
+\item \emph{What is left?} Engine + RAG inside the chat app, embedding model + reranker (abstention 0.80 $\to$ 0.95), clinician review of the gold set and vignettes, SUS, paper.
 \end{enumerate}
 \h{If something fails}
 Wi-Fi/laptop down $\rightarrow$ play DiaCausal\_demo.mp4 or open the website on a phone (works offline once opened). Unknown question $\rightarrow$ ``We haven't tested that yet; this is how we would.'' Never guess a number.
