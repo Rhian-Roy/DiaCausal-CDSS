@@ -139,7 +139,11 @@ def test_patient_values_are_not_in_the_audit_log(client, chat_body, db):
     from app.db.models import AuditLog
 
     send(client, chat_body, FULL)
-    rows = str([vars(row) for row in db.scalars(select(AuditLog)).all()])
+    columns = [c.key for c in AuditLog.__table__.columns]
+    # every stored column of every row; not vars(row), whose SQLAlchemy state object prints a memory
+    # address that can contain "1500" by chance (seen on Windows CI: 0x000001500F0AF170)
+    rows = str([{c: getattr(row, c) for c in columns} for row in db.scalars(select(AuditLog)).all()])
+    assert rows != "[]"
     assert "8.4" not in rows and "1500" not in rows
 
 
