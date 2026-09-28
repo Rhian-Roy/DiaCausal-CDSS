@@ -5,7 +5,7 @@ uvicorn[standard]==0.53.0
 pydantic==2.13.5
 regex==2026.9.10  # Unicode word classes (\p{L}\p{M}\p{N}) for the shared guard rules
 # Sign-in (app/auth/) and database (app/db/)
-sqlalchemy==2.0.54
+sqlalchemy==2.1.0
 alembic==1.20.0
 pwdlib[argon2]==0.3.1  # Argon2id password hashes
 argon2-cffi==25.1.0
