@@ -106,7 +106,9 @@
     const bm = bm25Scores(index, question);
     const vec = vectorScores(index, question);
     const fused = rrf([argsortDesc(bm), argsortDesc(vec)], index.config.rrf_k);
-    const order = [...fused.keys()].sort((a, b) => fused.get(b) - fused.get(a)).slice(0, k); // reranker slot: identity
+    // passages that match neither search (both scores 0) are never shown just to fill the top k
+    const order = [...fused.keys()].sort((a, b) => fused.get(b) - fused.get(a))
+      .filter((i) => bm[i] > 0 || vec[i] > 0).slice(0, k); // reranker slot: identity
     if (Math.max(...bm) < index.config.min_bm25_score) {
       return abstain(index, question, "no approved passage matches this question well enough");
     }

@@ -22,7 +22,7 @@ The true effects in the synthetic population are:
 
 | Method | Bias, SGLT2i vs DPP-4i | Bias, SU vs DPP-4i | Bias, SGLT2i vs SU |
 |---|---|---|---|
-| Naive | **−0.159** | −0.106 | −0.053 |
+| Naive | **−0.159** | −0.106 | −0.052 |
 | IPW | +0.001 | −0.004 | +0.005 |
 | Matching | −0.002 | −0.008 | +0.006 |
 | AIPW | +0.002 | −0.003 | +0.005 |
