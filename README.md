@@ -54,7 +54,7 @@ Every time, in a new Terminal window:
 cd DiaCausal-CDSS
 source .venv/bin/activate
 
-python -m pytest tests/engine -q                  # the tests: must end "149 passed" (about 3 min)
+python -m pytest tests/engine -q                  # the tests: must end "150 passed" (about 3 min)
 python -m pytest tests/rag -q                     # the RAG tests (33, about 3 s)
 python -m diacausal_rag.evaluate                  # RAG evaluation on the 60-question gold set -> results/rag_eval*.csv
 python -m diacausal_rag.explain "Can SGLT2 inhibitors cause ketoacidosis?"   # cited explanation (add --backend ollama offline)

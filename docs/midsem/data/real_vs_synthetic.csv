@@ -1,0 +1,19 @@
+group,variable,value
+DiaCausal synthetic cohort (seed 0),n,5000
+DiaCausal synthetic cohort (seed 0),age (years),"mean 55.0, SD 9.9, median 55.0 (IQR 48.0-62.0)"
+DiaCausal synthetic cohort (seed 0),bmi (kg/m2),"mean 26.4, SD 4.1, median 26.5 (IQR 23.7-29.1)"
+DiaCausal synthetic cohort (seed 0),hba1c (%),"mean 8.6, SD 1.0, median 8.4 (IQR 7.9-9.2)"
+DiaCausal synthetic cohort (seed 0),female,45%
+DiaCausal synthetic cohort (seed 0),BMI >= 25 (Asian-Indian obese),65%
+NMB-2017: said they have diabetes,n,1986
+NMB-2017: said they have diabetes,age (years),"mean 52.2, SD 10.7, median 53.0 (IQR 45.0-60.0)"
+NMB-2017: said they have diabetes,bmi (kg/m2),"mean 26.5, SD 4.4, median 26.0 (IQR 23.4-29.1)"
+NMB-2017: said they have diabetes,hba1c (%),"mean 7.6, SD 2.2, median 7.0 (IQR 5.8-8.9)"
+NMB-2017: said they have diabetes,female,46%
+NMB-2017: said they have diabetes,BMI >= 25 (Asian-Indian obese),59%
+NMB-2017: diabetes and HbA1c >= 7%,n,1010
+NMB-2017: diabetes and HbA1c >= 7%,age (years),"mean 53.5, SD 9.8, median 54.0 (IQR 47.0-60.0)"
+NMB-2017: diabetes and HbA1c >= 7%,bmi (kg/m2),"mean 26.6, SD 4.3, median 26.1 (IQR 23.5-29.0)"
+NMB-2017: diabetes and HbA1c >= 7%,hba1c (%),"mean 9.2, SD 1.8, median 8.8 (IQR 7.7-10.4)"
+NMB-2017: diabetes and HbA1c >= 7%,female,41%
+NMB-2017: diabetes and HbA1c >= 7%,BMI >= 25 (Asian-Indian obese),60%

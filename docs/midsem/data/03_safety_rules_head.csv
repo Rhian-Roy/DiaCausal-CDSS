@@ -1,0 +1,9 @@
+rule_id,arm,field,op,value,action,message,source,status
+R01,SGLT2i,egfr,lt,45,EXCLUDE,Not recommended to improve glycaemic control when eGFR < 45 mL/min/1.73 m2. KDIGO 2022 Rec 1.3.1 supports SGLT2i at eGFR >= 20 for kidney/heart protection - a different purpose; flag for the clinician.,FARXIGA (dapagliflozin) US prescribing information (DailyMed); KDIGO 2022 Diabetes in CKD,VERIFIED
+R02,SGLT2i,t1d,eq,1,EXCLUDE,Not recommended for glycaemic control in type 1 diabetes.,FARXIGA US prescribing information (DailyMed),VERIFIED
+R03,SGLT2i,dka_history,eq,1,CAUTION,History of ketoacidosis: SGLT2 inhibitors carry a ketoacidosis warning; clinician review.,FARXIGA US prescribing information (DailyMed),UNVERIFIED
+R04,DPP4i,egfr,lt,45,CAUTION,Renal dose adjustment required per label when eGFR < 45 mL/min/1.73 m2. This system never displays doses - consult the label.,JANUVIA (sitagliptin) US prescribing information (DailyMed),VERIFIED
+R05,DPP4i,pancreatitis_history,eq,1,CAUTION,Not studied in patients with a history of pancreatitis; acute pancreatitis reported after marketing.,JANUVIA US prescribing information (DailyMed),VERIFIED
+R06,DPP4i,hf,eq,1,CAUTION,Heart failure observed with two other DPP-4 inhibitors (class-level); consider risks and benefits.,JANUVIA US prescribing information (DailyMed),VERIFIED
+R07,SU,hypo_history,eq,1,CAUTION,Sulfonylureas can cause severe hypoglycaemia; prior hypoglycaemia increases concern.,Glimepiride US prescribing information (DailyMed),VERIFIED
+R08,SU,age,ge,65,CAUTION,Older patients are at higher hypoglycaemia risk; label advises a conservative start. Age cut-off 65 is team-set.,Glimepiride US prescribing information (DailyMed),UNVERIFIED

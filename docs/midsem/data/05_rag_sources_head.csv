@@ -1,0 +1,9 @@
+id,issuer,version,licence_as_found,bucket,date_checked
+S01,WHO,2018 (ISBN 978-92-4-155028-4),CC BY-NC-SA 3.0 IGO,cleared_ingest,2026-09-26
+S02,RSSDI & Endocrine Society of India,2020; Indian J Endocrinol Metab 24(1):1-122; doi 10.4103/ijem.IJEM_225_20; PMID 32699774,CC BY-NC-SA 4.0 (journal-level),cleared_ingest_PENDING,2026-09-19
+S03,RSSDI,2022; Int J Diabetes Dev Ctries 42(Suppl 1):1-143; doi 10.1007/s13410-022-01129-5; PMC9534592,(c) exclusive licence to RSSDI; PMC permission limited to the WHO COVID-19 pandemic declaration,cite_only,2026-09-19
+S04,"ICMR / Dept of Health Research, MoHFW",Undated STW PDF (2024 upload),"(c) Department of Health Research, GoI — no reuse licence stated",cite_only_permission_requested,2026-09-19
+S05,ICMR,2018,UNVERIFIED,cite_only_permission_requested,2026-09-19
+S06,"MoHFW, GoI",2022,UNVERIFIED,cite_only_structured,2026-09-19
+S07,US FDA (Drugs@FDA / openFDA),current labels,UNVERIFIED for reuse (manufacturer-written labels distributed by FDA),cite_only_structured,2026-09-19
+S08,US FDA,2016,US federal government work,cleared_ingest,2026-09-26

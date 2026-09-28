@@ -133,7 +133,7 @@ assumptions) for the Evidence Fusion layer. Separate venv at the repo root:
 
 ```bash
 python3.12 -m venv .venv && .venv/bin/pip install -r requirements-engine.txt   # once
-.venv/bin/python -m pytest tests/engine -q                                      # 149 tests
+.venv/bin/python -m pytest tests/engine -q                                      # 150 tests
 .venv/bin/python -m diacausal_engine.benchmark --quick                          # full: drop --quick
 .venv/bin/streamlit run demo/streamlit_app.py                                   # the demo
 .venv/bin/uvicorn diacausal_engine.api:app --port 8001                          # POST /api/v1/recommend
@@ -154,7 +154,8 @@ Rules that must never be broken:
    → "insufficient evidence", never a number.
 4. Synthetic data only. Every number in `data/params.yaml` has a `source` and a `status`
    (CITED, ASSUMED-DIRECTIONAL or TEAM-SET); the loader refuses anything else. The Pima dataset
-   is not Indian data and is not used.
+   is not Indian data and is not used. `data/reference/nmb2017.csv` (real Indian survey, CC0) is only a realism
+   check for `scripts/compare_cohort.py`; the engine never reads it (a test checks).
 5. Units: HbA1c %, change in percentage points, eGFR mL/min/1.73m2, cost INR/month. Asian-Indian
    BMI cut-offs (overweight >= 23, obese >= 25). Prices stay "price unavailable" until confirmed
    in `data/prices.csv` with a date and source.

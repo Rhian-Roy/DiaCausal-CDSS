@@ -1,0 +1,9 @@
+id,question,category,expected_source,doctor_review
+G01,Which medicine does WHO recommend adding when metformin alone does not control blood glucose?,answerable,S01,yes
+G02,Which sulfonylurea should be avoided in people aged 60 and older?,answerable,S01,yes
+G03,Which sulfonylurea is preferred when hypoglycaemia is a concern?,answerable,S01,yes
+G04,Do DPP-4 inhibitors lower HbA1c as much as sulfonylureas when added to metformin?,answerable,S01,yes
+G05,Is severe hypoglycaemia less likely with SGLT-2 inhibitors than with sulfonylureas?,answerable,S01,yes
+G06,Which add-on medicines were associated with weight loss in the network meta-analysis?,answerable,S01,no
+G07,Why did the WHO guideline group not prefer the newer oral medicines as second-line treatment?,answerable,S01,yes
+G08,What did the guideline group say about the cardiovascular benefit of empagliflozin?,answerable,S01,no

@@ -1,0 +1,9 @@
+parameter,value,unit,source,status
+SGLT2i.base,-0.75,percentage points,TSAPAS_2020,ASSUMED-DIRECTIONAL
+SGLT2i.per_hba1c_pct,-0.2,points per % above 8.5,DENNIS_2022,ASSUMED-DIRECTIONAL
+SGLT2i.per_10_egfr,-0.06,points per 10 mL/min/1.73m2 above 80,TRIMASTER_2023,ASSUMED-DIRECTIONAL
+SGLT2i.per_duration_year,0.0,points per year above 7,TEAM,TEAM-SET
+DPP4i.base,-0.56,percentage points,TSAPAS_2020,ASSUMED-DIRECTIONAL
+DPP4i.per_hba1c_pct,-0.12,points per % above 8.5,DENNIS_2022,ASSUMED-DIRECTIONAL
+DPP4i.per_10_egfr,0.0,points per 10 mL/min/1.73m2 above 80,TRIMASTER_2023,ASSUMED-DIRECTIONAL
+DPP4i.per_duration_year,0.0,points per year above 7,TEAM,TEAM-SET

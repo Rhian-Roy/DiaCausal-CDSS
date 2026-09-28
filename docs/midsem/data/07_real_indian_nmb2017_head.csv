@@ -1,0 +1,9 @@
+patient_id,state,district,age,gender,height_cm,weight_kg,waist_cm,diabetes_self_declared,diabetes_father,diabetes_mother,hba1c
+0,Rajasthan,Ajmer,35,Female,157,47,70,Normal,0,0,4.9
+1,Orissa,Balasore,38,Female,145,65,81,Normal,1,0,5.3
+4,Rajasthan,Ajmer,42,Female,159,68,102,Normal,1,1,5.0
+7,Orissa,Balasore,37,Female,142,44,76,Normal,1,0,5.4
+8,Orissa,Balasore,47,Male,160,60,87,Normal,1,0,12.6
+10,Karnataka,Bangalore,59,Female,158,57,83,Normal,0,0,6.3
+13,Orissa,Balasore,30,Female,151,84,72,Normal,1,0,6.2
+14,Orissa,Balasore,37,Female,151,60,81,Normal,1,0,4.9

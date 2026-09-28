@@ -103,6 +103,18 @@ def test_pima_is_not_used_anywhere_in_the_engine():
         assert "diabetes.csv" not in f.read_text(), f.name
 
 
+def test_real_reference_data_never_reaches_the_engine():
+    """data/reference/ (real NMB-2017 survey rows) is a realism check for the slides only: the
+    engine trains and is graded on the synthetic cohort, never on real patients (rule 4)."""
+    for f in (ROOT / "diacausal_engine").glob("*.py"):
+        text = f.read_text()
+        assert not re.search(r"data[/\\\\\"', ]+reference|nmb.?2017", text, re.I), f.name
+    ref = ROOT / "data" / "reference"
+    assert (ref / "README.md").exists()
+    header = (ref / "nmb2017.csv").read_text(encoding="utf-8").splitlines()[0].split(",")
+    assert "treatment" not in header and "y" not in header  # no drug choice, no follow-up outcome
+
+
 # ── the DAG ──────────────────────────────────────────────────────────────────
 
 
