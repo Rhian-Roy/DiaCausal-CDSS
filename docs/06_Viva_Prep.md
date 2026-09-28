@@ -4,7 +4,7 @@
 
 ## The 60-second pitch (Rhian)
 
-> Indian doctors adding a second drug to metformin choose between SGLT2 inhibitors, DPP-4 inhibitors and sulfonylureas. Past records can mislead, because different kinds of patients get different drugs. DiaCausal first removes unsafe options using cited drug-label rules. It then estimates each remaining drug's six-month HbA1c change for this patient with a 95% range, and it says "insufficient evidence" rather than guess. We tested it on an India-calibrated synthetic cohort where the true answers are known, and our benchmark shows how much a naive comparison would mislead. It is decision support only: the doctor decides, every request is logged, and cited guideline explanations arrive in October.
+> Indian doctors adding a second drug to metformin choose between SGLT2 inhibitors, DPP-4 inhibitors and sulfonylureas. Past records can mislead, because different kinds of patients get different drugs. DiaCausal first removes unsafe options using cited drug-label rules. It then estimates each remaining drug's six-month HbA1c change for this patient with a 95% range, and it says "insufficient evidence" rather than guess. We tested it on an India-calibrated synthetic cohort where the true answers are known, and our benchmark shows how much a naive comparison would mislead. It also shows weight change and low-sugar risk, and explains each answer by quoting licence-cleared WHO and FDA passages with citations. It is decision support only: the doctor decides and every request is logged.
 
 ## Four rules for the viva
 

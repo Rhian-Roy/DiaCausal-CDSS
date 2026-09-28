@@ -93,7 +93,9 @@ class Retriever:
         by_bm = sorted(range(len(bm)), key=lambda i: -bm[i])
         by_vec = sorted(range(len(vec)), key=lambda i: -vec[i])
         fused = rrf([by_bm, by_vec], int(self.cfg["rrf_k"]))
-        best = self.rerank(question, sorted(fused, key=lambda i: -fused[i]))[:k]
+        # passages that match neither search (both scores 0) are never shown just to fill the top k
+        ranked = [i for i in sorted(fused, key=lambda i: -fused[i]) if bm[i] > 0 or vec[i] > 0]
+        best = self.rerank(question, ranked)[:k]
         if max(bm) < self.cfg["min_bm25_score"]:
             return self._abstain(question, "no approved passage matches this question well enough")
         q = set(tokens(question))

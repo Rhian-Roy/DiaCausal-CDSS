@@ -80,7 +80,7 @@ def evidence_dict() -> dict:
             "bm25": {"tf": dict(Counter(tokens(index_text(c.text)))), "len": len(r.bm25.docs[i])},
             "tfidf": {str(int(j)): float(v) for j, v in zip(row.indices, row.data)},
         })
-    out["bm25"] = {"idf": r.bm25.idf, "avgdl": r.bm25.avgdl}
+    out["bm25"] = {"idf": dict(sorted(r.bm25.idf.items())), "avgdl": r.bm25.avgdl}  # sorted: stable file
     out["tfidf"] = {"vocabulary": {t: int(j) for t, j in vec.vocabulary_.items()},
                     "idf": [float(v) for v in vec.idf_], "ngram_range": list(vec.ngram_range),
                     "sublinear_tf": vec.sublinear_tf}

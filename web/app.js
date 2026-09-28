@@ -361,8 +361,10 @@ async function ask(question) {
   const res = JSON.parse(JSON.stringify({ ...raw, passages: raw.passages.map(({ _raw, ...p }) => p) }));
   out.replaceChildren();
   const note = window.DiaCausalExplain.explain(index, q, res);
-  if (res.status === "SUCCESS" && note.status !== "SUCCESS" && note.note === index.no_dose_note) {
-    out.append(h("div", { class: "notice" }, h("strong", {}, "No doses: "), index.no_dose_note));
+  if (note.note === index.no_dose_note) {
+    out.append(h("div", { class: "notice" }, h("strong", {}, "No doses: "), index.no_dose_note,
+      h("p", { class: "sub" }, "Ask about safety, kidney function or side effects instead; the approved sources cover those.")));
+    return;
   }
   if (res.status === "INSUFFICIENT_EVIDENCE") {
     out.append(h("div", { class: "notice" }, h("strong", {}, "Insufficient evidence: "), res.reason,
