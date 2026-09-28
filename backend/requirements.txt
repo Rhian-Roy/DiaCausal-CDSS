@@ -1,7 +1,7 @@
 # Runtime dependencies for the DiaCausal API (Python 3.12).
 # Pinned exactly so every machine installs the same versions.
 fastapi==0.141.1
-uvicorn[standard]==0.53.0
+uvicorn[standard]==0.54.0
 pydantic==2.13.5
 regex==2026.9.10  # Unicode word classes (\p{L}\p{M}\p{N}) for the shared guard rules
 # Sign-in (app/auth/) and database (app/db/)
