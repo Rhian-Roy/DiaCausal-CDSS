@@ -4,6 +4,7 @@ Run: python -m pytest tests/web -q      (needs Node.js for the parity test)
 """
 
 import json
+import math
 import re
 import shutil
 import subprocess
@@ -140,10 +141,29 @@ QUESTIONS = [
 ]
 
 
+def _first_difference(a, b, path="evidence"):
+    """Where two JSON trees differ: same keys, lengths and strings; numbers equal to 1e-12 (relative).
+    Numbers get a tolerance because macOS builds numpy/scikit-learn on Accelerate, whose logs and norms
+    can differ from Linux in the last bits (as model.json's test already allows)."""
+    if isinstance(a, dict) and isinstance(b, dict):
+        if a.keys() != b.keys():
+            return f"{path}: keys differ ({sorted(set(a) ^ set(b))[:5]})"
+        return next((d for k in a if (d := _first_difference(a[k], b[k], f"{path}.{k}"))), None)
+    if isinstance(a, list) and isinstance(b, list):
+        if len(a) != len(b):
+            return f"{path}: {len(a)} vs {len(b)} items"
+        return next((d for i, (x, y) in enumerate(zip(a, b)) if (d := _first_difference(x, y, f"{path}[{i}]"))), None)
+    numbers = (int, float)
+    if isinstance(a, numbers) and isinstance(b, numbers) and not isinstance(a, bool) and not isinstance(b, bool):
+        return None if math.isclose(a, b, rel_tol=1e-12, abs_tol=1e-12) else f"{path}: {a!r} vs {b!r}"
+    return None if a == b else f"{path}: {str(a)[:60]!r} vs {str(b)[:60]!r}"
+
+
 def test_evidence_json_is_fresh():
     """web/evidence.json must be the export of the current corpus, licence table and settings."""
     data = json.loads((WEB / "evidence.json").read_text())
-    assert data == json.loads(json.dumps(evidence_dict())), "run: python -m diacausal_rag.export_web"
+    diff = _first_difference(data, json.loads(json.dumps(evidence_dict())))
+    assert diff is None, f"{diff} -- run: python -m diacausal_rag.export_web"
     assert data["chunks"], "the confirmed FDA communication should be in the website index"
     assert {c["citation"]["source_id"] for c in data["chunks"]} >= {"S01", "S08"}  # WHO 2018 + FDA
     assert all(c["citation"]["licence_bucket"] == "cleared_ingest" for c in data["chunks"])
