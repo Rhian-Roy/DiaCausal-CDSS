@@ -5,7 +5,7 @@
 | File | What it is | Mentor item |
 |---|---|---|
 | **`PANEL_PREP.md` / `.pdf`** | **Start here if you are new.** From zero to ready: the story, exactly what the 25% covers and where it ends, every abbreviation expanded, the code file by file, the numbers card, 118 panel questions with answers, NotebookLM and Claude study prompts, the day-of checklist | all six |
-| **`explainer/index.html`** + `DiaCausal_explainer.mp4` | The interactive narrated explainer (12 scenes, glossary, quiz) and the same story as a narrated video | all six |
+| **`explainer/index.html`** + `DiaCausal_explainer.mp4` | The interactive narrated explainer (12 scenes, glossary, quiz; online at https://claude.ai/artifact/QQ3PmLQHZxrmmmi13tVFq9 once shared) and the same story as a 9-minute narrated video with captions (`scripts/make_explainer.py`, `scripts/record_explainer.cjs`) | all six |
 | **`EXPLAINING_DIACAUSAL.md` / `.pdf`** | The handbook: pitches, every component, the guide-meeting script, the panel script (40-slide deck), the demo runbook, 45 questions, the numbers card | all six |
 | **`TEAM_BRIEFING.md` / `.pdf`** | Every slide of the 40-slide deck: what to say, what it means, what may be asked; the code folder by folder | all six |
 | `DiaCausal_MidSem_Presentation.pptx` | The first 22-slide draft (26 Sept), kept for reference; the team's deck below replaces it | — |
