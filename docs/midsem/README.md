@@ -8,7 +8,9 @@
 | `DiaCausal_MidSem_Presentation.pptx` | 22 slides, 4:3, college format (made 26 Sept; the team is updating it for RAG and the secondary outcomes) | all six |
 | `DiaCausal_MidSem_Report.pdf` | The report (49 pages): requirements, design, implementation status, real results, screenshots, code, evaluation matrix, timeline | all six |
 | `DiaCausal_Report_Overleaf.zip` | The report's LaTeX source — Overleaf → New Project → Upload Project | — |
-| `gantt.png` | Timeline chart (`scripts/make_gantt.py`) | 3 |
+| `gantt.png`, `timeline.png` | Gantt chart and timeline chart from the Project Interaction Sheet (`scripts/make_gantt.py`) | 3 |
+| **`INTERACTION_SHEET.md`** | Every interaction-sheet entry: remark, status, where it is covered | all |
+| **`Intelligent_Diabetes_CDSS_MidSem_updated.pptx`** + `PPT_CHANGES.md` | The team's deck, updated (39 slides) | all |
 | `DiaCausal_demo.mp4` | 112-second captioned backup demo (presets, weight and low-sugar lines, option evidence, quoted explanation, abstention, dose refusal, print summary, Results) | 6 |
 | **`DATASETS.md` / `.pdf`** | Every dataset (synthetic cohort, safety rules, parameters, evidence sources, test questions, real Indian NMB-2017): columns, how the synthetic cohort is made, why it is valid, the real Indian datasets that exist, the real-vs-synthetic check, the hospital path, and the progress estimate (≈64%) | 2, 3 |
 | `data/` | First-rows pictures of each dataset (`01_…`–`07_…`) and `real_vs_synthetic.png` | 2 |
