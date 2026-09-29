@@ -144,21 +144,21 @@ exact one.
 **One line for the panel:** "We proved the method where the truth is known; the next step is the
 same code on ethically approved hospital records, checked against trial results."
 
-## 7. How much is implemented: about 64% of the final-year project
+## 7. How much is implemented: about 75% of the final-year project
 
 Weights are the team's judgement of each part's share of the whole year; each "% done" points to
 a file or test.
 
 | Part | Weight | Done | Evidence |
 |---|---|---|---|
-| Chat app: UI, guards, sign-in (CAPTCHA + MFA), patient panel, guardrails, voice, Docker | 20% | ~95% | 392 backend + 238 frontend tests; `check_all` 43 checks |
+| Chat app: UI, guards, sign-in (CAPTCHA + MFA), patient panel, guardrails, voice, Docker | 20% | ~95% | 401 backend + 246 frontend tests; `check_all` 43 checks |
 | Causal engine (cohort, safety rules, propensity, IPW / AIPW / matching, DR-learner, secondary outcomes, benchmark, refutation) | 25% | ~90% | 150 engine tests; `results/` (9 of 9 refutation checks). Missing: real-data validation |
 | RAG (sources, hybrid search, abstention, explanations, citation checker, 60-question evaluation) | 20% | ~75% | 33 RAG tests; `results/rag_eval_summary.csv` (recall@5 0.933, abstention 0.800, citation precision 1.000, 0 dose leaks). Missing: medical embedding model, reranker, doctor review, RSSDI source |
-| Joining engine + RAG + LLM into the chat app | 15% | ~10% | Stages and contract exist; 3 of 6 stages still return "skipped" |
+| Joining engine + RAG + LLM into the chat app | 15% | ~85% | All 6 stages run since 29 Sep (`backend/tests/test_engine_stages.py`); the explanation uses the quoted template by default |
 | Clinician evaluation (25 vignettes, SUS) | 10% | ~20% | Pack ready in `eval/`; not yet run with doctors |
 | Report and paper | 10% | ~40% | Mid-sem report done; paper not started |
-| **Total** | 100% | **≈ 64%** | 0.20×95 + 0.25×90 + 0.20×75 + 0.15×10 + 0.10×20 + 0.10×40 |
+| **Total** | 100% | **≈ 75%** | 0.20×95 + 0.25×90 + 0.20×75 + 0.15×85 + 0.10×20 + 0.10×40 = 75.25 |
 
-Far past the 25% asked for mid-sem: every core part works and is tested on its own. What is left:
-join them in the chat app, the doctor review and usability study, a better search model, the
-real-data step above, and the paper.
+The interaction sheet's 25% (signed 23 Sep), 40% (met 28 Sep) and 60% (met 29 Sep) checks are met: every
+core part works, and since 29 September they run together in the chat app. What is left: a better search
+model, the real-data step above, the doctor review and usability study, and the paper.

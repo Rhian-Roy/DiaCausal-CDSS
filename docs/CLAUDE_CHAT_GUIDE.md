@@ -30,6 +30,7 @@ Our newest work (deck, datasets, briefing, interaction-sheet charts) is on the b
 | Tick | Why |
 |---|---|
 | `CLAUDE.md`, `README.md` | Rules, layout, how to run everything |
+| `docs/midsem/PANEL_PREP.md` | From zero: the 25% boundary, every abbreviation, the code file by file, 118 questions |
 | `docs/midsem/TEAM_BRIEFING.md` | Every slide: what to say and what it means |
 | `docs/midsem/EXPLAINING_DIACAUSAL.md` | The full handbook: components, 45 questions, numbers |
 | `docs/midsem/DATASETS.md`, `INTERACTION_SHEET.md`, `PPT_CHANGES.md` | Data, the sheet, deck changes |
@@ -66,4 +67,4 @@ not for unsupervised clinical use." The engine uses synthetic data only; NMB-201
 - "What exactly is left for 100% implementation?"
 
 Other ways, if needed: in any chat, **+ → Add from GitHub** attaches files for that one chat; or upload
-`TEAM_BRIEFING.pdf` / `EXPLAINING_DIACAUSAL.pdf` as project files (works even without GitHub).
+`PANEL_PREP.pdf` / `TEAM_BRIEFING.pdf` / `EXPLAINING_DIACAUSAL.pdf` as project files (works even without GitHub).
