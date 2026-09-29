@@ -43,6 +43,11 @@ RUN python -c "import sys; sys.path.insert(0, '/tmp'); import transcriber; print
 
 COPY backend/ ./backend/
 COPY shared/ ./shared/
+# The causal engine and the evidence search the pipeline calls, with their data and sources.
+COPY diacausal_engine/ ./diacausal_engine/
+COPY diacausal_rag/ ./diacausal_rag/
+COPY data/params.yaml data/rules.csv data/prices.csv ./data/
+COPY RAG/sources.csv ./RAG/sources.csv
 COPY scripts/ ./scripts/
 COPY --from=page /build/frontend/dist ./frontend/dist
 

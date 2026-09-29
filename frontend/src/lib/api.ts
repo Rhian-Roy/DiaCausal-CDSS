@@ -5,6 +5,7 @@
 
 import { csrfHeaders, markActivity, sessionEnded } from './authSession'
 import {
+  ESTIMATE_STATUSES,
   OPTION_STATUSES,
   REASON_CODES,
   SCHEMA_VERSION,
@@ -13,6 +14,8 @@ import {
   type ChatRequest,
   type ChatResponse,
   type ErrorResponse,
+  type EstimatesPart,
+  type EvidencePart,
   type OptionsPart,
   type PatientPart,
   type ReplyPart,
@@ -140,8 +143,58 @@ function isOptionsPart(value: unknown): value is OptionsPart {
   )
 }
 
+function isRange(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    typeof value.value === 'number' &&
+    typeof value.ci_low === 'number' &&
+    typeof value.ci_high === 'number' &&
+    value.ci_low <= value.value &&
+    value.value <= value.ci_high
+  )
+}
+
+/**
+ * An estimates part: every "estimate" carries its 95% range; anything else carries no
+ * number at all (excluded or insufficient evidence), and the synthetic-data note is present.
+ */
+function isEstimatesPart(value: unknown): value is EstimatesPart {
+  return (
+    isRecord(value) &&
+    value.type === 'estimates' &&
+    typeof value.data_note === 'string' &&
+    typeof value.decision === 'string' &&
+    Array.isArray(value.comparisons) &&
+    Array.isArray(value.estimates) &&
+    value.estimates.every(
+      (e) =>
+        isRecord(e) &&
+        (ESTIMATE_STATUSES as readonly unknown[]).includes(e.status) &&
+        typeof e.name === 'string' &&
+        (e.status === 'estimate' ? isRange(e.hba1c_change) : e.hba1c_change === null),
+    )
+  )
+}
+
+/** An evidence part: every sentence cites passages that were sent with it. */
+function isEvidencePart(value: unknown): value is EvidencePart {
+  if (!isRecord(value) || value.type !== 'evidence' || !Array.isArray(value.sentences) || !Array.isArray(value.passages)) {
+    return false
+  }
+  if (value.status !== 'answered' && value.status !== 'insufficient_evidence') return false
+  const numbers = new Set(value.passages.map((p) => (isRecord(p) ? p.n : null)))
+  return value.sentences.every(
+    (s) =>
+      isRecord(s) &&
+      typeof s.text === 'string' &&
+      Array.isArray(s.cites) &&
+      s.cites.length > 0 &&
+      s.cites.every((n) => numbers.has(n)),
+  )
+}
+
 function isReplyPart(value: unknown): value is ReplyPart {
-  return isTextPart(value) || isOptionsPart(value)
+  return isTextPart(value) || isOptionsPart(value) || isEstimatesPart(value) || isEvidencePart(value)
 }
 
 function hasAllStagesInOrder(value: unknown): value is { name: string; status: StageStatus; detail: string; duration_ms: number }[] {

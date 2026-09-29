@@ -20,3 +20,10 @@ faster-whisper==1.2.1
 ctranslate2==4.8.2
 av==18.1.0  # decodes the browser's WebM/Opus or MP4/AAC recordings
 PyYAML==6.0.3  # reads app/clinical/guardrails.v1.yaml
+# The causal engine (diacausal_engine/) and the evidence search (diacausal_rag/) run inside the
+# pipeline (stages causal_engine, rag_retrieval, llm_explanation); same pins as requirements-engine.txt.
+numpy==2.5.3
+pandas==3.0.6
+scipy==1.18.1
+scikit-learn==1.9.1
+pypdf==6.19.0

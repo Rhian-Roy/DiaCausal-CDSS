@@ -1,5 +1,7 @@
 import type { Answer } from '@/lib/chatFlow'
 import type { ReactNode } from 'react'
+import { EstimatesList } from './EstimatesList'
+import { EvidenceList } from './EvidenceList'
 import { GuardNotice } from './GuardNotice'
 import { OptionsList } from './OptionsList'
 import { StageList } from './StageList'
@@ -59,6 +61,8 @@ export function AnswerCard({ answer, traceId }: { answer: Answer; traceId: strin
       return (
         <Card label="DiaCausal answered">
           {answer.options && <OptionsList part={answer.options} />}
+          {answer.estimates && <EstimatesList part={answer.estimates} />}
+          {answer.evidence && <EvidenceList part={answer.evidence} />}
           {answer.text.split(/\n{2,}/).map((paragraph, index) => (
             <p key={index} className="m-0 whitespace-pre-wrap wrap-break-word">
               {paragraph}

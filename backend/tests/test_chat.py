@@ -6,14 +6,14 @@ from conftest import PATIENT, TRACE
 EXPECTED_STAGES = [
     ("backend_guard", "passed"),
     ("clinical_guardrails", "passed"),
-    ("causal_engine", "skipped"),
-    ("rag_retrieval", "skipped"),
-    ("llm_explanation", "skipped"),
+    ("causal_engine", "skipped"),  # the default test patient has no sex, which the engine needs
+    ("rag_retrieval", "passed"),
+    ("llm_explanation", "passed"),
     ("output_guard", "passed"),
 ]
 
 
-def test_valid_message_gets_dummy_reply(client, chat_body):
+def test_valid_message_gets_a_written_reply(client, chat_body):
     response = client.post("/api/v1/chat", json=chat_body())
 
     assert response.status_code == 200
@@ -23,9 +23,10 @@ def test_valid_message_gets_dummy_reply(client, chat_body):
     assert data["outcome"] == "answered"
     assert data["blocked_reason"] is None
     assert data["intended_use"] == INTENDED_USE
-    # The reply carries the three options from the clinical guardrails, then the text.
-    assert [part["type"] for part in data["parts"]] == ["options", "text"]
-    assert data["parts"][1]["text"].startswith("Dummy reply")
+    # The reply carries the three options from the clinical guardrails, the evidence search's
+    # result, then the written answer (no fixed dummy reply any more).
+    assert [part["type"] for part in data["parts"]] == ["options", "evidence", "text"]
+    assert data["parts"][-1]["text"].strip() and "Dummy reply" not in data["parts"][-1]["text"]
 
 
 def test_reply_lists_all_six_stages_in_order(client, chat_body):
@@ -33,7 +34,9 @@ def test_reply_lists_all_six_stages_in_order(client, chat_body):
 
     assert [(s["name"], s["status"]) for s in data["stages"]] == EXPECTED_STAGES
     skipped = [s for s in data["stages"] if s["status"] == "skipped"]
-    assert all(s["detail"] == "Not built yet." for s in skipped)
+    # A skipped stage says exactly what it needs; no stage is "not built" any more.
+    assert [s["detail"] for s in skipped] == ["Needs sex in the patient panel."]
+    assert all(s["detail"] != "Not built yet." for s in data["stages"])
 
 
 def test_trace_id_comes_back_in_body_and_header(client, chat_body):

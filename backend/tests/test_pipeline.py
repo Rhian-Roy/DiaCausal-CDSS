@@ -73,8 +73,9 @@ def test_output_guard_withholds_an_empty_reply():
 
 
 def test_reply_withheld_by_output_guard_is_not_sent(client, chat_body, monkeypatch):
-    # "dummy" appears in the dummy reply, so blocking it makes output_guard withhold the reply.
-    monkeypatch.setattr("app.pipeline.blocklist.BLOCKED_TERMS", frozenset({"dummy"}))
+    # "hello" is not covered by the sources, so the reply says "Insufficient evidence";
+    # blocking "insufficient" makes output_guard withhold that reply.
+    monkeypatch.setattr("app.pipeline.blocklist.BLOCKED_TERMS", frozenset({"insufficient"}))
 
     data = client.post("/api/v1/chat", json=chat_body("hello")).json()
 

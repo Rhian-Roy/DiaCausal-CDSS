@@ -75,7 +75,8 @@ If you add a requirement, add a check for it here or in the tests, and update
   `SUPPORTED_PART_TYPES`. Never loosen validation to "accept anything".
 - Every reply lists six stages in this order: `backend_guard`, `clinical_guardrails`,
   `causal_engine`, `rag_retrieval`, `llm_explanation`, `output_guard` (one file each in
-  `app/pipeline/`). Today `backend_guard`, `clinical_guardrails` and `output_guard` run; the rest return `"skipped"`.
+  `app/pipeline/`). All six run; `causal_engine` is `"skipped"` (with the missing fields named) when
+  the patient panel lacks what the engine needs, `rag_retrieval` when there is no question text.
   After a stage blocks, later stages are `"skipped"` and `outcome` is `"blocked"` (HTTP 200).
 - Every app log line (logger `diacausal`, app/tracing.py) carries `[client_trace_id]` after
   the time and level (`[-]` when there is no valid ID, e.g. a rejected request), e.g. `19:33:11 INFO    [efc1a658] backend_guard: passed`. Uvicorn's own
@@ -180,12 +181,21 @@ Function `supabase/functions/explain/` (key = Supabase secret `GEMINI_API_KEY`; 
 `web/explain.js` mirrors `diacausal_rag/explain.py` (template + citation checker).
 `.venv/bin/python -m pytest tests/web -q` (19 tests, needs Node). Full chat app hosting: docs/HOSTING_CHAT_APP.md.
 
-## Not built yet — where each piece goes
+## Engine + RAG inside the chat app (built, implementation Section 3)
 
-| Piece | Backend | Frontend / other |
-|---|---|---|
-| Causal engine in the chat app (October) | `backend/app/pipeline/causal_engine.py` calls `diacausal_engine` on `ctx.options` only | designs 17 and 19; `contract.ts` + `schemas.py` together |
-| RAG in the chat app (built standalone in `diacausal_rag/`: licence gate, WHO 2018 + FDA S08/S19–S23, sentence-aware chunks, BM25 + TF-IDF, RRF, coverage abstention, `explain.py` template/Gemini/Ollama + citation checker, `eval/rag_gold.csv` + `evaluate`; `tests/rag` 33; website Evidence tab). Still to do: medical embedding model, reranker, doctor review of the gold set | `backend/app/pipeline/rag_retrieval.py`, `llm_explanation.py` call `diacausal_rag` | `docs/03_RAG_Build_Guide.md`; only `cleared_ingest` sources |
+`backend/app/engines.py` loads `diacausal_engine` and `diacausal_rag` once (repo root on the path).
+- `pipeline/causal_engine.py`: needs age, sex, duration, HbA1c, eGFR, BMI from the panel (else
+  "skipped" naming what is missing); an option the guardrails marked `do_not_use` is reported
+  `excluded` with no number (stricter wins); returns an `estimates` part (`EstimatesPart`).
+- `pipeline/rag_retrieval.py`: `Retriever.search(ctx.text)`; abstains → insufficient evidence.
+- `pipeline/llm_explanation.py`: writes the reply from the structured results plus
+  `diacausal_rag.explain` (default `template`; `DIACAUSAL_EXPLAIN_BACKEND=gemini|ollama`, always
+  through the citation checker); returns an `evidence` part (`EvidencePart`) + text.
+- `output_guard.py` withholds any reply with dose-like text anywhere.
+- Frontend: `EstimatesList.tsx`, `EvidenceList.tsx`; `checkOutput` refuses an estimate without its
+  range, a number on an excluded option, or a citation to a passage not sent. Panel asks for sex.
+
+Still to do (Section 4): medical embedding model, reranker, doctor review of the gold set.
 
 Each folder's README says how it connects.
 

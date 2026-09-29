@@ -54,8 +54,12 @@ describe('what gets sent', () => {
       type: 'patient', age_years: 58, diabetes_duration_years: 6, hba1c_percent: 8.4,
       egfr_ml_min_1_73m2: 62, bmi_kg_m2: 31.2, established_ascvd: true, ckd: false,
       heart_failure: false, past_dka: false, recurrent_genital_or_urinary_infection: false,
-      past_pancreatitis: false, past_hypoglycaemia: 'none', budget_inr_per_month: 1500,
+      past_pancreatitis: false, past_hypoglycaemia: 'none', sex: 'male', budget_inr_per_month: 1500,
     })
+  })
+
+  it('the causal engine needs sex, so the panel asks for it', () => {
+    expect(toPatientPart({ ...EMPTY_PANEL, sex: 'female' })).toEqual({ type: 'patient', sex: 'female' })
   })
 
   it('knows when the panel is empty', () => {

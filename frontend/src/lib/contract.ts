@@ -26,6 +26,7 @@ export type PatientPart = {
   recurrent_genital_or_urinary_infection?: boolean | null
   past_pancreatitis?: boolean | null
   past_hypoglycaemia?: 'none' | 'mild' | 'severe' | null
+  sex?: 'female' | 'male' | null // needed by the causal engine
   budget_inr_per_month?: number | null
 }
 
@@ -53,7 +54,47 @@ export type OptionsPart = {
   draft_warning: string | null
 }
 
-export type ReplyPart = TextPart | OptionsPart
+/** A value with its 95% interval (Range in schemas.py). */
+export type Range = { value: number; ci_low: number; ci_high: number }
+
+/** What the causal engine says about one option (EstimateResult in schemas.py). */
+export const ESTIMATE_STATUSES = ['estimate', 'insufficient_evidence', 'excluded'] as const
+export type EstimateStatus = (typeof ESTIMATE_STATUSES)[number]
+export type EstimateResult = {
+  option: 'sglt2i' | 'dpp4i' | 'sulfonylurea'
+  name: string
+  status: EstimateStatus
+  hba1c_change: Range | null
+  weight_change_kg: Range | null
+  hypo_risk_pct: Range | null
+  propensity: number | null
+  reason: string | null
+  rule_ids: string[]
+}
+
+/** A reply part carrying the causal engine's estimates (EstimatesPart in schemas.py). */
+export type EstimatesPart = {
+  type: 'estimates'
+  outcome: string
+  estimates: EstimateResult[]
+  comparisons: { first: string; second: string; difference: Range }[]
+  method: string
+  engine_version: string
+  data_note: string
+  decision: string
+}
+
+/** A reply part carrying cited evidence and its explanation (EvidencePart in schemas.py). */
+export type EvidencePart = {
+  type: 'evidence'
+  status: 'answered' | 'insufficient_evidence'
+  sentences: { text: string; cites: number[] }[]
+  passages: { n: number; source_id: string; title: string; section: string; page: string | null; text: string }[]
+  backend: string
+  note: string
+}
+
+export type ReplyPart = TextPart | OptionsPart | EstimatesPart | EvidencePart
 
 export type ChatRequest = {
   schema_version: typeof SCHEMA_VERSION

@@ -65,6 +65,16 @@ export function PatientPanel({ values, onChange, onNewPatient, isExample }: Prop
             <span className="text-base text-ink-muted">Clears these details and the conversation.</span>
           </div>
 
+          <Choice
+            label="Sex"
+            options={[
+              ['Female', 'female'],
+              ['Male', 'male'],
+            ]}
+            value={values.sex}
+            onChange={(chosen) => set({ sex: chosen })}
+          />
+
           {NUMBER_FIELDS.map((field) => (
             <NumberField
               key={field}

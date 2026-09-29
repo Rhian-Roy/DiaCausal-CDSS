@@ -63,7 +63,7 @@ def run_pipeline(request: ChatRequest) -> ChatResponse:
 
     results = [_run(stage, ctx) for stage in STAGES_BEFORE_REPLY]
     if ctx.blocked_reason is None and not ctx.reply_parts:
-        # llm_explanation is not built yet, so nothing wrote a reply: use a fixed one.
+        # llm_explanation writes the reply; this is only a fallback if it wrote nothing.
         ctx.reply_parts = [dummy_reply(ctx)]
     if ctx.blocked_reason is None and ctx.options_part is not None:
         # What the clinical guardrails decided, as structured data the page can show.

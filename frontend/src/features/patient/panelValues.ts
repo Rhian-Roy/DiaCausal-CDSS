@@ -21,6 +21,7 @@ export type PanelValues = {
   recurrent_genital_or_urinary_infection: boolean | null
   past_pancreatitis: boolean | null
   past_hypoglycaemia: 'none' | 'mild' | 'severe' | null
+  sex: 'female' | 'male' | null // needed by the causal engine
   budget_inr_per_month: string
 }
 
@@ -28,7 +29,7 @@ export const EMPTY_PANEL: PanelValues = {
   age_years: '', diabetes_duration_years: '', hba1c_percent: '', egfr_ml_min_1_73m2: '',
   bmi_kg_m2: '', established_ascvd: null, ckd: null, heart_failure: null, past_dka: null,
   recurrent_genital_or_urinary_infection: null, past_pancreatitis: null,
-  past_hypoglycaemia: null, budget_inr_per_month: '',
+  past_hypoglycaemia: null, sex: null, budget_inr_per_month: '',
 }
 
 /** The example patient from the design, clearly labelled as example data. */
@@ -37,7 +38,7 @@ export const EXAMPLE_PANEL: PanelValues = {
   age_years: '58', diabetes_duration_years: '6', hba1c_percent: '8.4',
   egfr_ml_min_1_73m2: '62', bmi_kg_m2: '31.2', established_ascvd: true, ckd: false,
   heart_failure: false, past_dka: false, recurrent_genital_or_urinary_infection: false,
-  past_pancreatitis: false, past_hypoglycaemia: 'none', budget_inr_per_month: '1500',
+  past_pancreatitis: false, past_hypoglycaemia: 'none', sex: 'male', budget_inr_per_month: '1500',
 }
 
 export const NUMBER_FIELDS: PatientField[] = [
@@ -77,6 +78,7 @@ export function toPatientPart(values: PanelValues): PatientPart {
   }
   for (const [field] of YES_NO_FIELDS) if (values[field] !== null) part[field] = values[field]
   if (values.past_hypoglycaemia !== null) part.past_hypoglycaemia = values.past_hypoglycaemia
+  if (values.sex !== null) part.sex = values.sex
   return part
 }
 

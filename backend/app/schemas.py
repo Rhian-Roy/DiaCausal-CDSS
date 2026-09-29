@@ -53,6 +53,7 @@ class PatientPart(StrictModel):
     recurrent_genital_or_urinary_infection: bool | None = None
     past_pancreatitis: bool | None = None  # needed by the DPP-4 inhibitor rules
     past_hypoglycaemia: Literal["none", "mild", "severe"] | None = None
+    sex: Literal["female", "male"] | None = None  # needed by the causal engine
     budget_inr_per_month: int | None = Field(default=None, **_limits("budget_inr_per_month"))
 
     def filled_fields(self) -> list[str]:
@@ -87,6 +88,72 @@ class OptionsPart(StrictModel):
     options: list[OptionResult]
     rules_version: str
     draft_warning: str | None = None  # set while the table is not clinically reviewed
+
+
+class Range(StrictModel):
+    """A value with its 95% interval."""
+
+    value: float
+    ci_low: float
+    ci_high: float
+
+
+class EstimateResult(StrictModel):
+    """What the causal engine says about one option (after the clinical guardrails)."""
+
+    option: Literal["sglt2i", "dpp4i", "sulfonylurea"]
+    name: str
+    status: Literal["estimate", "insufficient_evidence", "excluded"]
+    hba1c_change: Range | None = None  # percentage points at 6 months; negative = HbA1c falls
+    weight_change_kg: Range | None = None
+    hypo_risk_pct: Range | None = None
+    propensity: float | None = None
+    reason: str | None = None  # why excluded or insufficient evidence
+    rule_ids: list[str] = []
+
+
+class Comparison(StrictModel):
+    first: str
+    second: str
+    difference: Range  # first minus second; negative = first lowers HbA1c more
+
+
+class EstimatesPart(StrictModel):
+    """A reply part carrying the causal engine's estimates (designs 17 and 19)."""
+
+    type: Literal["estimates"]
+    outcome: str = "Change in HbA1c at 6 months (percentage points; negative = better control)"
+    estimates: list[EstimateResult]
+    comparisons: list[Comparison] = []
+    method: str
+    engine_version: str
+    data_note: str = "Estimates come from an India-calibrated synthetic cohort, not real patients."
+    decision: str = "Decision support only. The clinician decides."
+
+
+class Passage(StrictModel):
+    n: int  # the number used in the citations, [1], [2] ...
+    source_id: str
+    title: str
+    section: str
+    page: str | None = None
+    text: str
+
+
+class Sentence(StrictModel):
+    text: str
+    cites: list[int]
+
+
+class EvidencePart(StrictModel):
+    """A reply part carrying the cited evidence and its explanation (RAG)."""
+
+    type: Literal["evidence"]
+    status: Literal["answered", "insufficient_evidence"]
+    sentences: list[Sentence] = []  # each sentence cites the passages it comes from
+    passages: list[Passage] = []
+    backend: str  # "template" (quoted sentences) or the model that wrote them
+    note: str = ""
 
 
 # A message is a list of typed parts, so new kinds of input can be added later without
@@ -158,7 +225,7 @@ class ChatResponse(StrictModel):
     schema_version: Literal["1.0"] = "1.0"
     trace_id: str
     outcome: Outcome
-    parts: list[Part | OptionsPart]  # the reply; empty when the message was blocked
+    parts: list[Part | OptionsPart | EstimatesPart | EvidencePart]  # the reply; empty when blocked
     blocked_reason: str | None = None
     reason_code: ReasonCode | None = None  # set when backend_guard blocked by a guard rule
     scope_topic: ScopeTopic | None = None

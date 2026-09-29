@@ -3,6 +3,8 @@
 from dataclasses import dataclass, field
 
 from app.schemas import (
+    EstimatesPart,
+    EvidencePart,
     OptionResult,
     OptionsPart,
     Part,
@@ -28,6 +30,10 @@ class PipelineContext:
     options: list[OptionResult] = field(default_factory=list)  # may be used
     removed_options: list[OptionResult] = field(default_factory=list)  # "do not use"
     options_part: OptionsPart | None = None
+    # Set by causal_engine, rag_retrieval and llm_explanation.
+    estimates_part: EstimatesPart | None = None
+    evidence: dict | None = None  # diacausal_rag search result (passages, status)
+    evidence_part: EvidencePart | None = None
 
     @property
     def text(self) -> str:
