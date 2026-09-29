@@ -41,7 +41,7 @@ ask, a glossary and a code tour.
    checks at both ends (not empty, no blocked word); there is **no clinical safety check
    yet**. Every step carries one trace ID.
 4. **How we know.** One command, `python3 scripts/check_all.py`, runs all 103 automated
-   tests (392 backend, 238 frontend), the type-check, build and lint, then starts the real
+   tests (401 backend, 246 frontend), the type-check, build and lint, then starts the real
    servers and tests them live. It prints 43 pass/fail lines, all passing. GitHub runs the
    same check on Linux, Windows and macOS for every push.
 5. **What's next.** Login with MFA and CAPTCHA; the real blocked-word list; then
@@ -328,7 +328,7 @@ image is not supported yet" is far safer than quietly ignoring an attached lab r
 ### F. Testing and quality
 
 **36. How do you know it works?**
-`python3 scripts/check_all.py` runs the 392 backend and 238 frontend tests, the
+`python3 scripts/check_all.py` runs the 401 backend and 246 frontend tests, the
 type-check, build and lint, then starts the real backend and page and sends real
 messages through them — 43 pass/fail lines. We also checked it by hand in a browser
 ([TESTING.md, part 2](../TESTING.md#part-2--check-by-eye-in-a-real-browser-about-10-minutes)).

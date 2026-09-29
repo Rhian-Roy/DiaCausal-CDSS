@@ -50,9 +50,11 @@ def test_log_shows_request_each_stage_and_reply(client, chat_body, app_logs):
         CLINICAL_RULES_LINE,
         "clinical_guardrails: 3 of 3 options may be used",
         "clinical_guardrails: passed",
-        "causal_engine: skipped",
-        "rag_retrieval: skipped",
-        "llm_explanation: skipped",
+        "causal_engine: skipped",  # the default test patient has no sex, which the engine needs
+        "rag_retrieval: abstained",  # "hello" is not covered by the approved sources
+        "rag_retrieval: passed",
+        "llm_explanation: template, 0 evidence sentences",
+        "llm_explanation: passed",
         "output_guard: passed",
         "reply sent: outcome=answered",
     ]

@@ -14,8 +14,8 @@ report one.
 (First time on a computer? Do the setup in [SETUP.md](SETUP.md) first.)
 
 It takes a few seconds and prints `[PASS]` or `[FAIL]` per line, ending with
-`ALL 43 CHECKS PASSED`. Those 43 lines are: 4 tool checks, 1 line for all 392 backend
-tests, 1 line for all 238 frontend tests, build, lint, 33 live checks, the evaluation vignettes and 1 real-browser line. It starts its
+`ALL 43 CHECKS PASSED`. Those 43 lines are: 4 tool checks, 1 line for all 401 backend
+tests, 1 line for all 246 frontend tests, build, lint, 33 live checks, the evaluation vignettes and 1 real-browser line. It starts its
 own copy of the app on spare ports, so it does not disturb servers you already have
 running.
 
@@ -32,7 +32,7 @@ green tick or red cross next to each commit, or the **Actions** tab.
 |---|---|
 | Press Enter → console prints `input passed`, `ui guard passed`, `medical ui guard passed`, `output passed`, all with the same trace ID | Section 3: frontend test *"prints the four console lines with one trace ID and shows the reply"* (`frontend/src/pages/ChatPage.test.tsx`). By eye: part 2, step 2. |
 | An empty message is blocked | Section 3 (browser side, never sent) and section 6 *"an empty message is blocked by backend_guard"* (server side) |
-| The message goes to the Python backend through the API and a dummy reply comes back | Section 6 *"a question gets the dummy reply"*; section 7 *"a message sent via the page's /api reaches the backend"* |
+| The message goes to the Python backend through the API; all six stages run and the answer carries the causal engine's estimates, each with its 95% range | Section 6 *"a question gets a written answer with the causal engine's estimates, each with its 95% range"*, *"reply lists the 6 stages in order, and all six ran"*; section 7 *"a message sent via the page's /api reaches the backend"* |
 | The reply appears in the chat | Section 3 (the page test finds the reply on screen). By eye: part 2, step 4. |
 | The backend log prints the same trace ID | Section 6 *"backend log shows [id] on the request, every stage and the reply"*; backend tests in `backend/tests/test_logging.py` |
 | Accept only `{"schema_version":"1.0","client_trace_id":…,"parts":[…]}` | Section 2: `backend/tests/test_validation.py` (20+ cases) |
@@ -168,7 +168,7 @@ terminal side by side.
 | 1b | Sign in as in [SETUP.md step 5c](SETUP.md#5c-sign-in-use-chrome) | Console: `login input passed`, `captcha passed`, `password passed`, then `mfa passed`; your name and **Sign out** top right |
 | 2 | Type `HbA1c 8.4% on metformin. What should I add?` and press **Enter** | Console: four lines `[xxxxxxxx] input passed`, `… ui guard passed`, `… medical ui guard passed`, `… output passed` — the same 8 characters on each |
 | 3 | Look at terminal 1 | Eight lines with that same `[xxxxxxxx]`: request received, six stages, reply sent. Your question's words do **not** appear |
-| 4 | Look at the chat | "YOU ASKED" + your question; a white card "DIACAUSAL ANSWERED" with the dummy reply, "2 of 6 stages ran; the others are not built yet", and "Trace ID xxxxxxxx" matching the console |
+| 4 | Look at the chat | "YOU ASKED" + your question; a white card "DIACAUSAL ANSWERED" with the three options, the estimates for each (with 95% ranges), the cited evidence and the six stages, and "Trace ID xxxxxxxx" matching the console |
 | 5 | Press **Enter** on an empty box | "Type a question first." under the box; console shows `input passed` then a yellow warning `ui guard blocked`; nothing new in terminal 1 |
 | 6 | Type a line, press **Shift+Enter**, type another | A new line in the box; nothing is sent |
 | 7 | Open the device toolbar (**⌘⇧M** Mac / **Ctrl+Shift+M** Windows, with the console open), pick an iPhone | Compare with `design/chat-phone.png`: "PROTOTYPE" badge, short patient line, "Ask a question" placeholder |
@@ -221,3 +221,17 @@ Tell the team (or open a GitHub issue):
    (to save it to a file: `python3 scripts/check_all.py > check.txt`).
 
 With the trace ID anyone can find exactly what the backend did with that message.
+
+## Engine + RAG inside the chat app (backend/tests/test_engine_stages.py)
+
+| Requirement | Test |
+|---|---|
+| All six stages run for a complete patient | *all_six_stages_run_for_a_complete_patient* |
+| Every estimate has a 95% range; propensity ≥ 0.05; excluded or insufficient options carry no number | *every_estimate_has_a_95_percent_range* |
+| An option removed by the guardrails never gets a number (stricter wins); the engine's R01 also excludes | *an_option_removed_by_the_guardrails_never_gets_a_number* |
+| Missing panel fields are named, not guessed | *missing_patient_details_are_named_not_guessed* |
+| Evidence sentences are quoted exactly from the passages they cite | *the_evidence_is_quoted_and_cited* |
+| A question outside the sources says "insufficient evidence" | *a_question_outside_the_sources_says_insufficient_evidence* |
+| A dose question never gets a dose; the output guard withholds any dose | *a_dose_question_never_gets_a_dose*, *output_guard_withholds_any_dose_in_the_evidence* |
+| No patient value or question text reaches the log | *no_patient_value_or_question_reaches_the_log* |
+| The page refuses an estimate without its range, a number on an excluded option, a citation to a passage not sent | frontend `components/chat/estimates.test.tsx` |

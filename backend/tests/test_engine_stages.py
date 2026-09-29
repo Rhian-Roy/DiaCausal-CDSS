@@ -5,7 +5,7 @@ import re
 from app.pipeline import output_guard
 from app.pipeline.context import PipelineContext
 from app.schemas import EvidencePart, Passage, Sentence, StageStatus, TextPart
-from tests.conftest import PATIENT
+from conftest import PATIENT
 
 FULL = {**PATIENT, "sex": "male"}
 # Demo patient 2 of the website: eGFR 40 and past pancreatitis.
@@ -63,7 +63,8 @@ def test_missing_patient_details_are_named_not_guessed(client, chat_body):
 
 
 def test_the_evidence_is_quoted_and_cited(client, chat_body):
-    data = ask(client, chat_body, "Is ketoacidosis a risk with SGLT2 inhibitors?")
+    # (a question naming ketoacidosis is refused earlier as out of scope: DKA is an emergency topic)
+    data = ask(client, chat_body, "Do saxagliptin and alogliptin increase the risk of heart failure?")
     evidence = part(data, "evidence")
     assert evidence["status"] == "answered" and evidence["backend"] == "template"
     numbers = {p["n"] for p in evidence["passages"]}
@@ -72,7 +73,7 @@ def test_the_evidence_is_quoted_and_cited(client, chat_body):
         assert set(sentence["cites"]) <= numbers
         cited = next(p for p in evidence["passages"] if p["n"] == sentence["cites"][0])
         assert sentence["text"] in cited["text"]  # quoted exactly from the passage it cites
-    assert any("ketoacidosis" in s["text"].lower() for s in evidence["sentences"])
+    assert any("heart failure" in s["text"].lower() for s in evidence["sentences"])
     assert "[1]" in part(data, "text")["text"] or "[2]" in part(data, "text")["text"]
 
 
@@ -105,8 +106,9 @@ def test_output_guard_withholds_any_dose_in_the_evidence():
 
 
 def test_no_patient_value_or_question_reaches_the_log(client, chat_body, caplog):
-    ask(client, chat_body, "Is ketoacidosis a risk with SGLT2 inhibitors?", patient=KIDNEY)
-    log = "\n".join(r.getMessage() for r in caplog.records)
-    assert "ketoacidosis" not in log
+    ask(client, chat_body, "Do saxagliptin and alogliptin increase the risk of heart failure?", patient=KIDNEY)
+    # stage timings ("passed in 28.2 ms") are removed first: they are not patient values
+    log = re.sub(r" in \d+\.\d ms", "", "\n".join(r.getMessage() for r in caplog.records))
+    assert "saxagliptin" not in log
     for value in ("8.2", "25.5", "female"):
         assert value not in log

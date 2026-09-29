@@ -199,7 +199,7 @@ def parse(text: str) -> dict:
 PATIENT = {"type": "patient", "age_years": 58, "diabetes_duration_years": 6, "hba1c_percent": 8.4,
            "egfr_ml_min_1_73m2": 62, "bmi_kg_m2": 31.2, "established_ascvd": False, "ckd": False,
            "heart_failure": False, "past_dka": False, "recurrent_genital_or_urinary_infection": False,
-           "past_pancreatitis": False, "past_hypoglycaemia": "none"}
+           "past_pancreatitis": False, "past_hypoglycaemia": "none", "sex": "male"}
 
 
 def chat(text: str, trace: str, **overrides) -> dict:
@@ -334,12 +334,15 @@ def check_live(node: str) -> None:
         status, text, headers = call(api_url + "/api/v1/chat", chat(f"Test question {secret_word}: what next?", trace))
         reply = first_reply = parse(text) if status == 200 else {}
         stages = [(s.get("name"), s.get("status")) for s in reply.get("stages", [])]
-        ran = ("backend_guard", "clinical_guardrails", "output_guard")
-        expected = [(name, "passed" if name in ran else "skipped") for name in STAGES]
+        expected = [(name, "passed") for name in STAGES]
         reply_text = next((part.get("text", "") for part in reply.get("parts", []) if part.get("type") == "text"), "")
-        check(status == 200 and reply.get("outcome") == "answered" and reply_text.startswith("Dummy reply"),
-              "a question gets the dummy reply", text)
-        check(stages == expected, "reply lists the 6 stages in order; the three built ones passed", text)
+        estimates = next((p for p in reply.get("parts", []) if p.get("type") == "estimates"), {})
+        ranged = [e for e in estimates.get("estimates", []) if e.get("status") == "estimate"]
+        check(status == 200 and reply.get("outcome") == "answered" and reply_text.strip() != ""
+              and ranged and all(e["hba1c_change"]["ci_low"] <= e["hba1c_change"]["value"] <= e["hba1c_change"]["ci_high"]
+                                 for e in ranged),
+              "a question gets a written answer with the causal engine's estimates, each with its 95% range", text)
+        check(stages == expected, "reply lists the 6 stages in order, and all six ran", text)
         check(reply.get("trace_id") == trace and headers.get("X-Trace-Id", headers.get("x-trace-id")) == trace,
               f"reply carries the same trace ID ({trace})", text)
 
