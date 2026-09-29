@@ -1127,8 +1127,10 @@ with sources; causal estimates for hard outcomes are future work.
 ## Part 7 · Learn it fast with NotebookLM and Claude
 
 ### 7.1 The ready-made explainers (start here)
-- **Interactive explainer page** (link in the chat, and `docs/midsem/explainer/index.html`): 12 scenes you can
-  play like a video, with a narrator voice, animated diagrams, the 25% boundary, a glossary search and a quiz.
+- **Interactive explainer page:** https://claude.ai/artifact/QQ3PmLQHZxrmmmi13tVFq9 (private until Rhian shares it
+  from the page's Share menu), and the same page offline in `docs/midsem/explainer/index.html`. 12 scenes you can
+  play like a video (about 9 minutes), with a recorded narrator, captions, animated diagrams, the 25% boundary, the
+  full script, a glossary search (70 terms) and a 12-question quiz.
 - **Narrated video** `docs/midsem/DiaCausal_explainer.mp4`: the same story, to watch on a phone.
 - **Deck + notes:** `Intelligent_Diabetes_CDSS_MidSem_updated.pptx`; the slide-by-slide words are in
   `TEAM_BRIEFING.md`.

@@ -1,0 +1,1126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+</head>
+<body>
+<title>DiaCausal Explained</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400..700&display=swap">
+<style>
+/* Layout: a dark "screening room" player (16:9 scenes that reflow on phones) above a light clinical page:
+   script, the 25% line, glossary, quiz. Colours follow the chat app's pine palette. */
+:root {
+  --ground: #f4f7f3; --surface: #ffffff; --ink: #12211a; --ink-muted: #3c4a42; --line: #c8d4cb;
+  --pine: #0e5049; --pine-fill: #e4eeeb; --focus: #0e5049;
+  --safe: #14562a; --safe-fill: #def0e2; --check: #6e4400; --check-fill: #fbebcb;
+  --danger: #8a1010; --danger-fill: #fadcdc;
+  /* the stage is a screen: one dark look in both themes */
+  --stage: #081714; --stage-2: #0f2621; --stage-3: #163630; --stage-ink: #e9f2ee; --stage-muted: #a9c2b9;
+  --stage-line: #2c4d45; --amber: #f2b84b; --st-safe: #7fd49a; --st-check: #f0c46a; --st-danger: #ff8f8f;
+  --c-sglt: #3987e5; --c-dpp: #199e70; --c-su: #d95926;
+  --font-display: "Source Serif 4", "DejaVu Serif", Georgia, serif;
+  --font-body: "Atkinson Hyperlegible", Verdana, "DejaVu Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "DejaVu Sans Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #0d1613; --surface: #14201c; --ink: #e6efeb; --ink-muted: #a9bbb3; --line: #2b3d36;
+    --pine: #7fc4b4; --pine-fill: #17302a; --focus: #7fc4b4;
+    --safe: #8fdca8; --safe-fill: #16301f; --check: #f0c46a; --check-fill: #33280f;
+    --danger: #ff9f9f; --danger-fill: #3a1616; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #0d1613; --surface: #14201c; --ink: #e6efeb; --ink-muted: #a9bbb3; --line: #2b3d36;
+  --pine: #7fc4b4; --pine-fill: #17302a; --focus: #7fc4b4;
+  --safe: #8fdca8; --safe-fill: #16301f; --check: #f0c46a; --check-fill: #33280f;
+  --danger: #ff9f9f; --danger-fill: #3a1616; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--ground); color: var(--ink); font: 16px/1.55 var(--font-body); }
+.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 56px; display: grid; gap: 40px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+p { margin: 0; }
+a { color: var(--pine); }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.eyebrow { font: 700 12px/1.3 var(--font-body); letter-spacing: .09em; text-transform: uppercase; color: var(--pine); }
+.muted { color: var(--ink-muted); }
+.mono { font-family: var(--font-mono); font-size: .92em; }
+
+/* header */
+.top { display: grid; gap: 10px; }
+.top h1 { font-size: clamp(30px, 5vw, 48px); font-weight: 650; line-height: 1.08; letter-spacing: -.01em; }
+.top .lede { max-width: 68ch; color: var(--ink-muted); font-size: 17px; }
+.use { display: inline-block; font-size: 13px; color: var(--ink-muted); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; background: var(--surface); }
+
+/* ── player ─────────────────────────────────────────────── */
+.player { display: grid; gap: 12px; }
+.stage {
+  position: relative; container: stage / inline-size; aspect-ratio: 16 / 9; width: 100%;
+  background: radial-gradient(120% 120% at 20% 0%, var(--stage-2) 0%, var(--stage) 60%);
+  color: var(--stage-ink); border-radius: 14px; overflow: hidden; isolation: isolate;
+  box-shadow: 0 18px 50px -24px rgb(0 0 0 / .55);
+}
+.scenes { position: absolute; inset: 0; font-size: clamp(10px, 1.55cqi, 20px); }
+.scene { position: absolute; inset: 0; display: none; grid-template-columns: minmax(0, .82fr) minmax(0, 1.7fr);
+  gap: 1.6em; padding: 2.1em 2.4em 5.6em; align-items: start; }
+.scene.is-active { display: grid; animation: sceneIn .55s ease both; }
+@keyframes sceneIn { from { opacity: 0; transform: scale(.985); } to { opacity: 1; transform: none; } }
+.s-head { display: grid; gap: .55em; align-content: start; padding-top: .3em; }
+.s-no { font: 500 .78em/1 var(--font-mono); letter-spacing: .12em; color: var(--amber); text-transform: uppercase; }
+.s-head h2 { font-size: 2.35em; line-height: 1.05; font-weight: 600; color: var(--stage-ink); }
+.s-key { color: var(--stage-muted); font-size: 1.02em; line-height: 1.4; }
+.s-vis { min-width: 0; display: grid; gap: .9em; align-content: start; }
+.b { transition: opacity .6s ease, transform .6s ease; }
+.stage.narrating .scene.is-active .b:not(.on) { opacity: 0; transform: translateY(.5em); }
+.cap { position: absolute; left: 0; right: 0; bottom: 0; padding: .9em 1.6em 1.05em; font-size: clamp(12px, 1.72cqi, 22px);
+  background: linear-gradient(to top, rgb(4 12 10 / .94) 60%, rgb(4 12 10 / 0)); min-height: 4.2em; display: flex; align-items: flex-end; }
+.cap p { max-width: 62em; line-height: 1.38; color: var(--stage-ink); text-wrap: pretty; }
+.hud { position: absolute; top: .8em; right: 1.1em; font: 500 clamp(10px, 1.05cqi, 13px)/1 var(--font-mono); color: var(--stage-muted);
+  letter-spacing: .06em; display: flex; gap: .7em; }
+.titlecard { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: .6em; background: var(--stage);
+  font-size: clamp(12px, 1.6cqi, 20px); z-index: 5; }
+.titlecard h2 { font-size: 3.4em; font-weight: 600; color: var(--stage-ink); }
+.titlecard p { color: var(--stage-muted); font-size: 1.1em; }
+.titlecard .s-no { font-size: .9em; }
+
+/* shared stage pieces */
+.card { background: var(--stage-2); border: 1px solid var(--stage-line); border-radius: .7em; padding: .8em .95em; min-width: 0; }
+.pill { display: inline-flex; align-items: center; gap: .4em; font: 700 .72em/1 var(--font-body); letter-spacing: .06em; text-transform: uppercase;
+  padding: .38em .6em; border-radius: 999px; border: 1px solid currentColor; }
+.pill.safe { color: var(--st-safe); } .pill.check { color: var(--st-check); } .pill.danger { color: var(--st-danger); } .pill.amber { color: var(--amber); }
+.sw { width: .8em; height: .8em; border-radius: 50%; display: inline-block; flex: none; }
+.sw.sglt { background: var(--c-sglt); } .sw.dpp { background: var(--c-dpp); } .sw.su { background: var(--c-su); }
+.row { display: flex; gap: .7em; flex-wrap: wrap; align-items: center; }
+.small { font-size: .82em; color: var(--stage-muted); }
+.big { font-family: var(--font-display); font-size: 1.9em; font-weight: 600; line-height: 1; }
+.arrow { color: var(--stage-muted); font-size: 1.2em; }
+svg text { font-family: var(--font-body); }
+svg .ax { stroke: var(--stage-line); stroke-width: 1; }
+svg .tk { fill: var(--stage-muted); font-size: 12px; }
+svg .lb { fill: var(--stage-ink); font-size: 13px; }
+svg .ref { stroke: var(--amber); stroke-width: 2; stroke-dasharray: 5 4; }
+svg .reftx { fill: var(--amber); font-size: 12px; font-weight: 700; }
+svg .ci { stroke-width: 3; stroke-linecap: round; }
+svg .dot { stroke: var(--stage); stroke-width: 2; }
+svg .zero { stroke: var(--stage-muted); stroke-width: 1; stroke-dasharray: 2 3; }
+.chart { width: 100%; height: auto; display: block; }
+
+/* scene 1 */
+.v-decision { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); }
+.pt dl { display: grid; gap: .3em; margin: .55em 0 0; }
+.pt dl div { display: flex; justify-content: space-between; gap: 1em; border-bottom: 1px dashed var(--stage-line); padding-bottom: .25em; }
+.pt dt { color: var(--stage-muted); } .pt dd { margin: 0; font-weight: 700; text-align: right; }
+.pt-h { font-weight: 700; }
+.gauge { margin-top: .8em; display: grid; gap: .35em; }
+.gauge .track { position: relative; height: .75em; border-radius: 999px; background: linear-gradient(90deg, rgb(127 212 154 / .45) 0 28.6%, var(--stage-3) 28.6%); }
+.gauge .mk { position: absolute; top: -.35em; width: .22em; height: 1.45em; background: var(--amber); border-radius: 2px; }
+.gauge .scale { display: flex; justify-content: space-between; font: .72em/1 var(--font-mono); color: var(--stage-muted); }
+.drugs { display: grid; gap: .6em; }
+.drug { display: grid; grid-template-columns: auto 1fr; column-gap: .7em; row-gap: .15em; align-items: center; }
+.drug .sw { grid-row: span 3; align-self: start; margin-top: .3em; width: 1em; height: 1em; }
+.drug .dn { font-weight: 700; } .drug .dm { font: .8em/1.2 var(--font-mono); color: var(--stage-muted); } .drug .dd { font-size: .9em; }
+.q { grid-column: 1 / -1; font-family: var(--font-display); font-size: 1.55em; font-weight: 600; color: var(--amber); }
+
+/* scene 2 */
+.dag { width: 100%; height: auto; }
+.dag .nd rect { fill: var(--stage-2); stroke: var(--stage-line); }
+.dag .nd text { fill: var(--stage-ink); font-size: 14px; font-weight: 700; }
+.dag .ed { stroke: var(--stage-muted); stroke-width: 2; fill: none; }
+.dag .ed.hot { stroke: var(--amber); }
+.dag .et { fill: var(--stage-muted); font-size: 12px; }
+
+/* scene 3 */
+.steps4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .6em; align-items: stretch; }
+.step { display: grid; gap: .4em; align-content: start; }
+.step .n { font: 500 .8em/1 var(--font-mono); color: var(--amber); }
+.step h3 { font-size: 1.15em; font-weight: 600; }
+.step p { font-size: .88em; color: var(--stage-muted); }
+.step.last { background: var(--stage-3); border-color: var(--amber); }
+
+/* scene 4 */
+.v-cohort { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); }
+.cv-box { position: relative; min-width: 0; }
+.cv-box canvas { width: 100%; aspect-ratio: 16 / 10; display: block; border-radius: .6em; background: var(--stage-2); border: 1px solid var(--stage-line); }
+.cv-legend { display: flex; gap: .9em; flex-wrap: wrap; font-size: .8em; margin-top: .4em; color: var(--stage-ink); }
+.cv-legend span { display: inline-flex; align-items: center; gap: .35em; }
+.olist { display: grid; gap: .45em; margin: 0; padding: 0; list-style: none; counter-reset: s; }
+.olist li { counter-increment: s; display: grid; grid-template-columns: 1.6em 1fr; gap: .4em; font-size: .9em; }
+.olist li::before { content: counter(s); font: 500 .85em/1.5 var(--font-mono); color: var(--amber); }
+.hidden-truth { border-style: dashed; border-color: var(--amber); }
+
+/* scene 5, 6 */
+.opts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .6em; }
+.opt { display: grid; gap: .45em; align-content: start; }
+.opt .row { justify-content: space-between; }
+.opt.x { border-color: var(--st-danger); background: rgb(138 16 16 / .18); }
+.opt.c { border-color: var(--st-check); }
+.rule { font-size: .82em; color: var(--stage-muted); }
+.rule b { color: var(--stage-ink); font-family: var(--font-mono); font-weight: 500; }
+.ptchip { display: inline-flex; flex-wrap: wrap; gap: .5em 1em; font-size: .9em; }
+.ptchip b { font-weight: 700; }
+.pp { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7em; }
+
+/* scene 8 */
+.flow3 { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr); gap: .5em; align-items: center; }
+.flow3 .card { font-size: .86em; }
+
+/* scene 9: the 25% line */
+.v-line { grid-template-columns: minmax(0, 1.25fr) auto minmax(0, 1fr); gap: 1em; align-items: stretch; }
+.sect1 { border: 2px solid var(--amber); border-radius: .8em; padding: .7em; display: grid; gap: .5em; background: rgb(242 184 75 / .06); }
+.sect1 .hd { display: flex; justify-content: space-between; gap: .6em; flex-wrap: wrap; align-items: baseline; }
+.sect1 .hd b { font-family: var(--font-display); font-size: 1.25em; }
+.six { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .45em; }
+.six .card { padding: .5em .6em; font-size: .84em; display: grid; grid-template-columns: 1.5em 1fr; gap: .3em; }
+.six .card i { font: normal 500 .95em/1.35 var(--font-mono); color: var(--amber); }
+.six .card small { grid-column: 2; color: var(--stage-muted); font-size: .88em; }
+.endline { display: grid; justify-items: center; align-content: center; gap: .5em; }
+.endline .ln { width: 0; flex: 1; min-height: 6em; border-left: 3px dashed var(--amber); }
+.endline span { writing-mode: vertical-rl; transform: rotate(180deg); font: 700 .8em/1 var(--font-body); letter-spacing: .1em; text-transform: uppercase; color: var(--amber); }
+.beyond { display: grid; gap: .5em; align-content: start; }
+.beyond .card { font-size: .84em; display: grid; gap: .25em; }
+
+/* scene 10, 11, 12 */
+.chain { display: flex; flex-wrap: wrap; gap: .4em; align-items: center; font-size: .88em; }
+.chain .card { padding: .45em .6em; }
+.quote { font-family: var(--font-display); font-size: 1.02em; line-height: 1.4; border-left: .22em solid var(--c-dpp); }
+.quote cite { display: block; font: .75em/1.3 var(--font-body); color: var(--stage-muted); margin-top: .3em; font-style: normal; }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .5em; }
+.stat { display: grid; gap: .25em; }
+.stat .small { font-size: .74em; }
+.stages6 { display: grid; gap: .3em; margin: 0; padding: 0; list-style: none; }
+.stages6 li { display: grid; grid-template-columns: 1.6em 1fr auto; gap: .5em; align-items: center; background: var(--stage-2); border: 1px solid var(--stage-line);
+  border-radius: .5em; padding: .35em .6em; font-size: .88em; }
+.stages6 li i { font: normal 500 .9em/1 var(--font-mono); color: var(--amber); }
+.stages6 li code { font-family: var(--font-mono); }
+.log { font: .68em/1.5 var(--font-mono); color: var(--st-safe); background: #041210; border: 1px solid var(--stage-line); border-radius: .5em; padding: .5em .7em; white-space: pre-wrap; overflow-wrap: anywhere; }
+.signin { display: grid; gap: .45em; }
+.rail { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .35em; }
+.rail .card { padding: .5em; display: grid; gap: .2em; font-size: .8em; }
+.rail .card .big { font-size: 1.35em; }
+.v-proof .stat .big { font-size: 1.6em; }
+.v-proof { gap: .7em; }
+.rail .met { border-color: var(--st-safe); } .rail .tgt { border-style: dashed; }
+.closing { font-family: var(--font-display); font-size: 1.35em; color: var(--amber); }
+
+/* phone and narrow stages */
+@container stage (max-width: 680px) {
+  .scenes { position: relative; inset: auto; font-size: 13px; }
+  .scene { position: relative; inset: auto; grid-template-columns: minmax(0, 1fr); padding: 1.3em 1.1em 1.3em; gap: 1em; }
+  .s-head h2 { font-size: 1.8em; }
+  .v-decision, .v-cohort, .v-line, .steps4, .opts, .pp { grid-template-columns: minmax(0, 1fr); }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .rail { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .s-vis[style] { grid-template-columns: minmax(0, 1fr) !important; }
+  .flow3 { grid-template-columns: minmax(0, 1fr); } .flow3 .arrow { transform: rotate(90deg); justify-self: center; }
+  .endline { grid-template-columns: 1fr auto 1fr; align-items: center; }
+  .endline .ln { min-height: 0; border-left: 0; border-top: 3px dashed var(--amber); width: 100%; }
+  .endline span { writing-mode: horizontal-tb; transform: none; }
+  .cap { position: relative; background: #040c0a; font-size: 14px; min-height: 0; padding: .9em 1.1em; }
+  .hud { position: static; padding: .7em 1.1em 0; }
+}
+@container stage (max-width: 680px) { .x-phone-hide { display: none; } }
+@supports not (container-type: inline-size) { .scenes { font-size: 14px; } }
+@media (max-width: 712px) { .stage { aspect-ratio: auto; } }
+
+/* controls */
+.controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.btn { font: 700 15px/1 var(--font-body); padding: 11px 16px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.btn:hover { border-color: var(--pine); }
+.btn.primary { background: var(--pine); border-color: var(--pine); color: var(--surface); min-width: 118px; }
+.sel { display: inline-flex; gap: 6px; align-items: center; font-size: 14px; color: var(--ink-muted); }
+.sel select { font: 14px var(--font-body); padding: 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); max-width: 16em; }
+.prog { flex: 1 1 180px; height: 8px; background: var(--pine-fill); border-radius: 999px; overflow: hidden; min-width: 140px; }
+.prog i { display: block; height: 100%; width: 0; background: var(--pine); transition: width .3s linear; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.chips button { font: 13px/1.2 var(--font-body); padding: 7px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.chips button[aria-current="true"] { background: var(--pine); color: var(--surface); border-color: var(--pine); }
+.chips b { font-family: var(--font-mono); font-weight: 500; margin-right: 4px; }
+.status { font-size: 13px; color: var(--ink-muted); min-height: 1.3em; }
+
+/* page sections */
+section.blk { display: grid; gap: 16px; }
+section.blk > h2 { font-size: clamp(24px, 3.4vw, 32px); font-weight: 600; }
+.script { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); gap: 12px; }
+.sc { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.sc.cur { border-color: var(--pine); box-shadow: 0 0 0 2px var(--pine-fill); }
+.sc h3 { font-size: 19px; font-weight: 600; }
+.sc h3 button { all: unset; cursor: pointer; } .sc h3 button:focus-visible { outline: 3px solid var(--focus); }
+.sc .n { font: 500 12px/1 var(--font-mono); color: var(--pine); }
+.sc p { font-size: 14.5px; color: var(--ink-muted); }
+.sc p.now { color: var(--ink); background: var(--pine-fill); border-radius: 4px; }
+.tbl-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-muted); }
+tr:last-child td { border-bottom: 0; }
+td code, .code { font-family: var(--font-mono); font-size: 13px; }
+.endnote { border-left: 4px solid var(--check); background: var(--check-fill); padding: 12px 14px; border-radius: 6px; display: grid; gap: 4px; }
+.beyond-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 10px; }
+.beyond-list div { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: grid; gap: 4px; }
+.beyond-list b { font-family: var(--font-display); font-size: 17px; }
+.gl-tools { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.gl-tools input { font: 16px var(--font-body); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); flex: 1 1 260px; min-width: 0; }
+.gl { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 10px; margin: 0; }
+.gl div { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; min-width: 0; }
+.gl dt { font-weight: 700; } .gl dt span { font-weight: 400; color: var(--ink-muted); }
+.gl dd { margin: 4px 0 0; font-size: 14.5px; color: var(--ink-muted); }
+.quiz { display: grid; gap: 12px; }
+.qq { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: grid; gap: 10px; }
+.qq legend { font-weight: 700; padding: 0; }
+.qq fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 6px; }
+.qq label { display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
+.qq label.ok { border-color: var(--safe); background: var(--safe-fill); }
+.qq label.no { border-color: var(--danger); background: var(--danger-fill); }
+.qq .why { font-size: 14.5px; color: var(--ink-muted); }
+.score { font: 700 18px var(--font-body); }
+.deeper { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 10px; }
+.deeper div { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: grid; gap: 4px; }
+footer { font-size: 14px; color: var(--ink-muted); border-top: 1px solid var(--line); padding-top: 16px; display: grid; gap: 6px; }
+
+/* record mode: the stage alone, full window */
+body.rec { background: var(--stage); overflow: hidden; }
+body.rec .wrap { max-width: none; padding: 0; gap: 0; }
+body.rec .wrap > :not(.player) { display: none; }
+body.rec .player > :not(.stage) { display: none; }
+body.rec .stage { width: 100vw; height: 100vh; aspect-ratio: auto; border-radius: 0; box-shadow: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .scene.is-active { animation: none; } .b { transition: none; } .prog i { transition: none; }
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <p class="eyebrow">Group 28 · Intelligent Diabetes Clinical Decision Support System</p>
+    <h1>DiaCausal, explained from zero</h1>
+    <p class="lede">Twelve short scenes take you from the medical problem to exactly what our 25% implementation covers,
+      and everything built since. Press <b>Play</b> to hear it narrated with captions, or read the script under the player.
+      Then try the glossary and the quiz.</p>
+    <p class="use">Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.</p>
+  </header>
+
+  <section class="player" aria-label="Narrated explainer">
+    <div class="stage" id="stage">
+      <div class="titlecard" id="titlecard" hidden>
+        <p class="s-no">Group 28 · Synopsis Presentation-II</p>
+        <h2>DiaCausal, explained</h2>
+        <p>Choosing the second diabetes medicine, fairly and safely</p>
+      </div>
+      <div class="hud" aria-hidden="true"><span id="hudNo">01 / 12</span><span id="hudTitle">The decision</span></div>
+      <div class="scenes">
+
+        <!-- 1 -->
+        <section class="scene is-active" data-i="0" aria-labelledby="h0">
+          <div class="s-head"><p class="s-no">Scene 01</p><h2 id="h0">The decision</h2>
+            <p class="s-key">One patient on metformin, three possible add-on drugs.</p></div>
+          <div class="s-vis v-decision">
+            <div class="card pt b" data-beat="0">
+              <p class="pt-h">Patient · 58 years · man · Pune</p>
+              <dl>
+                <div><dt>Diagnosis</dt><dd>Type 2 diabetes, 7 years</dd></div>
+                <div><dt>Medicine now</dt><dd>Metformin</dd></div>
+                <div><dt>eGFR</dt><dd>72 mL/min/1.73 m²</dd></div>
+                <div><dt>BMI</dt><dd>27 kg/m²</dd></div>
+              </dl>
+              <div class="gauge b" data-beat="1" aria-label="HbA1c 8.4 percent; target about 7 percent">
+                <div class="row" style="justify-content:space-between"><span class="small">HbA1c (average sugar, 3 months)</span><b>8.4%</b></div>
+                <div class="track"><span class="mk" style="left:calc(48.6% - .11em)"></span></div>
+                <div class="scale"><span>5%</span><span>target ≈ 7%</span><span>12%</span></div>
+              </div>
+            </div>
+            <div class="drugs">
+              <div class="card drug b" data-beat="2"><span class="sw sglt"></span><p class="dn">SGLT2 inhibitor (SGLT2i)</p><p class="dm">e.g. dapagliflozin</p><p class="dd">Kidneys pass extra sugar in the urine; weight often falls</p></div>
+              <div class="card drug b" data-beat="2"><span class="sw dpp"></span><p class="dn">DPP-4 inhibitor (DPP-4i)</p><p class="dm">e.g. sitagliptin</p><p class="dd">Gut hormones that raise insulin last longer; weight neutral</p></div>
+              <div class="card drug b" data-beat="2"><span class="sw su"></span><p class="dn">Sulfonylurea (SU)</p><p class="dm">e.g. glimepiride</p><p class="dd">Pancreas releases more insulin; cheap; low-sugar risk</p></div>
+            </div>
+            <p class="q b" data-beat="3">Which one lowers his HbA1c the most, safely?</p>
+          </div>
+        </section>
+
+        <!-- 2 -->
+        <section class="scene" data-i="1" aria-labelledby="h1">
+          <div class="s-head"><p class="s-no">Scene 02</p><h2 id="h1">Why averages lie</h2>
+            <p class="s-key">Doctors choose drugs for a reason, and that reason also changes the outcome: confounding.</p></div>
+          <div class="s-vis">
+            <svg class="dag b" data-beat="1" viewBox="0 0 620 180" role="img" aria-label="High HbA1c causes both the drug choice and a bigger fall in HbA1c">
+              <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a9c2b9"/></marker>
+                <marker id="ahA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#f2b84b"/></marker></defs>
+              <g class="nd"><rect x="220" y="8" width="180" height="44" rx="10"/><text x="310" y="36" text-anchor="middle">High HbA1c</text></g>
+              <g class="nd"><rect x="20" y="118" width="190" height="44" rx="10"/><text x="115" y="146" text-anchor="middle">Drug chosen</text></g>
+              <g class="nd"><rect x="410" y="118" width="190" height="44" rx="10"/><text x="505" y="146" text-anchor="middle">6-month change</text></g>
+              <path class="ed hot" d="M250 54 L150 114" marker-end="url(#ahA)"/>
+              <path class="ed hot" d="M370 54 L470 114" marker-end="url(#ahA)"/>
+              <path class="ed" d="M212 140 L404 140" marker-end="url(#ah)"/>
+              <text class="et" x="150" y="80" text-anchor="end">more SGLT2i</text>
+              <text class="et" x="470" y="80">falls more anyway</text>
+              <text class="et" x="308" y="132" text-anchor="middle">the effect we want</text>
+            </svg>
+            <p class="pill amber b" data-beat="2" style="justify-self:start">Confounding by indication</p>
+            <div class="card b" data-beat="3">
+              <p class="small" style="margin-bottom:.3em">SGLT2i minus DPP-4i, 6-month HbA1c change (points), synthetic data with a known truth</p>
+              <svg class="chart" id="ch-naive" viewBox="0 0 620 150" role="img" aria-label="Naive estimate minus 0.370 versus true minus 0.211"></svg>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3 -->
+        <section class="scene" data-i="2" aria-labelledby="h2">
+          <div class="s-head"><p class="s-no">Scene 03</p><h2 id="h2">DiaCausal in four steps</h2>
+            <p class="s-key">Safety first, a fair estimate with a range, context, and the doctor decides.</p></div>
+          <div class="s-vis">
+            <div class="steps4">
+              <div class="card step b" data-beat="1"><span class="n">STEP 1</span><h3>Safety rules first</h3><p>10 cited drug-label rules remove or flag unsafe options before any number.</p></div>
+              <div class="card step b" data-beat="2"><span class="n">STEP 2</span><h3>A fair estimate</h3><p>Each remaining drug's 6-month HbA1c change with a 95% range, or “insufficient evidence”.</p></div>
+              <div class="card step b" data-beat="3"><span class="n">STEP 3</span><h3>More context</h3><p>Weight change, low-sugar risk, cost, and evidence quoted from WHO and FDA.</p></div>
+              <div class="card step last b" data-beat="4"><span class="n">STEP 4</span><h3>The doctor decides</h3><p>No dose is ever shown. The system supports; it never decides.</p></div>
+            </div>
+            <div class="row b" data-beat="4"><span class="pill safe">estimate</span><span class="pill check">caution</span><span class="pill danger">excluded</span><span class="small">every status always has a word, never colour alone</span></div>
+          </div>
+        </section>
+
+        <!-- 4 -->
+        <section class="scene" data-i="3" aria-labelledby="h3">
+          <div class="s-head"><p class="s-no">Scene 04</p><h2 id="h3">Patients with a known truth</h2>
+            <p class="s-key">5,000 synthetic, India-calibrated patients. We planted the true effects, so we can grade every method.</p></div>
+          <div class="s-vis v-cohort">
+            <div class="cv-box b" data-beat="1">
+              <canvas id="cohort" width="640" height="400" aria-label="Illustration: synthetic patients by HbA1c and eGFR, coloured by the drug they received"></canvas>
+              <div class="cv-legend"><span><i class="sw sglt"></i>SGLT2i</span><span><i class="sw dpp"></i>DPP-4i</span><span><i class="sw su"></i>SU</span><span class="small">x: HbA1c 7–13% · y: eGFR 30–120 · illustration, 1,200 patients</span></div>
+            </div>
+            <div style="display:grid;gap:.6em;align-content:start;min-width:0">
+              <ol class="olist">
+                <li class="b" data-beat="1">Details: age, sex, HbA1c, eGFR, BMI, history</li>
+                <li class="b" data-beat="2">A “doctor” model picks the drug: confounding built in</li>
+                <li class="b" data-beat="3">Each drug's true effect is planted</li>
+                <li class="b" data-beat="3">Outcome = drift + regression to the mean + effect + noise</li>
+                <li class="b" data-beat="3">Truth hidden: methods see only what a hospital sees</li>
+              </ol>
+              <div class="card hidden-truth b" data-beat="3"><p class="small">Hidden, for grading only</p><p>Outcomes under the other drugs · true effects</p></div>
+            </div>
+            <div class="card b" data-beat="4" style="grid-column:1/-1"><p class="small">Realism check with a real Indian survey, NMB-2017 (1,010 adults with diabetes, HbA1c ≥ 7%) vs ours</p>
+              <p class="mono" style="font-size:.85em">age 55.0 vs 53.5 · BMI 26.4 vs 26.6 · female 45% vs 41%</p></div>
+          </div>
+        </section>
+
+        <!-- 5 -->
+        <section class="scene" data-i="4" aria-labelledby="h4">
+          <div class="s-head"><p class="s-no">Scene 05</p><h2 id="h4">Safety rules run first</h2>
+            <p class="s-key">Ten rules from drug labels, each with its source, act before any estimate.</p></div>
+          <div class="s-vis">
+            <div class="card b" data-beat="0"><p class="ptchip"><b>Demo patient 2</b><span>60-year-old woman</span><span>HbA1c 8.2%</span><span>eGFR 40</span><span>BMI 25.5</span><span>past pancreatitis</span></p></div>
+            <div class="opts">
+              <div class="card opt x b" data-beat="1"><div class="row"><span class="row" style="gap:.4em"><i class="sw sglt"></i><b>SGLT2i</b></span><span class="pill danger">✕ excluded</span></div>
+                <p class="rule"><b>R01</b> eGFR &lt; 45: not for lowering HbA1c. Source: FARXIGA (dapagliflozin) label, section 1</p></div>
+              <div class="card opt c b" data-beat="2"><div class="row"><span class="row" style="gap:.4em"><i class="sw dpp"></i><b>DPP-4i</b></span><span class="pill check">! caution</span></div>
+                <p class="rule"><b>R04</b> eGFR &lt; 45: dose adjustment (never shown). <b>R05</b> past pancreatitis. Source: JANUVIA label</p></div>
+              <div class="card opt c b" data-beat="2"><div class="row"><span class="row" style="gap:.4em"><i class="sw su"></i><b>SU</b></span><span class="pill check">! caution</span></div>
+                <p class="rule"><b>R09</b> eGFR &lt; 60: low-sugar risk (cut-off team-set). Source: glimepiride label</p></div>
+            </div>
+            <p class="small b" data-beat="3">Rules live only in <span class="mono">data/rules.csv</span>; a test fails if a threshold is typed into the code. An excluded option is never estimated.</p>
+          </div>
+        </section>
+
+        <!-- 6 -->
+        <section class="scene" data-i="5" aria-labelledby="h5">
+          <div class="s-head"><p class="s-no">Scene 06</p><h2 id="h5">Propensity and overlap</h2>
+            <p class="s-key">If almost no similar patient got a drug, a fair comparison is impossible, so we say so.</p></div>
+          <div class="s-vis">
+            <p class="card b" data-beat="1" style="font-size:.9em">Propensity = the chance that a patient like this got each drug. Multinomial logistic regression, cross-fitted over 5 folds. Below <b>0.05</b> → “insufficient evidence”.</p>
+            <div class="pp">
+              <div class="card b" data-beat="2"><p class="small">Demo patient 2 · 60 y woman, eGFR 40</p><svg class="chart" id="ch-prop2" viewBox="0 0 300 120" role="img" aria-label="DPP-4i 0.537, SU 0.227, both above 0.05"></svg></div>
+              <div class="card b" data-beat="3"><p class="small">Demo patient 3 · 80 y man, eGFR 38, past low sugar</p><svg class="chart" id="ch-prop3" viewBox="0 0 300 120" role="img" aria-label="DPP-4i 0.808, SU 0.006, below 0.05"></svg></div>
+            </div>
+            <p class="row b" data-beat="3"><span class="pill check">SU · insufficient evidence</span><span class="small">propensity 0.006 &lt; 0.05: no number is shown</span></p>
+          </div>
+        </section>
+
+        <!-- 7 -->
+        <section class="scene" data-i="6" aria-labelledby="h6">
+          <div class="s-head"><p class="s-no">Scene 07</p><h2 id="h6">Removing the bias</h2>
+            <p class="s-key">Three causal methods land on the planted truth; the naive average does not.</p></div>
+          <div class="s-vis">
+            <div class="card b" data-beat="0"><p class="small">SGLT2i minus DPP-4i · mean estimate and typical 95% interval over 20 synthetic cohorts of 5,000</p>
+              <svg class="chart" id="ch-forest" viewBox="0 0 620 210" role="img" aria-label="Naive minus 0.370; IPW minus 0.210; matching minus 0.213; AIPW minus 0.209; truth minus 0.211"></svg></div>
+            <div class="steps4" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+              <div class="card step b" data-beat="2"><span class="n">IPW</span><p>Weight each patient by 1 ÷ their chance of the drug they got</p></div>
+              <div class="card step b" data-beat="2"><span class="n">MATCHING</span><p>Pair similar patients who got different drugs</p></div>
+              <div class="card step b" data-beat="3"><span class="n">AIPW · DOUBLY ROBUST</span><p>Outcome model + weighted correction: right if either model is right</p></div>
+            </div>
+            <p class="small b" data-beat="4">Balance: the largest standardised difference between groups falls from <b>0.70</b> to <b>0.08</b> after weighting (target &lt; 0.1).</p>
+          </div>
+        </section>
+
+        <!-- 8 -->
+        <section class="scene" data-i="7" aria-labelledby="h7">
+          <div class="s-head"><p class="s-no">Scene 08</p><h2 id="h7">One patient's estimate</h2>
+            <p class="s-key">The DR-learner turns fair averages into this patient's expected change, with an honest 95% range.</p></div>
+          <div class="s-vis">
+            <div class="flow3 b" data-beat="1">
+              <div class="card"><b>AIPW scores</b><br><span class="small">each training patient's fair, noisy effect guess</span></div><span class="arrow">→</span>
+              <div class="card"><b>Linear regression (OLS)</b><br><span class="small">on age, HbA1c, eGFR, BMI…</span></div><span class="arrow">→</span>
+              <div class="card"><b>HC3 robust errors</b><br><span class="small">a 95% range for this patient</span></div>
+            </div>
+            <div class="card b" data-beat="3"><p class="small">Demo patient 2 · expected 6-month HbA1c change (points), 95% range</p>
+              <svg class="chart" id="ch-patient" viewBox="0 0 620 170" role="img" aria-label="SGLT2i excluded; DPP-4i minus 0.68 from minus 1.09 to minus 0.27; SU minus 0.82 from minus 1.21 to minus 0.42"></svg></div>
+            <p class="small b" data-beat="4">The ranges overlap: for her the two drugs lower HbA1c similarly, so weight, low-sugar risk and cost can guide the doctor.</p>
+          </div>
+        </section>
+
+        <!-- 9 -->
+        <section class="scene" data-i="8" aria-labelledby="h8">
+          <div class="s-head"><p class="s-no">Scene 09</p><h2 id="h8">Where the 25% ends</h2>
+            <p class="s-key">Section 1 of 4 on the interaction sheet. Signed by our guide on 23 September.</p></div>
+          <div class="s-vis v-line">
+            <div class="sect1 b" data-beat="0">
+              <div class="hd"><b>The 25% · Section 1</b><span class="pill amber">signed 23 Sep</span></div>
+              <div class="six">
+                <div class="card b" data-beat="1"><i>1</i><span>Chat app front door</span><small>password + CAPTCHA + authenticator code, guards, patient panel, guardrails</small></div>
+                <div class="card b" data-beat="2"><i>2</i><span>Synthetic cohort</span><small>5,000 patients, known truth</small></div>
+                <div class="card b" data-beat="2"><i>3</i><span>Safety rules first</span><small>R01–R10 from labels</small></div>
+                <div class="card b" data-beat="2"><i>4</i><span>Propensity + overlap</span><small>&lt; 0.05 → insufficient evidence</small></div>
+                <div class="card b" data-beat="2"><i>5</i><span>Average effects</span><small>naive vs IPW, matching, AIPW</small></div>
+                <div class="card b" data-beat="2"><i>6</i><span>This patient's estimate</span><small>DR-learner, 95% range (HC3)</small></div>
+              </div>
+            </div>
+            <div class="endline b" data-beat="3"><div class="ln"></div><span>25% ends here</span><div class="ln"></div></div>
+            <div class="beyond">
+              <div class="card b" data-beat="4"><span class="pill safe" style="justify-self:start">40% · met 28 Sep</span><span>Benchmark + 9 refutation checks, weight and low-sugar risk, evidence search (RAG), website with accounts</span></div>
+              <div class="card b" data-beat="4"><span class="pill safe" style="justify-self:start">60% · met 29 Sep</span><span>Engine + evidence inside the chat app: all six stages run</span></div>
+              <div class="card b" data-beat="4" style="border-style:dashed"><span class="pill amber" style="justify-self:start">80% · 100% · targets 3 and 6 Oct</span><span>Medical embeddings + reranker; real-data adapter; evaluation tools</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 10 -->
+        <section class="scene" data-i="9" aria-labelledby="h9">
+          <div class="s-head"><p class="s-no">Scene 10</p><h2 id="h9">Evidence you can check</h2>
+            <p class="s-key">RAG: retrieve passages from licence-cleared documents, then answer only by quoting them.</p></div>
+          <div class="s-vis">
+            <div class="chain b" data-beat="1"><span class="card">Licence gate</span><span class="arrow">→</span><span class="card">WHO 2018 + 7 FDA notices · 78 passages</span></div>
+            <div class="chain b" data-beat="2"><span class="card">BM25 keywords</span><span class="small">+</span><span class="card">TF-IDF weights</span><span class="arrow">→</span><span class="card">Reciprocal rank fusion</span><span class="arrow">→</span><span class="card">Top 5</span></div>
+            <div class="card quote b" data-beat="3">“FDA safety review has found that type 2 diabetes medicines containing saxagliptin and alogliptin may increase the risk of heart failure, particularly in patients who already have heart or kidney disease.” [4]
+              <cite>Question: Do saxagliptin and alogliptin increase the risk of heart failure? · [4] FDA Drug Safety Communication (2016) · quoted exactly, checked by the citation checker</cite></div>
+            <div class="stats b" data-beat="4">
+              <div class="card stat"><span class="big">0.933</span><span class="small">right source in the top 5</span></div>
+              <div class="card stat"><span class="big">1.000</span><span class="small">citation precision</span></div>
+              <div class="card stat"><span class="big">0</span><span class="small">dose leaks in 60 questions</span></div>
+              <div class="card stat"><span class="big">0.80</span><span class="small">refused out-of-scope (target 0.90)</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 11 -->
+        <section class="scene" data-i="10" aria-labelledby="h10">
+          <div class="s-head"><p class="s-no">Scene 11</p><h2 id="h10">The secure chat app</h2>
+            <p class="s-key">FastAPI + React. Six stages run in order for every message.</p></div>
+          <div class="s-vis" style="grid-template-columns:minmax(0,.78fr) minmax(0,1.3fr)">
+            <div class="signin">
+              <div class="card b" data-beat="1"><b>1 · Password</b><br><span class="small">≥ 12 characters, stored as an Argon2id hash</span></div>
+              <div class="card b" data-beat="1"><b>2 · CAPTCHA</b><br><span class="small">6 digits, picture or audio, works once</span></div>
+              <div class="card b" data-beat="1"><b>3 · Authenticator code</b><br><span class="small">TOTP, new every 30 s · idle sign-out 15 min</span></div>
+              <div class="card b" data-beat="2"><b>Guards</b><br><span class="small">block Aadhaar, ABHA, PAN, phone, e-mail; out-of-scope and emergencies</span></div>
+            </div>
+            <div style="display:grid;gap:.5em;align-content:start;min-width:0">
+              <ol class="stages6 b" data-beat="3">
+                <li><i>1</i><code>backend_guard</code><span class="pill safe">passed</span></li>
+                <li><i>2</i><code>clinical_guardrails</code><span class="pill safe">passed</span></li>
+                <li><i>3</i><code>causal_engine</code><span class="pill safe">passed</span></li>
+                <li><i>4</i><code>rag_retrieval</code><span class="pill safe">passed</span></li>
+                <li><i>5</i><code>llm_explanation</code><span class="pill safe">passed</span></li>
+                <li><i>6</i><code>output_guard</code><span class="pill safe">passed</span></li>
+              </ol>
+              <p class="log b" data-beat="4">19:33:11 INFO [efc1a658] backend_guard: passed
+19:33:11 INFO [efc1a658] causal_engine: 3 estimates
+19:33:12 INFO [efc1a658] output_guard: passed</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 12 -->
+        <section class="scene" data-i="11" aria-labelledby="h11">
+          <div class="s-head"><p class="s-no">Scene 12</p><h2 id="h11">Proof and progress</h2>
+            <p class="s-key">Measured on synthetic data, tested on every change, honest about what is left.</p></div>
+          <div class="s-vis v-proof">
+            <div class="stats b" data-beat="0">
+              <div class="card stat"><span class="big">9 / 9</span><span class="small">refutation checks pass</span></div>
+              <div class="card stat"><span class="big">+0.002</span><span class="small">AIPW bias (naive −0.159)</span></div>
+              <div class="card stat"><span class="big">93–95%</span><span class="small">per-patient ranges contain the truth</span></div>
+              <div class="card stat b" data-beat="1"><span class="big">849</span><span class="small">automated tests (150 engine, 33 RAG, 19 web, 647 chat app)</span></div>
+            </div>
+            <div class="rail b" data-beat="2">
+              <div class="card met"><span class="big">25%</span><span>signed 23 Sep</span></div>
+              <div class="card met"><span class="big">40%</span><span>met 28 Sep</span></div>
+              <div class="card met"><span class="big">60%</span><span>met 29 Sep</span></div>
+              <div class="card tgt"><span class="big">80%</span><span>target 3 Oct</span></div>
+              <div class="card tgt"><span class="big">100%</span><span>target 6 Oct</span></div>
+            </div>
+            <p class="small b" data-beat="2">Whole project (software + clinician evaluation + report and paper), weighted: about 75%.</p>
+            <p class="card b" data-beat="3" style="font-size:.9em">Limit: synthetic data proves the method, not real drug effects. Next: hospital data with ethics approval.</p>
+            <p class="closing b" data-beat="4">Research prototype · the doctor always decides.</p>
+          </div>
+        </section>
+
+      </div>
+      <div class="cap" aria-live="polite"><p id="capText">Meet a 58-year-old man in Pune with type 2 diabetes. Press Play to hear the story.</p></div>
+    </div>
+
+    <div class="controls" role="group" aria-label="Player controls">
+      <button class="btn" id="bPrev" type="button" aria-label="Previous scene">◀ Prev</button>
+      <button class="btn primary" id="bPlay" type="button">▶ Play</button>
+      <button class="btn" id="bNext" type="button" aria-label="Next scene">Next ▶</button>
+      <div class="prog" aria-hidden="true"><i id="progBar"></i></div>
+      <label class="sel" for="voiceSel">Voice <select id="voiceSel"></select></label>
+      <label class="sel" for="rateSel">Speed <select id="rateSel">
+        <option value="0.85">0.85×</option><option value="1" selected>1×</option><option value="1.15">1.15×</option><option value="1.3">1.3×</option></select></label>
+    </div>
+    <p class="status" id="status" aria-live="polite"></p>
+    <ol class="chips" id="chips" aria-label="Scenes"></ol>
+  </section>
+
+  <section class="blk" id="script" aria-labelledby="scriptH">
+    <p class="eyebrow">Read it</p>
+    <h2 id="scriptH">The full script</h2>
+    <p class="muted">Every word the narrator says. Select a scene title to jump the player there.</p>
+    <div class="script" id="scriptList"></div>
+  </section>
+
+  <section class="blk" id="line" aria-labelledby="lineH">
+    <p class="eyebrow">For slide 23</p>
+    <h2 id="lineH">The 25%, exactly</h2>
+    <p class="muted">Section 1 of the four implementation sections on the Project Interaction Sheet, signed by Mr. Rahul Jadhav on 23 September.</p>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>#</th><th>Step</th><th>What it does</th><th>Where in the code</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Chat app front door</td><td>Sign-in (password, CAPTCHA, authenticator code), guards, patient panel, clinical guardrails, trace-ID logging</td><td><code>backend/app/</code>, <code>frontend/src/</code></td></tr>
+        <tr><td>2</td><td>Synthetic cohort</td><td>5,000 India-calibrated patients whose true drug effects are known</td><td><code>cohort.py</code>, <code>data/params.yaml</code></td></tr>
+        <tr><td>3</td><td>Safety rules first</td><td>Exclude or caution a drug from cited label rules before any estimate</td><td><code>data/rules.csv</code>, <code>guardrails.py</code></td></tr>
+        <tr><td>4</td><td>Propensity + overlap</td><td>Chance each patient got each drug; below 0.05 → “insufficient evidence”</td><td><code>propensity.py</code></td></tr>
+        <tr><td>5</td><td>Average effects</td><td>Naive vs IPW, matching, AIPW: removes the confounding bias</td><td><code>estimators.py</code></td></tr>
+        <tr><td>6</td><td>This patient's estimate</td><td>DR-learner: 6-month HbA1c change with a 95% range (HC3)</td><td><code>fitting.py</code>, <code>recommend.py</code></td></tr>
+      </tbody></table></div>
+    <div class="endnote"><b>The 25% ends here.</b><span>One patient in → unsafe drugs removed → each remaining drug's 6-month HbA1c change with a 95% range, or “insufficient evidence”. It runs in the Streamlit demo and the API, behind the chat app's secure front door.</span></div>
+    <div class="beyond-list">
+      <div><b>Section 2 · 40%</b><span class="muted">Met 28 Sep: benchmark (20 cohorts) + 9 refutation checks + E-values; weight and low-sugar risk; evidence search (RAG); website with accounts.</span></div>
+      <div><b>Section 3 · 60%</b><span class="muted">Met 29 Sep: the causal engine and the evidence search inside the chat app; all six stages run; doses withheld by the output guard.</span></div>
+      <div><b>Section 4 · 80% and 100%</b><span class="muted">Targets 3 and 6 Oct: medical embedding model + reranker; real-data adapter; evaluation tools.</span></div>
+    </div>
+  </section>
+
+  <section class="blk" id="glossary" aria-labelledby="glH">
+    <p class="eyebrow">Every short form</p>
+    <h2 id="glH">Glossary</h2>
+    <div class="gl-tools"><label class="sr" for="glQ" style="position:absolute;left:-9999px">Search the glossary</label>
+      <input id="glQ" type="search" placeholder="Search: e.g. AIPW, eGFR, TOTP" autocomplete="off">
+      <span class="muted" id="glCount"></span></div>
+    <dl class="gl" id="glList"></dl>
+  </section>
+
+  <section class="blk" id="quiz" aria-labelledby="qzH">
+    <p class="eyebrow">Check yourself</p>
+    <h2 id="qzH">Twelve-question quiz</h2>
+    <p class="muted">Pick an answer to see if it is right and why. Your score stays on this device only.</p>
+    <p class="score" id="qzScore">Score: 0 / 12</p>
+    <div class="quiz" id="qzList"></div>
+    <div class="controls"><button class="btn" id="qzReset" type="button">Start the quiz again</button></div>
+  </section>
+
+  <section class="blk" aria-labelledby="dpH">
+    <p class="eyebrow">Go deeper</p>
+    <h2 id="dpH">In the repository</h2>
+    <div class="deeper">
+      <div><b>PANEL_PREP.pdf</b><span class="muted">From zero: the 25% boundary, every abbreviation, the code file by file, 118 panel questions.</span></div>
+      <div><b>TEAM_BRIEFING.pdf</b><span class="muted">Every slide of the 40-slide deck: what to say, what it means, what may be asked.</span></div>
+      <div><b>EXPLAINING_DIACAUSAL.pdf</b><span class="muted">The handbook: components, demo runbook, numbers card.</span></div>
+      <div><b>DATASETS.pdf</b><span class="muted">The synthetic cohort, NMB-2017, and why synthetic data is valid.</span></div>
+    </div>
+    <p class="muted">All in <span class="code">docs/midsem/</span> of <span class="code">Rhian-Roy/DiaCausal-CDSS</span>. Numbers come from <span class="code">results/</span> (synthetic data).</p>
+  </section>
+
+  <footer>
+    <p><b>Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.</b></p>
+    <p>DiaCausal · Group 28 · guide Mr. Rahul Jadhav. All effect numbers are from a synthetic, India-calibrated cohort. No patient data.</p>
+  </footer>
+</div>
+
+<script type="application/json" id="narration">
+[
+ {"title": "The decision", "sentences": [{"c": "Meet a 58-year-old man in Pune with type 2 diabetes.", "s": "Meet a 58-year-old man in Pune with type 2 diabetes.", "t0": 0.35, "t1": 4.112}, {"c": "He already takes metformin, but his HbA1c, his average blood sugar over the last three months, is 8.4%. The usual target is about 7.", "s": "He already takes metformin, but his H B A 1 C, his average blood sugar over the last three months, is 8.4 percent. The usual target is about 7.", "t0": 4.612, "t1": 14.445}, {"c": "So his doctor must add a second medicine. There are three common choices: an SGLT2 inhibitor, a DPP-4 inhibitor, or a sulfonylurea.", "s": "So his doctor must add a second medicine. There are three common choices: an S G L T 2 inhibitor, a D P P 4 inhibitor, or a sulfonylurea.", "t0": 14.945, "t1": 23.92}, {"c": "Which one will lower his HbA1c the most, safely? That is the question DiaCausal helps the doctor answer.", "s": "Which one will lower his H B A 1 C the most, safely? That is the question DiaCausal helps the doctor answer.", "t0": 24.42, "t1": 30.991}], "dur": 32.091},
+ {"title": "Why averages lie", "sentences": [{"c": "Why not just look at old records and see which drug worked best on average?", "s": "Why not just look at old records and see which drug worked best on average?", "t0": 0.35, "t1": 4.657}, {"c": "Because doctors don't choose at random. Patients with a very high HbA1c are more often given an SGLT2 inhibitor, and a very high HbA1c falls more over six months, whatever drug is given.", "s": "Because doctors don't choose at random. Patients with a very high H B A 1 C are more often given an S G L T 2 inhibitor, and a very high H B A 1 C falls more over six months, whatever drug is given.", "t0": 5.157, "t1": 17.986}, {"c": "So the raw average mixes the drug's effect with who got the drug. This is called confounding.", "s": "So the raw average mixes the drug's effect with who got the drug. This is called confounding.", "t0": 18.486, "t1": 23.525}, {"c": "In our data, the true difference between SGLT2 and DPP-4 inhibitors is −0.211 points. The naive comparison says −0.370: it is off by 0.159, and its 95% range never contains the truth.", "s": "In our data, the true difference between S G L T 2 and D P P 4 inhibitors is minus 0.211 points. The naive comparison says minus 0.370: it is off by 0.159, and its 95 percent range never contains the truth.", "t0": 24.025, "t1": 41.161}], "dur": 42.261},
+ {"title": "DiaCausal in four steps", "sentences": [{"c": "DiaCausal works in four steps.", "s": "DiaCausal works in four steps.", "t0": 0.35, "t1": 2.533}, {"c": "First, safety. Ten rules taken from drug labels remove or flag unsafe options before any number is calculated.", "s": "First, safety. Ten rules taken from drug labels remove or flag unsafe options before any number is calculated.", "t0": 3.033, "t1": 9.778}, {"c": "Second, a fair estimate for this patient: each remaining drug's expected 6-month HbA1c change, with a 95% range. If the data cannot support a fair answer, it says insufficient evidence.", "s": "Second, a fair estimate for this patient: each remaining drug's expected 6-month H B A 1 C change, with a 95 percent range. If the data cannot support a fair answer, it says insufficient evidence.", "t0": 10.278, "t1": 22.759}, {"c": "Third, context: weight change, low-sugar risk, cost, and evidence quoted from WHO and FDA documents.", "s": "Third, context: weight change, low-sugar risk, cost, and evidence quoted from W H O and F D A documents.", "t0": 23.259, "t1": 31.92}, {"c": "Fourth, and always: the doctor decides. The system never gives a dose and never makes the decision.", "s": "Fourth, and always: the doctor decides. The system never gives a dose and never makes the decision.", "t0": 32.42, "t1": 38.248}], "dur": 39.348},
+ {"title": "Patients with a known truth", "sentences": [{"c": "To grade a method, you must know the true answer. In real records you never see what would have happened with the other drug.", "s": "To grade a method, you must know the true answer. In real records you never see what would have happened with the other drug.", "t0": 0.35, "t1": 6.933}, {"c": "So we generate 5,000 synthetic, India-calibrated patients: their age, sex, HbA1c, kidney function, BMI and history.", "s": "So we generate 5000 synthetic, India-calibrated patients: their age, sex, H B A 1 C, kidney function, B M I and history.", "t0": 7.433, "t1": 17.487}, {"c": "A doctor model gives each patient a drug the way real doctors tend to, which builds in confounding on purpose.", "s": "A doctor model gives each patient a drug the way real doctors tend to, which builds in confounding on purpose.", "t0": 17.987, "t1": 24.326}, {"c": "We plant each drug's true effect, record the 6-month outcome, and then hide the truth. The methods only see what a hospital would see.", "s": "We plant each drug's true effect, record the 6-month outcome, and then hide the truth. The methods only see what a hospital would see.", "t0": 24.826, "t1": 32.21}, {"c": "A real Indian survey, NMB-2017, checks that our patients look real: similar age, BMI and sex. Every number in the generator has a source and a status.", "s": "A real Indian survey, N M B 2017, checks that our patients look real: similar age, B M I and sex. Every number in the generator has a source and a status.", "t0": 32.71, "t1": 43.844}], "dur": 44.944},
+ {"title": "Safety rules run first", "sentences": [{"c": "Now a real example: a 60-year-old woman with an HbA1c of 8.2%, an eGFR of 40, and past pancreatitis.", "s": "Now a real example: a 60-year-old woman with an H B A 1 C of 8.2 percent, an e G F R of 40, and past pancreatitis.", "t0": 0.35, "t1": 9.023}, {"c": "Before any maths, the safety rules run. Rule R01, from the dapagliflozin label, says an SGLT2 inhibitor is not for lowering HbA1c when eGFR is below 45. So it is excluded.", "s": "Before any maths, the safety rules run. Rule R zero 1, from the dapagliflozin label, says an S G L T 2 inhibitor is not for lowering H B A 1 C when e G F R is below 45. So it is excluded.", "t0": 9.523, "t1": 23.025}, {"c": "The DPP-4 inhibitor gets two cautions, for kidney function and past pancreatitis. The sulfonylurea gets a caution for kidney function.", "s": "The D P P 4 inhibitor gets two cautions, for kidney function and past pancreatitis. The sulfonylurea gets a caution for kidney function.", "t0": 23.525, "t1": 32.035}, {"c": "An excluded drug is never estimated, and no dose is ever shown. Every rule carries its source.", "s": "An excluded drug is never estimated, and no dose is ever shown. Every rule carries its source.", "t0": 32.535, "t1": 38.05}], "dur": 39.15},
+ {"title": "Propensity and overlap", "sentences": [{"c": "Next, a fairness check. For a patient like this, how likely was each drug? That probability is the propensity score.", "s": "Next, a fairness check. For a patient like this, how likely was each drug? That probability is the propensity score.", "t0": 0.35, "t1": 7.27}, {"c": "We learn it with a multinomial logistic regression, cross-fitted over five folds, so no patient is scored by a model that has seen them.", "s": "We learn it with a multinomial logistic regression, cross-fitted over five folds, so no patient is scored by a model that has seen them.", "t0": 7.77, "t1": 15.397}, {"c": "For our 60-year-old woman, the DPP-4 inhibitor has 0.54 and the sulfonylurea 0.23. Both are above 0.05, so a fair comparison is possible.", "s": "For our 60-year-old woman, the D P P 4 inhibitor has 0.54 and the sulfonylurea 0.23. Both are above 0.05, so a fair comparison is possible.", "t0": 15.897, "t1": 27.844}, {"c": "But for an 80-year-old man with past low sugar, the sulfonylurea's propensity is only 0.006. Almost no similar patient got it, so DiaCausal says insufficient evidence and gives no number.", "s": "But for an 80-year-old man with past low sugar, the sulfonylurea's propensity is only 0.006. Almost no similar patient got it, so DiaCausal says insufficient evidence and gives no number.", "t0": 28.344, "t1": 41.498}], "dur": 42.598},
+ {"title": "Removing the bias", "sentences": [{"c": "Now the average effects: four ways to compare SGLT2 and DPP-4 inhibitors, tested on twenty fresh synthetic cohorts.", "s": "Now the average effects: four ways to compare S G L T 2 and D P P 4 inhibitors, tested on twenty fresh synthetic cohorts.", "t0": 0.35, "t1": 8.744}, {"c": "Naive: just compare the group averages. It is off by 0.159.", "s": "Naive: just compare the group averages. It is off by 0.159.", "t0": 9.244, "t1": 14.701}, {"c": "IPW weights each patient by one over their chance of the drug they got, so each group looks like everyone. Matching pairs similar patients who got different drugs.", "s": "I P W weights each patient by one over their chance of the drug they got, so each group looks like everyone. Matching pairs similar patients who got different drugs.", "t0": 15.201, "t1": 24.036}, {"c": "AIPW combines an outcome model with that weighting. It is doubly robust: right if either model is right. All three land on the truth, with errors of about 0.002.", "s": "A I P W combines an outcome model with that weighting. It is doubly robust: right if either model is right. All three land on the truth, with errors of about 0.002.", "t0": 24.536, "t1": 35.368}, {"c": "After weighting, the largest imbalance between the groups falls from 0.70 to 0.08, below the usual threshold of 0.1.", "s": "After weighting, the largest imbalance between the groups falls from 0.70 to 0.08, below the usual threshold of 0.1.", "t0": 35.868, "t1": 45.388}], "dur": 46.488},
+ {"title": "One patient's estimate", "sentences": [{"c": "Averages are not enough. The doctor needs this patient's estimate.", "s": "Averages are not enough. The doctor needs this patient's estimate.", "t0": 0.35, "t1": 4.112}, {"c": "The DR-learner takes each training patient's AIPW score, a noisy but fair guess of their personal effect, and fits a regression on patient details.", "s": "The D R learner takes each training patient's A I P W score, a noisy but fair guess of their personal effect, and fits a regression on patient details.", "t0": 4.612, "t1": 13.667}, {"c": "Robust HC3 standard errors turn that into a 95% range for this patient.", "s": "Robust H C 3 standard errors turn that into a 95 percent range for this patient.", "t0": 14.167, "t1": 19.961}, {"c": "For our 60-year-old woman: the DPP-4 inhibitor, −0.68, with a range from −1.09 to −0.27. The sulfonylurea, −0.82, from −1.21 to −0.42.", "s": "For our 60-year-old woman: the D P P 4 inhibitor, minus 0.68, with a range from minus 1.09 to minus 0.27. The sulfonylurea, minus 0.82, from minus 1.21 to minus 0.42.", "t0": 20.461, "t1": 37.005}, {"c": "The ranges overlap, and that is honest information: for her, both lower HbA1c similarly, so the doctor can weigh weight, low-sugar risk and cost.", "s": "The ranges overlap, and that is honest information: for her, both lower H B A 1 C similarly, so the doctor can weigh weight, low-sugar risk and cost.", "t0": 37.505, "t1": 47.269}], "dur": 48.369},
+ {"title": "Where the 25% ends", "sentences": [{"c": "Here is exactly what our 25% covers. The interaction sheet asked for it by 23 September, and our guide signed it.", "s": "Here is exactly what our 25 percent covers. The interaction sheet asked for it by 23 September, and our guide signed it.", "t0": 0.35, "t1": 8.407}, {"c": "It has two halves. The chat app's front door: sign-in with a password, a CAPTCHA and an authenticator code, the guards, the patient panel and the clinical guardrails.", "s": "It has two halves. The chat app's front door: sign-in with a password, a captcha and an authenticator code, the guards, the patient panel and the clinical guardrails.", "t0": 8.907, "t1": 18.869}, {"c": "And the causal engine core: the synthetic cohort, safety rules first, propensity and overlap, the average-effect methods, and the DR-learner for one patient.", "s": "And the causal engine core: the synthetic cohort, safety rules first, propensity and overlap, the average-effect methods, and the D R learner for one patient.", "t0": 19.369, "t1": 28.9}, {"c": "So at 25%, one patient goes in, unsafe drugs come out, and each remaining drug gets its 6-month HbA1c change with a 95% range, or insufficient evidence. The 25% ends here.", "s": "So at 25 percent, one patient goes in, unsafe drugs come out, and each remaining drug gets its 6-month H B A 1 C change with a 95 percent range, or insufficient evidence. The 25 percent ends here.", "t0": 29.4, "t1": 43.205}, {"c": "Beyond it: the 40% check, met on 28 September, and the 60% check, met on 29 September. The 80 and 100% targets are 3 and 6 October.", "s": "Beyond it: the 40 percent check, met on 28 September, and the 60 percent check, met on 29 September. The 80 and 100 percent targets are 3 and 6 October.", "t0": 43.705, "t1": 55.036}], "dur": 56.136},
+ {"title": "Evidence you can check", "sentences": [{"c": "Doctors also want to see why. That is the evidence search, called RAG: retrieval-augmented generation.", "s": "Doctors also want to see why. That is the evidence search, called rag: retrieval-augmented generation.", "t0": 0.35, "t1": 6.666}, {"c": "Only licence-cleared documents go in: the WHO 2018 guideline and seven FDA safety communications, cut into 78 passages.", "s": "Only licence-cleared documents go in: the W H O 2018 guideline and seven F D A safety communications, cut into 78 passages.", "t0": 7.166, "t1": 16.756}, {"c": "Two searches rank the passages, BM25 on keywords and TF-IDF on word weights, and reciprocal rank fusion combines them. The best five are kept.", "s": "Two searches rank the passages, B M 25 on keywords and T F I D F on word weights, and reciprocal rank fusion combines them. The best five are kept.", "t0": 17.256, "t1": 27.252}, {"c": "The answer only quotes sentences from those passages, each with its citation number, and a checker rejects anything uncited. Doses are never shown.", "s": "The answer only quotes sentences from those passages, each with its citation number, and a checker rejects anything uncited. Doses are never shown.", "t0": 27.752, "t1": 36.552}, {"c": "If the sources don't cover a question, it says insufficient evidence. On 60 test questions, the right source is in the top five 93% of the time, and every citation is correct.", "s": "If the sources don't cover a question, it says insufficient evidence. On 60 test questions, the right source is in the top five 93 percent of the time, and every citation is correct.", "t0": 37.052, "t1": 48.07}], "dur": 49.17},
+ {"title": "The secure chat app", "sentences": [{"c": "All of this runs inside a secure chat app, built with FastAPI and React.", "s": "All of this runs inside a secure chat app, built with Fast A P I and React.", "t0": 0.35, "t1": 5.064}, {"c": "A doctor signs in with a password, a CAPTCHA and a six-digit authenticator code. Passwords are stored only as Argon2id hashes, and the session ends after 15 minutes idle.", "s": "A doctor signs in with a password, a captcha and a six-digit authenticator code. Passwords are stored only as Argon 2 I D hashes, and the session ends after 15 minutes idle.", "t0": 5.564, "t1": 16.349}, {"c": "Guards block identifiers like Aadhaar or phone numbers, and off-topic or emergency questions, before anything is sent.", "s": "Guards block identifiers like Aadhaar or phone numbers, and off-topic or emergency questions, before anything is sent.", "t0": 16.849, "t1": 23.908}, {"c": "Then six stages run in order: the backend guard, the clinical guardrails, the causal engine, evidence retrieval, the explanation, and an output guard that withholds anything that looks like a dose.", "s": "Then six stages run in order: the backend guard, the clinical guardrails, the causal engine, evidence retrieval, the explanation, and an output guard that withholds anything that looks like a dose.", "t0": 24.408, "t1": 37.098}, {"c": "Every log line carries a trace ID, but never the message or the patient's values. Since 29 September, all six stages run.", "s": "Every log line carries a trace ID, but never the message or the patient's values. Since 29 September, all six stages run.", "t0": 37.598, "t1": 45.609}], "dur": 46.709},
+ {"title": "Proof and progress", "sentences": [{"c": "How do we know it works? All nine refutation checks pass, and the per-patient 95% ranges contain the truth about 93 to 95% of the time.", "s": "How do we know it works? All nine refutation checks pass, and the per-patient 95 percent ranges contain the truth about 93 to 95 percent of the time.", "t0": 0.35, "t1": 10.578}, {"c": "849 automated tests guard the rules: no doses, the intended-use sentence everywhere, and no patient values in the logs.", "s": "849 automated tests guard the rules: no doses, the intended-use sentence everywhere, and no patient values in the logs.", "t0": 11.078, "t1": 19.67}, {"c": "Progress: 25% signed, 40 and 60% met early, and 80 and 100% targeted for 3 and 6 October. By our weighted estimate, the whole project is about 75% done.", "s": "Progress: 25 percent signed, 40 and 60 percent met early, and 80 and 100 percent targeted for 3 and 6 October. By our weighted estimate, the whole project is about 75 percent done.", "t0": 20.17, "t1": 33.811}, {"c": "One honest limit: this is synthetic data. It proves the method, not real drug effects. Real hospital data with ethics approval is the next step.", "s": "One honest limit: this is synthetic data. It proves the method, not real drug effects. Real hospital data with ethics approval is the next step.", "t0": 34.311, "t1": 43.634}, {"c": "DiaCausal is a research prototype for clinician evaluation. The doctor always decides.", "s": "DiaCausal is a research prototype for clinician evaluation. The doctor always decides.", "t0": 44.134, "t1": 49.324}], "dur": 50.424}
+]
+</script>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch { /* storage unavailable */ } },
+  };
+
+  // ── narration data (timings are filled in by scripts/make_explainer.py) ──
+  const NARR = JSON.parse($("#narration").textContent);
+  const SPEAK = [
+    [/HbA1c/g, "H B A 1 C"], [/SGLT2i/g, "S G L T 2 inhibitor"], [/SGLT2/g, "S G L T 2"],
+    [/DPP-4i/g, "D P P 4 inhibitor"], [/DPP-4/g, "D P P 4"], [/eGFR/g, "e G F R"], [/AIPW/g, "A I P W"],
+    [/IPW/g, "I P W"], [/DR-learner/g, "D R learner"], [/HC3/g, "H C 3"], [/BM25/g, "B M 25"],
+    [/TF-IDF/g, "T F I D F"], [/\bRAG\b/g, "rag"], [/\bWHO\b/g, "W H O"], [/\bFDA\b/g, "F D A"],
+    [/NMB-2017/g, "N M B 2017"], [/\bBMI\b/g, "B M I"], [/\bR0(\d)\b/g, "R zero $1"], [/FastAPI/g, "Fast A P I"],
+    [/Argon2id/g, "Argon 2 I D"], [/CAPTCHA/g, "captcha"], [/(\d),(\d{3})/g, "$1$2"], [/−/g, "minus "], [/%/g, " percent"],
+  ];
+  const spoken = (c) => SPEAK.reduce((t, [re, to]) => t.replace(re, to), c);
+  NARR.forEach((sc) => sc.sentences.forEach((s) => { if (!s.s) s.s = spoken(s.c); }));
+  const hasTimings = NARR.every((sc) => typeof sc.dur === "number" && sc.sentences.every((s) => typeof s.t0 === "number"));
+  const words = (t) => t.split(/\s+/).length;
+  const estDur = (s) => Math.max(2.2, words(s.c) / 2.55) + 0.45; // seconds, when no recording exists
+
+  // ── elements ──
+  const stage = $("#stage"), scenes = $$(".scene", stage), cap = $("#capText");
+  const bPlay = $("#bPlay"), bPrev = $("#bPrev"), bNext = $("#bNext"), prog = $("#progBar");
+  const voiceSel = $("#voiceSel"), rateSel = $("#rateSel"), statusEl = $("#status");
+  const hudNo = $("#hudNo"), hudTitle = $("#hudTitle");
+  const N = scenes.length;
+
+  let cur = 0, sent = -1, playing = false, mode = "audio", token = 0, audio = null, timer = null, raf = 0;
+
+  // ── voices ──
+  const synth = "speechSynthesis" in window ? window.speechSynthesis : null;
+  function listVoices() {
+    const keep = voiceSel.value;
+    voiceSel.innerHTML = "";
+    const add = (v, t) => { const o = document.createElement("option"); o.value = v; o.textContent = t; voiceSel.append(o); };
+    if (hasTimings) add("audio", "Recorded narrator");
+    if (synth) {
+      const vs = synth.getVoices().filter((v) => /^en/i.test(v.lang));
+      vs.sort((a, b) => (b.lang === "en-IN") - (a.lang === "en-IN") || a.name.localeCompare(b.name));
+      vs.forEach((v) => add("v:" + v.name, `${v.name} (${v.lang})`));
+    }
+    add("captions", "Captions only (silent)");
+    const saved = keep || store.get("dc-voice");
+    if (saved && $$("option", voiceSel).some((o) => o.value === saved)) voiceSel.value = saved;
+    mode = voiceSel.value === "audio" ? "audio" : voiceSel.value === "captions" ? "captions" : "speech";
+  }
+  listVoices();
+  if (synth && "onvoiceschanged" in synth) synth.onvoiceschanged = listVoices;
+  voiceSel.addEventListener("change", () => { store.set("dc-voice", voiceSel.value); const was = playing; stop(); listVoices(); if (was) play(); });
+  rateSel.addEventListener("change", () => { if (audio) audio.playbackRate = rate(); });
+  const rate = () => Number(rateSel.value) || 1;
+
+  // ── scene display ──
+  function show(i, { narrating = false } = {}) {
+    cur = (i + N) % N;
+    scenes.forEach((s, k) => s.classList.toggle("is-active", k === cur));
+    stage.classList.toggle("narrating", narrating);
+    hudNo.textContent = String(cur + 1).padStart(2, "0") + " / " + N;
+    hudTitle.textContent = NARR[cur].title;
+    $$("#chips button").forEach((b, k) => b.setAttribute("aria-current", String(k === cur)));
+    $$(".sc").forEach((c, k) => c.classList.toggle("cur", k === cur));
+    if (!narrating) { beats(99); cap.textContent = NARR[cur].sentences[0].c; }
+    drawCohortIfVisible();
+    setProgress(0);
+  }
+  function beats(k) {
+    $$(".b", scenes[cur]).forEach((el) => el.classList.toggle("on", Number(el.dataset.beat || 0) <= k));
+    if (scenes[cur].dataset.i === "3") cohortBeat(k);
+  }
+  function caption(k) {
+    sent = k;
+    const s = NARR[cur].sentences[k];
+    cap.textContent = s ? s.c : "";
+    beats(k);
+    $$(".sc p").forEach((p) => p.classList.toggle("now", p.dataset.sc === String(cur) && p.dataset.k === String(k)));
+  }
+  function setProgress(frac) {
+    prog.style.width = (((cur + Math.min(1, Math.max(0, frac))) / N) * 100).toFixed(2) + "%";
+  }
+
+  // ── playback engines ──
+  function play() {
+    playing = true; bPlay.textContent = "❚❚ Pause"; bPlay.setAttribute("aria-pressed", "true");
+    runScene(sent >= 0 && stage.classList.contains("narrating") ? sent : 0);
+  }
+  function stop() {
+    playing = false; token++;
+    bPlay.textContent = "▶ Play"; bPlay.setAttribute("aria-pressed", "false");
+    if (audio) { audio.pause(); }
+    if (synth) synth.cancel();
+    clearTimeout(timer); cancelAnimationFrame(raf);
+  }
+  function next(auto) {
+    if (cur === N - 1 && auto) { stop(); stage.classList.remove("narrating"); beats(99); setProgress(1); statusEl.textContent = "The end. Try the quiz below."; return; }
+    const was = playing; stop(); sent = -1; show(cur + 1, { narrating: was }); if (was) play();
+  }
+  function runScene(k0) {
+    const my = ++token;
+    show(cur, { narrating: true });
+    caption(k0);
+    statusEl.textContent = "";
+    if (mode === "audio") return runAudio(k0, my);
+    if (mode === "speech" && synth) return runSpeech(k0, my);
+    return runCaptions(k0, my);
+  }
+  function src(i) { return "narration/s" + String(i + 1).padStart(2, "0") + ".mp3"; }
+  function runAudio(k0, my) {
+    const sc = NARR[cur];
+    if (!audio || audio.dataset.i !== String(cur)) {
+      if (audio) audio.pause();
+      audio = new Audio(src(cur)); audio.dataset.i = String(cur); audio.preload = "auto";
+    }
+    audio.playbackRate = rate();
+    const fail = () => { if (my !== token) return; statusEl.textContent = "The recorded narration could not load here, so the browser voice reads it instead.";
+      mode = synth ? "speech" : "captions"; voiceSel.value = synth ? ($$("option", voiceSel)[1] || {}).value || "captions" : "captions"; runScene(sent < 0 ? 0 : sent); };
+    audio.onerror = fail;
+    audio.onended = () => { if (my === token) next(true); };
+    try { audio.currentTime = sc.sentences[k0].t0; } catch { /* not seekable yet */ }
+    audio.play().catch(fail);
+    const tick = () => {
+      if (my !== token) return;
+      const t = audio.currentTime;
+      let k = 0; sc.sentences.forEach((s, j) => { if (t >= s.t0 - 0.05) k = j; });
+      if (k !== sent) caption(k);
+      setProgress(t / sc.dur);
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+  }
+  function runSpeech(k0, my) {
+    const sc = NARR[cur];
+    const say = (k) => {
+      if (my !== token) return;
+      if (k >= sc.sentences.length) { timer = setTimeout(() => my === token && next(true), 500); return; }
+      caption(k); setProgress(k / sc.sentences.length);
+      const u = new SpeechSynthesisUtterance(sc.sentences[k].s);
+      const v = synth.getVoices().find((x) => "v:" + x.name === voiceSel.value);
+      if (v) { u.voice = v; u.lang = v.lang; } else u.lang = "en-IN";
+      u.rate = rate() * 0.95;
+      u.onend = () => { if (my === token) timer = setTimeout(() => say(k + 1), 250); };
+      u.onerror = () => { if (my === token) { mode = "captions"; runCaptions(k, my); } };
+      synth.cancel(); synth.speak(u);
+    };
+    say(k0);
+  }
+  function runCaptions(k0, my) {
+    const sc = NARR[cur];
+    const step = (k) => {
+      if (my !== token) return;
+      if (k >= sc.sentences.length) { next(true); return; }
+      caption(k); setProgress(k / sc.sentences.length);
+      const s = sc.sentences[k];
+      const d = hasTimings ? ((k + 1 < sc.sentences.length ? sc.sentences[k + 1].t0 : sc.dur) - s.t0) : estDur(s);
+      timer = setTimeout(() => step(k + 1), (d * 1000) / rate());
+    };
+    step(k0);
+  }
+
+  bPlay.addEventListener("click", () => (playing ? stop() : play()));
+  bPrev.addEventListener("click", () => { const was = playing; stop(); sent = -1; show(cur - 1, { narrating: was }); if (was) play(); });
+  bNext.addEventListener("click", () => next(false));
+  document.addEventListener("keydown", (e) => {
+    if (e.target.closest("input, select, textarea, label, fieldset")) return;
+    if (e.key === " " && e.target === document.body) { e.preventDefault(); playing ? stop() : play(); }
+    if (e.key === "ArrowRight" && e.target === document.body) bNext.click();
+    if (e.key === "ArrowLeft" && e.target === document.body) bPrev.click();
+  });
+
+  // chips + script list
+  const chips = $("#chips"), list = $("#scriptList");
+  NARR.forEach((sc, i) => {
+    const li = document.createElement("li"), b = document.createElement("button");
+    b.type = "button"; b.innerHTML = `<b>${String(i + 1).padStart(2, "0")}</b>`; b.append(sc.title);
+    b.addEventListener("click", () => { const was = playing; stop(); sent = -1; show(i, { narrating: was }); if (was) play(); });
+    li.append(b); chips.append(li);
+    const card = document.createElement("article"); card.className = "sc";
+    card.innerHTML = `<span class="n">SCENE ${String(i + 1).padStart(2, "0")}</span><h3><button type="button"></button></h3>`;
+    $("button", card).textContent = sc.title;
+    $("button", card).addEventListener("click", () => { stop(); sent = -1; show(i); stage.scrollIntoView({ behavior: "smooth", block: "start" }); });
+    sc.sentences.forEach((s, k) => { const p = document.createElement("p"); p.textContent = s.c; p.dataset.sc = i; p.dataset.k = k; card.append(p); });
+    list.append(card);
+  });
+
+  // ── charts (drawn to scale from the numbers) ──
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (tag, attrs, parent, text) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; parent.append(e); return e; };
+  function rangeChart(svg, { domain: [a, b], ticks, rows, ref, zero, x0 = 150, x1 = 590, top = 16, rowH = 34, dec = 2 }) {
+    const X = (v) => x0 + ((v - a) / (b - a)) * (x1 - x0);
+    const h = top + rows.length * rowH + 34;
+    svg.setAttribute("viewBox", `0 0 620 ${h}`);
+    const axY = top + rows.length * rowH + 6;
+    el("line", { class: "ax", x1: x0, x2: x1, y1: axY, y2: axY }, svg);
+    ticks.forEach((t) => { el("line", { class: "ax", x1: X(t), x2: X(t), y1: axY, y2: axY + 5 }, svg); el("text", { class: "tk", x: X(t), y: axY + 19, "text-anchor": "middle" }, svg, t === 0 ? "0" : (t < 0 ? "−" : "") + Math.abs(t).toFixed(1)); });
+    if (zero) { el("line", { class: "zero", x1: X(zero), x2: X(zero), y1: top - 6, y2: axY }, svg); }
+    if (ref) { el("line", { class: "ref", x1: X(ref.v), x2: X(ref.v), y1: top - 10, y2: axY }, svg); el("text", { class: "reftx", x: X(ref.v) + 6, y: top - 1 }, svg, ref.label); }
+    rows.forEach((r, i) => {
+      const y = top + i * rowH + rowH / 2 + 4;
+      el("text", { class: "lb", x: 10, y: y + 4 }, svg, r.label);
+      if (r.text) { el("text", { class: "tk", x: x0, y: y + 4, style: "fill:var(--st-danger);font-weight:700" }, svg, r.text); return; }
+      const col = r.color || "var(--stage-ink)";
+      el("line", { class: "ci", x1: X(r.lo), x2: X(r.hi), y1: y, y2: y, style: `stroke:${col}` }, svg);
+      el("circle", { class: "dot", cx: X(r.v), cy: y, r: 6.5, style: `fill:${col}` }, svg);
+      const lx = X(r.hi) + 8, right = lx > x1 - 70;
+      el("text", { class: "lb", x: right ? X(r.lo) - 8 : lx, y: y + 4, "text-anchor": right ? "end" : "start" }, svg, r.v.toFixed(dec).replace("-", "−"));
+    });
+  }
+  rangeChart($("#ch-naive"), { domain: [-0.45, -0.10], ticks: [-0.4, -0.3, -0.2, -0.1], dec: 3,
+    ref: { v: -0.211, label: "truth −0.211" },
+    rows: [{ label: "Naive average", v: -0.3697, lo: -0.3697 - 0.0474, hi: -0.3697 + 0.0474, color: "var(--c-su)" }] });
+  rangeChart($("#ch-forest"), { domain: [-0.45, -0.10], ticks: [-0.4, -0.3, -0.2, -0.1], dec: 3,
+    ref: { v: -0.211, label: "truth −0.211" },
+    rows: [
+      { label: "Naive", v: -0.3697, lo: -0.3697 - 0.0474, hi: -0.3697 + 0.0474, color: "var(--c-su)" },
+      { label: "IPW", v: -0.2100, lo: -0.2100 - 0.0601, hi: -0.2100 + 0.0601, color: "var(--c-dpp)" },
+      { label: "Matching", v: -0.2132, lo: -0.2132 - 0.0544, hi: -0.2132 + 0.0544, color: "var(--c-dpp)" },
+      { label: "AIPW", v: -0.2091, lo: -0.2091 - 0.0522, hi: -0.2091 + 0.0522, color: "var(--c-sglt)" }] });
+  rangeChart($("#ch-patient"), { domain: [-1.4, 0.2], ticks: [-1.2, -0.8, -0.4, 0], zero: 0,
+    rows: [
+      { label: "SGLT2i", text: "excluded by R01: never estimated" },
+      { label: "DPP-4i", v: -0.678, lo: -1.089, hi: -0.267, color: "var(--c-dpp)" },
+      { label: "SU", v: -0.816, lo: -1.212, hi: -0.420, color: "var(--c-su)" }] });
+
+  function propBars(svg, rows) {
+    const x0 = 70, x1 = 280, X = (v) => x0 + v * (x1 - x0), top = 14, rowH = 34;
+    const axY = top + rows.length * rowH + 4;
+    el("line", { class: "ax", x1: x0, x2: x1, y1: axY, y2: axY }, svg);
+    [0, 0.5, 1].forEach((t) => el("text", { class: "tk", x: X(t), y: axY + 16, "text-anchor": "middle" }, svg, String(t)));
+    rows.forEach((r, i) => {
+      const y = top + i * rowH;
+      el("text", { class: "lb", x: 4, y: y + 17 }, svg, r.label);
+      el("rect", { x: x0, y: y + 5, width: Math.max(1.5, X(r.v) - x0), height: 16, rx: 3, style: `fill:${r.color}` }, svg);
+      el("text", { class: "lb", x: (r.v < 0.05 ? X(0.05) : X(r.v)) + 6, y: y + 18, style: r.v < 0.05 ? "fill:var(--st-check);font-weight:700" : "" }, svg, r.v.toFixed(3));
+    });
+    el("line", { class: "ref", x1: X(0.05), x2: X(0.05), y1: top - 6, y2: axY }, svg);
+    el("text", { class: "reftx", x: X(0.05) + 4, y: top - 2 }, svg, "0.05");
+    svg.setAttribute("viewBox", `0 0 300 ${axY + 22}`);
+  }
+  propBars($("#ch-prop2"), [{ label: "DPP-4i", v: 0.537, color: "var(--c-dpp)" }, { label: "SU", v: 0.227, color: "var(--c-su)" }]);
+  propBars($("#ch-prop3"), [{ label: "DPP-4i", v: 0.808, color: "var(--c-dpp)" }, { label: "SU", v: 0.006, color: "var(--c-su)" }]);
+
+  // ── scene 4: an illustration of the cohort generator (simplified: main assignment terms only) ──
+  const cv = $("#cohort"), cx = cv.getContext("2d");
+  const pts = (() => {
+    let s = 2026; const rnd = () => { s |= 0; s = (s + 0x6d2b79f5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    const norm = () => Math.sqrt(-2 * Math.log(1 - rnd())) * Math.cos(2 * Math.PI * rnd());
+    const gamma = (k) => { const d = k - 1 / 3, c = 1 / Math.sqrt(9 * d); for (;;) { let x, v; do { x = norm(); v = 1 + c * x; } while (v <= 0); v = v * v * v; const u = rnd(); if (Math.log(u) < 0.5 * x * x + d - d * v + d * Math.log(v)) return d * v; } };
+    const clip = (v, a, b) => Math.min(b, Math.max(a, v));
+    const out = [];
+    for (let i = 0; i < 1200; i++) {
+      const age = clip(55 + 10 * norm(), 30, 85), h = clip(7 + 0.65 * gamma(2.5), 7, 13);
+      const e = clip(82 - 0.8 * (age - 55) + 18 * norm(), 30, 120), bmi = clip(26.5 + 4 * norm(), 16, 45);
+      const ls = 0.10 + 0.45 * (h - 8.5) + 0.04 * (e - 80) + 0.08 * (bmi - 26);
+      const lu = -0.20 + 0.35 * (h - 8.5) - 0.05 * (age - 55) + 0.02 * (e - 80);
+      const z = 1 + Math.exp(ls) + Math.exp(lu), u = rnd();
+      const drug = u < Math.exp(ls) / z ? 0 : u < (Math.exp(ls) + Math.exp(lu)) / z ? 2 : 1;
+      out.push({ h, e, drug, d: rnd() });
+    }
+    return out;
+  })();
+  let cohortK = 99, cohortT0 = 0;
+  function cohortBeat(k) { if (k !== cohortK) { cohortK = k; cohortT0 = performance.now(); drawCohort(); } }
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function drawCohort() {
+    cancelAnimationFrame(drawCohort.raf);
+    const css = getComputedStyle(document.documentElement);
+    const col = [css.getPropertyValue("--c-sglt"), css.getPropertyValue("--c-dpp"), css.getPropertyValue("--c-su")].map((c) => c.trim());
+    const grey = css.getPropertyValue("--stage-muted").trim(), line = css.getPropertyValue("--stage-line").trim(), ink = css.getPropertyValue("--stage-ink").trim();
+    const W = cv.width, H = cv.height, L = 52, R = 14, T = 14, B = 40;
+    const X = (h) => L + ((h - 7) / 6) * (W - L - R), Y = (e) => H - B - ((e - 30) / 90) * (H - T - B);
+    const frame = (now) => {
+      const p = reduce ? 1 : Math.min(1, (now - cohortT0) / 1400);
+      cx.clearRect(0, 0, W, H);
+      cx.strokeStyle = line; cx.lineWidth = 1; cx.font = "16px Atkinson Hyperlegible, Verdana, sans-serif"; cx.fillStyle = grey;
+      [7, 9, 11, 13].forEach((h) => { cx.beginPath(); cx.moveTo(X(h), T); cx.lineTo(X(h), H - B); cx.stroke(); cx.fillText(h + "%", X(h) - 12, H - B + 24); });
+      [30, 60, 90, 120].forEach((e) => { cx.beginPath(); cx.moveTo(L, Y(e)); cx.lineTo(W - R, Y(e)); cx.stroke(); cx.fillText(String(e), 8, Y(e) + 5); });
+      const shown = cohortK >= 1 ? pts.length : 0, colour = cohortK >= 2;
+      for (let i = 0; i < shown; i++) {
+        const q = pts[i]; if (q.d > (cohortK === 1 ? p : 1)) continue;
+        cx.globalAlpha = 0.85; cx.fillStyle = colour ? col[q.drug] : grey;
+        cx.beginPath(); cx.arc(X(q.h), Y(q.e), 3.1, 0, 7); cx.fill();
+      }
+      cx.globalAlpha = 1;
+      if (cohortK >= 3) { cx.fillStyle = "rgba(242,184,75,.10)"; cx.fillRect(W - R - (W - L - R) * 0.22 * p, T, (W - L - R) * 0.22 * p, H - T - B);
+        cx.fillStyle = ink; if (p > 0.9) { cx.font = "700 15px Atkinson Hyperlegible, Verdana, sans-serif"; cx.fillText("truth hidden", W - R - 116, T + 22); } }
+      if (p < 1 && !reduce) drawCohort.raf = requestAnimationFrame(frame);
+    };
+    drawCohort.raf = requestAnimationFrame(frame);
+  }
+  function drawCohortIfVisible() { if (cur === 3 && !stage.classList.contains("narrating")) { cohortK = 99; drawCohort(); } }
+
+  // ── glossary ──
+  const GL = [
+    ["HbA1c", "glycated haemoglobin", "Average blood sugar over 2–3 months, in %. Our outcome is its 6-month change in points."],
+    ["T2D", "type 2 diabetes", "The body uses insulin poorly; most adult diabetes. The only disease in scope."],
+    ["SGLT2i", "sodium–glucose co-transporter-2 inhibitor", "Kidneys pass sugar in the urine; weight often falls (e.g. dapagliflozin)."],
+    ["DPP-4i", "dipeptidyl peptidase-4 inhibitor", "Gut hormones that raise insulin last longer; weight neutral (e.g. sitagliptin)."],
+    ["SU", "sulfonylurea", "Pancreas releases more insulin; cheap; low-sugar and weight-gain risk (e.g. glimepiride)."],
+    ["eGFR", "estimated glomerular filtration rate", "Kidney function in mL/min/1.73 m²; below 60 is reduced, below 30 severe."],
+    ["BMI", "body mass index", "kg ÷ m². Asian-Indian cut-offs: overweight ≥ 23, obese ≥ 25."],
+    ["CKD", "chronic kidney disease", "Here: eGFR below 60 (KDIGO)."],
+    ["ASCVD", "atherosclerotic cardiovascular disease", "Heart attack, stroke, blocked arteries."],
+    ["HF", "heart failure", "The heart pumps poorly; a caution for DPP-4i (R06)."],
+    ["DKA", "diabetic ketoacidosis", "An acid emergency; an SGLT2i warning; DKA questions are out of scope."],
+    ["HHS", "hyperosmolar hyperglycaemic state", "Very high sugar with dehydration; an emergency, out of scope."],
+    ["Hypo", "hypoglycaemia", "Blood sugar too low; a secondary outcome and an SU caution."],
+    ["WHO", "World Health Organization", "Its 2018 guideline on second- and third-line medicines is in our evidence search."],
+    ["FDA", "US Food and Drug Administration", "Drug labels (our safety rules) and 7 safety communications (our evidence)."],
+    ["KDIGO", "Kidney Disease: Improving Global Outcomes", "International kidney guideline group."],
+    ["ICMR-INDIAB", "ICMR India Diabetes study", "National survey of diabetes in India (2023); a parameter source."],
+    ["NMB-2017", "2017 nationwide Indian survey (Mendeley, CC0)", "7,496 real adults; our realism check only; the engine never reads it."],
+    ["LASI / NFHS-5", "Longitudinal Ageing Study in India / National Family Health Survey 5", "Real Indian surveys; none has drug choice plus later HbA1c."],
+    ["CDSCO", "Central Drugs Standard Control Organisation", "India's drug and device regulator."],
+    ["SaMD", "software as a medical device", "Why we say: not a marketed medical device."],
+    ["IEC", "Institutional Ethics Committee", "Must approve any real-patient data or clinician study."],
+    ["DPDP Act", "Digital Personal Data Protection Act, 2023", "India's data-privacy law."],
+    ["CDSS", "clinical decision support system", "Software that helps, never replaces, the clinician."],
+    ["DAG", "directed acyclic graph", "The causal diagram: tells us what to adjust for."],
+    ["Confounder", "", "Affects both the drug choice and the outcome (HbA1c, eGFR, duration)."],
+    ["Mediator", "", "Caused by the drug on the way to the outcome (weight change); never adjusted for."],
+    ["ATE", "average treatment effect", "Average difference if everyone got drug A vs drug B (truth −0.211 for SGLT2i vs DPP-4i)."],
+    ["CATE", "conditional average treatment effect", "The effect for patients like this one: what the doctor sees."],
+    ["Propensity score", "", "Chance of getting each drug given the patient's details."],
+    ["Overlap", "positivity", "Similar patients got each drug; we require a propensity of at least 0.05."],
+    ["IPW", "inverse probability weighting", "Weight = 1 ÷ propensity of the drug received."],
+    ["PSM", "propensity score matching", "Pair similar patients who got different drugs; 95% range by bootstrap."],
+    ["AIPW", "augmented inverse probability weighting", "Outcome model + weighted correction; doubly robust."],
+    ["Doubly robust", "", "Unbiased if either the propensity or the outcome model is right."],
+    ["DR-learner", "doubly robust learner", "Regresses AIPW scores on patient details to get one patient's effect."],
+    ["OLS", "ordinary least squares", "Standard linear regression; the DR-learner's second stage."],
+    ["HC3", "heteroskedasticity-consistent standard errors, type 3", "Robust errors behind each patient's 95% range."],
+    ["Cross-fitting", "", "5 folds; each patient is predicted by models trained on the other folds."],
+    ["CI", "confidence interval", "A 95% range: contains the truth 95% of the time over repeats."],
+    ["SE / SD", "standard error / standard deviation", "Wobble of an estimate / spread of values."],
+    ["SMD", "standardised mean difference", "Group imbalance; below 0.1 is balanced (ours: 0.70 → 0.08)."],
+    ["RMSE", "root mean squared error", "Typical size of an error."],
+    ["PEHE", "precision in estimating heterogeneous effects", "Error of personal effects: DR-learner 0.105–0.117."],
+    ["Regret", "policy regret", "HbA1c lowering lost by choosing the model's best drug: 0.011 points."],
+    ["E-value", "", "How strong a hidden confounder would need to be to explain the effect away (1.57–2.15)."],
+    ["Refutation", "", "Placebo, random common cause and 80% subset tests: 9 of 9 pass."],
+    ["RAG", "retrieval-augmented generation", "Find passages in trusted documents, then answer only from them, with citations."],
+    ["LLM", "large language model", "Text AI (Gemini, Llama); optional here, always citation-checked."],
+    ["BM25", "Best Matching 25", "Keyword ranking: rare words that appear often in a passage score high."],
+    ["TF-IDF", "term frequency–inverse document frequency", "Word-weight vectors compared by cosine similarity."],
+    ["RRF", "reciprocal rank fusion", "Merges two rankings: score = Σ 1 / (60 + rank)."],
+    ["Recall@5", "", "Right source in the top 5: 0.933."],
+    ["Abstention", "", "Saying “insufficient evidence” instead of guessing: 0.80 on out-of-scope questions."],
+    ["API / REST", "application programming interface", "How programs talk: POST /api/v1/chat, POST /api/v1/recommend."],
+    ["JSON / YAML / CSV", "data formats", "Structured text; tables; our rules and parameters."],
+    ["FastAPI / Pydantic", "", "Python web framework / data validation (unknown fields rejected)."],
+    ["React / TypeScript", "", "The chat app's page and its typed JavaScript."],
+    ["CAPTCHA", "Completely Automated Public Turing test to tell Computers and Humans Apart", "6 digits in a picture or audio; stops bots."],
+    ["MFA / 2FA", "multi-factor authentication", "Password plus a phone code."],
+    ["TOTP", "time-based one-time password", "6-digit authenticator code, new every 30 s."],
+    ["Argon2id", "", "Slow, memory-hard password hash."],
+    ["CSRF", "cross-site request forgery", "Another site acting as you; blocked by the X-CSRF-Token header."],
+    ["CSP", "Content Security Policy", "Browser rule: only our own scripts run."],
+    ["RLS", "row-level security", "Each database row readable only by the right user (Supabase)."],
+    ["PWA", "progressive web app", "Installable website that works offline."],
+    ["Trace ID", "", "8-hex label on every log line for one message; never its text."],
+    ["CI (software)", "continuous integration", "Tests run on every change on Linux, macOS and Windows."],
+    ["SUS", "System Usability Scale", "10-question usability survey; 68+ is above average."],
+    ["κ", "Cohen's kappa", "Agreement beyond chance; 0.61+ is substantial."],
+  ];
+  const glList = $("#glList"), glQ = $("#glQ"), glCount = $("#glCount");
+  function renderGl() {
+    const q = glQ.value.trim().toLowerCase();
+    glList.innerHTML = "";
+    let n = 0;
+    GL.forEach(([a, full, m]) => {
+      if (q && !(a + " " + full + " " + m).toLowerCase().includes(q)) return;
+      n++;
+      const d = document.createElement("div"), dt = document.createElement("dt"), dd = document.createElement("dd");
+      dt.textContent = a; if (full) { const s = document.createElement("span"); s.textContent = " · " + full; dt.append(s); }
+      dd.textContent = m; d.append(dt, dd); glList.append(d);
+    });
+    glCount.textContent = n + " of " + GL.length + " terms";
+  }
+  glQ.addEventListener("input", renderGl); renderGl();
+
+  // ── quiz ──
+  const QZ = [
+    ["What does HbA1c measure?", ["Kidney function", "Average blood sugar over the last 2–3 months", "Blood pressure", "Body fat"], 1, "HbA1c is the % of haemoglobin with sugar attached; our outcome is its 6-month change."],
+    ["Why is a naive average of old records misleading?", ["Records are too small", "Doctors choose drugs for reasons that also change the outcome (confounding)", "HbA1c is measured wrongly", "Drugs have no effect"], 1, "Naive −0.370 vs truth −0.211: off by −0.159."],
+    ["What runs before any estimate?", ["The LLM", "The website", "The safety rules from drug labels", "The benchmark"], 2, "An excluded option is never estimated."],
+    ["A drug's propensity for this patient is 0.006. What does DiaCausal show?", ["A very small effect", "“Insufficient evidence”, and no number", "The drug is dangerous", "A 50% range"], 1, "Below 0.05 almost no similar patient got it, so a fair comparison is impossible."],
+    ["“Doubly robust” (AIPW) means…", ["It runs twice", "It is right if either the propensity model or the outcome model is right", "It needs two doctors", "It doubles the sample"], 1, "Outcome model + weighted correction of its errors."],
+    ["Where does the 25% end?", ["After the website", "One patient in → unsafe drugs removed → each remaining drug's 6-month HbA1c change with a 95% range, or insufficient evidence", "After the RAG evaluation", "After the paper"], 1, "Section 1: chat app front door + causal engine core, signed 23 September."],
+    ["Why do we use synthetic data?", ["It is cheaper", "Only there do we know the true effect, so methods can be graded", "Real data is illegal", "It is more accurate than real data"], 1, "It proves the method, not real drug effects."],
+    ["What is NMB-2017 used for?", ["Training the engine", "A realism check of our synthetic patients", "The evidence search", "Prices"], 1, "7,496 real Indian adults; no drug or follow-up, so it cannot train the engine."],
+    ["Where do the evidence answers come from?", ["The LLM's memory", "Sentences quoted from licence-cleared WHO and FDA passages, with citations", "Wikipedia", "The doctor"], 1, "Citation precision 1.000; dose text is never shown."],
+    ["What is TOTP?", ["A password rule", "A 6-digit authenticator code that changes every 30 seconds", "A type of CAPTCHA", "A test statistic"], 1, "The second sign-in factor."],
+    ["Which interaction-sheet checks are met?", ["25% only", "25% signed, 40% met 28 Sep, 60% met 29 Sep", "All five", "None"], 1, "80% and 100% are targets for 3 and 6 October."],
+    ["Why is weight change never adjusted for?", ["It is not measured", "It is a mediator: caused by the drug", "It is a confounder", "It is always zero"], 1, "Adjusting for it would remove part of the drug's real effect."],
+  ];
+  const qzList = $("#qzList"), qzScore = $("#qzScore");
+  let answered = {};
+  function renderQuiz() {
+    qzList.innerHTML = ""; answered = {};
+    QZ.forEach(([q, opts, ok, why], i) => {
+      const box = document.createElement("div"); box.className = "qq";
+      const fs = document.createElement("fieldset"), lg = document.createElement("legend");
+      lg.textContent = (i + 1) + ". " + q; fs.append(lg);
+      opts.forEach((o, j) => {
+        const lab = document.createElement("label"), inp = document.createElement("input");
+        inp.type = "radio"; inp.name = "q" + i; inp.id = "q" + i + "_" + j; inp.value = j; lab.htmlFor = inp.id;
+        const sp = document.createElement("span"); sp.textContent = o; lab.append(inp, sp); fs.append(lab);
+        inp.addEventListener("change", () => {
+          if (i in answered) return;
+          answered[i] = j === ok;
+          $$("label", fs).forEach((l, k) => { if (k === ok) l.classList.add("ok"); else if (k === j) l.classList.add("no"); $("input", l).disabled = true; });
+          const w = document.createElement("p"); w.className = "why"; w.textContent = (j === ok ? "Right. " : "Not quite. ") + why; box.append(w);
+          const s = Object.values(answered).filter(Boolean).length;
+          qzScore.textContent = "Score: " + s + " / " + QZ.length;
+          if (Object.keys(answered).length === QZ.length) { const best = Number(store.get("dc-best") || 0); if (s > best) store.set("dc-best", String(s)); qzScore.textContent += "  ·  best on this device: " + Math.max(s, best); }
+        });
+      });
+      box.append(fs); qzList.append(box);
+    });
+    qzScore.textContent = "Score: 0 / " + QZ.length;
+  }
+  $("#qzReset").addEventListener("click", renderQuiz); renderQuiz();
+
+  // ── record mode (#record): the stage alone, timed exactly like the narration audio ──
+  function record() {
+    document.body.classList.add("rec");
+    const INTRO = 3.0, OUTRO = 4.0, card = $("#titlecard");
+    const starts = []; let t = INTRO; NARR.forEach((sc) => { starts.push(t); t += hasTimings ? sc.dur : sc.sentences.reduce((a, s) => a + estDur(s), 0); });
+    const total = t + OUTRO;
+    window.__rec = { total, starts, intro: INTRO, outro: OUTRO };
+    card.hidden = false;
+    const t0 = performance.now(); window.__rec.t0Wall = Date.now();
+    let shownScene = -1, shownSent = -1;
+    const loop = (now) => {
+      const s = (now - t0) / 1000;
+      if (s < INTRO) { raf = requestAnimationFrame(loop); return; }
+      card.hidden = true;
+      let i = starts.length - 1; while (i > 0 && s < starts[i]) i--;
+      if (s >= total - OUTRO) { if (shownScene !== 99) { shownScene = 99; stage.classList.remove("narrating"); beats(99); card.hidden = false; $("h2", card).textContent = "The doctor always decides"; $("p:last-child", card).textContent = "Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use."; } if (s < total) raf = requestAnimationFrame(loop); else window.__rec.done = true; return; }
+      if (i !== shownScene) { shownScene = i; shownSent = -1; cur = i; show(i, { narrating: true }); }
+      const local = s - starts[i], sc = NARR[i];
+      let k = 0; sc.sentences.forEach((x, j) => { const st = hasTimings ? x.t0 : sc.sentences.slice(0, j).reduce((a, y) => a + estDur(y), 0); if (local >= st - 0.05) k = j; });
+      if (k !== shownSent) { shownSent = k; caption(k); }
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+  }
+
+  show(0);
+  if (location.hash === "#record") setTimeout(record, 600);
+  else if (location.hash === "#line") document.getElementById("line").scrollIntoView();
+})();
+</script>
+
+</body>
+</html>

@@ -56,3 +56,6 @@ e2e/playwright-report/
 
 # ── Causal engine (diacausal_engine/) ────────────────────────────────────────
 logs/
+
+# explainer: the long WAV is only an input for the video (scripts/record_explainer.cjs)
+docs/midsem/explainer/narration/full.wav
