@@ -5,13 +5,13 @@
 Group 28 · Domain AI/ML · Guide: Mr. Rahul Jadhav · Title: Intelligent Diabetes Clinical Decision Support System ·
 Type: In-house. Coordinator: Dr. Rakhi Kalantri · HOD: Dr. M. Kiruthika.
 Charts: `docs/midsem/timeline.png` and `gantt.png` (`python scripts/make_gantt.py`), also in the deck
-(slides 12–13) and the report (Appendix A).
+(slides 12–13) and the report (Appendix A). The charts use only the sheet's own rows and wording.
 
 ## Second half of 2026
 
 | Week, date | Task on the sheet | Guide's remark | Status | Where it is |
 |---|---|---|---|---|
-| 0 (vacation) | Topic finalisation, feasibility | met guide, topic finalised | Signed | Report Ch 1 |
+| 0 | Topic finalisation, feasibility | met guide, topic finalised | Signed | Report Ch 1 |
 | 1 · 22 Jul | Topic selection presentation | 16 papers; comparison table; relevant papers; gaps identified | Signed | Report Ch 2, Table 2.1; deck slide 39 (backup) |
 | 2 · 29 Jul | Abstract, introduction | abstract needs revision: yes | Signed; revised | Report Abstract, Ch 1 |
 | 3 · 05 Aug | Review of literature | changes suggested | Signed; made | Report Ch 2 |
@@ -19,14 +19,14 @@ Charts: `docs/midsem/timeline.png` and `gantt.png` (`python scripts/make_gantt.p
 | 4 · 19 Aug | Proposed system: problem, approach, scope | proposed system ok; **scope needs enhancement** | Signed | Report Ch 3; **deck slide 9 "Scope"** (in scope / out of scope / future scope) |
 | 5 · 02 Sep | H/W, S/W requirements, timeline chart | requirement study done | Signed | Deck slides 10–13; report Ch 4, Appendix A |
 | 6 · 09 Sep | Design: block, flow diagrams | block and flow ok; **working of the system: not done** | Signed | Deck slides 6–7, 14–16; **deck slide 17 "Working of the System"** (one real consultation, step by step) |
-| 7 · 23 Sep | Implementation 25% | coding details; 25% done (refer timeline) | Signed | Deck slides 22–23; report Ch 5 |
-| SP-II · 30 Sep | Synopsis Presentation-II | — | Today | This deck (39 slides) |
-| 8 · 07 Oct | Implementation 40% + feedback | — | **Already met** (Sections 1–2) | Deck slides 22–31 |
-| 9 · 14 Oct | Implementation 60% | — | Our target 3 Oct (Section 3) | Engine + RAG inside the chat app |
-| 10 · 21 Oct | Implementation 80% | — | Our target 6 Oct (Section 4) | Better search, real-data adapter, evaluation tools |
+| 7 · 23 Sep | Implementation 25% | coding details; 25% done (refer timeline) | Signed | Deck slide 23 "Exactly What the 25% Covers", slides 22, 24; report Ch 5 |
+| SP-II · 30 Sep | Synopsis Presentation-II | — | Today | This deck (35 slides + 5 backup) |
+| 8 · 07 Oct | Implementation 40% + progress feedback | — | **Met 28 Sep** (Section 2) | Deck slides 25, 29 |
+| 9 · 14 Oct | Implementation 60% + overall progress | — | **Met 29 Sep** (Section 3) | Deck slide 26: engine + RAG inside the chat app, all six stages run |
+| 10 · 21 Oct | Implementation 80% + overall progress | — | Our target 3 Oct (Section 4a) | Better search: medical embeddings + reranker |
 | 26–31 Oct | Guide evaluation | — | Planned | Doctor review and SUS study run in October |
 | Nov | Final synopsis presentation (tentative) | — | Planned | — |
-| Dec | 100% implementation; research paper (format, plagiarism, grammar, flow) | — | Planned | Paper draft starts once results are frozen |
+| Dec | 100% implementation; research paper (format, plagiarism, grammar, flow) | — | Our target 6 Oct for 100% (Section 4) | Real-data adapter, evaluation tools; paper draft once results are frozen |
 
 ## First half of 2027
 
@@ -41,7 +41,7 @@ Charts: `docs/midsem/timeline.png` and `gantt.png` (`python scripts/make_gantt.p
 
 | Section | Contents | Status |
 |---|---|---|
-| 1 | Causal engine core (cohort, safety rules, propensity, IPW/AIPW/matching, DR-learner, benchmark) + chat app base (UI, guards, sign-in, patient panel, guardrails, voice) | Done by 25 Sep |
-| 2 | Evidence search (RAG: WHO + FDA, hybrid search, cited explanations, 60-question evaluation), weight and low-sugar outcomes, website with accounts | Done by 28 Sep |
-| 3 | Causal engine and RAG inside the chat app (the three "skipped" stages) | In progress; target 3 Oct |
-| 4 | Dense medical embeddings + reranker, real-data adapter, evaluation tools | Target 6 Oct |
+| 1 | **The 25%** (deck slide 23): causal engine core (synthetic cohort, safety rules first, propensity + overlap, IPW/matching/AIPW, DR-learner with a 95% range) + chat app base (sign-in with CAPTCHA and authenticator, guards, patient panel, guardrails, voice) | Signed 23 Sep |
+| 2 | Benchmark (20 cohorts) + 9 refutation checks, weight and low-sugar outcomes, evidence search (RAG: WHO + FDA, hybrid search, cited explanations, 60-question evaluation), website with accounts | Done 28 Sep (40%) |
+| 3 | Causal engine and RAG inside the chat app (the three stages that used to say "skipped") | Done 29 Sep (60%) |
+| 4 | (a) dense medical embeddings + reranker, target 3 Oct; (b) real-data adapter and evaluation tools, target 6 Oct | Planned |

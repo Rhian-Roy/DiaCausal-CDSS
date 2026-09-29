@@ -57,17 +57,18 @@ works, and the question you are most likely to be asked.
      HbA1c points, AIPW by +0.002.
    - All 9 refutation tests pass.
    - The RAG test set: recall@5 0.933, citation precision 1.0, zero dose leaks.
-   - Tests: 201 for the engine, RAG and website, plus 630 for the chat app. They run on Linux,
+   - Tests: 202 for the engine, RAG and website, plus 647 for the chat app. They run on Linux,
      macOS and Windows.
 6. **Where it runs.**
    - A phone website (diacausal.netlify.app) with admin-approved accounts.
    - A Streamlit demo and an API.
    - A secure chat application with CAPTCHA and MFA sign-in, guards, a patient panel, clinical
-     guardrails, voice input and Docker deployment.
+     guardrails, voice input and Docker deployment. Since 29 September its pipeline runs the
+     causal engine and the evidence search too (all six stages).
 7. **Next (October).**
-   - Plug the engine and RAG into the chat app.
+   - A better search model (medical embeddings + reranker), target 3 October.
+   - A real-data adapter and evaluation tools, target 6 October (100% implementation).
    - Doctor review of the test questions and the clinician vignettes.
-   - A better search model.
    - Results frozen on 16 October; then the paper.
 
 **An everyday analogy (for non-technical listeners).**
@@ -133,11 +134,14 @@ Each part follows the same pattern: **What**, **How**, **Why**, **Where**, **Pro
   - Every log line carries the trace ID and **never the message text**.
 - **Why:** Joining the pieces is where projects break, so we joined them first, while simple.
 - **Where:** `backend/app/main.py`, `backend/app/schemas.py`, `backend/app/pipeline/`, `frontend/src/lib/chatFlow.ts`.
-- **Proof:** `python3 scripts/check_all.py` prints 43 pass/fail lines, including 392 backend
-  tests, 238 frontend tests and live server checks. GitHub runs it on Linux, Windows and macOS.
-- **Q:** *"Why is `causal_engine` still 'skipped' in the chat app?"*
-  **A:** We built and validated the engine and RAG as standalone modules first. Plugging them into
-  these marked stages is the October step. The contract and the stage slots are already there.
+- **Proof:** `python3 scripts/check_all.py` prints 43 pass/fail lines, including 401 backend
+  tests, 246 frontend tests and live server checks. GitHub runs it on Linux, Windows and macOS.
+- **Q:** *"Do all six stages really run in the chat app?"*
+  **A:** Yes, since 29 September (implementation Section 3). We built and validated the engine and
+  RAG as standalone modules first, then plugged them into the stage slots that were already there.
+  `causal_engine` runs only on the options the guardrails allow, and says which patient detail is
+  missing instead of guessing; `rag_retrieval` and `llm_explanation` quote cited sentences; the
+  output guard withholds anything that looks like a dose (`backend/tests/test_engine_stages.py`).
 
 #### A2. Guards
 - **What:** The guards block foul language, patient identifiers (notice 09), out-of-scope
@@ -442,10 +446,10 @@ Each part follows the same pattern: **What**, **How**, **Why**, **Where**, **Pro
 
 | Suite | Count | How to run |
 |---|---|---|
-| Causal engine | 149 tests | `.venv/bin/python -m pytest tests/engine -q` |
+| Causal engine | 150 tests | `.venv/bin/python -m pytest tests/engine -q` |
 | RAG | 33 tests | `.venv/bin/python -m pytest tests/rag -q` |
 | Website (incl. browser parity) | 19 tests | `.venv/bin/python -m pytest tests/web -q` |
-| Chat app backend / frontend | 392 / 238 tests | `python3 scripts/check_all.py` → "ALL 43 CHECKS PASSED" |
+| Chat app backend / frontend | 401 / 246 tests | `python3 scripts/check_all.py` → "ALL 43 CHECKS PASSED" |
 
 Some tests enforce project rules rather than features:
 - the intended-use sentence on every reply;
@@ -492,44 +496,52 @@ Some tests enforce project rules rather than features:
 
 ## 5. Panel script (Wednesday 30 Sept, 12–15 minutes)
 
-Keyed to the 22-slide plan in `docs/04_Presentation_PPT_Guide.md`. The owners come from that
-guide. This script will be re-numbered to match your updated PPT. Speak to the panel, not the
-screen, and keep each slide under about 45 seconds unless it's the demo.
+Keyed to the final deck `Intelligent_Diabetes_CDSS_MidSem_updated.pptx` (35 slides + 5 backup). The owners
+match the speaker notes; the full words for every slide are in `TEAM_BRIEFING.md`. Speak to the panel, not the
+screen; about 20–25 seconds per design slide, longer on 23 (the 25%) and the demo.
 
 | # | Slide | Who | Say (short version) |
 |---|---|---|---|
-| 1 | Title | Pratham | "Good morning. We are Group 28; our project is DiaCausal, a causal-inference and RAG clinical decision-support system for diabetes." |
-| 2 | Project and team | Pratham | Names and roll numbers; guide Mr. Rahul Jadhav. |
-| 3 | Outline | Pratham | "We follow the six items: proposed system, requirements, timeline, design, implementation, and results with a demo." |
+| 1–2 | Title, team | Pratham | "Group 28; an Intelligent Diabetes Clinical Decision Support System; guide Mr. Rahul Jadhav." |
+| 3 | Outline | Pratham | Read the headings; stress scope, interaction-sheet timeline and working of the system. |
 | 4 | Problem | Rhian | The worked example: naive −0.425 vs fair −0.15. "Different patients get different drugs, so a naive comparison mixes the drug with who got it." |
-| 5 | How it works | Rhian | Safety rules → overlap check → AIPW / DR-learner with 95% ranges → evidence with citations → the doctor decides. |
-| 6 | Safety rules | Advik | The six project rules; ten cited rules (nine from FDA labels); no doses; "insufficient evidence" instead of a guess; the intended-use sentence. |
-| 7 | Hardware & software | Advik | Runs on a laptop or phone; Python 3.12, scikit-learn, FastAPI, Streamlit, React, Supabase; all free. |
-| 8 | Requirements | Advik | Functional: estimate + range, exclusions with sources, evidence, summary. Non-functional: privacy, no doses, reproducibility, tests. |
-| 9 | Gantt | Advik | "Green is done; we are ahead: the RAG explanations and evaluation, planned for October, are already built." |
-| 10 | Architecture | Graceton | Layers: interface → guards/sign-in → safety rules → causal engine → RAG → output check → audit. |
-| 11 | Data flow | Graceton | Patient facts in → rules → estimates → Causal Output → evidence → screen. Patient values never logged. |
-| 12 | Use case / sequence | Graceton | Clinician, admin, evaluator; one consultation step by step. |
-| 13 | Data and API | Graceton | `rules.csv` columns; `POST /api/v1/recommend`; the Causal Output fields. |
-| 14 | What's built | Rhian | The status table: engine, website + accounts, RAG + explanations, chat app. 201 + 630 tests. |
-| 15 | Code | Rhian | Two snippets: safety rules before any estimate; AIPW = guess + weighted correction. |
-| 16 | Results: accuracy | Rhian | "On synthetic data where we know the truth: naive is off by −0.159 points and never covers the truth; AIPW is off by +0.002 with 95% coverage." |
-| 17 | Results: plots | Pratham | Overlap (0.05 line); balance 0.70 → 0.08; patient-level recovery and calibration. RAG: recall@5 0.933, citation precision 1.0, 0 dose leaks. |
-| 18 | Demo | Graceton (Rhian drives) | See the [demo runbook](#6-demo-runbook). |
-| 19 | Completed vs planned | Advik | Done: everything in section 2. October: integration into the chat app, doctor review + SUS, embedding model + reranker, results frozen 16 Oct, paper. |
-| 20 | Conclusion | Pratham | Four points: a causal question answered causally; safety before prediction; honest uncertainty; working today, and the clinician decides. |
-| 21 | References | Advik | IEEE style; the key ones are WHO 2018, the FDA labels and communications, and the AIPW / DR-learner papers. |
-| 22 | Thank you | All | "Thank you. We're happy to take questions." |
+| 5 | How it works | Rhian | Seven steps, all running in the chat app since 29 Sep: patient → safety rules → overlap → estimates with 95% ranges → cost → cited evidence → the doctor decides. |
+| 6–7 | Block diagram, flowchart | Rhian | The same order as boxes and as a decision flow; "insufficient evidence" is a real branch. |
+| 8 | Safety rules | Advik | Ten cited rules (R01–R10) run before any number; no doses; the intended-use sentence. |
+| 9 | Scope | Advik | In scope / out of scope / future scope (the guide asked for this in week 4). |
+| 10–11 | Hardware & software, requirements | Advik | A laptop or phone; Python 3.12, FastAPI, React, Supabase; functional and non-functional requirements, all built. |
+| 12–13 | Gantt, timeline | Advik | Only the sheet's rows. 25% signed 23 Sep; 40% met 28 Sep; 60% met 29 Sep; 80% target 3 Oct; all four sections by 6 Oct. |
+| 14–16 | Architecture, data flow, use case / sequence | Graceton | Layers and flows; patient values are never logged; dashed arrows on 16 are UML return messages. |
+| 17 | Working of the system | Graceton | Demo patient 2 step by step: SGLT2i excluded (R01, eGFR 40), DPP-4i −0.68, SU −0.82, ranges overlap. |
+| 18 | Data and API | Graceton | `rules.csv` columns; `POST /api/v1/recommend`; the Causal Output fields. |
+| 19–21 | Datasets | Graceton | Synthetic cohort (why and how), NMB-2017 real Indian survey as a realism check. |
+| 22 | What's built | Rhian | The status table; 202 engine/RAG/website tests + 647 chat app tests. |
+| 23 | **Exactly what the 25% covers** | Rhian | Six steps; "at 25%, one patient goes in, unsafe drugs come out, each remaining drug gets a 6-month HbA1c change with a 95% range or 'insufficient evidence'." |
+| 24 | How the code works | Rhian | AIPW = the outcome model's guess + a weighted correction; DR-learner + HC3 for one patient's range. |
+| 25–26 | Website, chat app screens | Advik | The website's four tabs; the chat app's sign-in, guards, estimates and cited evidence. |
+| 27 | Accuracy | Rhian | Naive off by −0.159 and never covers the truth; IPW/matching/AIPW ≈ 0.002; AIPW coverage 90–95%. |
+| 28 | Plots | Pratham | Overlap (0.05 line), balance (all under 0.1), patient-level recovery. |
+| 29 | RAG results | Rhian | recall@5 0.933, citation precision 1.0, 0 dose leaks; abstention 0.80 vs target 0.90 (said honestly). |
+| 30 | Demo | Graceton (Rhian drives) | See the [demo runbook](#6-demo-runbook). |
+| 31 | Completed vs planned | Advik | Completed list; plan keyed to the sheet's weeks 8–10, guide evaluation, Nov, Dec, Jan–Feb. |
+| 32 | Progress ≈ 75% | Pratham | The weighted table; 0.2×95 + 0.25×90 + 0.2×75 + 0.15×85 + 0.1×20 + 0.1×40 ≈ 75. |
+| 33 | Conclusion | Pratham | Engine + cited evidence in one chat app; safety first; honest uncertainty; the doctor decides. |
+| 34 | References | Advik | IEEE style; WHO 2018, FDA labels and communications, AIPW / DR-learner papers, NMB-2017. |
+| 35 | Thank you | All | "Thank you. We're happy to take questions." |
+| 36–40 | Backup | whoever is asked | Why synthetic is valid · real Indian datasets · path to a hospital · phone screens · literature. |
 
 **Hand-overs** (one sentence each, so the talk flows):
 - Pratham → Rhian: "Rhian will explain why this is a causal problem."
 - Rhian → Advik: "Advik will show the safety rules that run before any number."
-- Advik → Graceton: "Graceton will walk through the design."
-- Graceton → Rhian: "Rhian will show what is built and the results."
+- Advik → Graceton: "Graceton will walk through the design and our data."
+- Graceton → Rhian: "Rhian will show what is built, and exactly what our 25% covers."
+- Rhian → Advik: "Advik will show the screens."
+- Advik → Rhian: "Rhian will show the accuracy results."
 - Rhian → Pratham: "Pratham will show the plots."
-- Pratham → Graceton: "Graceton will demo it live."
+- Pratham → Rhian: "Rhian will show how well the evidence search works."
+- Rhian → Graceton: "Graceton will demo it live."
 - Graceton → Advik: "Advik will compare completed and planned work."
-- Advik → Pratham: "Pratham will conclude."
+- Advik → Pratham: "Pratham will show our progress and conclude."
 
 ---
 
@@ -707,16 +719,17 @@ The detailed answers are in `docs/06_Viva_Prep.md`. These are the ones most like
 - **Search:** it is lexical (BM25 + TF-IDF). Abstention is 0.80, below target, and was tuned on
   the same test set.
 - **Clinical review:** no doctor has reviewed the test set or the vignettes yet.
-- **Chat app:** the engine and RAG are not yet plugged into its pipeline; those stages show "skipped".
+- **Chat app:** all six stages run since 29 September, but the explanation uses the quoted template
+  by default; Gemini / Ollama are optional and always pass the citation checker.
 - **Prices:** "price unavailable" until the Jan Aushadhi list is confirmed.
 - **Rule cut-offs:** some are TEAM-SET and await clinician confirmation.
 
-**October (as in the Gantt chart)**
-- The engine and RAG inside the chat app pipeline.
-- A medical embedding model and a reranker; a held-out test set.
+**October (as in the interaction sheet and the Gantt chart)**
+- Done early: the engine and RAG inside the chat app pipeline (29 Sep, the sheet's 60% check).
+- A medical embedding model and a reranker; a held-out test set (target 3 Oct, the 80% check).
+- A real-data adapter and evaluation tools (target 6 Oct, 100% implementation).
 - Doctor review of the 20 flagged test questions and the clinician vignettes; the SUS usability study.
-- Results frozen on 16 October; the IEEE-style paper; the final report.
-- Practical exams 31 Oct – 7 Nov; theory exams 18 – 30 Nov.
+- Guide evaluation 26–31 Oct; results frozen on 16 October; the IEEE-style paper; the final report.
 
 ---
 
@@ -768,8 +781,8 @@ All results are on **synthetic data**. Each row names its source file.
 | 0.933 | 0.978 | 1.000 | 0 | 0.800 |
 
 **Tests** (`docs/TESTING.md`)
-- Engine 149 · RAG 33 · website 19 (= 201).
-- Chat app: backend 392 · frontend 238 · `check_all` 43 checks.
+- Engine 150 · RAG 33 · website 19 (= 202).
+- Chat app: backend 401 · frontend 246 · `check_all` 43 checks.
 - CI on Linux, macOS and Windows.
 
 ---

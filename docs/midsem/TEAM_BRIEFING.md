@@ -3,7 +3,7 @@
 > Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.
 
 **For Pratham, Graceton and Advik (from Rhian).** Read this once, top to bottom, with the deck
-(`Intelligent_Diabetes_CDSS_MidSem_updated.pptx`, 39 slides) open beside it. It is written the way we
+(`Intelligent_Diabetes_CDSS_MidSem_updated.pptx`, 35 slides + 5 backup) open beside it. It is written the way we
 will explain it to Mr. Rahul Jadhav and to the panel on 30 September. About 40 minutes.
 
 Each slide has four parts:
@@ -34,15 +34,15 @@ DiaCausal works in four steps:
 We test the methods on a synthetic India-calibrated cohort, because only there do we know the true answer. A real
 Indian survey (NMB-2017) checks that our synthetic patients look real.
 
-**Where we are:** about 64% of the whole project is built and tested. The interaction sheet asked for 25% by
-23 September and 40% by 7 October; both are already met.
+**Where we are:** about 75% of the whole project is built and tested. The interaction sheet asked for 25% by
+23 September (signed), 40% by 7 October (met 28 September) and 60% by 14 October (met 29 September).
 
 ---
 
 ## Part 1: the deck, slide by slide
 
-Presenters are suggestions: **Pratham** 1–3, 27, 31–34 · **Rhian** 4–7, 22–23, 26, 28 · **Advik** 8–13,
-24–25, 30 · **Graceton** 14–21, 29. Slides 35–39 are backup, shown only if asked.
+Presenters (as in the speaker notes): **Pratham** 1–3, 28, 32–33, 35 · **Rhian** 4–7, 22–24, 27, 29 ·
+**Advik** 8–13, 25–26, 31, 34 · **Graceton** 14–21, 30. Slides 36–40 are backup, shown only if asked.
 
 ### 1–2 · Title, team (Pratham)
 - **Say:** "Good morning. We are Group 28. Our project is an Intelligent Diabetes Clinical Decision Support
@@ -127,17 +127,21 @@ Presenters are suggestions: **Pratham** 1–3, 27, 31–34 · **Rhian** 4–7, 2
 
 ### 12 · Gantt chart (Advik) *(new: built from the interaction sheet)*
 - **Say:**
-  - "Every row follows our project interaction sheet. Weeks 0 to 6 are done and signed by our guide."
-  - "Implementation is split into four sections, as the sheet asks. The diamonds are the sheet's deadlines:
-    25% by 23 September and 40% by 7 October are already met. Section 3 is in progress. Our own target for all
-    four sections is 6 October."
+  - "This Gantt chart is our project interaction sheet, row by row, in its own words and dates. Weeks 0 to 7
+    are done and signed by our guide, including the 25% check on 23 September."
+  - "Implementation is in four sections, as the sheet asks. The 40% check of week 8 and the 60% check of week 9
+    are already met, on 28 and 29 September. Our target is the 80% check by 3 October and all four sections by
+    6 October."
   - "Then guide evaluation, the final synopsis, the paper, and the evaluation, PCUBE and black book next year."
-- **If asked "is 6 October realistic?":** Sections 1–2 took two weeks. Section 3 connects parts that already
-  work and are tested; Section 4 is improvement, not new ground.
+- **Understand:** the chart has only what is on the sheet: no exam or holiday rows. Green = done or signed,
+  orange = today, grey = planned, diamonds = presentations.
+- **If asked "is 6 October realistic?":** Sections 1–3 are done. Section 4 is improvement (a better search
+  model, a real-data adapter, evaluation tools), not new ground.
 
 ### 13 · Timeline chart (Advik) *(new)*
 - **Say:** "Every entry of the interaction sheet, with its date and status. Everything up to week 7 is signed.
-  Today is Synopsis Presentation-II."
+  Today is Synopsis Presentation-II. The 40 and 60% checks of weeks 8 and 9 are already met; week 10's 80% is
+  our target for 3 October."
 
 ### 14 · Architecture (Graceton)
 - **Say:** "The clinician uses the website or the chat app, which call our FastAPI service. The API sends each
@@ -204,10 +208,41 @@ Presenters are suggestions: **Pratham** 1–3, 27, 31–34 · **Rhian** 4–7, 2
   drug or outcome.
 
 ### 22 · What's built (Rhian)
-- **Say:** "Every module is done. 150 engine tests, 33 RAG tests and 19 website tests pass, plus 630 in the
-  chat app."
+- **Say:** "The 25% our guide signed on 23 September is the first rows of this table; since then much more is
+  built and tested. 150 engine tests, 33 RAG tests and 19 website tests pass, plus 647 in the chat app (401
+  backend + 246 frontend)."
 
-### 23 · How the code works (Rhian)
+### 23 · Exactly what the 25% covers (Rhian) *(new: the guide signed "25% done" on 23 September)*
+- **On the slide:** a six-row table (step · what it does · where in the code) and two lines under it: where the
+  25% ends, and what is beyond it.
+- **Say:**
+  - "This slide shows exactly where the 25% ends. Section 1 has two halves."
+  - "The front door: the chat app's sign-in with a CAPTCHA and an authenticator code, the guards, the patient
+    panel and the clinical guardrails."
+  - "And the causal engine core: the synthetic cohort, the safety rules that run first, the propensity and
+    overlap check, the average-effect estimators, and the DR-learner that gives one patient's 6-month HbA1c
+    change with a 95% range."
+  - "So at 25%, one patient goes in, unsafe drugs come out, and each remaining drug gets an honest estimate or
+    'insufficient evidence'. Everything after this slide goes beyond that."
+- **Understand, row by row:**
+  1. **Chat app front door** (`backend/app/`): password (stored as an Argon2id hash) + CAPTCHA + a 6-digit
+     authenticator code (TOTP); guards block identifiers and out-of-scope questions; the patient panel sends
+     age, sex, HbA1c, eGFR, BMI and history as a structured `patient` part; `guardrails.v1.yaml` marks options
+     "do not use" / "caution".
+  2. **Synthetic cohort** (`diacausal_engine/cohort.py`, `data/params.yaml`): 5,000 made-up but India-calibrated
+     patients; because we generate them, we also know each drug's *true* effect for each patient.
+  3. **Safety rules first** (`data/rules.csv`, `diacausal_engine/guardrails.py`): R01–R10 from drug labels; an
+     excluded drug is never estimated.
+  4. **Propensity + overlap** (`propensity.py`): the chance that a patient like this got each drug; below 0.05,
+     the answer is "insufficient evidence", never a number.
+  5. **Average effects** (`estimators.py`): naive vs IPW, matching and AIPW; shows the bias is removed.
+  6. **This patient's estimate** (`fitting.py`, `recommend.py`): the DR-learner gives one patient's 6-month
+     HbA1c change with a 95% range (HC3 robust standard errors).
+- **If asked "so what is beyond the 25%?":** the benchmark (20 cohorts) and 9 refutation checks; weight and
+  low-sugar risk; the evidence search (RAG); the website with accounts; and, since 29 September, the engine and
+  evidence inside the chat app (all six stages). That is how we reach about 75%.
+
+### 24 · How the code works (Rhian)
 - **Say:**
   - "The AIPW score starts with the outcome model's guess, then corrects it using patients who really got that
     drug, weighted by one over the propensity. If either model is right, the average is right; that is why it
@@ -217,7 +252,7 @@ Presenters are suggestions: **Pratham** 1–3, 27, 31–34 · **Rhian** 4–7, 2
 - **Understand:** **cross-fitting** means each patient's scores come from models trained on the *other*
   folds, so a model never grades its own training data.
 
-### 24 · Website screens (Advik)
+### 25 · Website screens (Advik)
 - **Say:** "diacausal.netlify.app runs the same engine in the browser and works offline. Try it shows three
   options with ranges, weight and low-sugar risk. Safety rules exclude or caution options with their sources. The
   Evidence tab answers only with quoted, cited sentences. Results shows the benchmark. Sign-in needs an approved
@@ -225,14 +260,16 @@ Presenters are suggestions: **Pratham** 1–3, 27, 31–34 · **Rhian** 4–7, 2
 - **Understand:** the browser engine gives **exactly** the same numbers as Python. A parity test checks this
   on every change.
 
-### 25 · Chat app screens (Advik)
+### 26 · Chat app screens (Advik)
 - **Say:** "FastAPI with React. Sign-in uses a password, a CAPTCHA with an audio option, and an authenticator
-  app. The reply lists six pipeline stages; three run today. Guards remove identifiers such as phone numbers and
-  refuse out-of-scope questions."
-- **Understand:** the three stages still "skipped" (causal engine, RAG, explanation) are exactly Section 3.
-  They are the only part of the design not yet joined.
+  app. Guards remove identifiers such as phone numbers before anything is sent. Since 29 September all six
+  pipeline stages run: the clinical guardrails first, then the causal engine gives each allowed drug's 6-month
+  HbA1c change with a 95% range, and the evidence search quotes cited sentences from WHO and FDA documents."
+- **Understand:** the bottom two screenshots are new: "Estimates for this patient" (each with a 95% range, or
+  "excluded" / "insufficient evidence" with the reason) and "Cited evidence" (quoted sentences with passage
+  numbers [1], [2]). An option the guardrails removed never gets a number.
 
-### 26 · Accuracy (Rhian)
+### 27 · Accuracy (Rhian)
 - **Say:**
   - "On synthetic data we know the truth: −0.211. The naive comparison is off by −0.159. IPW, matching and
     AIPW bring the bias to about 0.002."
@@ -241,19 +278,19 @@ Presenters are suggestions: **Pratham** 1–3, 27, 31–34 · **Rhian** 4–7, 2
 - **If asked "90% is below 95%":** that is across 20 cohorts. With 20 repeats, 18 or 19 out of 20 is within
   normal random variation of 95%.
 
-### 27 · Plots (Pratham)
+### 28 · Plots (Pratham)
 - **Say:**
   - **Overlap** (top left): "Below the dashed line at 0.05 the system abstains."
   - **Balance** (top right): "After weighting, every detail is under 0.1, so the groups look alike."
   - **Bottom:** "Each dot is a new test patient; the estimates lie close to the diagonal."
 
-### 28 · Evidence search results (Rhian)
+### 29 · Evidence search results (Rhian)
 - **Say:** "60 test questions. The right source is in the top five 93% of the time. Every quoted sentence cites a
   passage that really contains it, and no dose ever leaks. It correctly says 'insufficient evidence' for 80% of
   out-of-scope questions; our target is 90%, so the medical embedding model in Section 4 must improve this."
 - **Understand:** we **tell** the panel the weak number ourselves. That builds trust.
 
-### 29 · Demo (Graceton with Rhian at the laptop)
+### 30 · Demo (Graceton with Rhian at the laptop)
 - **Do:** open diacausal.netlify.app (signed in no more than 15 minutes earlier) and click presets 1, 2 and 3.
   - **Preset 1:** three teal estimates.
   - **Preset 2:** red SGLT2i with its source; amber cautions.
@@ -263,28 +300,33 @@ Presenters are suggestions: **Pratham** 1–3, 27, 31–34 · **Rhian** 4–7, 2
   - `cd web && python3 -m http.server 8080` (a local copy, no sign-in);
   - `DiaCausal_demo.mp4` (112 s).
 
-### 30 · Completed vs planned (Advik)
-- **Say:** "Completed is on the left. The plan follows our interaction sheet: the 40% check is already met; the
-  60% and 80% checks come on 14 and 21 October, and we aim to finish all four sections by 6 October. Then guide
-  evaluation, the final synopsis, the paper in December, and the evaluation, PCUBE and black book next year."
+### 31 · Completed vs planned (Advik)
+- **Say:** "Completed is on the left. The plan follows our interaction sheet: the 40 and 60% checks of weeks 8
+  and 9 are already met; the 80% check is our target for 3 October, and all four implementation sections by
+  6 October. Then guide evaluation, the final synopsis, the paper in December, and the project evaluation,
+  PCUBE and black book next year."
 
-### 31 · Progress: about 64% (Pratham)
-- **Say:** "Each part is weighted by its share of the year, and each percentage points to tests or files. Chat app
-  about 95%, causal engine 90%, RAG 75%, joining them 10%, clinician evaluation 20%, report and paper 40%. That is
-  about 64% overall."
-- **If asked "why only 10% for joining?":** in the chat app, three of the six pipeline stages still return
-  "skipped". That is Section 3, finishing this week.
+### 32 · Progress: about 75% (Pratham)
+- **Say:** "The interaction sheet asked for 25% by 23 September, and our guide signed it. By our weighted estimate
+  we are now at about 75%. Each part is weighted by its share of the year, and each percentage points to tests or
+  files: chat app about 95%, causal engine 90%, RAG 75%, joining them in the chat app 85%, clinician evaluation
+  20%, report and paper 40%."
+- **The sum:** 0.20×95 + 0.25×90 + 0.20×75 + 0.15×85 + 0.10×20 + 0.10×40 = 19 + 22.5 + 15 + 12.75 + 2 + 4 =
+  75.25 ≈ 75%.
+- **If asked "why not 100% for joining?":** all six stages run, but the explanation uses the quoted template by
+  default; the medical embedding model and reranker (Section 4a) are still to come.
 
-### 32–34 · Conclusion, references, thank you (Pratham)
+### 33–35 · Conclusion, references, thank you (Pratham; references: Advik)
 - **Say:** "The causal engine works and recovers the planted truth; the evidence search answers only with cited
-  sentences; safety rules always run first; we are honest about uncertainty. Next: one chat app, a doctor's
-  review and our IEEE paper. The doctor always decides."
+  sentences; since 29 September both run together in the chat app; safety rules always run first; we are honest
+  about uncertainty. Next: a better search model, a doctor's review and our IEEE paper. The doctor always
+  decides."
 
-### 35–39 · Backup slides (whoever is asked)
-- **35 · Why synthetic is valid:** real records never show the other drug's result; simulation with a known truth
+### 36–40 · Backup slides (whoever is asked)
+- **36 · Why synthetic is valid:** real records never show the other drug's result; simulation with a known truth
   is how causal methods are tested (the ACIC challenges and the IHDP benchmark). It proves the *method*, not the
   drug effects.
-- **36 · Real Indian datasets:**
+- **37 · Real Indian datasets:**
   - NMB-2017 (open, in our repo);
   - LASI (free request form);
   - NFHS-5 (registration);
@@ -292,10 +334,10 @@ Presenters are suggestions: **Pratham** 1–3, 27, 31–34 · **Rhian** 4–7, 2
   - ICMR-INDIAB (tables only);
   - a Pune clinic study (on request).
   None has drug choice plus a later HbA1c.
-- **37 · Path to a hospital:** records with ethics approval (DPDP Act 2023), the same code, checks against
+- **38 · Path to a hospital:** records with ethics approval (DPDP Act 2023), the same code, checks against
   trials, a silent pilot, then a CDSCO device review.
-- **38 · Phone screens.**
-- **39 · Literature:** 16 papers reviewed; the comparison table shows what each one misses.
+- **39 · Phone screens.**
+- **40 · Literature:** 16 papers reviewed; the comparison table shows what each one misses.
 
 ---
 
@@ -358,16 +400,21 @@ Everything is on GitHub: `Rhian-Roy/DiaCausal-CDSS`. **Four parts** make up the 
 | `compose.yaml`, `docker/` | One-command deployment with HTTPS (Caddy) |
 
 - **Run it:** see `CLAUDE.md` → "Run".
-- **Check it:** `python3 scripts/check_all.py` must end with "ALL 43 CHECKS PASSED".
+- **Check it:** `python3 scripts/check_all.py` must end with "ALL 43 CHECKS PASSED" (one check needs Google
+  Chrome installed).
 
-### What Section 3 (this week) changes
-The three "skipped" stages call parts A and B:
-- `causal_engine.py` → `diacausal_engine`
-- `rag_retrieval.py` → `diacausal_rag.retrieve`
-- `llm_explanation.py` → `diacausal_rag.explain`
+### What Section 3 (done 29 Sep) changed
+The three stages that used to say "skipped" now call parts A and B (`backend/app/engines.py` loads them once):
+- `causal_engine.py` → `diacausal_engine` (only for the options the guardrails allow; it needs age, sex,
+  diabetes duration, HbA1c, eGFR and BMI, and names any that are missing instead of guessing)
+- `rag_retrieval.py` → `diacausal_rag.retrieve` (abstains with "insufficient evidence" when the sources do not
+  cover the question)
+- `llm_explanation.py` → `diacausal_rag.explain` (quoted template by default; every sentence must cite a passage)
+- `output_guard.py` now also withholds any dose-like text in the answer, the evidence or the passages.
 
-The reply then shows option cards and cited evidence inside the chat app. Every rule above stays (safety first,
-no doses, 95% ranges, no patient values in logs).
+The reply shows the estimates with 95% ranges and the cited evidence inside the chat app
+(`EstimatesList.tsx`, `EvidenceList.tsx`). Every rule above stays (safety first, no doses, 95% ranges, no
+patient values or question text in logs). Tests: `backend/tests/test_engine_stages.py` (9 tests).
 
 ---
 
@@ -384,6 +431,8 @@ no doses, 95% ranges, no patient values in logs).
 | **Where does RAG get its facts?** | Only WHO 2018 and 7 FDA safety notices that passed the licence gate. |
 | **Weakest result?** | RAG abstention 0.80 vs target 0.90; the fix is the medical embedding model (Section 4). |
 | **How would a hospital use it?** | Ethics-approved records → same code → checks against trials → silent pilot → device review. |
-| **Percent done?** | About 64% weighted; the sheet's 25% and 40% checks are met; target 100% implementation by 6 Oct. |
+| **Percent done?** | About 75% weighted; the sheet's 25% (signed), 40% and 60% checks are met; target 100% implementation by 6 Oct. |
+| **Where does the 25% end?** | Slide 23: one patient in → unsafe drugs removed → each remaining drug's 6-month HbA1c change with a 95% range, or "insufficient evidence". |
 
-The full handbook (`EXPLAINING_DIACAUSAL.pdf`, 45 questions) and `DATASETS.pdf` go deeper.
+The panel pack (`PANEL_PREP.pdf`: every abbreviation, the 25% boundary, the code file by file, 100+ questions),
+the handbook (`EXPLAINING_DIACAUSAL.pdf`) and `DATASETS.pdf` go deeper.

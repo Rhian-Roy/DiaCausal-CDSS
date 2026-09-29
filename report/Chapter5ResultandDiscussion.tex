@@ -14,12 +14,12 @@ Benchmark, metrics, refutation, E-values & Done & \texttt{results/}: 20 cohorts 
 Demo (Streamlit) and FastAPI endpoint & Done & \texttt{POST /api/v1/recommend}; screenshots & Rhian\\
 Phone website (installable, offline) & Done & \url{https://diacausal.netlify.app}; browser and Python give identical answers (155 patients) & Rhian, Graceton\\
 Accounts: sign-up, authenticator app, admin approval & Done & Row-level security; tested end to end & Rhian\\
-Chat application (guards, CAPTCHA and MFA sign-in, patient panel, clinical guardrails, voice, Docker) & Done (separate) & 630 tests; \texttt{check\_all} 43 checks & Team\\
+Chat application (guards, CAPTCHA and MFA sign-in, patient panel, clinical guardrails, voice, Docker) & Done & 647 tests; \texttt{check\_all} 43 checks & Team\\
 Hypoglycaemia and weight outcomes; too-uncertain abstention; consultation summary & Done & Secondary rows in \texttt{results/}; print summary on the website & Rhian\\
 RAG retrieval with citations & Done & WHO 2018 + 7 FDA safety communications (78 passages); licence gate; BM25 + TF-IDF + fusion; coverage abstention & Rhian\\
 RAG explanations, gold questions, evaluation & Done (first version) & Quoted / Gemini / Ollama explanations behind a citation checker; 60 gold questions; \texttt{results/rag\_eval\_summary.csv} & Rhian\\
-Embedding model, reranker, held-out questions & Planned & 1--9 October & Team\\
-Engine and RAG inside the chat application & Planned & 1--12 October & Team\\
+Engine and RAG inside the chat application (all six stages) & Done (29 Sep) & 9 new pipeline tests; estimates with 95\% ranges and cited evidence in the reply & Team\\
+Embedding model, reranker, held-out questions & Planned & Target 3 October & Team\\
 Clinician vignette review and usability survey & Planned & 10--23 October & Advik\\
 Research paper & Planned & After results are frozen (16 October) & Pratham\\\bottomrule
 \end{longtable}
@@ -111,4 +111,4 @@ Licences & Licence records & Sources with a licence category & 100\% (T) & 100\%
 \end{longtable}
 
 \section{Discussion: work completed and work planned}
-By the mid-semester review every core part of DiaCausal works on its own and is tested on synthetic data: the secure chat application; the causal engine with its benchmark, refutation checks and secondary outcomes; a live phone website with approved accounts; and a RAG layer that searches licence-cleared WHO and FDA text and explains answers with checked citations. This is well beyond the required 25\%. Because the true effects are synthetic, good recovery shows that the estimators are correct, not that the system is valid for real patients; that is why a clinician review and a real-data check are part of the plan. The remaining work, scheduled before 30 October 2026, is integration of the engine and RAG into the chat application, a medical embedding model and reranker with a held-out question set, the full evaluation in Table~\ref{tab:eval}, the clinician review and usability survey, and the research paper.
+By the mid-semester review every core part of DiaCausal works on its own and is tested on synthetic data: the secure chat application; the causal engine with its benchmark, refutation checks and secondary outcomes; a live phone website with approved accounts; and a RAG layer that searches licence-cleared WHO and FDA text and explains answers with checked citations. Since 29 September the chat application runs the causal engine and the evidence search inside its six-stage pipeline. The guide signed the required 25\% on 23 September; the Project Interaction Sheet's 40\% and 60\% checks were met on 28 and 29 September, and the team's weighted estimate for the whole project is about 75\%. Because the true effects are synthetic, good recovery shows that the estimators are correct, not that the system is valid for real patients; that is why a clinician review and a real-data check are part of the plan. The remaining work is a medical embedding model and reranker with a held-out question set (target 3 October), a real-data adapter and evaluation tools (target 6 October), the full evaluation in Table~\ref{tab:eval}, the clinician review and usability survey, and the research paper.
