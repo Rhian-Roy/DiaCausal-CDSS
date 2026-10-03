@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DiaCausal — Analysis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+:root{
+  /* ---- from chat.html (unchanged) ---- */
+  --ground:#F4F7F3; --surface:#FFFFFF;
+  --ink:#12211A; --ink-muted:#3C4A42; --ink-placeholder:#6B776F;
+  --pine:#0E5049; --pine-dark:#083B36; --pine-hairline:#7FB8A8; --on-pine-muted:#CFE3DC;
+  --border-strong:#9FB0A6; --border-soft:#C8D4CB; --track:#DCE6DF;
+  --safe-ink:#14562A;   --safe-line:#1B6B33;  --safe-fill:#DEF0E2;
+  --check-ink:#6E4400;  --check-line:#6E4400; --check-fill:#FBEBCB;
+  --danger-ink:#8A1010; --danger-line:#8A1010;--danger-fill:#FADCDC;
+  --font-body:'Atkinson Hyperlegible', Verdana, system-ui, sans-serif;
+  --font-display:'Source Serif 4', Georgia, serif;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:22px; --s6:24px; --s7:32px;
+  --r-control:8px; --r-status:10px; --r-card:12px;
+  --border-w:2px; --h-input:56px; --h-button:58px; --h-touch:52px;
+  /* ---- added in earlier batches ---- */
+  --pine-fill:#E4EEEB; --on-danger:#FFFFFF; --scrim:rgba(18,33,26,0.55);
+  --border-w-strong:3px; --font-mono:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
+  --row-muted:#EAEFEB; --panel-w:360px; --drawer-w:420px;
+  /* ---- NEW in v2 ---- */
+  --tabbar-h:64px;      /* phone bottom tab bar */
+  /* ---- NEW in P06 (audit: literals turned into tokens, no visual change) ---- */
+  --on-pine:#FFFFFF;    /* text and icons on pine */
+  --r-badge:6px;        /* badges, unit chips, key groups */
+  --r-pill:999px;       /* pills, chips, citation markers */
+  --content-w:1040px;   /* Investigate / Analysis / Guide / About */
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:var(--font-body);background:var(--ground);color:var(--ink);font-size:18px;line-height:1.55;-webkit-text-size-adjust:100%}
+a{color:var(--pine)}a:hover{color:var(--pine-dark)}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--pine);outline-offset:2px}
+input::placeholder,textarea::placeholder{color:var(--ink-placeholder)}
+p{margin:0}h1,h2,h3,h4{margin:0}
+h1{font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.2}
+h2{font-family:var(--font-display);font-size:26px;font-weight:600;line-height:1.25}
+h3{font-size:19px;font-weight:700}
+h4{font-size:17px;font-weight:700}
+.icon{flex-shrink:0}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.muted{color:var(--ink-muted)}
+.small{font-size:15px}
+
+/* ---------- header, intended-use line, footer ---------- */
+.topbar{flex-shrink:0;background:var(--pine);padding:var(--s3) var(--s7);display:flex;align-items:center;justify-content:space-between;gap:var(--s4);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:var(--s3);text-decoration:none;min-height:44px}
+.brand__name{font-family:var(--font-display);font-size:24px;font-weight:600;color:var(--on-pine);letter-spacing:-0.01em}
+.topbar__right{display:flex;align-items:center;gap:var(--s5)}
+.topbar__user{font-size:16px;color:var(--on-pine-muted)}
+.topbar__link{color:var(--on-pine);font-weight:700;font-size:16px;min-height:44px;display:flex;align-items:center}
+.topbar__link:hover{color:var(--on-pine)}
+.useline{flex-shrink:0;margin:0;background:var(--pine-dark);color:var(--on-pine);font-size:14px;line-height:1.4;padding:6px var(--s7)}
+.footer{border-top:var(--border-w) solid var(--border-soft);background:var(--surface);padding:var(--s4) var(--s7);font-size:15px;color:var(--ink-muted)}
+
+/* ---------- tabs: desktop under the header, phone bottom bar ---------- */
+.tabs{flex-shrink:0;background:var(--surface);border-bottom:var(--border-w) solid var(--border-soft);display:flex;gap:var(--s1);padding:0 var(--s5)}
+.tabs a{display:flex;align-items:center;gap:var(--s2);min-height:52px;padding:0 var(--s4);text-decoration:none;color:var(--ink-muted);font-size:17px;font-weight:700}
+.tabs a:hover{color:var(--ink)}
+.tabs a[aria-current="page"]{color:var(--pine);box-shadow:inset 0 -4px 0 var(--pine)}
+.tabs .tabs__icon{display:none}
+
+/* ---------- app shell ---------- */
+body.app{display:flex;flex-direction:column;height:100dvh}
+.workspace{flex:1 1 auto;min-height:0;display:flex}
+.chatcol{flex:1 1 auto;min-width:0;min-height:0;display:flex;flex-direction:column}
+.thread,.docmain,.panel,.tablewrap{position:relative}
+.docmain{flex:1 1 auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column}
+.doc{width:100%;max-width:var(--content-w);margin:0 auto;padding:var(--s7);display:flex;flex-direction:column;gap:var(--s5);flex:1 0 auto}
+.docmain .footer{flex-shrink:0}
+
+/* ---------- patient panel ---------- */
+.panel{width:var(--panel-w);flex-shrink:0;background:var(--surface);border-right:var(--border-w) solid var(--border-soft);overflow-y:auto}
+.pd__summary{list-style:none;cursor:pointer;padding:var(--s4) var(--s5);border-bottom:var(--border-w) solid var(--border-soft);display:flex;align-items:center;justify-content:space-between;gap:var(--s3);min-height:var(--h-touch);position:sticky;top:0;background:var(--surface);z-index:2}
+.pd__summary::-webkit-details-marker{display:none}
+.pd__title{font-family:var(--font-display);font-size:21px;font-weight:600}
+.pd__strip{display:none}
+.pd__pbadge{display:none}
+.pd__end{display:flex;align-items:center;gap:var(--s2)}
+.pd__chev{display:none}
+.panel__body{padding:var(--s5);display:flex;flex-direction:column;gap:var(--s4)}
+.row{display:flex;flex-wrap:wrap;gap:var(--s3);align-items:center}
+
+.badge{font-size:13px;font-weight:700;color:var(--ink-muted);background:var(--ground);border:var(--border-w) solid var(--border-soft);border-radius:var(--r-badge);padding:3px 9px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.badge--example{background:var(--check-fill);border-color:var(--check-line);color:var(--check-ink)}
+.badge--pine{background:var(--pine-fill);border-color:var(--pine);color:var(--pine)}
+
+.field{display:flex;flex-direction:column;gap:6px}
+.field__label{font-size:17px;font-weight:700}
+.field__hint{font-size:15px;color:var(--ink-muted)}
+.unitbox{display:flex;align-items:center;gap:var(--s2);height:var(--h-input);padding:0 var(--s3) 0 var(--s4);background:var(--surface);border:var(--border-w) solid var(--border-strong);border-radius:var(--r-control)}
+.unitbox:focus-within{outline:3px solid var(--pine);outline-offset:2px}
+.unitbox input{flex:1 1 auto;min-width:0;border:0;outline:none;background:transparent;font-family:inherit;font-size:19px;color:var(--ink);height:100%}
+.unitbox__unit{flex-shrink:0;font-size:15px;font-weight:700;color:var(--ink-muted);background:var(--ground);border:var(--border-w) solid var(--border-soft);border-radius:var(--r-badge);padding:3px 8px;white-space:nowrap}
+.unitbox__prefix{flex-shrink:0;font-size:19px;font-weight:700;color:var(--ink-muted)}
+.unitbox--invalid{border-color:var(--danger-line);border-width:var(--border-w-strong)}
+.fielderror{display:flex;gap:var(--s2);align-items:flex-start;background:var(--danger-fill);border:var(--border-w) solid var(--danger-line);border-radius:var(--r-status);padding:var(--s2) var(--s3)}
+.fielderror p{font-size:16px;line-height:1.45}
+.fielderror strong{color:var(--danger-ink)}
+.bmicat{display:flex;flex-direction:column;gap:2px}
+.bmicat__now{font-size:16px;font-weight:700}
+.bmicat__scale{font-size:14px;color:var(--ink-muted)}
+.seg{display:flex;gap:var(--s2);flex-wrap:wrap}
+.seg input{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.seg label{min-height:44px;padding:0 var(--s4);cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:16px;font-weight:700;color:var(--ink);background:var(--surface);border:var(--border-w) solid var(--border-strong);border-radius:var(--r-control)}
+.seg input:checked + label{background:var(--pine);border-color:var(--pine);color:var(--on-pine)}
+.seg input:focus-visible + label{outline:3px solid var(--pine);outline-offset:2px}
+.seg label .tick{display:none}
+.seg input:checked + label .tick{display:block}
+
+/* ---------- buttons ---------- */
+.btn{font-family:inherit;font-weight:700;cursor:pointer;border-radius:var(--r-control);border:var(--border-w) solid;text-decoration:none}
+.btn--primary{min-height:var(--h-button);font-size:19px;color:var(--on-pine);background:var(--pine);border-color:var(--pine);padding:0 var(--s6);display:inline-flex;align-items:center;justify-content:center;gap:var(--s2)}
+.btn--primary:hover{background:var(--pine-dark);border-color:var(--pine-dark);color:var(--on-pine)}
+.btn--primary[disabled]{background:var(--track);border-color:var(--border-strong);color:var(--ink-muted);cursor:not-allowed}
+.btn--ghost{min-height:44px;padding:0 var(--s3);font-size:16px;color:var(--ink);background:var(--surface);border-color:var(--border-strong);display:inline-flex;align-items:center;justify-content:center;gap:var(--s2)}
+.btn--ghost:hover{border-color:var(--ink-muted);color:var(--ink)}
+.chip{min-height:44px;padding:0 var(--s4);font-family:inherit;font-size:16px;color:var(--ink);background:var(--surface);border:var(--border-w) solid var(--border-strong);border-radius:var(--r-pill);cursor:pointer}
+
+/* ---------- conversation ---------- */
+.strip{flex-shrink:0;background:var(--surface);border-bottom:var(--border-w) solid var(--border-soft);padding:var(--s3) var(--s7);display:flex;align-items:center;justify-content:space-between;gap:var(--s4);flex-wrap:wrap}
+.strip p{font-size:16px;font-weight:700;line-height:1.4}
+.thread{flex:1 1 auto;min-height:0;overflow-y:auto;padding:var(--s6) var(--s7);display:flex;flex-direction:column;gap:var(--s5)}
+.turn{max-width:920px;display:flex;flex-direction:column;gap:var(--s2)}
+.who{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-muted)}
+.card{max-width:920px;width:100%;background:var(--surface);border:var(--border-w) solid var(--border-soft);border-radius:var(--r-card);padding:var(--s6);display:flex;flex-direction:column;gap:var(--s4)}
+.card--flat{max-width:none}
+.card__head{display:flex;justify-content:space-between;align-items:center;gap:var(--s3);flex-wrap:wrap}
+.emptystate{max-width:920px;background:var(--surface);border:var(--border-w) dashed var(--border-strong);border-radius:var(--r-card);padding:var(--s6);display:flex;gap:var(--s3);align-items:flex-start}
+.stack{display:flex;flex-direction:column;gap:var(--s2)}
+
+.composer{flex-shrink:0;background:var(--surface);border-top:var(--border-w) solid var(--border-soft);padding:14px var(--s7) 14px;display:flex;flex-direction:column;gap:var(--s2)}
+.composer__box{display:flex;align-items:flex-end;gap:var(--s3);padding:8px var(--s3);border:var(--border-w) solid var(--border-strong);border-radius:var(--r-card)}
+.composer__box:focus-within{outline:3px solid var(--pine);outline-offset:2px}
+.composer__box textarea{flex:1 1 auto;resize:none;border:0;outline:none;background:transparent;font-family:inherit;font-size:19px;line-height:1.5;color:var(--ink);padding:8px 4px}
+.iconbtn{width:var(--h-touch);height:var(--h-touch);flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;border:var(--border-w) solid var(--border-strong);border-radius:var(--r-control);background:var(--surface);color:var(--ink)}
+.iconbtn--send{background:var(--pine);border-color:var(--pine);color:var(--on-pine)}
+.iconbtn--send:hover{background:var(--pine-dark);border-color:var(--pine-dark)}
+.intended-use{font-size:14px;line-height:1.45;color:var(--ink-muted)}
+
+/* ---------- answer card parts ---------- */
+.guardrail{display:flex;gap:var(--s3);align-items:flex-start;background:var(--ground);border:var(--border-w) solid var(--border-soft);border-radius:var(--r-status);padding:var(--s3) var(--s4)}
+.guardrail p{font-size:17px;color:var(--ink)}
+.scards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s3)}
+.scard{border:var(--border-w) solid;border-radius:var(--r-status);padding:var(--s3) var(--s4);display:flex;flex-direction:column;gap:6px}
+.scard__word{display:flex;align-items:center;gap:var(--s2);font-size:17px;font-weight:700}
+.scard p{font-size:16px;line-height:1.45}
+.scard__rule{font-size:14px;line-height:1.45;color:var(--ink);border-top:1px solid currentColor;padding-top:6px;margin-top:2px}
+.scard__rule span{display:block}
+.scard--safe{background:var(--safe-fill);border-color:var(--safe-line)}
+.scard--safe .scard__word{color:var(--safe-ink)}
+.scard--check{background:var(--check-fill);border-color:var(--check-line)}
+.scard--check .scard__word{color:var(--check-ink)}
+.scard--stop{background:var(--danger-fill);border-color:var(--danger-line)}
+.scard--stop .scard__word{color:var(--danger-ink)}
+.scard .scard__rule{border-top-color:var(--border-strong)}
+
+.finding{display:flex;gap:var(--s3);align-items:flex-start;background:var(--pine-fill);border:var(--border-w) solid var(--pine);border-radius:var(--r-status);padding:var(--s3) var(--s4)}
+.finding p{font-size:18px;line-height:1.5}
+.finding--even{background:var(--surface);border-color:var(--border-strong)}
+
+.tablewrap{overflow-x:auto}
+.options{width:100%;table-layout:fixed;border-collapse:collapse;font-size:15px}
+.options col.c1{width:16%}.options col.c2{width:19%}.options col.c3{width:16%}.options col.c4{width:12%}.options col.c5{width:13%}.options col.c6{width:11%}.options col.c7{width:13%}
+.options th,.options td{text-align:left;padding:10px 6px;hyphens:manual;vertical-align:top;border-bottom:var(--border-w) solid var(--border-soft)}
+.options thead th{font-size:13px;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-muted);line-height:1.3}
+.options tbody th{font-size:16px;font-weight:700}
+.options .sub{display:block;font-size:13px;font-weight:400;color:var(--ink-muted)}
+.options .num{font-weight:700;font-size:16px;white-space:nowrap}
+.options .ci{display:block;font-size:13px;color:var(--ink-muted)}
+.options .leadtag{display:inline-flex;margin-top:6px}
+.row--excluded{background:var(--row-muted)}
+.row--excluded th,.row--excluded td{color:var(--ink-muted)}
+.mini{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:700;margin-top:4px}
+.mini--safe{color:var(--safe-ink)}.mini--check{color:var(--check-ink)}.mini--stop{color:var(--danger-ink)}
+.zero{display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:700;color:var(--ink);margin-top:2px}
+.level{display:inline-flex;align-items:center;flex-wrap:wrap;gap:4px 6px;font-weight:700;color:var(--ink)}
+.legend{font-size:14px;line-height:1.5;color:var(--ink-muted)}
+
+/* dot + 95% interval glyph (used in table, drivers and Analysis charts) */
+.dtrack{position:relative;display:block;height:24px;min-width:90px}
+.dtrack::before{content:"";position:absolute;left:0;right:0;top:11px;height:2px;background:var(--track)}
+.dzero{position:absolute;top:2px;bottom:2px;width:2px;background:var(--border-strong);transform:translateX(-1px)}
+.dci{position:absolute;top:6px;height:12px;border-left:2px solid var(--ink);border-right:2px solid var(--ink);background:linear-gradient(var(--ink),var(--ink)) center/100% 2px no-repeat}
+.dpt{position:absolute;top:5px;width:14px;height:14px;border-radius:50%;background:var(--pine);box-shadow:0 0 0 2px var(--surface);transform:translateX(-50%)}
+.daxis{display:flex;justify-content:space-between;font-size:13px;color:var(--ink-muted);margin-top:2px}
+
+.drivers{background:var(--ground);border:var(--border-w) solid var(--border-soft);border-radius:var(--r-status);padding:var(--s4);display:flex;flex-direction:column;gap:var(--s3)}
+.drow{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:var(--s4);align-items:center}
+.drow p{font-size:16px;line-height:1.45}
+
+.trade{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:17px}
+.basis{font-size:15px;line-height:1.6;color:var(--ink-muted)}
+.decides{display:flex;gap:var(--s3);align-items:center;background:var(--pine-fill);border:var(--border-w) solid var(--pine);border-radius:var(--r-status);padding:var(--s3) var(--s4)}
+.decides p{font-size:19px;font-weight:700}
+
+.cite{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 6px;margin-left:4px;vertical-align:2px;font-family:inherit;font-size:14px;font-weight:700;line-height:1;cursor:pointer;color:var(--pine);background:var(--pine-fill);border:var(--border-w) solid var(--pine);border-radius:var(--r-pill)}
+.cite:hover{background:var(--pine);color:var(--on-pine)}
+
+/* ---------- drawer, modal ---------- */
+.scrim{position:fixed;inset:0;background:var(--scrim);z-index:15}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:var(--drawer-w);max-width:100%;z-index:20;background:var(--surface);border-left:var(--border-w-strong) solid var(--pine);overflow-y:auto;padding:var(--s5);display:flex;flex-direction:column;gap:var(--s4)}
+.drawer__head{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s3)}
+.meta{display:grid;grid-template-columns:auto 1fr;gap:6px var(--s4);font-size:16px}
+.meta dt{font-weight:700;color:var(--ink-muted)}.meta dd{margin:0}
+.passage{background:var(--ground);border:var(--border-w) solid var(--border-soft);border-radius:var(--r-status);padding:var(--s4);font-size:17px;line-height:1.6;margin:0}
+.modalwrap{position:fixed;inset:0;background:var(--scrim);display:flex;align-items:center;justify-content:center;padding:var(--s4);z-index:30}
+.modal{width:100%;max-width:560px;background:var(--surface);border:var(--border-w) solid var(--border-soft);border-radius:var(--r-card);padding:var(--s6);display:flex;flex-direction:column;gap:var(--s4)}
+
+/* ---------- notices, stages ---------- */
+.msgnotice{max-width:920px;border-radius:var(--r-card);border:var(--border-w) solid;padding:var(--s5);display:flex;gap:14px;align-items:flex-start}
+.msgnotice__word{font-size:20px;font-weight:700}
+.msgnotice p{font-size:18px;line-height:1.5}
+.msgnotice--check{background:var(--check-fill);border-color:var(--check-line)}.msgnotice--check .msgnotice__word{color:var(--check-ink)}
+.msgnotice--info{background:var(--pine-fill);border-color:var(--pine)}.msgnotice--info .msgnotice__word{color:var(--pine)}
+.msgnotice--plain{background:var(--surface);border-color:var(--border-strong)}
+.emergency{max-width:920px;border:var(--border-w-strong) solid var(--danger-line);border-radius:var(--r-card);overflow:hidden}
+.emergency__bar{background:var(--danger-line);color:var(--on-danger);padding:var(--s3) var(--s5);display:flex;align-items:center;gap:var(--s3);font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em}
+.emergency__body{background:var(--danger-fill);padding:var(--s5);display:flex;flex-direction:column;gap:var(--s3)}
+.emergency__lead{font-size:24px;font-weight:700;line-height:1.35}
+.stages{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--s2)}
+.stage{display:flex;align-items:center;gap:var(--s3);padding:var(--s3);border-radius:var(--r-status);border:var(--border-w) solid var(--border-soft);background:var(--surface)}
+.stage__name{flex:1 1 auto;font-size:17px;font-weight:700}
+.stage__state{display:inline-flex;align-items:center;gap:6px;font-size:15px;font-weight:700;border-radius:var(--r-pill);padding:3px 10px;border:var(--border-w) solid;white-space:nowrap}
+.stage--done{background:var(--safe-fill);border-color:var(--safe-line)}
+.stage--done .stage__state{background:var(--surface);border-color:var(--safe-line);color:var(--safe-ink)}
+.stage--now{border-color:var(--pine);border-width:var(--border-w-strong);background:var(--pine-fill)}
+.stage--now .stage__state{background:var(--surface);border-color:var(--pine);color:var(--pine)}
+.stage--wait .stage__name{color:var(--ink-muted)}
+.stage--wait .stage__state{background:var(--ground);border-color:var(--border-strong);color:var(--ink-muted)}
+.spin{animation:spin 1.1s linear infinite;transform-origin:50% 50%}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+
+/* ---------- auth ---------- */
+body.auth{min-height:100dvh;display:flex;flex-direction:column}
+.authmain{flex:1 0 auto;width:100%;max-width:680px;margin:0 auto;padding:var(--s7)}
+.authmain--wide{max-width:1180px}
+.col{display:flex;flex-direction:column;gap:var(--s5)}
+.stepnote{font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-muted)}
+.lede{color:var(--ink-muted)}
+.input{height:var(--h-input);width:100%;padding:0 var(--s4);font-family:inherit;font-size:19px;color:var(--ink);background:var(--surface);border:var(--border-w) solid var(--border-strong);border-radius:var(--r-control)}
+.input--otp{width:260px;max-width:100%;font-size:26px;font-weight:700;letter-spacing:0.3em}
+.input[aria-invalid="true"]{border-color:var(--danger-line);border-width:var(--border-w-strong)}
+.alert{border:var(--border-w) solid;border-radius:var(--r-status);padding:var(--s4);display:flex;gap:14px;align-items:flex-start}
+.alert__word{font-size:19px;font-weight:700}
+.alert p{font-size:17px;line-height:1.5}
+.alert--danger{background:var(--danger-fill);border-color:var(--danger-line)}.alert--danger .alert__word{color:var(--danger-ink)}
+.alert--check{background:var(--check-fill);border-color:var(--check-line)}.alert--check .alert__word{color:var(--check-ink)}
+.list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:var(--s3)}
+.list li{display:flex;gap:var(--s3);align-items:flex-start;font-size:17px;line-height:1.5}
+.twocol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s5)}
+.qr{width:220px;height:220px;max-width:100%;border:var(--border-w) dashed var(--border-strong);border-radius:var(--r-control);background:var(--ground);color:var(--ink-muted);font-size:14px;letter-spacing:0.1em;display:flex;align-items:center;justify-content:center;text-align:center;padding:var(--s3)}
+.key{display:flex;flex-wrap:wrap;gap:var(--s2);font-family:var(--font-mono);font-size:20px;font-weight:700;letter-spacing:0.08em}
+.key span{background:var(--ground);border:var(--border-w) solid var(--border-soft);border-radius:var(--r-badge);padding:6px 10px}
+.steps{margin:0;padding-left:26px;display:flex;flex-direction:column;gap:var(--s2);font-size:17px}
+.checkrow{display:flex;align-items:flex-start;gap:var(--s3);min-height:44px;padding:var(--s3);border:var(--border-w) solid var(--border-strong);border-radius:var(--r-control);background:var(--surface)}
+.checkrow input{width:26px;height:26px;margin:2px 0 0;accent-color:var(--pine);flex-shrink:0}
+.checkrow label{font-size:18px;font-weight:700}
+
+/* ---------- Investigate ---------- */
+.searchbox{display:flex;gap:var(--s3);flex-wrap:wrap}
+.searchbox .input{flex:1 1 320px}
+.chips{display:flex;flex-wrap:wrap;gap:var(--s2)}
+.invgrid{display:grid;grid-template-columns:280px minmax(0,1fr);gap:var(--s5);align-items:start}
+.srclist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--s3)}
+.srclist li{display:flex;flex-direction:column;gap:4px;font-size:15px;line-height:1.45;padding-bottom:var(--s3);border-bottom:1px solid var(--border-soft)}
+.state{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:14px}
+.result{display:flex;flex-direction:column;gap:var(--s3)}
+.result__num{display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:30px;border-radius:var(--r-pill);background:var(--pine-fill);border:var(--border-w) solid var(--pine);color:var(--pine);font-weight:700;font-size:15px}
+.sidebox summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;min-height:44px}
+.sidebox summary::-webkit-details-marker{display:none}
+.sidebox .chev{display:none}
+
+/* ---------- Analysis ---------- */
+.rtable{width:100%;border-collapse:collapse;font-size:15px}
+.rtable th,.rtable td{text-align:left;padding:10px 8px;vertical-align:top;border-bottom:var(--border-w) solid var(--border-soft)}
+.rtable thead th{font-size:13px;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-muted);line-height:1.3}
+.rtable tbody th{font-size:16px}
+.rtable .ci{display:block;font-size:13px;color:var(--ink-muted);white-space:nowrap}
+.charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s5)}
+.chart{display:flex;flex-direction:column;gap:var(--s3)}
+.chart__sub{font-size:15px;color:var(--ink-muted);line-height:1.45}
+.crow{display:grid;grid-template-columns:130px minmax(0,1fr) 128px;gap:var(--s3);align-items:center}
+.crow__label{font-size:15px;font-weight:700}
+.crow__val{font-size:14px;color:var(--ink);text-align:right;white-space:nowrap}
+.caxis{display:grid;grid-template-columns:130px minmax(0,1fr) 128px;gap:var(--s3)}
+.caxis span:nth-child(2){display:flex;justify-content:space-between;font-size:13px;color:var(--ink-muted)}
+.tview summary{cursor:pointer;font-weight:700;font-size:15px;min-height:44px;display:flex;align-items:center;color:var(--pine)}
+.tview table{border-collapse:collapse;font-size:14px;width:100%}
+.tview th,.tview td{text-align:left;padding:6px;border-bottom:1px solid var(--border-soft)}
+
+/* ---------- Guide ---------- */
+.flow{display:flex;align-items:stretch;gap:var(--s2);list-style:none;margin:0;padding:0}
+.flow li{flex:1 1 0;display:flex;align-items:center;gap:var(--s2)}
+.flow__box{flex:1 1 auto;height:100%;background:var(--surface);border:var(--border-w) solid var(--border-soft);border-radius:var(--r-status);padding:var(--s3);display:flex;flex-direction:column;gap:4px}
+.flow__box--end{background:var(--pine-fill);border-color:var(--pine)}
+.flow__n{font-size:13px;font-weight:700;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.06em}
+.flow__name{font-size:17px;font-weight:700}
+.flow__desc{font-size:14px;line-height:1.45;color:var(--ink-muted)}
+.flow__arrow{flex-shrink:0;color:var(--ink-muted)}
+.prose p,.prose li{font-size:17px;line-height:1.6}
+.prose ul{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px}
+.toc{display:flex;flex-wrap:wrap;gap:var(--s2)}
+.toc a{min-height:44px;display:inline-flex;align-items:center;padding:0 var(--s3);border:var(--border-w) solid var(--border-soft);border-radius:var(--r-pill);background:var(--surface);font-weight:700;font-size:15px;text-decoration:none}
+
+/* ---------- About ---------- */
+.people{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s3);list-style:none;margin:0;padding:0}
+.person{background:var(--ground);border:var(--border-w) solid var(--border-soft);border-radius:var(--r-status);padding:var(--s4);display:flex;flex-direction:column;gap:4px}
+.person__name{font-size:18px;font-weight:700}
+.person a{font-size:16px;min-height:24px}
+
+/* ================= phone (≤ 900 px; designed at 390) ================= */
+@media (max-width:900px){
+  body{font-size:17px}
+  h1{font-size:28px}h2{font-size:23px}
+  .topbar{padding:var(--s2) var(--s4)}
+  .brand__name{font-size:21px}
+  .topbar__user{display:none}
+  .useline{font-size:12px;padding:5px var(--s4)}
+  .footer{padding:var(--s3) var(--s4);font-size:13px}
+
+  /* tabs become a bottom bar with labels */
+  .tabs{order:10;height:var(--tabbar-h);padding:0;gap:0;border-bottom:0;border-top:var(--border-w) solid var(--border-soft);display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}
+  .tabs a{flex-direction:column;justify-content:center;gap:2px;min-height:0;padding:4px 2px;font-size:12px;line-height:1.15;text-align:center}
+  .tabs a[aria-current="page"]{box-shadow:inset 0 4px 0 var(--pine)}
+  .tabs .tabs__icon{display:block}
+
+  .workspace{flex-direction:column}
+  .panel{width:100%;flex:0 0 auto;max-height:62%;border-right:0;border-bottom:var(--border-w) solid var(--border-soft)}
+  .pd__summary{padding:var(--s2) var(--s4)}
+  .pd__title{font-family:var(--font-body);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--ink-muted)}
+  .pd__head{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .pd__strip{display:block;font-size:15px;font-weight:700;line-height:1.35}
+  .pd__pbadge{display:block;margin-top:4px}
+  .pd__dbadge{display:none}
+  .pd__summary{align-items:flex-start}
+  .composer__box textarea{min-height:58px;font-size:16px;line-height:1.4;padding:4px 2px}
+  .pd__chev{display:block}
+  details[open] > .pd__summary .pd__chev{transform:rotate(180deg)}
+  .panel__body{padding:var(--s4)}
+  .strip{display:none}
+  .thread{padding:var(--s4);gap:var(--s4)}
+  .card{padding:var(--s4);gap:var(--s3)}
+  .composer{padding:10px var(--s4)}
+  .composer__box textarea{font-size:17px}
+  .iconbtn{width:48px;height:48px}
+  .intended-use{font-size:12px}
+  .scards{grid-template-columns:minmax(0,1fr)}
+  .drow{grid-template-columns:minmax(0,1fr)}
+  .finding p{font-size:16px}
+
+  /* tables become one card per row */
+  .options,.options tbody,.rtable,.rtable tbody{display:block;width:100%;min-width:0;table-layout:auto}
+  .options colgroup{display:none}
+  .options thead,.rtable thead{display:none}
+  .options tbody tr,.rtable tbody tr{display:block;border:var(--border-w) solid var(--border-soft);border-radius:var(--r-status);padding:var(--s3);margin-bottom:var(--s3);background:var(--surface)}
+  .options tbody tr.row--excluded{background:var(--row-muted)}
+  .options tbody th,.options tbody td,.rtable tbody th,.rtable tbody td{display:block;border:0;padding:3px 0}
+  .options tbody td[data-label]::before,.rtable tbody td[data-label]::before{content:attr(data-label);display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-muted)}
+  .options .ci,.rtable .ci{display:inline;margin-left:6px;white-space:normal}
+  .options .zero{display:flex}
+  .tablewrap{overflow-x:visible}
+
+  .drawer{top:auto;left:0;width:auto;max-height:80%;border-left:0;border-top:var(--border-w-strong) solid var(--pine);border-radius:var(--r-card) var(--r-card) 0 0}
+  .modal{padding:var(--s5)}
+  .msgnotice{padding:var(--s4)}.msgnotice__word{font-size:18px}.msgnotice p{font-size:16px}
+  .emergency__bar{font-size:17px;padding:var(--s3) var(--s4)}.emergency__body{padding:var(--s4)}.emergency__lead{font-size:20px}
+
+  .authmain{padding:var(--s4)}
+  .twocol{grid-template-columns:minmax(0,1fr)}
+  .doc{padding:var(--s4);gap:var(--s4)}
+  .invgrid{grid-template-columns:minmax(0,1fr)}
+  .sidebox .chev{display:block}
+  .charts{grid-template-columns:minmax(0,1fr)}
+  .crow,.caxis{grid-template-columns:96px minmax(0,1fr)}
+  .crow__val{grid-column:2;text-align:left;margin-top:-6px}
+  .caxis span:nth-child(3){display:none}
+  .flow{flex-direction:column}
+  .flow li{flex-direction:column;align-items:stretch}
+  .flow__arrow{align-self:center;transform:rotate(90deg)}
+  .people{grid-template-columns:minmax(0,1fr)}
+}
+</style>
+</head>
+<body class="app">
+<header class="topbar">
+  <a class="brand" href="17-answer-options-compared.html" aria-label="DiaCausal home"><svg class="icon" style="color:var(--on-pine)" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13h4l2.5-6 4 12 2.5-6h5"/></svg><span class="brand__name">DiaCausal</span></a>
+  <div class="topbar__right">
+    <span class="topbar__user">[USER NAME]</span>
+    <a class="topbar__link" href="01-signin.html">Sign out</a>
+  </div>
+</header>
+<p class="useline">Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.</p>
+<nav class="tabs" aria-label="Main">
+<a href="17-answer-options-compared.html"><svg class="icon tabs__icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5.5" y="4.5" width="13" height="16.5" rx="2"/><path d="M9 3.5h6v3H9z"/><path d="M9 11h6"/><path d="M9 15h4"/></svg><span>Patient Details</span></a>
+<a href="22-investigate.html"><svg class="icon tabs__icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><span>Investigate</span></a>
+<a href="24-analysis.html" aria-current="page"><svg class="icon tabs__icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 20h17"/><path d="M7 20v-6"/><path d="M12 20V6"/><path d="M17 20v-9"/></svg><span>Analysis</span></a>
+<a href="25-guide.html"><svg class="icon tabs__icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg><span>Guide</span></a>
+<a href="26-about.html"><svg class="icon tabs__icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19.5a5.5 5.5 0 0 1 11 0"/><path d="M15.5 5.6a3.2 3.2 0 0 1 0 5.8"/><path d="M17.5 14.4a5.5 5.5 0 0 1 3 5.1"/></svg><span>About</span></a>
+</nav>
+<div class="docmain">
+<main class="doc">
+<div class="stack"><div class="row"><h1>Analysis</h1><span class="badge badge--example"><svg class="icon" style="color:var(--check-ink)" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><path d="M12 7.6h.01"/></svg> Synthetic benchmark · example values</span></div>
+  <p class="lede">How four versions of DiaCausal compare on a synthetic India-calibrated benchmark where the true effects are known. This tests whether the methods recover a planted truth. It says nothing about real-world drug effects.</p></div>
+
+<section class="card card--flat"><h2>Versions A–D compared</h2>
+<div class="tablewrap"><table class="rtable">
+  <caption class="sr-only">Versions A to D, example values</caption>
+  <thead><tr><th scope="col">Version</th><th scope="col">Uses</th><th scope="col">Policy regret<br>(HbA1c points, lower is better)</th><th scope="col">95% interval coverage</th><th scope="col">Explanation stability</th><th scope="col">Claims with a citation</th><th scope="col">Answers withheld</th></tr></thead>
+  <tbody>
+  <tr><th scope="row">A<span class="ci">XAI only</span></th>
+  <td data-label="Uses">SHAP + LIME on a model that predicts HbA1c</td>
+  <td data-label="Policy regret (HbA1c points, lower is better)">0.09<span class="ci">95% CI 0.07–0.11</span></td>
+  <td data-label="95% interval coverage">No interval</td>
+  <td data-label="Explanation stability">0.62<span class="ci">95% CI 0.55–0.69</span></td>
+  <td data-label="Claims with a citation">None</td>
+  <td data-label="Answers withheld">Never</td></tr>
+  <tr><th scope="row">B<span class="ci">Causal only</span></th>
+  <td data-label="Uses">Safety rules + causal engine</td>
+  <td data-label="Policy regret (HbA1c points, lower is better)">0.011<span class="ci">95% CI 0.008–0.014</span></td>
+  <td data-label="95% interval coverage">94%<span class="ci">95% CI 91–96</span></td>
+  <td data-label="Explanation stability">No explanation</td>
+  <td data-label="Claims with a citation">None</td>
+  <td data-label="Answers withheld">2.5%<span class="ci">95% CI 2.1–2.9</span></td></tr>
+  <tr><th scope="row">C<span class="ci">Causal + XAI</span></th>
+  <td data-label="Uses">B + SHAP on the causal estimate</td>
+  <td data-label="Policy regret (HbA1c points, lower is better)">0.011<span class="ci">95% CI 0.008–0.014</span></td>
+  <td data-label="95% interval coverage">94%<span class="ci">95% CI 91–96</span></td>
+  <td data-label="Explanation stability">0.88<span class="ci">95% CI 0.84–0.92</span></td>
+  <td data-label="Claims with a citation">None</td>
+  <td data-label="Answers withheld">2.5%<span class="ci">95% CI 2.1–2.9</span></td></tr>
+  <tr><th scope="row">D<span class="ci">Causal + XAI + RAG</span></th>
+  <td data-label="Uses">C + cited passages</td>
+  <td data-label="Policy regret (HbA1c points, lower is better)">0.011<span class="ci">95% CI 0.008–0.014</span></td>
+  <td data-label="95% interval coverage">94%<span class="ci">95% CI 91–96</span></td>
+  <td data-label="Explanation stability">0.88<span class="ci">95% CI 0.84–0.92</span></td>
+  <td data-label="Claims with a citation">100%<span class="ci">95% CI 96–100</span></td>
+  <td data-label="Answers withheld">2.5%<span class="ci">95% CI 2.1–2.9</span></td></tr>
+  </tbody>
+</table></div>
+<p class="legend">Policy regret: how much HbA1c lowering is lost by following each version's ordering instead of the true best option. Explanation stability: agreement of the top-3 features across 30 reruns (0–1). A has no interval, so its coverage cannot be measured. No version is marked “best”: the table is for comparison, not ranking.</p>
+</section>
+
+<div class="charts">
+<section class="card card--flat chart">
+  <h3>A · SHAP on the HbA1c prediction model</h3>
+  <p class="chart__sub">Explains what the prediction model uses to predict HbA1c. It does not explain treatment effects.</p>
+  <div class="crow"><span class="crow__label">Starting HbA1c</span><span class="dtrack" role="img" aria-label="Starting HbA1c: 0.42 (95% CI 0.38 to 0.46), example" title="Starting HbA1c: 0.42 (95% CI 0.38 to 0.46), example"><span class="dci" style="left:76.00%;width:16.00%"></span><span class="dpt" style="left:84.00%"></span></span><span class="crow__val">0.42 <span class="muted">(0.38–0.46)</span></span></div>
+<div class="crow"><span class="crow__label">Diabetes duration</span><span class="dtrack" role="img" aria-label="Diabetes duration: 0.11 (95% CI 0.08 to 0.14), example" title="Diabetes duration: 0.11 (95% CI 0.08 to 0.14), example"><span class="dci" style="left:16.00%;width:12.00%"></span><span class="dpt" style="left:22.00%"></span></span><span class="crow__val">0.11 <span class="muted">(0.08–0.14)</span></span></div>
+<div class="crow"><span class="crow__label">BMI</span><span class="dtrack" role="img" aria-label="BMI: 0.09 (95% CI 0.07 to 0.11), example" title="BMI: 0.09 (95% CI 0.07 to 0.11), example"><span class="dci" style="left:14.00%;width:8.00%"></span><span class="dpt" style="left:18.00%"></span></span><span class="crow__val">0.09 <span class="muted">(0.07–0.11)</span></span></div>
+<div class="crow"><span class="crow__label">eGFR</span><span class="dtrack" role="img" aria-label="eGFR: 0.06 (95% CI 0.04 to 0.08), example" title="eGFR: 0.06 (95% CI 0.04 to 0.08), example"><span class="dci" style="left:8.00%;width:8.00%"></span><span class="dpt" style="left:12.00%"></span></span><span class="crow__val">0.06 <span class="muted">(0.04–0.08)</span></span></div>
+<div class="crow"><span class="crow__label">Age</span><span class="dtrack" role="img" aria-label="Age: 0.05 (95% CI 0.03 to 0.07), example" title="Age: 0.05 (95% CI 0.03 to 0.07), example"><span class="dci" style="left:6.00%;width:8.00%"></span><span class="dpt" style="left:10.00%"></span></span><span class="crow__val">0.05 <span class="muted">(0.03–0.07)</span></span></div>
+<div class="crow"><span class="crow__label">Heart disease</span><span class="dtrack" role="img" aria-label="Heart disease: 0.03 (95% CI 0.01 to 0.05), example" title="Heart disease: 0.03 (95% CI 0.01 to 0.05), example"><span class="dci" style="left:2.00%;width:8.00%"></span><span class="dpt" style="left:6.00%"></span></span><span class="crow__val">0.03 <span class="muted">(0.01–0.05)</span></span></div>
+  <div class="caxis"><span></span><span><span>0</span><span>0.5 HbA1c points</span></span><span></span></div>
+  <p class="chart__sub">Scales differ between A and C: A explains a predicted HbA1c level; C explains a difference between two options. Compare the order, not the bar lengths.</p>
+  <details class="tview"><summary>Show values as a table</summary><table><thead><tr><th>Feature</th><th>Mean |SHAP|</th><th>95% CI low</th><th>95% CI high</th></tr></thead><tbody><tr><td>Starting HbA1c</td><td>0.42</td><td>0.38</td><td>0.46</td></tr><tr><td>Diabetes duration</td><td>0.11</td><td>0.08</td><td>0.14</td></tr><tr><td>BMI</td><td>0.09</td><td>0.07</td><td>0.11</td></tr><tr><td>eGFR</td><td>0.06</td><td>0.04</td><td>0.08</td></tr><tr><td>Age</td><td>0.05</td><td>0.03</td><td>0.07</td></tr><tr><td>Heart disease</td><td>0.03</td><td>0.01</td><td>0.05</td></tr></tbody></table></details>
+</section>
+<section class="card card--flat chart">
+  <h3>C · SHAP on the causal estimate</h3>
+  <p class="chart__sub">SGLT2 inhibitor vs DPP-4 inhibitor. The estimate is larger or smaller for patients with these features — these are not causes.</p>
+  <div class="crow"><span class="crow__label">Starting HbA1c</span><span class="dtrack" role="img" aria-label="Starting HbA1c: 0.031 (95% CI 0.024 to 0.038), example" title="Starting HbA1c: 0.031 (95% CI 0.024 to 0.038), example"><span class="dci" style="left:48.00%;width:28.00%"></span><span class="dpt" style="left:62.00%"></span></span><span class="crow__val">0.031 <span class="muted">(0.024–0.038)</span></span></div>
+<div class="crow"><span class="crow__label">eGFR</span><span class="dtrack" role="img" aria-label="eGFR: 0.022 (95% CI 0.016 to 0.028), example" title="eGFR: 0.022 (95% CI 0.016 to 0.028), example"><span class="dci" style="left:32.00%;width:24.00%"></span><span class="dpt" style="left:44.00%"></span></span><span class="crow__val">0.022 <span class="muted">(0.016–0.028)</span></span></div>
+<div class="crow"><span class="crow__label">BMI</span><span class="dtrack" role="img" aria-label="BMI: 0.014 (95% CI 0.009 to 0.019), example" title="BMI: 0.014 (95% CI 0.009 to 0.019), example"><span class="dci" style="left:18.00%;width:20.00%"></span><span class="dpt" style="left:28.00%"></span></span><span class="crow__val">0.014 <span class="muted">(0.009–0.019)</span></span></div>
+<div class="crow"><span class="crow__label">Diabetes duration</span><span class="dtrack" role="img" aria-label="Diabetes duration: 0.006 (95% CI 0.002 to 0.010), example" title="Diabetes duration: 0.006 (95% CI 0.002 to 0.010), example"><span class="dci" style="left:4.00%;width:16.00%"></span><span class="dpt" style="left:12.00%"></span></span><span class="crow__val">0.006 <span class="muted">(0.002–0.010)</span></span></div>
+<div class="crow"><span class="crow__label">Age</span><span class="dtrack" role="img" aria-label="Age: 0.004 (95% CI 0.001 to 0.007), example" title="Age: 0.004 (95% CI 0.001 to 0.007), example"><span class="dci" style="left:2.00%;width:12.00%"></span><span class="dpt" style="left:8.00%"></span></span><span class="crow__val">0.004 <span class="muted">(0.001–0.007)</span></span></div>
+<div class="crow"><span class="crow__label">Heart disease</span><span class="dtrack" role="img" aria-label="Heart disease: 0.003 (95% CI 0.000 to 0.006), example" title="Heart disease: 0.003 (95% CI 0.000 to 0.006), example"><span class="dci" style="left:0.00%;width:12.00%"></span><span class="dpt" style="left:6.00%"></span></span><span class="crow__val">0.003 <span class="muted">(0.000–0.006)</span></span></div>
+  <div class="caxis"><span></span><span><span>0</span><span>0.05 HbA1c points</span></span><span></span></div>
+  <p class="chart__sub">Mean absolute SHAP value, with a bootstrap 95% CI.</p>
+  <details class="tview"><summary>Show values as a table</summary><table><thead><tr><th>Feature</th><th>Mean |SHAP|</th><th>95% CI low</th><th>95% CI high</th></tr></thead><tbody><tr><td>Starting HbA1c</td><td>0.031</td><td>0.024</td><td>0.038</td></tr><tr><td>eGFR</td><td>0.022</td><td>0.016</td><td>0.028</td></tr><tr><td>BMI</td><td>0.014</td><td>0.009</td><td>0.019</td></tr><tr><td>Diabetes duration</td><td>0.006</td><td>0.002</td><td>0.01</td></tr><tr><td>Age</td><td>0.004</td><td>0.001</td><td>0.007</td></tr><tr><td>Heart disease</td><td>0.003</td><td>0.0</td><td>0.006</td></tr></tbody></table></details>
+</section>
+</div>
+
+<section class="card card--flat chart">
+  <h3>LIME stability across reruns</h3>
+  <p class="chart__sub">Share of the top-3 features that stay the same across 30 reruns with different random seeds (0 = none, 1 = all). Dot = estimate, bar = 95% CI.</p>
+  <div class="crow"><span class="crow__label">A · XAI only</span><span class="dtrack" role="img" aria-label="A · XAI only: 0.62 (95% CI 0.55 to 0.69), example" title="A · XAI only: 0.62 (95% CI 0.55 to 0.69), example"><span class="dci" style="left:55.00%;width:14.00%"></span><span class="dpt" style="left:62.00%"></span></span><span class="crow__val">0.62 <span class="muted">(0.55–0.69)</span></span></div>
+  <div class="crow"><span class="crow__label">C · Causal + XAI</span><span class="dtrack" role="img" aria-label="C · Causal + XAI: 0.88 (95% CI 0.84 to 0.92), example" title="C · Causal + XAI: 0.88 (95% CI 0.84 to 0.92), example"><span class="dci" style="left:84.00%;width:8.00%"></span><span class="dpt" style="left:88.00%"></span></span><span class="crow__val">0.88 <span class="muted">(0.84–0.92)</span></span></div>
+  <div class="caxis"><span></span><span><span>0</span><span>1</span></span><span></span></div>
+  <details class="tview"><summary>Show values as a table</summary><table><thead><tr><th>Version</th><th>Stability</th><th>95% CI low</th><th>95% CI high</th></tr></thead><tbody><tr><td>A · XAI only</td><td>0.62</td><td>0.55</td><td>0.69</td></tr><tr><td>C · Causal + XAI</td><td>0.88</td><td>0.84</td><td>0.92</td></tr></tbody></table></details>
+</section>
+</main>
+<footer class="footer"><p>Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.</p></footer>
+</div>
+
+<script>
+/* On a phone, panels marked data-phone-closed start collapsed into the summary strip. */
+if (window.matchMedia('(max-width: 900px)').matches) {
+  document.querySelectorAll('details[data-phone-closed]').forEach(function (d) { d.open = false; });
+}
+</script>
+</body>
+</html>

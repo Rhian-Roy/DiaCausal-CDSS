@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DiaCausal — Evidence drawer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+:root{
+  /* ---- from chat.html (unchanged) ---- */
+  --ground:#F4F7F3; --surface:#FFFFFF;
+  --ink:#12211A; --ink-muted:#3C4A42; --ink-placeholder:#6B776F;
+  --pine:#0E5049; --pine-dark:#083B36; --pine-hairline:#7FB8A8; --on-pine-muted:#CFE3DC;
+  --border-strong:#9FB0A6; --border-soft:#C8D4CB; --track:#DCE6DF;
+  --safe-ink:#14562A;   --safe-line:#1B6B33;  --safe-fill:#DEF0E2;
+  --check-ink:#6E4400;  --check-line:#6E4400; --check-fill:#FBEBCB;
+  --danger-ink:#8A1010; --danger-line:#8A1010;--danger-fill:#FADCDC;
+  --font-body:'Atkinson Hyperlegible', Verdana, system-ui, sans-serif;
+  --font-display:'Source Serif 4', Georgia, serif;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:22px; --s6:24px; --s7:32px;
+  --r-control:8px; --r-status:10px; --r-card:12px;
+  --border-w:2px; --h-input:56px; --h-button:58px; --h-touch:52px;
+  /* ---- added in earlier batches ---- */
+  --pine-fill:#E4EEEB; --on-danger:#FFFFFF; --scrim:rgba(18,33,26,0.55);
+  --border-w-strong:3px; --font-mono:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
+  --row-muted:#EAEFEB; --panel-w:360px; --drawer-w:420px;
+  /* ---- NEW in v2 ---- */
+  --tabbar-h:64px;      /* phone bottom tab bar */
+  /* ---- NEW in P06 (audit: literals turned into tokens, no visual change) ---- */
+  --on-pine:#FFFFFF;    /* text and icons on pine */
+  --r-badge:6px;        /* badges, unit chips, key groups */
+  --r-pill:999px;       /* pills, chips, citation markers */
+  --content-w:1040px;   /* Investigate / Analysis / Guide / About */
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:var(--font-body);background:var(--ground);color:var(--ink);font-size:18px;line-height:1.55;-webkit-text-size-adjust:100%}
+a{color:var(--pine)}a:hover{color:var(--pine-dark)}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--pine);outline-offset:2px}
+input::placeholder,textarea::placeholder{color:var(--ink-placeholder)}
+p{margin:0}h1,h2,h3,h4{margin:0}
+h1{font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.2}
+h2{font-family:var(--font-display);font-size:26px;font-weight:600;line-height:1.25}
+h3{font-size:19px;font-weight:700}
+h4{font-size:17px;font-weight:700}
+.icon{flex-shrink:0}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.muted{color:var(--ink-muted)}
+.small{font-size:15px}
+
+/* ---------- header, intended-use line, footer ---------- */
+.topbar{flex-shrink:0;background:var(--pine);padding:var(--s3) var(--s7);display:flex;align-items:center;justify-content:space-between;gap:var(--s4);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:var(--s3);text-decoration:none;min-height:44px}
+.brand__name{font-family:var(--font-display);font-size:24px;font-weight:600;color:var(--on-pine);letter-spacing:-0.01em}
+.topbar__right{display:flex;align-items:center;gap:var(--s5)}
+.topbar__user{font-size:16px;color:var(--on-pine-muted)}
+.topbar__link{color:var(--on-pine);font-weight:700;font-size:16px;min-height:44px;display:flex;align-items:center}
+.topbar__link:hover{color:var(--on-pine)}
+.useline{flex-shrink:0;margin:0;background:var(--pine-dark);color:var(--on-pine);font-size:14px;line-height:1.4;padding:6px var(--s7)}
+.footer{border-top:var(--border-w) solid var(--border-soft);background:var(--surface);padding:var(--s4) var(--s7);font-size:15px;color:var(--ink-muted)}
+
+/* ---------- tabs: desktop under the header, phone bottom bar ---------- */
+.tabs{flex-shrink:0;background:var(--surface);border-bottom:var(--border-w) solid var(--border-soft);display:flex;gap:var(--s1);padding:0 var(--s5)}
+.tabs a{display:flex;align-items:center;gap:var(--s2);min-height:52px;padding:0 var(--s4);text-decoration:none;color:var(--ink-muted);font-size:17px;font-weight:700}
+.tabs a:hover{color:var(--ink)}
+.tabs a[aria-current="page"]{color:var(--pine);box-shadow:inset 0 -4px 0 var(--pine)}
+.tabs .tabs__icon{display:none}
+
+/* ---------- app shell ---------- */
+body.app{display:flex;flex-direction:column;height:100dvh}
+.workspace{flex:1 1 auto;min-height:0;display:flex}
+.chatcol{flex:1 1 auto;min-width:0;min-height:0;display:flex;flex-direction:column}
+.thread,.docmain,.panel,.tablewrap{position:relative}
+.docmain{flex:1 1 auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column}
+.doc{width:100%;max-width:var(--content-w);margin:0 auto;padding:var(--s7);display:flex;flex-direction:column;gap:var(--s5);flex:1 0 auto}
+.docmain .footer{flex-shrink:0}
+
+/* ---------- patient panel ---------- */
+.panel{width:var(--panel-w);flex-shrink:0;background:var(--surface);border-right:var(--border-w) solid var(--border-soft);overflow-y:auto}
+.pd__summary{list-style:none;cursor:pointer;padding:var(--s4) var(--s5);border-bottom:var(--border-w) solid var(--border-soft);display:flex;align-items:center;justify-content:space-between;gap:var(--s3);min-height:var(--h-touch);position:sticky;top:0;background:var(--surface);z-index:2}
+.pd__summary::-webkit-details-marker{display:none}
+.pd__title{font-family:var(--font-display);font-size:21px;font-weight:600}
+.pd__strip{display:none}
+.pd__pbadge{display:none}
+.pd__end{display:flex;align-items:center;gap:var(--s2)}
+.pd__chev{display:none}
+.panel__body{padding:var(--s5);display:flex;flex-direction:column;gap:var(--s4)}
+.row{display:flex;flex-wrap:wrap;gap:var(--s3);align-items:center}
+
+.badge{font-size:13px;font-weight:700;color:var(--ink-muted);background:var(--ground);border:var(--border-w) solid var(--border-soft);border-radius:var(--r-badge);padding:3px 9px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.badge--example{background:var(--check-fill);border-color:var(--check-line);color:var(--check-ink)}
+.badge--pine{background:var(--pine-fill);border-color:var(--pine);color:var(--pine)}
+
+.field{display:flex;flex-direction:column;gap:6px}
+.field__label{font-size:17px;font-weight:700}
+.field__hint{font-size:15px;color:var(--ink-muted)}
+.unitbox{display:flex;align-items:center;gap:var(--s2);height:var(--h-input);padding:0 var(--s3) 0 var(--s4);background:var(--surface);border:var(--border-w) solid var(--border-strong);border-radius:var(--r-control)}
+.unitbox:focus-within{outline:3px solid var(--pine);outline-offset:2px}
+.unitbox input{flex:1 1 auto;min-width:0;border:0;outline:none;background:transparent;font-family:inherit;font-size:19px;color:var(--ink);height:100%}
+.unitbox__unit{flex-shrink:0;font-size:15px;font-weight:700;color:var(--ink-muted);background:var(--ground);border:var(--border-w) solid var(--border-soft);border-radius:var(--r-badge);padding:3px 8px;white-space:nowrap}
+.unitbox__prefix{flex-shrink:0;font-size:19px;font-weight:700;color:var(--ink-muted)}
+.unitbox--invalid{border-color:var(--danger-line);border-width:var(--border-w-strong)}
+.fielderror{display:flex;gap:var(--s2);align-items:flex-start;background:var(--danger-fill);border:var(--border-w) solid var(--danger-line);border-radius:var(--r-status);padding:var(--s2) var(--s3)}
+.fielderror p{font-size:16px;line-height:1.45}
+.fielderror strong{color:var(--danger-ink)}
+.bmicat{display:flex;flex-direction:column;gap:2px}
+.bmicat__now{font-size:16px;font-weight:700}
+.bmicat__scale{font-size:14px;color:var(--ink-muted)}
+.seg{display:flex;gap:var(--s2);flex-wrap:wrap}
+.seg input{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.seg label{min-height:44px;padding:0 var(--s4);cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:16px;font-weight:700;color:var(--ink);background:var(--surface);border:var(--border-w) solid var(--border-strong);border-radius:var(--r-control)}
+.seg input:checked + label{background:var(--pine);border-color:var(--pine);color:var(--on-pine)}
+.seg input:focus-visible + label{outline:3px solid var(--pine);outline-offset:2px}
+.seg label .tick{display:none}
+.seg input:checked + label .tick{display:block}
+
+/* ---------- buttons ---------- */
+.btn{font-family:inherit;font-weight:700;cursor:pointer;border-radius:var(--r-control);border:var(--border-w) solid;text-decoration:none}
+.btn--primary{min-height:var(--h-button);font-size:19px;color:var(--on-pine);background:var(--pine);border-color:var(--pine);padding:0 var(--s6);display:inline-flex;align-items:center;justify-content:center;gap:var(--s2)}
+.btn--primary:hover{background:var(--pine-dark);border-color:var(--pine-dark);color:var(--on-pine)}
+.btn--primary[disabled]{background:var(--track);border-color:var(--border-strong);color:var(--ink-muted);cursor:not-allowed}
+.btn--ghost{min-height:44px;padding:0 var(--s3);font-size:16px;color:var(--ink);background:var(--surface);border-color:var(--border-strong);display:inline-flex;align-items:center;justify-content:center;gap:var(--s2)}
+.btn--ghost:hover{border-color:var(--ink-muted);color:var(--ink)}
+.chip{min-height:44px;padding:0 var(--s4);font-family:inherit;font-size:16px;color:var(--ink);background:var(--surface);border:var(--border-w) solid var(--border-strong);border-radius:var(--r-pill);cursor:pointer}
+
+/* ---------- conversation ---------- */
+.strip{flex-shrink:0;background:var(--surface);border-bottom:var(--border-w) solid var(--border-soft);padding:var(--s3) var(--s7);display:flex;align-items:center;justify-content:space-between;gap:var(--s4);flex-wrap:wrap}
+.strip p{font-size:16px;font-weight:700;line-height:1.4}
+.thread{flex:1 1 auto;min-height:0;overflow-y:auto;padding:var(--s6) var(--s7);display:flex;flex-direction:column;gap:var(--s5)}
+.turn{max-width:920px;display:flex;flex-direction:column;gap:var(--s2)}
+.who{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-muted)}
+.card{max-width:920px;width:100%;background:var(--surface);border:var(--border-w) solid var(--border-soft);border-radius:var(--r-card);padding:var(--s6);display:flex;flex-direction:column;gap:var(--s4)}
+.card--flat{max-width:none}
+.card__head{display:flex;justify-content:space-between;align-items:center;gap:var(--s3);flex-wrap:wrap}
+.emptystate{max-width:920px;background:var(--surface);border:var(--border-w) dashed var(--border-strong);border-radius:var(--r-card);padding:var(--s6);display:flex;gap:var(--s3);align-items:flex-start}
+.stack{display:flex;flex-direction:column;gap:var(--s2)}
+
+.composer{flex-shrink:0;background:var(--surface);border-top:var(--border-w) solid var(--border-soft);padding:14px var(--s7) 14px;display:flex;flex-direction:column;gap:var(--s2)}
+.composer__box{display:flex;align-items:flex-end;gap:var(--s3);padding:8px var(--s3);border:var(--border-w) solid var(--border-strong);border-radius:var(--r-card)}
+.composer__box:focus-within{outline:3px solid var(--pine);outline-offset:2px}
+.composer__box textarea{flex:1 1 auto;resize:none;border:0;outline:none;background:transparent;font-family:inherit;font-size:19px;line-height:1.5;color:var(--ink);padding:8px 4px}
+.iconbtn{width:var(--h-touch);height:var(--h-touch);flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;border:var(--border-w) solid var(--border-strong);border-radius:var(--r-control);background:var(--surface);color:var(--ink)}
+.iconbtn--send{background:var(--pine);border-color:var(--pine);color:var(--on-pine)}
+.iconbtn--send:hover{background:var(--pine-dark);border-color:var(--pine-dark)}
+.intended-use{font-size:14px;line-height:1.45;color:var(--ink-muted)}
+
+/* ---------- answer card parts ---------- */
+.guardrail{display:flex;gap:var(--s3);align-items:flex-start;background:var(--ground);border:var(--border-w) solid var(--border-soft);border-radius:var(--r-status);padding:var(--s3) var(--s4)}
+.guardrail p{font-size:17px;color:var(--ink)}
+.scards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s3)}
+.scard{border:var(--border-w) solid;border-radius:var(--r-status);padding:var(--s3) var(--s4);display:flex;flex-direction:column;gap:6px}
+.scard__word{display:flex;align-items:center;gap:var(--s2);font-size:17px;font-weight:700}
+.scard p{font-size:16px;line-height:1.45}
+.scard__rule{font-size:14px;line-height:1.45;color:var(--ink);border-top:1px solid currentColor;padding-top:6px;margin-top:2px}
+.scard__rule span{display:block}
+.scard--safe{background:var(--safe-fill);border-color:var(--safe-line)}
+.scard--safe .scard__word{color:var(--safe-ink)}
+.scard--check{background:var(--check-fill);border-color:var(--check-line)}
+.scard--check .scard__word{color:var(--check-ink)}
+.scard--stop{background:var(--danger-fill);border-color:var(--danger-line)}
+.scard--stop .scard__word{color:var(--danger-ink)}
+.scard .scard__rule{border-top-color:var(--border-strong)}
+
+.finding{display:flex;gap:var(--s3);align-items:flex-start;background:var(--pine-fill);border:var(--border-w) solid var(--pine);border-radius:var(--r-status);padding:var(--s3) var(--s4)}
+.finding p{font-size:18px;line-height:1.5}
+.finding--even{background:var(--surface);border-color:var(--border-strong)}
+
+.tablewrap{overflow-x:auto}
+.options{width:100%;table-layout:fixed;border-collapse:collapse;font-size:15px}
+.options col.c1{width:16%}.options col.c2{width:19%}.options col.c3{width:16%}.options col.c4{width:12%}.options col.c5{width:13%}.options col.c6{width:11%}.options col.c7{width:13%}
+.options th,.options td{text-align:left;padding:10px 6px;hyphens:manual;vertical-align:top;border-bottom:var(--border-w) solid var(--border-soft)}
+.options thead th{font-size:13px;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-muted);line-height:1.3}
+.options tbody th{font-size:16px;font-weight:700}
+.options .sub{display:block;font-size:13px;font-weight:400;color:var(--ink-muted)}
+.options .num{font-weight:700;font-size:16px;white-space:nowrap}
+.options .ci{display:block;font-size:13px;color:var(--ink-muted)}
+.options .leadtag{display:inline-flex;margin-top:6px}
+.row--excluded{background:var(--row-muted)}
+.row--excluded th,.row--excluded td{color:var(--ink-muted)}
+.mini{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:700;margin-top:4px}
+.mini--safe{color:var(--safe-ink)}.mini--check{color:var(--check-ink)}.mini--stop{color:var(--danger-ink)}
+.zero{display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:700;color:var(--ink);margin-top:2px}
+.level{display:inline-flex;align-items:center;flex-wrap:wrap;gap:4px 6px;font-weight:700;color:var(--ink)}
+.legend{font-size:14px;line-height:1.5;color:var(--ink-muted)}
+
+/* dot + 95% interval glyph (used in table, drivers and Analysis charts) */
+.dtrack{position:relative;display:block;height:24px;min-width:90px}
+.dtrack::before{content:"";position:absolute;left:0;right:0;top:11px;height:2px;background:var(--track)}
+.dzero{position:absolute;top:2px;bottom:2px;width:2px;background:var(--border-strong);transform:translateX(-1px)}
+.dci{position:absolute;top:6px;height:12px;border-left:2px solid var(--ink);border-right:2px solid var(--ink);background:linear-gradient(var(--ink),var(--ink)) center/100% 2px no-repeat}
+.dpt{position:absolute;top:5px;width:14px;height:14px;border-radius:50%;background:var(--pine);box-shadow:0 0 0 2px var(--surface);transform:translateX(-50%)}
+.daxis{display:flex;justify-content:space-between;font-size:13px;color:var(--ink-muted);margin-top:2px}
+
+.drivers{background:var(--ground);border:var(--border-w) solid var(--border-soft);border-radius:var(--r-status);padding:var(--s4);display:flex;flex-direction:column;gap:var(--s3)}
+.drow{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:var(--s4);align-items:center}
+.drow p{font-size:16px;line-height:1.45}
+
+.trade{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:17px}
+.basis{font-size:15px;line-height:1.6;color:var(--ink-muted)}
+.decides{display:flex;gap:var(--s3);align-items:center;background:var(--pine-fill);border:var(--border-w) solid var(--pine);border-radius:var(--r-status);padding:var(--s3) var(--s4)}
+.decides p{font-size:19px;font-weight:700}
+
+.cite{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 6px;margin-left:4px;vertical-align:2px;font-family:inherit;font-size:14px;font-weight:700;line-height:1;cursor:pointer;color:var(--pine);background:var(--pine-fill);border:var(--border-w) solid var(--pine);border-radius:var(--r-pill)}
+.cite:hover{background:var(--pine);color:var(--on-pine)}
+
+/* ---------- drawer, modal ---------- */
+.scrim{position:fixed;inset:0;background:var(--scrim);z-index:15}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:var(--drawer-w);max-width:100%;z-index:20;background:var(--surface);border-left:var(--border-w-strong) solid var(--pine);overflow-y:auto;padding:var(--s5);display:flex;flex-direction:column;gap:var(--s4)}
+.drawer__head{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s3)}
+.meta{display:grid;grid-template-columns:auto 1fr;gap:6px var(--s4);font-size:16px}
+.meta dt{font-weight:700;color:var(--ink-muted)}.meta dd{margin:0}
+.passage{background:var(--ground);border:var(--border-w) solid var(--border-soft);border-radius:var(--r-status);padding:var(--s4);font-size:17px;line-height:1.6;margin:0}
+.modalwrap{position:fixed;inset:0;background:var(--scrim);display:flex;align-items:center;justify-content:center;padding:var(--s4);z-index:30}
+.modal{width:100%;max-width:560px;background:var(--surface);border:var(--border-w) solid var(--border-soft);border-radius:var(--r-card);padding:var(--s6);display:flex;flex-direction:column;gap:var(--s4)}
+
+/* ---------- notices, stages ---------- */
+.msgnotice{max-width:920px;border-radius:var(--r-card);border:var(--border-w) solid;padding:var(--s5);display:flex;gap:14px;align-items:flex-start}
+.msgnotice__word{font-size:20px;font-weight:700}
+.msgnotice p{font-size:18px;line-height:1.5}
+.msgnotice--check{background:var(--check-fill);border-color:var(--check-line)}.msgnotice--check .msgnotice__word{color:var(--check-ink)}
+.msgnotice--info{background:var(--pine-fill);border-color:var(--pine)}.msgnotice--info .msgnotice__word{color:var(--pine)}
+.msgnotice--plain{background:var(--surface);border-color:var(--border-strong)}
+.emergency{max-width:920px;border:var(--border-w-strong) solid var(--danger-line);border-radius:var(--r-card);overflow:hidden}
+.emergency__bar{background:var(--danger-line);color:var(--on-danger);padding:var(--s3) var(--s5);display:flex;align-items:center;gap:var(--s3);font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em}
+.emergency__body{background:var(--danger-fill);padding:var(--s5);display:flex;flex-direction:column;gap:var(--s3)}
+.emergency__lead{font-size:24px;font-weight:700;line-height:1.35}
+.stages{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--s2)}
+.stage{display:flex;align-items:center;gap:var(--s3);padding:var(--s3);border-radius:var(--r-status);border:var(--border-w) solid var(--border-soft);background:var(--surface)}
+.stage__name{flex:1 1 auto;font-size:17px;font-weight:700}
+.stage__state{display:inline-flex;align-items:center;gap:6px;font-size:15px;font-weight:700;border-radius:var(--r-pill);padding:3px 10px;border:var(--border-w) solid;white-space:nowrap}
+.stage--done{background:var(--safe-fill);border-color:var(--safe-line)}
+.stage--done .stage__state{background:var(--surface);border-color:var(--safe-line);color:var(--safe-ink)}
+.stage--now{border-color:var(--pine);border-width:var(--border-w-strong);background:var(--pine-fill)}
+.stage--now .stage__state{background:var(--surface);border-color:var(--pine);color:var(--pine)}
+.stage--wait .stage__name{color:var(--ink-muted)}
+.stage--wait .stage__state{background:var(--ground);border-color:var(--border-strong);color:var(--ink-muted)}
+.spin{animation:spin 1.1s linear infinite;transform-origin:50% 50%}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+
+/* ---------- auth ---------- */
+body.auth{min-height:100dvh;display:flex;flex-direction:column}
+.authmain{flex:1 0 auto;width:100%;max-width:680px;margin:0 auto;padding:var(--s7)}
+.authmain--wide{max-width:1180px}
+.col{display:flex;flex-direction:column;gap:var(--s5)}
+.stepnote{font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-muted)}
+.lede{color:var(--ink-muted)}
+.input{height:var(--h-input);width:100%;padding:0 var(--s4);font-family:inherit;font-size:19px;color:var(--ink);background:var(--surface);border:var(--border-w) solid var(--border-strong);border-radius:var(--r-control)}
+.input--otp{width:260px;max-width:100%;font-size:26px;font-weight:700;letter-spacing:0.3em}
+.input[aria-invalid="true"]{border-color:var(--danger-line);border-width:var(--border-w-strong)}
+.alert{border:var(--border-w) solid;border-radius:var(--r-status);padding:var(--s4);display:flex;gap:14px;align-items:flex-start}
+.alert__word{font-size:19px;font-weight:700}
+.alert p{font-size:17px;line-height:1.5}
+.alert--danger{background:var(--danger-fill);border-color:var(--danger-line)}.alert--danger .alert__word{color:var(--danger-ink)}
+.alert--check{background:var(--check-fill);border-color:var(--check-line)}.alert--check .alert__word{color:var(--check-ink)}
+.list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:var(--s3)}
+.list li{display:flex;gap:var(--s3);align-items:flex-start;font-size:17px;line-height:1.5}
+.twocol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s5)}
+.qr{width:220px;height:220px;max-width:100%;border:var(--border-w) dashed var(--border-strong);border-radius:var(--r-control);background:var(--ground);color:var(--ink-muted);font-size:14px;letter-spacing:0.1em;display:flex;align-items:center;justify-content:center;text-align:center;padding:var(--s3)}
+.key{display:flex;flex-wrap:wrap;gap:var(--s2);font-family:var(--font-mono);font-size:20px;font-weight:700;letter-spacing:0.08em}
+.key span{background:var(--ground);border:var(--border-w) solid var(--border-soft);border-radius:var(--r-badge);padding:6px 10px}
+.steps{margin:0;padding-left:26px;display:flex;flex-direction:column;gap:var(--s2);font-size:17px}
+.checkrow{display:flex;align-items:flex-start;gap:var(--s3);min-height:44px;padding:var(--s3);border:var(--border-w) solid var(--border-strong);border-radius:var(--r-control);background:var(--surface)}
+.checkrow input{width:26px;height:26px;margin:2px 0 0;accent-color:var(--pine);flex-shrink:0}
+.checkrow label{font-size:18px;font-weight:700}
+
+/* ---------- Investigate ---------- */
+.searchbox{display:flex;gap:var(--s3);flex-wrap:wrap}
+.searchbox .input{flex:1 1 320px}
+.chips{display:flex;flex-wrap:wrap;gap:var(--s2)}
+.invgrid{display:grid;grid-template-columns:280px minmax(0,1fr);gap:var(--s5);align-items:start}
+.srclist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--s3)}
+.srclist li{display:flex;flex-direction:column;gap:4px;font-size:15px;line-height:1.45;padding-bottom:var(--s3);border-bottom:1px solid var(--border-soft)}
+.state{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:14px}
+.result{display:flex;flex-direction:column;gap:var(--s3)}
+.result__num{display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:30px;border-radius:var(--r-pill);background:var(--pine-fill);border:var(--border-w) solid var(--pine);color:var(--pine);font-weight:700;font-size:15px}
+.sidebox summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;min-height:44px}
+.sidebox summary::-webkit-details-marker{display:none}
+.sidebox .chev{display:none}
+
+/* ---------- Analysis ---------- */
+.rtable{width:100%;border-collapse:collapse;font-size:15px}
+.rtable th,.rtable td{text-align:left;padding:10px 8px;vertical-align:top;border-bottom:var(--border-w) solid var(--border-soft)}
+.rtable thead th{font-size:13px;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-muted);line-height:1.3}
+.rtable tbody th{font-size:16px}
+.rtable .ci{display:block;font-size:13px;color:var(--ink-muted);white-space:nowrap}
+.charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s5)}
+.chart{display:flex;flex-direction:column;gap:var(--s3)}
+.chart__sub{font-size:15px;color:var(--ink-muted);line-height:1.45}
+.crow{display:grid;grid-template-columns:130px minmax(0,1fr) 128px;gap:var(--s3);align-items:center}
+.crow__label{font-size:15px;font-weight:700}
+.crow__val{font-size:14px;color:var(--ink);text-align:right;white-space:nowrap}
+.caxis{display:grid;grid-template-columns:130px minmax(0,1fr) 128px;gap:var(--s3)}
+.caxis span:nth-child(2){display:flex;justify-content:space-between;font-size:13px;color:var(--ink-muted)}
+.tview summary{cursor:pointer;font-weight:700;font-size:15px;min-height:44px;display:flex;align-items:center;color:var(--pine)}
+.tview table{border-collapse:collapse;font-size:14px;width:100%}
+.tview th,.tview td{text-align:left;padding:6px;border-bottom:1px solid var(--border-soft)}
+
+/* ---------- Guide ---------- */
+.flow{display:flex;align-items:stretch;gap:var(--s2);list-style:none;margin:0;padding:0}
+.flow li{flex:1 1 0;display:flex;align-items:center;gap:var(--s2)}
+.flow__box{flex:1 1 auto;height:100%;background:var(--surface);border:var(--border-w) solid var(--border-soft);border-radius:var(--r-status);padding:var(--s3);display:flex;flex-direction:column;gap:4px}
+.flow__box--end{background:var(--pine-fill);border-color:var(--pine)}
+.flow__n{font-size:13px;font-weight:700;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.06em}
+.flow__name{font-size:17px;font-weight:700}
+.flow__desc{font-size:14px;line-height:1.45;color:var(--ink-muted)}
+.flow__arrow{flex-shrink:0;color:var(--ink-muted)}
+.prose p,.prose li{font-size:17px;line-height:1.6}
+.prose ul{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px}
+.toc{display:flex;flex-wrap:wrap;gap:var(--s2)}
+.toc a{min-height:44px;display:inline-flex;align-items:center;padding:0 var(--s3);border:var(--border-w) solid var(--border-soft);border-radius:var(--r-pill);background:var(--surface);font-weight:700;font-size:15px;text-decoration:none}
+
+/* ---------- About ---------- */
+.people{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s3);list-style:none;margin:0;padding:0}
+.person{background:var(--ground);border:var(--border-w) solid var(--border-soft);border-radius:var(--r-status);padding:var(--s4);display:flex;flex-direction:column;gap:4px}
+.person__name{font-size:18px;font-weight:700}
+.person a{font-size:16px;min-height:24px}
+
+/* ================= phone (≤ 900 px; designed at 390) ================= */
+@media (max-width:900px){
+  body{font-size:17px}
+  h1{font-size:28px}h2{font-size:23px}
+  .topbar{padding:var(--s2) var(--s4)}
+  .brand__name{font-size:21px}
+  .topbar__user{display:none}
+  .useline{font-size:12px;padding:5px var(--s4)}
+  .footer{padding:var(--s3) var(--s4);font-size:13px}
+
+  /* tabs become a bottom bar with labels */
+  .tabs{order:10;height:var(--tabbar-h);padding:0;gap:0;border-bottom:0;border-top:var(--border-w) solid var(--border-soft);display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}
+  .tabs a{flex-direction:column;justify-content:center;gap:2px;min-height:0;padding:4px 2px;font-size:12px;line-height:1.15;text-align:center}
+  .tabs a[aria-current="page"]{box-shadow:inset 0 4px 0 var(--pine)}
+  .tabs .tabs__icon{display:block}
+
+  .workspace{flex-direction:column}
+  .panel{width:100%;flex:0 0 auto;max-height:62%;border-right:0;border-bottom:var(--border-w) solid var(--border-soft)}
+  .pd__summary{padding:var(--s2) var(--s4)}
+  .pd__title{font-family:var(--font-body);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--ink-muted)}
+  .pd__head{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .pd__strip{display:block;font-size:15px;font-weight:700;line-height:1.35}
+  .pd__pbadge{display:block;margin-top:4px}
+  .pd__dbadge{display:none}
+  .pd__summary{align-items:flex-start}
+  .composer__box textarea{min-height:58px;font-size:16px;line-height:1.4;padding:4px 2px}
+  .pd__chev{display:block}
+  details[open] > .pd__summary .pd__chev{transform:rotate(180deg)}
+  .panel__body{padding:var(--s4)}
+  .strip{display:none}
+  .thread{padding:var(--s4);gap:var(--s4)}
+  .card{padding:var(--s4);gap:var(--s3)}
+  .composer{padding:10px var(--s4)}
+  .composer__box textarea{font-size:17px}
+  .iconbtn{width:48px;height:48px}
+  .intended-use{font-size:12px}
+  .scards{grid-template-columns:minmax(0,1fr)}
+  .drow{grid-template-columns:minmax(0,1fr)}
+  .finding p{font-size:16px}
+
+  /* tables become one card per row */
+  .options,.options tbody,.rtable,.rtable tbody{display:block;width:100%;min-width:0;table-layout:auto}
+  .options colgroup{display:none}
+  .options thead,.rtable thead{display:none}
+  .options tbody tr,.rtable tbody tr{display:block;border:var(--border-w) solid var(--border-soft);border-radius:var(--r-status);padding:var(--s3);margin-bottom:var(--s3);background:var(--surface)}
+  .options tbody tr.row--excluded{background:var(--row-muted)}
+  .options tbody th,.options tbody td,.rtable tbody th,.rtable tbody td{display:block;border:0;padding:3px 0}
+  .options tbody td[data-label]::before,.rtable tbody td[data-label]::before{content:attr(data-label);display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-muted)}
+  .options .ci,.rtable .ci{display:inline;margin-left:6px;white-space:normal}
+  .options .zero{display:flex}
+  .tablewrap{overflow-x:visible}
+
+  .drawer{top:auto;left:0;width:auto;max-height:80%;border-left:0;border-top:var(--border-w-strong) solid var(--pine);border-radius:var(--r-card) var(--r-card) 0 0}
+  .modal{padding:var(--s5)}
+  .msgnotice{padding:var(--s4)}.msgnotice__word{font-size:18px}.msgnotice p{font-size:16px}
+  .emergency__bar{font-size:17px;padding:var(--s3) var(--s4)}.emergency__body{padding:var(--s4)}.emergency__lead{font-size:20px}
+
+  .authmain{padding:var(--s4)}
+  .twocol{grid-template-columns:minmax(0,1fr)}
+  .doc{padding:var(--s4);gap:var(--s4)}
+  .invgrid{grid-template-columns:minmax(0,1fr)}
+  .sidebox .chev{display:block}
+  .charts{grid-template-columns:minmax(0,1fr)}
+  .crow,.caxis{grid-template-columns:96px minmax(0,1fr)}
+  .crow__val{grid-column:2;text-align:left;margin-top:-6px}
+  .caxis span:nth-child(3){display:none}
+  .flow{flex-direction:column}
+  .flow li{flex-direction:column;align-items:stretch}
+  .flow__arrow{align-self:center;transform:rotate(90deg)}
+  .people{grid-template-columns:minmax(0,1fr)}
+}
+</style>
+</head>
+<body class="app">
+<header class="topbar">
+  <a class="brand" href="17-answer-options-compared.html" aria-label="DiaCausal home"><svg class="icon" style="color:var(--on-pine)" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13h4l2.5-6 4 12 2.5-6h5"/></svg><span class="brand__name">DiaCausal</span></a>
+  <div class="topbar__right">
+    <span class="topbar__user">[USER NAME]</span>
+    <a class="topbar__link" href="01-signin.html">Sign out</a>
+  </div>
+</header>
+<p class="useline">Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.</p>
+<nav class="tabs" aria-label="Main">
+<a href="17-answer-options-compared.html" aria-current="page"><svg class="icon tabs__icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5.5" y="4.5" width="13" height="16.5" rx="2"/><path d="M9 3.5h6v3H9z"/><path d="M9 11h6"/><path d="M9 15h4"/></svg><span>Patient Details</span></a>
+<a href="22-investigate.html"><svg class="icon tabs__icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><span>Investigate</span></a>
+<a href="24-analysis.html"><svg class="icon tabs__icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 20h17"/><path d="M7 20v-6"/><path d="M12 20V6"/><path d="M17 20v-9"/></svg><span>Analysis</span></a>
+<a href="25-guide.html"><svg class="icon tabs__icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg><span>Guide</span></a>
+<a href="26-about.html"><svg class="icon tabs__icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19.5a5.5 5.5 0 0 1 11 0"/><path d="M15.5 5.6a3.2 3.2 0 0 1 0 5.8"/><path d="M17.5 14.4a5.5 5.5 0 0 1 3 5.1"/></svg><span>About</span></a>
+</nav>
+<div class="workspace">
+<aside class="panel" aria-label="Patient details">
+<details class="pd" open data-phone-closed>
+  <summary class="pd__summary">
+    <span class="pd__head"><span class="pd__title">Patient details</span><span class="pd__strip">Adult, 58 y · T2D 6 y · on metformin · HbA1c 8.4% · eGFR 62 · BMI 31.2 · past hypoglycaemia: severe</span><span class="pd__pbadge"><span class="badge badge--example"><svg class="icon" style="color:var(--check-ink)" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><path d="M12 7.6h.01"/></svg> Example data</span></span></span>
+    <span class="pd__end"><span class="pd__dbadge"><span class="badge badge--example"><svg class="icon" style="color:var(--check-ink)" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><path d="M12 7.6h.01"/></svg> Example data</span></span><svg class="icon pd__chev" style="color:var(--ink-muted)" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9.5l6 6 6-6"/></svg></span>
+  </summary>
+  <div class="panel__body">
+    <div class="row"><button class="btn btn--ghost" type="button"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 4v4.6h-4.6"/></svg> New patient</button><span class="field__hint">Clears these details and the conversation.</span></div>
+    <div class="field"><label class="field__label" for="age">Age</label><span class="field__hint" id="age-hint">18 or older.</span><div class="unitbox"><input id="age" name="age" type="text" inputmode="decimal" value="58" placeholder="0" aria-describedby="age-hint"><span class="unitbox__unit">years</span></div></div>
+<div class="field"><label class="field__label" for="dur">Diabetes duration</label><div class="unitbox"><input id="dur" name="dur" type="text" inputmode="decimal" value="6" placeholder="0"><span class="unitbox__unit">years</span></div></div>
+<div class="field"><label class="field__label" for="hba1c">HbA1c</label><div class="unitbox"><input id="hba1c" name="hba1c" type="text" inputmode="decimal" value="8.4" placeholder="0.0"><span class="unitbox__unit">%</span></div></div>
+<div class="field"><label class="field__label" for="egfr">eGFR</label><div class="unitbox"><input id="egfr" name="egfr" type="text" inputmode="decimal" value="62" placeholder="0"><span class="unitbox__unit">mL/min/1.73m²</span></div></div>
+<div class="field"><label class="field__label" for="bmi">BMI</label><div class="unitbox"><input id="bmi" name="bmi" type="text" inputmode="decimal" value="31.2" placeholder="0.0"><span class="unitbox__unit">kg/m²</span></div><div class="bmicat"><span class="bmicat__now">Category: Obese (≥25)</span><span class="bmicat__scale">Asian-Indian cut-offs: normal &lt;23 · overweight 23–24.9 · obese ≥25</span></div></div>
+<div class="field"><span class="field__label" id="chd-lbl">Established heart disease</span><div class="seg" role="radiogroup" aria-labelledby="chd-lbl"><input type="radio" id="chd-yes" name="chd" value="yes" checked><label for="chd-yes"><svg class="tick" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg>Yes</label><input type="radio" id="chd-no" name="chd" value="no"><label for="chd-no"><svg class="tick" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg>No</label></div></div>
+<div class="field"><span class="field__label" id="ckd-lbl">Chronic kidney disease</span><div class="seg" role="radiogroup" aria-labelledby="ckd-lbl"><input type="radio" id="ckd-yes" name="ckd" value="yes"><label for="ckd-yes"><svg class="tick" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg>Yes</label><input type="radio" id="ckd-no" name="ckd" value="no" checked><label for="ckd-no"><svg class="tick" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg>No</label></div></div>
+<div class="field"><span class="field__label" id="hf-lbl">Heart failure</span><div class="seg" role="radiogroup" aria-labelledby="hf-lbl"><input type="radio" id="hf-yes" name="hf" value="yes"><label for="hf-yes"><svg class="tick" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg>Yes</label><input type="radio" id="hf-no" name="hf" value="no" checked><label for="hf-no"><svg class="tick" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg>No</label></div></div>
+<div class="field"><span class="field__label" id="hypo-lbl">Past hypoglycaemia</span><div class="seg" role="radiogroup" aria-labelledby="hypo-lbl"><input type="radio" id="hypo-none" name="hypo" value="none"><label for="hypo-none"><svg class="tick" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg>None</label><input type="radio" id="hypo-mild" name="hypo" value="mild"><label for="hypo-mild"><svg class="tick" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg>Mild</label><input type="radio" id="hypo-severe" name="hypo" value="severe" checked><label for="hypo-severe"><svg class="tick" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg>Severe</label></div></div>
+<div class="field"><label class="field__label" for="budget">Budget for this drug</label><span class="field__hint" id="budget-hint">What the patient can spend each month.</span><div class="unitbox"><span class="unitbox__prefix" aria-hidden="true">₹</span><input id="budget" name="budget" type="text" inputmode="decimal" value="[AMOUNT]" placeholder="[AMOUNT]" aria-describedby="budget-hint"><span class="unitbox__unit">₹ / month</span></div></div>
+  </div>
+</details>
+</aside>
+<div class="chatcol">
+<div class="strip"><p>Adult, 58 y · T2D 6 y · on metformin · HbA1c 8.4% · eGFR 62 · BMI 31.2 · past hypoglycaemia: severe</p><span class="badge badge--example"><svg class="icon" style="color:var(--check-ink)" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><path d="M12 7.6h.01"/></svg> Example data</span></div>
+<main class="thread" aria-label="Conversation">
+<section class="turn"><span class="who">You asked</span><p>Compare the three options for this patient.</p></section>
+<section class="card" aria-labelledby="ans-h">
+  <div class="card__head"><span class="who">DiaCausal answered</span><span class="badge badge--example"><svg class="icon" style="color:var(--check-ink)" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><path d="M12 7.6h.01"/></svg> Example values</span></div>
+  <h2 id="ans-h">Three options compared for this patient</h2>
+
+  <div class="guardrail"><svg class="icon" style="color:var(--ink-muted)" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7.5 3.2v5.6c0 4.6-3.1 8.2-7.5 9.7-4.4-1.5-7.5-5.1-7.5-9.7V6.2z"/><path d="M9.2 12.1l2 2 3.6-3.8"/></svg><p>Safety rules ran first. One of the three options was removed before any estimate was made.</p></div>
+
+  <h3>Safety checks</h3>
+  <div class="scards">
+    <article class="scard scard--safe">
+  <h4>SGLT2 inhibitor</h4>
+  <span class="scard__word"><svg class="icon" style="color:var(--safe-ink)" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.4l2.6 2.6L16 9.6"/></svg> Safe to consider</span>
+  <p>No exclusion rule matched. eGFR 62 is above this rule's kidney threshold.</p>
+  <p class="scard__rule"><span><strong>Rule</strong> R-[ID] · checked on eGFR, type 1 diabetes, past ketoacidosis</span><span><strong>Source</strong> [SOURCE], [VERSION], § [SECTION]<button class="cite" type="button" aria-label="Evidence 3 — open source">3</button></span></p>
+</article>
+    <article class="scard scard--safe">
+  <h4>DPP-4 inhibitor</h4>
+  <span class="scard__word"><svg class="icon" style="color:var(--safe-ink)" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.4l2.6 2.6L16 9.6"/></svg> Safe to consider</span>
+  <p>No exclusion rule matched for this record.</p>
+  <p class="scard__rule"><span><strong>Rule</strong> R-[ID] · checked on past pancreatitis, heart failure</span><span><strong>Source</strong> [SOURCE], [VERSION], § [SECTION]<button class="cite" type="button" aria-label="Evidence 3 — open source">3</button></span></p>
+</article>
+    <article class="scard scard--stop">
+  <h4>Sulfonylurea</h4>
+  <span class="scard__word"><svg class="icon" style="color:var(--danger-ink)" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.3 2.6h7.4l5.7 5.7v7.4l-5.7 5.7H8.3l-5.7-5.7V8.3z"/><path d="M15 9l-6 6"/><path d="M9 9l6 6"/></svg> Do not use</span>
+  <p>Removed before estimation. It is not compared with the others.</p>
+  <p class="scard__rule"><span><strong>Rule</strong> R-[ID] · triggered by past hypoglycaemia: severe</span><span><strong>Source</strong> [SOURCE], [VERSION], § [SECTION]<button class="cite" type="button" aria-label="Evidence 3 — open source">3</button></span></p>
+</article>
+  </div>
+
+  <h3>HbA1c at 6 months</h3>
+  <div class="finding"><svg class="icon" style="color:var(--pine)" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v16"/><path d="M17 4v16"/><path d="M3.5 8H10.5"/><path d="M13.5 15h7"/></svg><p><strong>SGLT2 inhibitor shows more HbA1c lowering than DPP-4 inhibitor for this patient:</strong> difference −0.21 % (95% CI −0.36 to −0.06). The interval excludes zero. This is a difference on HbA1c only.<button class="cite" type="button" aria-label="Evidence 1 — open source">1</button></p></div>
+
+  <div class="tablewrap">
+<table class="options">
+  <caption class="sr-only">Three options compared, example values</caption>
+  <colgroup><col class="c1"><col class="c2"><col class="c3"><col class="c4"><col class="c5"><col class="c6"><col class="c7"></colgroup>
+  <thead><tr>
+    <th scope="col">Option</th>
+    <th scope="col">HbA1c change, 6 months<br><span style="text-transform:none;letter-spacing:0;font-weight:400">dot = estimate · bar = 95% CI · axis −1.6 to 0 %</span></th>
+    <th scope="col">Difference vs DPP-4i</th>
+    <th scope="col">Hypo&shy;glycaemia</th>
+    <th scope="col">Weight, 6 months</th>
+    <th scope="col">Cost</th>
+    <th scope="col">Evidence level</th>
+  </tr></thead>
+  <tbody>
+<tr>
+  <th scope="row">SGLT2 inhibitor<span class="sub">added to metformin</span><span class="mini mini--safe"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.4l2.6 2.6L16 9.6"/></svg> Safe to consider</span><span class="badge badge--pine leadtag"><svg class="icon" style="color:var(--pine)" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v16"/><path d="M17 4v16"/><path d="M3.5 8H10.5"/><path d="M13.5 15h7"/></svg> More HbA1c lowering than DPP-4i</span></th>
+  <td data-label="HbA1c change at 6 months"><span class="num">−1.05 %</span><span class="ci">95% CI −1.22 to −0.88</span><span class="dtrack" role="img" aria-label="SGLT2 inhibitor: −1.05 % (95% CI −1.22 to −0.88), example" title="SGLT2 inhibitor: −1.05 % (95% CI −1.22 to −0.88), example"><span class="dci" style="left:23.75%;width:21.25%"></span><span class="dpt" style="left:34.38%"></span></span></td>
+  <td data-label="vs DPP-4i"><span class="num">−0.21 %</span><span class="ci">95% CI −0.36 to −0.06</span><span class="zero"><svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg> Interval excludes 0</span></td>
+  <td data-label="Hypoglycaemia risk"><span class="level"><svg class="icon" width="30" height="12" viewBox="0 0 31 12" aria-hidden="true"><circle cx="5" cy="6" r="4" fill="currentColor"/><circle cx="16" cy="6" r="4" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="27" cy="6" r="4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg> Low</span></td>
+  <td data-label="Weight change at 6 months"><span class="num">−2.1 kg</span><span class="ci">95% CI −2.6 to −1.6</span></td>
+  <td data-label="Cost">₹[MIN]–[MAX]<span class="ci">per month</span></td>
+  <td data-label="Evidence level"><span class="level"><svg class="icon" width="22" height="18" viewBox="0 0 23 18" aria-hidden="true"><rect x="2" y="11" width="5" height="6" rx="1" fill="currentColor"/><rect x="9" y="7" width="5" height="10" rx="1" fill="currentColor"/><rect x="16.8" y="3.8" width="3.4" height="12.4" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/></svg> Moderate</span></td>
+</tr>
+<tr>
+  <th scope="row">DPP-4 inhibitor<span class="sub">added to metformin</span><span class="mini mini--safe"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.4l2.6 2.6L16 9.6"/></svg> Safe to consider</span></th>
+  <td data-label="HbA1c change at 6 months"><span class="num">−0.84 %</span><span class="ci">95% CI −0.99 to −0.69</span><span class="dtrack" role="img" aria-label="DPP-4 inhibitor: −0.84 % (95% CI −0.99 to −0.69), example" title="DPP-4 inhibitor: −0.84 % (95% CI −0.99 to −0.69), example"><span class="dci" style="left:38.12%;width:18.75%"></span><span class="dpt" style="left:47.50%"></span></span></td>
+  <td data-label="vs DPP-4i"><span class="num">Comparator</span><span class="ci">DPP-4 inhibitor is the reference</span></td>
+  <td data-label="Hypoglycaemia risk"><span class="level"><svg class="icon" width="30" height="12" viewBox="0 0 31 12" aria-hidden="true"><circle cx="5" cy="6" r="4" fill="currentColor"/><circle cx="16" cy="6" r="4" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="27" cy="6" r="4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg> Low</span></td>
+  <td data-label="Weight change at 6 months"><span class="num">−0.2 kg</span><span class="ci">95% CI −0.6 to +0.2</span></td>
+  <td data-label="Cost">₹[MIN]–[MAX]<span class="ci">per month</span></td>
+  <td data-label="Evidence level"><span class="level"><svg class="icon" width="22" height="18" viewBox="0 0 23 18" aria-hidden="true"><rect x="2" y="11" width="5" height="6" rx="1" fill="currentColor"/><rect x="9" y="7" width="5" height="10" rx="1" fill="currentColor"/><rect x="16.8" y="3.8" width="3.4" height="12.4" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/></svg> Moderate</span></td>
+</tr>
+<tr class="row--excluded">
+  <th scope="row">Sulfonylurea<span class="sub">added to metformin</span><span class="mini mini--stop"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.3 2.6h7.4l5.7 5.7v7.4l-5.7 5.7H8.3l-5.7-5.7V8.3z"/><path d="M15 9l-6 6"/><path d="M9 9l6 6"/></svg> Do not use</span></th>
+  <td data-label="HbA1c change at 6 months"><span class="num">Not estimated</span><span class="ci">Removed by rule R-[ID] before estimation</span></td>
+  <td data-label="vs DPP-4i">—</td>
+  <td data-label="Hypoglycaemia risk">—</td>
+  <td data-label="Weight change at 6 months">—</td>
+  <td data-label="Cost">₹[MIN]–[MAX]<span class="ci">per month</span></td>
+  <td data-label="Evidence level"><span class="level"><svg class="icon" width="22" height="18" viewBox="0 0 23 18" aria-hidden="true"><rect x="2.8" y="11.8" width="3.4" height="4.4" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="9.8" y="7.8" width="3.4" height="8.4" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="16.8" y="3.8" width="3.4" height="12.4" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M1 17L22 1" stroke="currentColor" stroke-width="2"/></svg> Not assessed</span></td>
+</tr>
+  </tbody>
+</table>
+</div>
+<p class="legend"><strong>Evidence level</strong> — Moderate: a narrow interval and enough similar patients. Low: a wide interval or few similar patients. Insufficient: no estimate is shown. It is never “High”, because every estimate comes from a synthetic cohort.</p>
+
+  <h3>Trade-offs</h3>
+  <ul class="trade">
+    <li><strong>Weight:</strong> SGLT2 inhibitor −2.1 kg (95% CI −2.6 to −1.6); DPP-4 inhibitor −0.2 kg (95% CI −0.6 to +0.2).<button class="cite" type="button" aria-label="Evidence 1 — open source">1</button></li>
+    <li><strong>Hypoglycaemia:</strong> both remaining options are in the low-risk category.<button class="cite" type="button" aria-label="Evidence 2 — open source">2</button></li>
+    <li><strong>Cost:</strong> compare each option against the patient's budget of ₹[AMOUNT] per month.</li>
+  </ul>
+
+  <div class="drivers">
+  <h3>What drives this estimate</h3>
+  <p class="small muted">Difference between SGLT2 inhibitor and DPP-4 inhibitor for this patient. Top 3 drivers, in HbA1c points.</p>
+  <div class="drow"><p><strong>Higher starting HbA1c (this patient 8.4%):</strong> 0.04 more lowering <span class="muted">(95% CI 0.01 to 0.07)</span></p><div><span class="dtrack" role="img" aria-label="Higher starting HbA1c (this patient 8.4%): 0.04 more lowering (95% CI 0.01 to 0.07), example" title="Higher starting HbA1c (this patient 8.4%): 0.04 more lowering (95% CI 0.01 to 0.07), example"><span class="dzero" style="left:50.00%"></span><span class="dci" style="left:55.00%;width:30.00%"></span><span class="dpt" style="left:70.00%"></span></span></div></div>
+  <div class="drow"><p><strong>eGFR 62 mL/min/1.73m²:</strong> 0.03 less lowering <span class="muted">(95% CI 0.00 to 0.06)</span></p><div><span class="dtrack" role="img" aria-label="eGFR 62 mL/min/1.73m²: 0.03 less lowering (95% CI 0.00 to 0.06), example" title="eGFR 62 mL/min/1.73m²: 0.03 less lowering (95% CI 0.00 to 0.06), example"><span class="dzero" style="left:50.00%"></span><span class="dci" style="left:20.00%;width:30.00%"></span><span class="dpt" style="left:35.00%"></span></span></div></div>
+  <div class="drow"><p><strong>BMI 31.2 kg/m²:</strong> 0.02 more lowering <span class="muted">(95% CI −0.01 to 0.05)</span></p><div><span class="dtrack" role="img" aria-label="BMI 31.2 kg/m²: 0.02 more lowering (95% CI −0.01 to 0.05), example" title="BMI 31.2 kg/m²: 0.02 more lowering (95% CI −0.01 to 0.05), example"><span class="dzero" style="left:50.00%"></span><span class="dci" style="left:45.00%;width:30.00%"></span><span class="dpt" style="left:60.00%"></span></span></div></div>
+  <div class="drow"><span></span><div class="daxis"><span>← less lowering</span><span>0</span><span>more lowering →</span></div></div>
+  <p class="small muted">These show how the estimate changes across patients like this one. They are not causes.</p>
+</div>
+
+  <p class="basis"><strong>Sources cited</strong><br>
+  <button class="cite" type="button" aria-label="Evidence 1 — open source">1</button> DiaCausal causal engine [VERSION], synthetic India-calibrated cohort, params [HASH]<br>
+  <button class="cite" type="button" aria-label="Evidence 2 — open source">2</button> S01 · WHO, Guidelines on second- and third-line medicines and type of insulin for the control of blood glucose levels in non-pregnant adults with diabetes mellitus, 2018, § [SECTION]<br>
+  <button class="cite" type="button" aria-label="Evidence 3 — open source">3</button> [SOURCE] for rules R-[ID], [VERSION], § [SECTION]</p>
+  <div class="decides"><svg class="icon" style="color:var(--pine)" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><path d="M12 7.6h.01"/></svg><p>The clinician decides.</p></div>
+</section>
+</main>
+<form class="composer" action="#" method="post">
+  <div class="composer__box">
+    <label class="sr-only" for="message">Message DiaCausal</label>
+    <textarea id="message" name="message" rows="1" placeholder="Ask about these three options for this patient"></textarea>
+    <button class="iconbtn iconbtn--send" type="submit" aria-label="Send message"><svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19.5V5"/><path d="M5.8 11.2L12 5l6.2 6.2"/></svg></button>
+  </div>
+  <p class="intended-use">Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.</p>
+</form>
+</div>
+</div>
+<div class="scrim"></div>
+<aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="ev-title">
+  <div class="drawer__head">
+    <div class="stack"><span class="who">Evidence 2</span><h2 id="ev-title">WHO guideline on second- and third-line medicines</h2></div>
+    <button class="iconbtn" type="button" aria-label="Close evidence"><svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg></button>
+  </div>
+  <dl class="meta">
+    <dt>Source</dt><dd>S01 · WHO, Guidelines on second- and third-line medicines and type of insulin for the control of blood glucose levels in non-pregnant adults with diabetes mellitus</dd>
+    <dt>Version</dt><dd>2018 · ISBN 978-92-4-155028-4</dd>
+    <dt>Section</dt><dd>§ [SECTION NUMBER AND HEADING]</dd>
+    <dt>Page</dt><dd>[PAGE]</dd>
+    <dt>Licence</dt><dd>[LICENCE, AS RECORDED IN THE LICENCE TABLE]</dd>
+    <dt>Retrieved</dt><dd>[DATE] · index [INDEX VERSION]</dd>
+  </dl>
+  <h3>Retrieved passage</h3>
+  <blockquote class="passage">[PASSAGE TEXT EXACTLY AS STORED IN THE INDEX — QUOTED, NOT PARAPHRASED.]</blockquote>
+  <p class="field__hint">Shown exactly as stored. If it does not support the claim it is attached to, report it.</p>
+  <div class="row"><a class="btn btn--ghost" href="22-investigate.html"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg> Open in Investigate</a><button class="btn btn--ghost" type="button">Report a mismatch</button></div>
+</aside>
+<script>
+/* On a phone, panels marked data-phone-closed start collapsed into the summary strip. */
+if (window.matchMedia('(max-width: 900px)').matches) {
+  document.querySelectorAll('details[data-phone-closed]').forEach(function (d) { d.open = false; });
+}
+</script>
+</body>
+</html>
