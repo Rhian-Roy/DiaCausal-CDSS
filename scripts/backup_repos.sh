@@ -5,8 +5,9 @@
 #
 # Makes ~/DiaCausal-backups/<date>/, runs `git clone --mirror` for each repository,
 # zips each mirror, and copies the zips to Google Drive if Google Drive for desktop
-# is installed. Safe to rerun: an existing mirror for today is refreshed, not
-# re-downloaded. It never deletes anything and never pushes.
+# is installed. Safe to rerun: a second run on the same day makes a new, time-stamped
+# mirror and zip next to the first, so an earlier snapshot is never changed or replaced.
+# It never deletes anything and never pushes.
 set -uo pipefail
 
 REPOS=(
@@ -15,26 +16,25 @@ REPOS=(
 )
 
 DATE="$(date +%F)"
+STAMP="$DATE"
 DEST="$HOME/DiaCausal-backups/$DATE"
 mkdir -p "$DEST"
+# Already backed up today? Give this run its own name instead of touching the earlier one.
+for repo in "${REPOS[@]}"; do
+  if [ -e "$DEST/${repo#*/}.git" ]; then STAMP="$DATE-$(date +%H%M%S)"; break; fi
+done
 echo "Backing up to $DEST"
 
 failed=0
 zips=()
 for repo in "${REPOS[@]}"; do
   name="${repo#*/}"
-  mirror="$DEST/$name.git"
-  if [ -d "$mirror" ]; then
-    echo "- $repo: refreshing today's mirror"
-    git -C "$mirror" remote update --prune || { echo "  FAILED to refresh $repo"; failed=1; continue; }
-  else
-    echo "- $repo: cloning a mirror"
-    git clone --quiet --mirror "https://github.com/$repo.git" "$mirror" \
-      || { echo "  FAILED to clone $repo"; failed=1; continue; }
-  fi
-  zip="$DEST/$name-$DATE.zip"
-  rm -f "$zip"
-  (cd "$DEST" && zip -qr "$zip" "$name.git") || { echo "  FAILED to zip $repo"; failed=1; continue; }
+  if [ "$STAMP" = "$DATE" ]; then mirror_name="$name.git"; else mirror_name="$name-${STAMP#$DATE-}.git"; fi
+  echo "- $repo: cloning a mirror"
+  git clone --quiet --mirror "https://github.com/$repo.git" "$DEST/$mirror_name" \
+    || { echo "  FAILED to clone $repo"; failed=1; continue; }
+  zip="$DEST/$name-$STAMP.zip"
+  (cd "$DEST" && zip -qr "$zip" "$mirror_name") || { echo "  FAILED to zip $repo"; failed=1; continue; }
   echo "  $(du -h "$zip" | cut -f1)  $zip"
   zips+=("$zip")
 done

@@ -11,12 +11,14 @@ for unsupervised clinical use.** That sentence appears on every screen, in every
 - `frontend/` — React + Vite + TypeScript + Tailwind v4 + shadcn/ui (Node 24 LTS)
 - `backend/` — FastAPI + Pydantic v2 on Python 3.12, in its own venv at `backend/.venv`
 - `design/` — the screens to match (`chat.html` / `login.html` hold the exact colours, fonts, spacing)
-- `causal_engine/`, notebooks, `RAG/` — earlier research code; the backend will call into it later
+- `causal_engine/`, notebooks — earlier 2-arm research code, kept as is (legacy); `RAG/` holds
+  `sources.csv`, the licence register. The backend will call `diacausal_engine/` and `diacausal_rag/`
+  instead (see "Not built yet" below)
 
 All commands run from the repo root. The `( ... )` keeps each `cd` inside its own line,
 so a whole block can be pasted at once.
 
-## Setup (once per checkout — `.venv` and `node_modules` are not in git)
+## Setup (once per checkout — `.venv` and `frontend/node_modules` are not in git)
 
 ```bash
 python3.12 scripts/setup.py      # any OS; Windows: py -3.12 scripts\setup.py (see docs/SETUP.md)
@@ -114,7 +116,7 @@ Stages read `ctx.patient`. Never log patient values — only which fields arrive
 loads it (a rule with TODO or no source never fires) and `pipeline/clinical_guardrails.py`
 applies it **before** the causal stage, removing any "do not use" option. Never put a
 clinical number in code, and never let a later stage put a removed option back.
-Check the table with `.venv/bin/python -m app.clinical.check`.
+Check the table with `(cd backend && .venv/bin/python -m app.clinical.check)`.
 
 ## Deployment (built) — see docs/DEPLOY.md and docs/explain/11-deploy.md
 
@@ -171,8 +173,8 @@ Live at https://diacausal.netlify.app. `web/` is a static phone-first PWA; `web/
 mirrors `recommend.py` using `web/model.json` from `python -m diacausal_engine.export_web`, and
 `web/evidence.js` mirrors `diacausal_rag/retrieve.py` using `web/evidence.json` from
 `python -m diacausal_rag.export_web` (rerun after any change; `tests/web` fails if stale).
-Never type a threshold into `web/*.js`; no inline script or style (strict CSP in `netlify.toml` =
-`vercel.json`). Accounts: Supabase project `diacausal` (`supabase/migrations/`, RLS, admin approval,
+Never type a threshold into `web/*.js`; no inline script or style (strict CSP in `web/netlify.toml` =
+`web/vercel.json`). Accounts: Supabase project `diacausal` (`supabase/migrations/`, RLS, admin approval,
 TOTP); `web/auth.js` + `account.js`; Try it and Evidence need an approved account. **Never commit
 the Supabase key**: `web/config.json` stays `"accounts": "off"`; `scripts/web_config.py` writes the
 deploy copy only. Patient values never leave the device. Questions stay on the device unless an approved
