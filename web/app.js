@@ -715,7 +715,7 @@ async function start() {
     fromExample = true;
     pressPreset(i);
     panelChanged(false);
-    compare();
+    $("#thread .compare-btn")?.focus();
   }));
   $("#new-patient").addEventListener("click", newPatient);
   const form = $("#patient");

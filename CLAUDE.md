@@ -175,13 +175,16 @@ mirrors `recommend.py` using `web/model.json` from `python -m diacausal_engine.e
 `python -m diacausal_rag.export_web` (rerun after any change; `tests/web` fails if stale).
 Never type a threshold into `web/*.js`; no inline script or style (strict CSP in `web/netlify.toml` =
 `web/vercel.json`). Accounts: Supabase project `diacausal` (`supabase/migrations/`, RLS, admin approval,
-TOTP); `web/auth.js` + `account.js`; Try it and Evidence need an approved account. **Never commit
+TOTP); `web/auth.js` + `account.js`; Patient Details and Investigate need an approved account. **Never commit
 the Supabase key**: `web/config.json` stays `"accounts": "off"`; `scripts/web_config.py` writes the
-deploy copy only. Patient values never leave the device. Questions stay on the device unless an approved
-user presses "Explain … with Gemini (online)": then only the question + passage IDs go to the Edge
-Function `supabase/functions/explain/` (key = Supabase secret `GEMINI_API_KEY`; docs/GEMINI_SETUP.md).
+deploy copy only. Patient values and questions never leave the device (the Gemini button was removed in
+P07; P08 removes the Edge Function `supabase/functions/explain/` and the rest of Gemini).
 `web/explain.js` mirrors `diacausal_rag/explain.py` (template + citation checker).
-`.venv/bin/python -m pytest tests/web -q` (19 tests, needs Node). Full chat app hosting: docs/HOSTING_CHAT_APP.md.
+Look: `design/screens-v2/` is the only design source (`handoff/HANDOFF.md`); colours, fonts and spacing come
+only from `web/styles/tokens.css` (copied from the handoff); fonts are self-hosted in `web/fonts/` (SIL OFL).
+Tabs: Patient Details, Investigate, Analysis, Guide, About (`#patient-details` …); `#try`, `#evidence`,
+`#results`, `#learn` still work. `.venv/bin/python -m pytest tests/web -q` (24 tests; the two browser tests
+need Node, `e2e/node_modules` and Chromium or Google Chrome). Full chat app hosting: docs/HOSTING_CHAT_APP.md.
 
 ## Not built yet — where each piece goes
 

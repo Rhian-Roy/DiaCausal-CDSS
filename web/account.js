@@ -13,6 +13,7 @@ window.DiaCausalAccount = (function () {
   const WANTED = { try: "Patient Details", evidence: "Investigate" };
   let flash = null; // "mismatch" (screen 02) or "locked" (screen 03), shown on the next sign-in screen
   let busy = false; // a sign-in is in progress: do not redraw half-way through it
+  let lastEmail = ""; // kept after a failed attempt (02), so only the password and code are typed again
 
   const lede = (text) => h("p", { class: "lede" }, text);
   const head = (title, intro, step) => h("div", { class: "stack" }, step ? h("p", { class: "stepnote" }, step) : null, h("h1", {}, title), intro ? lede(intro) : null);
@@ -63,7 +64,7 @@ window.DiaCausalAccount = (function () {
     const mismatch = flash === "mismatch";
     const bad = mismatch ? { "aria-invalid": "true" } : {};
     const fields = [
-      input("email", "Email", { type: "email", autocomplete: "username", inputmode: "email", placeholder: "name@hospital.example", required: true, ...bad }),
+      input("email", "Email", { type: "email", autocomplete: "username", inputmode: "email", placeholder: "name@hospital.example", required: true, value: lastEmail || null, ...bad }),
       input("password", "Password", { type: "password", autocomplete: "current-password", required: true, ...bad }),
       input("otp", "6-digit code", { type: "text", inputmode: "numeric", pattern: "[0-9]{6}", maxlength: "6", autocomplete: "one-time-code",
         placeholder: "000000", class: "input input--otp", ...bad },
@@ -80,6 +81,7 @@ window.DiaCausalAccount = (function () {
       const password = el.password.value;
       const code = el.otp.value.trim();
       if (!email || !password) throw new Error("Enter your email and password.");
+      lastEmail = email;
       AUTH.state.signedOutReason = null;
       flash = null;
       busy = true;
