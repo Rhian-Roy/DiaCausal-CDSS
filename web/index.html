@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>DiaCausal — compare add-ons to metformin</title>
-  <meta name="description" content="DiaCausal compares three drugs added to metformin (SGLT2 inhibitor, DPP-4 inhibitor, sulfonylurea) for one patient using causal inference. Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.">
-  <meta name="theme-color" content="#0e5049">
+  <meta name="description" content="DiaCausal compares three options added to metformin (SGLT2 inhibitor, DPP-4 inhibitor, sulfonylurea) for one patient using causal inference. Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.">
+  <meta name="theme-color" content="#0E5049">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -13,6 +13,9 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="./styles/fonts.css">
+  <link rel="stylesheet" href="./styles/tokens.css">
+  <link rel="stylesheet" href="./styles/screens.css">
   <link rel="stylesheet" href="./styles.css">
   <script src="./vendor/marked.min.js" defer></script>
   <script src="./vendor/supabase.min.js" defer></script>
@@ -23,200 +26,241 @@
   <script src="./app.js" defer></script>
   <script src="./account.js" defer></script>
 </head>
-<body>
-  <header class="top">
-    <p class="intended" role="note">Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.</p>
-    <div class="bar">
-      <a class="brand" href="#try"><span class="brand__mark" aria-hidden="true">D</span><span class="brand__name">DiaCausal</span></a>
-      <span class="bar__right"><span class="bar__tag">Synthetic data · The clinician decides</span>
-        <a class="acct" id="acct" href="#account">Sign in</a></span>
-    </div>
-    <p class="demo" id="demo" role="note" hidden>Local copy: sign-in is switched off here. The public website asks people to sign in.</p>
-  </header>
+<body class="app">
+<header class="topbar">
+  <a class="brand" href="#patient-details" aria-label="DiaCausal home"><svg class="icon c-onpine" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13h4l2.5-6 4 12 2.5-6h5"/></svg><span class="brand__name">DiaCausal</span></a>
+  <div class="topbar__right">
+    <a class="topbar__user" id="acct-name" href="#account" hidden></a>
+    <a class="topbar__link" id="acct" href="#account">Sign in</a>
+  </div>
+</header>
+<p class="useline" role="note">Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.</p>
+<p class="demo" id="demo" role="note" hidden>Local copy: sign-in is switched off here. The public website asks people to sign in.</p>
+<nav class="tabs" aria-label="Main">
+<a href="#patient-details" data-route="patient-details"><svg class="icon tabs__icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5.5" y="4.5" width="13" height="16.5" rx="2"/><path d="M9 3.5h6v3H9z"/><path d="M9 11h6"/><path d="M9 15h4"/></svg><span>Patient Details</span></a>
+<a href="#investigate" data-route="investigate"><svg class="icon tabs__icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><span>Investigate</span></a>
+<a href="#analysis" data-route="analysis"><svg class="icon tabs__icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 20h17"/><path d="M7 20v-6"/><path d="M12 20V6"/><path d="M17 20v-9"/></svg><span>Analysis</span></a>
+<a href="#guide" data-route="guide"><svg class="icon tabs__icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg><span>Guide</span></a>
+<a href="#about" data-route="about"><svg class="icon tabs__icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19.5a5.5 5.5 0 0 1 11 0"/><path d="M15.5 5.6a3.2 3.2 0 0 1 0 5.8"/><path d="M17.5 14.4a5.5 5.5 0 0 1 3 5.1"/></svg><span>About</span></a>
+</nav>
+<div class="views">
 
-  <nav class="tabs" aria-label="Sections">
-    <a href="#try" data-route="try">Try it</a>
-    <a href="#evidence" data-route="evidence">Evidence</a>
-    <a href="#results" data-route="results">Results</a>
-    <a href="#learn" data-route="learn">Learn</a>
-    <a href="#about" data-route="about">About</a>
-  </nav>
+<!-- ───────────── Patient Details (screens 13–16, 20; today's result cards until P24) ───────────── -->
+<section id="view-try" class="view workspace" aria-label="Patient Details">
+<aside class="panel" aria-label="Patient details">
+<details class="pd" id="pd" open>
+  <summary class="pd__summary">
+    <span class="pd__head"><span class="pd__title">Patient details</span><span class="pd__strip" id="pd-strip"></span><span class="pd__pbadge"><span class="badge pd-badge" hidden></span></span></span>
+    <span class="pd__end"><span class="pd__dbadge"><span class="badge pd-badge" hidden></span></span><svg class="icon pd__chev c-muted" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9.5l6 6 6-6"/></svg></span>
+  </summary>
+  <form class="panel__body" id="patient" novalidate>
+<div class="examples"><span class="field__label" id="ex-lbl">Example data</span><div class="chips" role="group" aria-labelledby="ex-lbl"><button type="button" class="chip" data-preset="0">1 · Typical patient</button><button type="button" class="chip" data-preset="1">2 · eGFR 40, past pancreatitis</button><button type="button" class="chip" data-preset="2">3 · Older, past hypoglycaemia</button></div><span class="field__hint">Synthetic example patients. They fill in the details below; then press Compare.</span></div>
+<div class="row"><button class="btn btn--ghost" type="button" id="new-patient"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 4v4.6h-4.6"/></svg> New patient</button><span class="field__hint">Clears these details and the conversation.</span></div>
+<div class="field" data-field="age"><label class="field__label" for="f-age">Age</label><span class="field__hint" id="age-hint">18 or older.</span><div class="unitbox"><input id="f-age" name="age" type="text" inputmode="numeric" autocomplete="off" placeholder="0" aria-describedby="age-hint age-err"><span class="unitbox__unit">years</span></div><div class="fielderror" id="age-err" role="alert" hidden><svg class="icon c-danger" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.6L21.4 20H2.6z"/><path d="M12 10v4.4"/><path d="M12 17.4h.01"/></svg><p><strong></strong></p></div></div>
+<div class="field" data-field="sex"><span class="field__label" id="sex-lbl">Sex</span><div class="seg" role="radiogroup" aria-labelledby="sex-lbl" aria-describedby="sex-err"><input type="radio" id="f-sex-female" name="sex" value="female"><label for="f-sex-female"><svg class="tick" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg>Female</label><input type="radio" id="f-sex-male" name="sex" value="male"><label for="f-sex-male"><svg class="tick" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg>Male</label></div><div class="fielderror" id="sex-err" role="alert" hidden><svg class="icon c-danger" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.6L21.4 20H2.6z"/><path d="M12 10v4.4"/><path d="M12 17.4h.01"/></svg><p><strong></strong></p></div></div>
+<div class="field" data-field="duration_years"><label class="field__label" for="f-duration_years">Diabetes duration</label><div class="unitbox"><input id="f-duration_years" name="duration_years" type="text" inputmode="decimal" autocomplete="off" placeholder="0" aria-describedby="duration_years-err"><span class="unitbox__unit">years</span></div><div class="fielderror" id="duration_years-err" role="alert" hidden><svg class="icon c-danger" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.6L21.4 20H2.6z"/><path d="M12 10v4.4"/><path d="M12 17.4h.01"/></svg><p><strong></strong></p></div></div>
+<div class="field" data-field="hba1c"><label class="field__label" for="f-hba1c">HbA1c</label><div class="unitbox"><input id="f-hba1c" name="hba1c" type="text" inputmode="decimal" autocomplete="off" placeholder="0" aria-describedby="hba1c-err"><span class="unitbox__unit">%</span></div><div class="fielderror" id="hba1c-err" role="alert" hidden><svg class="icon c-danger" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.6L21.4 20H2.6z"/><path d="M12 10v4.4"/><path d="M12 17.4h.01"/></svg><p><strong></strong></p></div></div>
+<div class="field" data-field="egfr"><label class="field__label" for="f-egfr">eGFR</label><div class="unitbox"><input id="f-egfr" name="egfr" type="text" inputmode="numeric" autocomplete="off" placeholder="0" aria-describedby="egfr-err"><span class="unitbox__unit">mL/min/1.73m²</span></div><div class="fielderror" id="egfr-err" role="alert" hidden><svg class="icon c-danger" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.6L21.4 20H2.6z"/><path d="M12 10v4.4"/><path d="M12 17.4h.01"/></svg><p><strong></strong></p></div></div>
+<div class="field" data-field="bmi"><label class="field__label" for="f-bmi">BMI</label><div class="unitbox"><input id="f-bmi" name="bmi" type="text" inputmode="decimal" autocomplete="off" placeholder="0" aria-describedby="bmi-err"><span class="unitbox__unit">kg/m²</span></div><div class="bmicat"><span class="bmicat__now" id="bmi-cat" aria-live="polite"></span><span class="bmicat__scale">Asian-Indian cut-offs: normal &lt;23 · overweight 23–24.9 · obese ≥25</span></div><div class="fielderror" id="bmi-err" role="alert" hidden><svg class="icon c-danger" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.6L21.4 20H2.6z"/><path d="M12 10v4.4"/><path d="M12 17.4h.01"/></svg><p><strong></strong></p></div></div>
+<div class="field" data-field="ascvd"><span class="field__label" id="ascvd-lbl">Established heart disease</span><div class="seg" role="radiogroup" aria-labelledby="ascvd-lbl" aria-describedby="ascvd-err"><input type="radio" id="f-ascvd-yes" name="ascvd" value="yes"><label for="f-ascvd-yes"><svg class="tick" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg>Yes</label><input type="radio" id="f-ascvd-no" name="ascvd" value="no"><label for="f-ascvd-no"><svg class="tick" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg>No</label></div><div class="fielderror" id="ascvd-err" role="alert" hidden><svg class="icon c-danger" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.6L21.4 20H2.6z"/><path d="M12 10v4.4"/><path d="M12 17.4h.01"/></svg><p><strong></strong></p></div></div>
+<div class="field" data-field="hf"><span class="field__label" id="hf-lbl">Heart failure</span><div class="seg" role="radiogroup" aria-labelledby="hf-lbl" aria-describedby="hf-err"><input type="radio" id="f-hf-yes" name="hf" value="yes"><label for="f-hf-yes"><svg class="tick" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg>Yes</label><input type="radio" id="f-hf-no" name="hf" value="no"><label for="f-hf-no"><svg class="tick" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg>No</label></div><div class="fielderror" id="hf-err" role="alert" hidden><svg class="icon c-danger" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.6L21.4 20H2.6z"/><path d="M12 10v4.4"/><path d="M12 17.4h.01"/></svg><p><strong></strong></p></div></div>
+<div class="field" data-field="hypo"><span class="field__label" id="hypo-lbl">Past hypoglycaemia</span><div class="seg" role="radiogroup" aria-labelledby="hypo-lbl" aria-describedby="hypo-err"><input type="radio" id="f-hypo-none" name="hypo" value="none"><label for="f-hypo-none"><svg class="tick" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg>None</label><input type="radio" id="f-hypo-mild" name="hypo" value="mild"><label for="f-hypo-mild"><svg class="tick" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg>Mild</label><input type="radio" id="f-hypo-severe" name="hypo" value="severe"><label for="f-hypo-severe"><svg class="tick" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg>Severe</label></div><div class="fielderror" id="hypo-err" role="alert" hidden><svg class="icon c-danger" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.6L21.4 20H2.6z"/><path d="M12 10v4.4"/><path d="M12 17.4h.01"/></svg><p><strong></strong></p></div></div>
+<div class="field" data-field="dka_history"><span class="field__label" id="dka_history-lbl">Past diabetic ketoacidosis</span><div class="seg" role="radiogroup" aria-labelledby="dka_history-lbl" aria-describedby="dka_history-err"><input type="radio" id="f-dka_history-yes" name="dka_history" value="yes"><label for="f-dka_history-yes"><svg class="tick" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg>Yes</label><input type="radio" id="f-dka_history-no" name="dka_history" value="no"><label for="f-dka_history-no"><svg class="tick" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg>No</label></div><div class="fielderror" id="dka_history-err" role="alert" hidden><svg class="icon c-danger" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.6L21.4 20H2.6z"/><path d="M12 10v4.4"/><path d="M12 17.4h.01"/></svg><p><strong></strong></p></div></div>
+<div class="field" data-field="pancreatitis_history"><span class="field__label" id="pancreatitis_history-lbl">Past pancreatitis</span><div class="seg" role="radiogroup" aria-labelledby="pancreatitis_history-lbl" aria-describedby="pancreatitis_history-err"><input type="radio" id="f-pancreatitis_history-yes" name="pancreatitis_history" value="yes"><label for="f-pancreatitis_history-yes"><svg class="tick" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg>Yes</label><input type="radio" id="f-pancreatitis_history-no" name="pancreatitis_history" value="no"><label for="f-pancreatitis_history-no"><svg class="tick" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg>No</label></div><div class="fielderror" id="pancreatitis_history-err" role="alert" hidden><svg class="icon c-danger" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.6L21.4 20H2.6z"/><path d="M12 10v4.4"/><path d="M12 17.4h.01"/></svg><p><strong></strong></p></div></div>
+<div class="field" data-field="t1d"><span class="field__label" id="t1d-lbl">Type 1 diabetes</span><div class="seg" role="radiogroup" aria-labelledby="t1d-lbl" aria-describedby="t1d-err"><input type="radio" id="f-t1d-yes" name="t1d" value="yes"><label for="f-t1d-yes"><svg class="tick" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg>Yes</label><input type="radio" id="f-t1d-no" name="t1d" value="no"><label for="f-t1d-no"><svg class="tick" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg>No</label></div><div class="fielderror" id="t1d-err" role="alert" hidden><svg class="icon c-danger" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.6L21.4 20H2.6z"/><path d="M12 10v4.4"/><path d="M12 17.4h.01"/></svg><p><strong></strong></p></div></div>
+<div class="field" data-field="low_income"><span class="field__label" id="low_income-lbl">Cost is a major concern</span><div class="seg" role="radiogroup" aria-labelledby="low_income-lbl" aria-describedby="low_income-err"><input type="radio" id="f-low_income-yes" name="low_income" value="yes"><label for="f-low_income-yes"><svg class="tick" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg>Yes</label><input type="radio" id="f-low_income-no" name="low_income" value="no"><label for="f-low_income-no"><svg class="tick" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.8l4.6 4.6L19.5 7"/></svg>No</label></div><div class="fielderror" id="low_income-err" role="alert" hidden><svg class="icon c-danger" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.6L21.4 20H2.6z"/><path d="M12 10v4.4"/><path d="M12 17.4h.01"/></svg><p><strong></strong></p></div></div>
+<div class="field" data-field="budget"><label class="field__label" for="f-budget">Budget for this drug</label><span class="field__hint" id="budget-hint">What the patient can spend each month. Prices are compared only once they are verified; today every price shows as “price unavailable”.</span><div class="unitbox"><span class="unitbox__prefix" aria-hidden="true">₹</span><input id="f-budget" name="budget" type="text" inputmode="decimal" autocomplete="off" placeholder="0" aria-describedby="budget-hint"><span class="unitbox__unit">₹ / month</span></div></div>
+  </form>
+</details>
+</aside>
+<div class="chatcol">
+<div class="strip" id="strip" hidden><p id="strip-text"></p><span class="badge pd-badge" hidden></span></div>
+<main class="thread" id="thread" aria-label="Conversation" aria-live="polite"></main>
+<form class="composer" id="composer" novalidate>
+  <div class="composer__box">
+    <label class="sr-only" for="message">Message DiaCausal</label>
+    <textarea id="message" name="message" rows="1" maxlength="300" placeholder="Ask about these three options for this patient"></textarea>
+    <button class="iconbtn iconbtn--send" type="submit" aria-label="Send message"><svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19.5V5"/><path d="M5.8 11.2L12 5l6.2 6.2"/></svg></button>
+  </div>
+  <p class="intended-use">Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.</p>
+</form>
+</div>
+</section>
 
-  <main id="main">
-    <!-- ───────────── Try it ───────────── -->
-    <section id="view-try" class="view" aria-labelledby="try-h">
-      <h1 id="try-h">Which add-on to metformin, for this patient?</h1>
-      <p class="lead">For an adult with type 2 diabetes already on metformin: each option's expected
-        <strong>6-month change in HbA1c</strong> with a <strong>95% range</strong>, after cited safety rules run first.</p>
+<!-- ───────────── Investigate (today's evidence search until P27 builds 22/23) ───────────── -->
+<section id="view-evidence" class="view docmain" aria-labelledby="ev-h" hidden>
+<div class="doc">
+  <div class="stack"><h1 id="ev-h">Investigate</h1>
+    <p class="lede">Search the licence-cleared sources. DiaCausal shows the passages as stored, with their citation, and
+      quotes the sentences that answer the question. It never invents an answer and never shows doses. Your question stays on this device.</p></div>
+  <form id="ask" class="searchbox" role="search">
+    <label class="sr-only" for="q">Question</label>
+    <input class="input" id="q" name="q" type="search" enterkeyhint="search" autocomplete="off" maxlength="300" placeholder="e.g. Can metformin be used with reduced kidney function?">
+    <button type="submit" class="btn btn--primary">Search the evidence</button>
+  </form>
+  <div class="chips" role="group" aria-label="Example questions">
+    <button type="button" class="chip" data-ask="Can metformin be used with reduced kidney function (eGFR)?">Metformin and kidney function</button>
+    <button type="button" class="chip" data-ask="When should metformin be stopped before contrast imaging?">Contrast imaging</button>
+    <button type="button" class="chip" data-ask="lactic acidosis risk">Lactic acidosis</button>
+    <button type="button" class="chip" data-ask="What is the WHO second-line treatment after metformin?">WHO second-line</button>
+    <button type="button" class="chip" data-ask="Is ketoacidosis a risk with SGLT2 inhibitors?">SGLT2i and ketoacidosis</button>
+    <button type="button" class="chip" data-ask="Do saxagliptin and alogliptin increase the risk of heart failure?">Gliptins and heart failure</button>
+    <button type="button" class="chip" data-ask="How much does glimepiride cost in India?">Not in the sources</button>
+  </div>
+  <div id="ev-out" class="stack" aria-live="polite"></div>
+  <details class="card card--flat">
+    <summary>How the evidence search works</summary>
+    <ol class="steps">
+      <li><strong>Licence gate.</strong> Only sources whose licence allows copying, confirmed by a team member, are read.</li>
+      <li><strong>Passages.</strong> Each document is cut into passages of about 400 words that never cross a section, each labelled with source, version, section and page.</li>
+      <li><strong>Two searches.</strong> BM25 finds exact words (“eGFR”); a vector search finds similar wording (TF-IDF today).</li>
+      <li><strong>Fusion.</strong> Reciprocal rank fusion merges the two rankings; the best 5 passages are kept.</li>
+      <li><strong>Abstain or cite.</strong> If nothing matches well enough the answer is “insufficient evidence”; passages with dosing text are withheld.</li>
+      <li><strong>Explain.</strong> The best-matching sentences are quoted with their passage numbers.</li>
+    </ol>
+  </details>
+  <section class="card card--flat"><h2>Sources in the search</h2>
+    <div class="scroll" id="ev-sources"></div></section>
+</div>
+<footer class="footer"><p>Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.</p></footer>
+</section>
 
-      <div class="presets" role="group" aria-label="Preset patients">
-        <button type="button" class="chip" data-preset="0">1 · Typical patient</button>
-        <button type="button" class="chip" data-preset="1">2 · eGFR 40, past pancreatitis</button>
-        <button type="button" class="chip" data-preset="2">3 · Older, past hypoglycaemia</button>
-      </div>
+<!-- ───────────── Analysis (today's benchmark until P27 builds 24) ───────────── -->
+<section id="view-results" class="view docmain" aria-labelledby="res-h" hidden>
+<div class="doc">
+  <div class="stack"><h1 id="res-h">Analysis</h1>
+    <p class="lede">Does the method work? Synthetic benchmark: the true effects are planted, so the estimates can be checked.</p>
+    <p class="lede" id="res-lead"></p></div>
+  <div class="tiles" id="tiles"></div>
+  <section class="card card--flat"><h2>Average effects: bias and 95% coverage</h2><div class="scroll" id="res-table"></div></section>
+  <section class="card card--flat"><h2>Refutation tests</h2><div class="scroll" id="ref-table"></div></section>
+  <div id="figures" class="stack"></div>
+</div>
+<footer class="footer"><p>Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.</p></footer>
+</section>
 
-      <form id="patient" class="card form" novalidate>
-        <h2>Patient details</h2>
-        <div class="grid">
-          <label>Age <span class="unit">years</span>
-            <input name="age" type="number" inputmode="numeric" step="1" required></label>
-          <fieldset class="seg"><legend>Sex</legend>
-            <label><input type="radio" name="sex" value="female"> Female</label>
-            <label><input type="radio" name="sex" value="male"> Male</label>
-          </fieldset>
-          <label>Diabetes duration <span class="unit">years</span>
-            <input name="duration_years" type="number" inputmode="decimal" step="0.5" required></label>
-          <label>HbA1c <span class="unit">%</span>
-            <input name="hba1c" type="number" inputmode="decimal" step="0.1" required></label>
-          <label>eGFR <span class="unit">mL/min/1.73m²</span>
-            <input name="egfr" type="number" inputmode="numeric" step="1" required></label>
-          <label>BMI <span class="unit">kg/m²</span>
-            <input name="bmi" type="number" inputmode="decimal" step="0.1" required>
-            <span class="hint" id="bmi-cat" aria-live="polite"></span></label>
-        </div>
-        <fieldset class="flags"><legend>History</legend>
-          <label><input type="checkbox" name="ascvd"> Established heart disease (ASCVD)</label>
-          <label><input type="checkbox" name="hf"> Heart failure</label>
-          <label><input type="checkbox" name="hypo_history"> Past hypoglycaemia</label>
-          <label><input type="checkbox" name="dka_history"> Past diabetic ketoacidosis</label>
-          <label><input type="checkbox" name="pancreatitis_history"> Past pancreatitis</label>
-          <label><input type="checkbox" name="t1d"> Type 1 diabetes</label>
-          <label><input type="checkbox" name="low_income"> Cost is a major concern</label>
-        </fieldset>
-        <p class="errors" id="errors" role="alert" hidden></p>
-        <button type="submit" class="primary">Compare the three options</button>
-      </form>
+<!-- ───────────── Guide (screen 25) ───────────── -->
+<section id="view-guide" class="view docmain" aria-labelledby="guide-h" hidden>
+<div class="doc">
+<div class="stack"><h1 id="guide-h">Guide</h1><p class="lede">What DiaCausal is for, how it works, and where it stops.</p></div>
+<nav class="toc" aria-label="On this page">
+  <a href="#guide" data-jump="g-intro">Intro</a><a href="#guide" data-jump="g-problem">Problem statement</a><a href="#guide" data-jump="g-solution">Solution</a><a href="#guide" data-jump="g-workflow">Workflow</a><a href="#guide" data-jump="g-cautions">Cautions</a><a href="#guide" data-jump="g-limits">Limitations</a><a href="#guide" data-jump="g-advantages">Advantages</a><a href="#guide" data-jump="g-methods">Methods</a>
+</nav>
+<section class="card card--flat prose" id="g-intro"><h2>Intro</h2>
+  <p>DiaCausal is a decision-support research prototype for one decision: an adult with type 2 diabetes is already taking metformin, their HbA1c is still above target, and the doctor is choosing a second medicine. It compares three options — an SGLT2 inhibitor, a DPP-4 inhibitor and a sulfonylurea — for that one patient.</p>
+</section>
+<section class="card card--flat prose" id="g-problem"><h2>Problem statement</h2>
+  <p>Average results from trials do not say how a particular patient is likely to respond, and looking at which patients did well on which drug in routine records mixes up the effect of the drug with the reasons it was chosen. A tool that simply predicts “who does well” can therefore point the wrong way. It also needs to show how sure it is and where its statements come from.</p>
+</section>
+<section class="card card--flat prose" id="g-solution"><h2>Solution</h2>
+  <ul>
+    <li><strong>Safety rules first.</strong> Cited rules remove options that are unsafe for this patient before anything is estimated.</li>
+    <li><strong>Causal estimate.</strong> A causal model estimates each remaining option's 6-month HbA1c change for this patient, with a 95% interval, correcting for why patients received each drug.</li>
+    <li><strong>Evidence.</strong> Passages from licence-cleared sources are retrieved and cited with source, version and section.</li>
+    <li><strong>Abstain when unsure.</strong> If the patient is unlike anyone the model has seen, it says “insufficient evidence” instead of guessing.</li>
+  </ul>
+</section>
+<section class="card card--flat" id="g-workflow"><h2>Workflow</h2>
+  <ol class="flow">
+    <li><div class="flow__box"><span class="flow__n">Step 1</span><span class="flow__name">Patient</span><span class="flow__desc">Age, duration, HbA1c, eGFR, BMI, history, budget.</span></div><svg class="icon flow__arrow" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></li>
+    <li><div class="flow__box"><span class="flow__n">Step 2</span><span class="flow__name">Safety rules</span><span class="flow__desc">Cited rules remove unsafe options first.</span></div><svg class="icon flow__arrow" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></li>
+    <li><div class="flow__box"><span class="flow__n">Step 3</span><span class="flow__name">Causal estimate</span><span class="flow__desc">6-month HbA1c change per option, with a 95% interval.</span></div><svg class="icon flow__arrow" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></li>
+    <li><div class="flow__box"><span class="flow__n">Step 4</span><span class="flow__name">Evidence</span><span class="flow__desc">Cited passages from licence-cleared sources.</span></div><svg class="icon flow__arrow" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></li>
+    <li><div class="flow__box flow__box--end"><span class="flow__n">Step 5</span><span class="flow__name">Clinician decides</span><span class="flow__desc">DiaCausal shows the comparison. You choose.</span></div></li>
+  </ol>
+</section>
+<section class="card card--flat prose" id="g-cautions"><h2>Cautions</h2>
+  <ul>
+    <li>Decision support only. DiaCausal never chooses for you.</li>
+    <li>Check every value in the patient details before comparing. A typing error changes the estimate.</li>
+    <li>Do not type names, Aadhaar, phone, PAN or email.</li>
+    <li>In an emergency, follow your emergency protocol. DiaCausal will not answer.</li>
+    <li>Doses are never shown. Use the product label and your formulary.</li>
+  </ul>
+</section>
+<section class="card card--flat prose" id="g-limits"><h2>Limitations</h2>
+  <ul>
+    <li>All estimates come from a synthetic India-calibrated cohort. They have not been validated on real patients.</li>
+    <li>Only three options and one primary outcome (6-month HbA1c), with hypoglycaemia risk, weight change and monthly cost as secondary measures.</li>
+    <li>The evidence search covers a small set of licence-cleared sources (<span id="guide-passages">a few dozen</span> passages).</li>
+    <li>Evidence level is never “High”, because the data are synthetic.</li>
+    <li>Not covered: type 1 diabetes, pregnancy, under-18s, starting insulin.</li>
+  </ul>
+</section>
+<section class="card card--flat prose" id="g-advantages"><h2>Advantages</h2>
+  <ul>
+    <li>Unsafe options are removed by cited, deterministic rules — not by a language model.</li>
+    <li>Every estimate carries a 95% interval, and the tool withholds an answer rather than guess.</li>
+    <li>Every clinical statement links to its source, version and section.</li>
+    <li>Every request is logged and versioned, without patient values in the log.</li>
+    <li>Works on a desktop monitor and on a phone.</li>
+  </ul>
+</section>
+<details class="card card--flat methods" id="g-methods">
+  <summary>Methods (for reviewers)</summary>
+  <div class="chips" role="group" aria-label="Documents">
+    <button type="button" class="chip" data-doc="causal-engine.md">Every idea, explained simply</button>
+    <button type="button" class="chip" data-doc="results-summary.md">Results in plain English</button>
+  </div>
+  <article class="mdoc" id="doc"></article>
+</details>
+</div>
+<footer class="footer"><p>Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.</p></footer>
+</section>
 
-      <div id="out" aria-live="polite"></div>
+<!-- ───────────── About (screen 26) ───────────── -->
+<section id="view-about" class="view docmain" aria-labelledby="about-h" hidden>
+<div class="doc">
+<div class="stack"><h1 id="about-h">About</h1></div>
+<section class="card card--flat"><h2>Team</h2>
+  <p class="muted">Group 28 · B.Tech in Computer Engineering, FCRIT (Fr. C. Rodrigues Institute of Technology, Vashi) · 2026–27. Guide: Mr. Rahul Jadhav.</p>
+  <ul class="people"><li class="person"><span class="person__name">Pratham Pawar</span></li><li class="person"><span class="person__name">Graceton Santhmayor</span></li><li class="person"><span class="person__name">Rhian Roy Kuttikadan</span></li><li class="person"><span class="person__name">Advik Saxena</span></li></ul>
+</section>
+<section class="card card--flat"><h2>Guide</h2>
+  <ul class="people"><li class="person"><span class="person__name">Mr. Rahul Jadhav</span><span class="muted">Project guide, Department of Computer Engineering, FCRIT</span></li></ul>
+</section>
+<section class="card card--flat prose"><h2>What it is, and what it is not</h2>
+  <p>A decision-support research prototype. For one adult with type 2 diabetes already on metformin it compares an SGLT2 inhibitor, a DPP-4 inhibitor and a sulfonylurea. It removes unsafe options with cited drug-label rules first, then estimates each remaining option's 6-month HbA1c change with a 95% interval, or says “insufficient evidence”. <strong>The clinician decides.</strong></p>
+  <ul>
+    <li>Not a marketed medical device and not for unsupervised clinical use.</li>
+    <li>Not trained on real patients: every number comes from an India-calibrated <strong>synthetic</strong> cohort.</li>
+    <li>Never shows drug doses.</li>
+  </ul>
+</section>
+<section class="card card--flat prose"><h2>Your privacy and accounts</h2>
+  <p>Everything is calculated <strong>on this device</strong>. The patient details and questions you type are not sent anywhere or stored.</p>
+  <p>Anyone can ask for an account. Each person sets up an authenticator app, and the team's admin approves the account before <strong>Patient Details</strong> and <strong>Investigate</strong> open. The account service (Supabase, Mumbai region) keeps only your name, email, role and approval date. Analysis, Guide and About are open to all.</p>
+</section>
+<section class="card card--flat prose"><h2>Use it like an app on your phone</h2>
+  <ol class="steps">
+    <li>Open this page in <strong>Safari</strong> (iPhone) or <strong>Chrome</strong> (Android).</li>
+    <li>Tap <strong>Share</strong> (iPhone) or the ⋮ menu (Android).</li>
+    <li>Choose <strong>Add to Home Screen</strong>, then <strong>Add</strong>.</li>
+  </ol>
+  <p>It then opens full-screen from its icon and keeps working without internet.</p>
+  <div class="row"><button type="button" class="btn btn--primary" id="share">Share this website</button></div>
+  <figure class="qrfig"><img src="./icons/qr.png" alt="QR code linking to this website" width="200" height="200">
+    <figcaption class="field__hint">Scan with any phone camera to open DiaCausal.</figcaption></figure>
+  <p>Code and documentation: <a href="https://github.com/Rhian-Roy/DiaCausal-CDSS" rel="noopener">github.com/Rhian-Roy/DiaCausal-CDSS</a></p>
+</section>
+<p class="field__hint" id="versions"></p>
+</div>
+<footer class="footer"><p>Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.</p></footer>
+</section>
 
-      <details class="card why">
-        <summary>Why causal? (the worked example)</summary>
-        <p>In old records doctors gave different drugs to different patients, so a plain comparison is unfair.</p>
-        <div class="scroll"><table>
-          <thead><tr><th>Group</th><th>Got SGLT2i</th><th>Got sulfonylurea</th><th>Difference</th></tr></thead>
-          <tbody>
-            <tr><td>High starting HbA1c</td><td>300 patients, −1.2</td><td>100 patients, −1.0</td><td>−0.2</td></tr>
-            <tr><td>Lower starting HbA1c</td><td>100 patients, −0.6</td><td>300 patients, −0.5</td><td>−0.1</td></tr>
-            <tr><td>Everyone pooled (naive)</td><td>−1.05</td><td>−0.625</td><td><strong>−0.425</strong></td></tr>
-          </tbody>
-        </table></div>
-        <p>Like with like, weighting both groups equally: 0.5 × (−0.2) + 0.5 × (−0.1) = <strong>−0.15</strong>.
-          The naive answer is about three times too big, only because sicker patients got SGLT2i more often
-          (confounding by indication). DiaCausal corrects this with propensity weighting and doubly robust
-          estimation, and says “insufficient evidence” when too few similar patients got an option.
-          <em>Illustrative numbers.</em></p>
-      </details>
-    </section>
+<!-- ───────────── Account: sign in (01–03), authenticator (06), intended use (07), and the rest ───────────── -->
+<section id="view-account" class="view docmain" hidden>
+<main class="authmain" id="account-main" aria-live="polite"></main>
+<footer class="footer"><p>Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.</p></footer>
+</section>
+</div>
 
-    <!-- ───────────── Evidence (RAG) ───────────── -->
-    <section id="view-evidence" class="view" aria-labelledby="ev-h" hidden>
-      <h1 id="ev-h">Evidence from licence-cleared sources</h1>
-      <p class="lead">The <strong>RAG</strong> part of DiaCausal: it finds the passages of approved documents that best
-        answer a question and shows each one with its citation, then quotes the sentences that answer it. It never
-        invents an answer and never shows doses. Your question stays on this device unless you press
-        “Explain in plain words with Gemini (online)”.</p>
-      <form id="ask" class="card form" role="search">
-        <label>Question <input name="q" type="search" enterkeyhint="search" autocomplete="off" maxlength="300"
-          placeholder="e.g. Can metformin be used with reduced kidney function?"></label>
-        <button type="submit" class="primary">Search the evidence</button>
-      </form>
-      <div class="presets" role="group" aria-label="Example questions">
-        <button type="button" class="chip" data-ask="Can metformin be used with reduced kidney function (eGFR)?">Metformin and kidney function</button>
-        <button type="button" class="chip" data-ask="When should metformin be stopped before contrast imaging?">Contrast imaging</button>
-        <button type="button" class="chip" data-ask="lactic acidosis risk">Lactic acidosis</button>
-        <button type="button" class="chip" data-ask="What is the WHO second-line treatment after metformin?">WHO second-line</button>
-        <button type="button" class="chip" data-ask="Is ketoacidosis a risk with SGLT2 inhibitors?">SGLT2i and ketoacidosis</button>
-        <button type="button" class="chip" data-ask="Do saxagliptin and alogliptin increase the risk of heart failure?">Gliptins and heart failure</button>
-        <button type="button" class="chip" data-ask="How much does glimepiride cost in India?">Not in the sources</button>
-      </div>
-      <div id="ev-out" aria-live="polite"></div>
-      <details class="card">
-        <summary>How the evidence search (RAG) works</summary>
-        <ol class="steps">
-          <li><strong>Licence gate.</strong> Only sources whose licence allows copying, confirmed by a team member, are read.</li>
-          <li><strong>Chunks.</strong> Each document is cut into passages of about 400 words that never cross a section, each labelled with source, version, section and page.</li>
-          <li><strong>Two searches.</strong> BM25 finds exact words (“eGFR”); a vector search finds similar wording (TF-IDF today, a medical embedding model in October).</li>
-          <li><strong>Fusion.</strong> Reciprocal rank fusion merges the two rankings; the best 5 passages are kept.</li>
-          <li><strong>Abstain or cite.</strong> If nothing matches well enough the answer is “insufficient evidence”; passages with dose text are withheld.</li>
-          <li><strong>Explain.</strong> The best-matching sentences are quoted with their passage numbers. Approved users can ask Gemini (online, free tier) to reword them; every sentence must cite a passage and match its words, otherwise the quotes stay. On a hospital or viva laptop the same check runs with a local model (Ollama), offline.</li>
-        </ol>
-      </details>
-      <div class="card"><h2>Sources and licences</h2><p class="sub">Only green rows are in the search today.</p>
-        <div class="scroll" id="ev-sources"></div></div>
-    </section>
-
-    <!-- ───────────── Account (sign in, sign up, MFA, approval, admin) ───────────── -->
-    <section id="view-account" class="view" aria-live="polite" hidden></section>
-
-    <!-- ───────────── Results ───────────── -->
-    <section id="view-results" class="view" aria-labelledby="res-h" hidden>
-      <h1 id="res-h">Does the method work? (synthetic benchmark)</h1>
-      <p class="lead" id="res-lead"></p>
-      <div class="tiles" id="tiles"></div>
-      <div class="card"><h2>Average effects: bias and 95% coverage</h2><div class="scroll" id="res-table"></div></div>
-      <div class="card"><h2>Refutation tests</h2><div class="scroll" id="ref-table"></div></div>
-      <div id="figures"></div>
-    </section>
-
-    <!-- ───────────── Learn ───────────── -->
-    <section id="view-learn" class="view" aria-labelledby="learn-h" hidden>
-      <h1 id="learn-h">Learn how it works</h1>
-      <div class="presets" role="group" aria-label="Documents">
-        <button type="button" class="chip" data-doc="causal-engine.md">Every idea, explained simply</button>
-        <button type="button" class="chip" data-doc="results-summary.md">Results in plain English</button>
-      </div>
-      <article class="card doc" id="doc"></article>
-    </section>
-
-    <!-- ───────────── About ───────────── -->
-    <section id="view-about" class="view" aria-labelledby="about-h" hidden>
-      <h1 id="about-h">About DiaCausal</h1>
-      <div class="card">
-        <h2>What it is</h2>
-        <p>A decision-support research prototype. For one adult with type 2 diabetes already on metformin it compares
-          an SGLT2 inhibitor, a DPP-4 inhibitor and a sulfonylurea. First it removes unsafe options with cited
-          drug-label rules. Then it estimates each remaining option's 6-month HbA1c change with a 95% range,
-          or says “insufficient evidence”. <strong>The clinician decides.</strong></p>
-        <h2>What it is not</h2>
-        <ul>
-          <li>Not a marketed medical device and not for unsupervised clinical use.</li>
-          <li>Not trained on real patients: every number comes from an India-calibrated <strong>synthetic</strong> cohort.</li>
-          <li>Never shows drug doses.</li>
-        </ul>
-        <h2>Your privacy</h2>
-        <p>Everything is calculated <strong>on this device</strong>. The patient details and questions you type are never
-          sent anywhere or stored.</p>
-        <h2>Accounts</h2>
-        <p>Anyone can ask for an account. Each person sets up an authenticator app, and the team's admin approves the
-          account before <strong>Try it</strong> and <strong>Evidence</strong> open. The account service (Supabase, Mumbai
-          region) keeps only your name, email, role and approval date. The Results, Learn and About pages are open to all.</p>
-      </div>
-      <div class="card">
-        <h2>Use it like an app on your iPhone</h2>
-        <ol>
-          <li>Open this page in <strong>Safari</strong>.</li>
-          <li>Tap the <strong>Share</strong> button (the square with an arrow).</li>
-          <li>Choose <strong>Add to Home Screen</strong>, then <strong>Add</strong>.</li>
-        </ol>
-        <p>It then opens full-screen from its icon and keeps working without internet. On Android (Chrome), use
-          the ⋮ menu → <strong>Add to Home screen</strong>.</p>
-        <button type="button" class="primary" id="share">Share this website</button>
-        <figure class="qr"><img src="./icons/qr.png" alt="QR code linking to this website" width="220" height="220">
-          <figcaption>Scan with any phone camera to open DiaCausal.</figcaption></figure>
-      </div>
-      <div class="card">
-        <h2>Team</h2>
-        <p>Group 28, B.Tech in Computer Engineering, Fr. C. Rodrigues Institute of Technology, Vashi (2026–27):
-          Pratham Pawar, Graceton Santhmayor, Rhian Roy Kuttikadan, Advik Saxena. Guide: Mr. Rahul Jadhav.</p>
-        <p>Code and documentation: <a href="https://github.com/Rhian-Roy/DiaCausal-CDSS" rel="noopener">github.com/Rhian-Roy/DiaCausal-CDSS</a></p>
-        <p class="muted" id="versions"></p>
-      </div>
-    </section>
-  </main>
-
-  <footer class="foot">
-    <p>Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.</p>
-    <p>Synthetic data only · Decision support only · The clinician decides.</p>
-  </footer>
+<!-- ───────────── Session ending (screen 08) ───────────── -->
+<div class="modalwrap" id="session-modal" hidden><div class="modal" role="dialog" aria-modal="true" aria-labelledby="sess-title" aria-describedby="sess-desc">
+  <div class="row row--top"><svg class="icon c-check" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.3l3.3 2"/></svg><div class="stack">
+    <h2 id="sess-title">You’ll be signed out in 2 minutes</h2>
+    <p id="sess-desc">This session has been idle. When it closes, the conversation on screen is cleared so the next person cannot read it.</p></div></div>
+  <div class="row"><button class="btn btn--primary" type="button" id="sess-stay">Stay signed in</button><button class="btn btn--ghost" type="button" id="sess-out">Sign out now</button></div>
+</div></div>
 </body>
 </html>

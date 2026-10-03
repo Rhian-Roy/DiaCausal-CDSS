@@ -1,4 +1,4 @@
-// iPhone 15-sized browser run of the website (used by tests/web/test_web.py): node phone_check.cjs URL OUTDIR
+// iPhone 15-sized browser run of the website (screens-v2 markup) (used by tests/web/test_web.py): node phone_check.cjs URL OUTDIR
 const { chromium, devices } = require(require('path').join(__dirname, '..', '..', 'e2e', 'node_modules', 'playwright'));
 (async () => {
   const url = process.argv[2], out = process.argv[3];
@@ -10,25 +10,39 @@ const { chromium, devices } = require(require('path').join(__dirname, '..', '..'
   p.on('pageerror', e => errors.push('pageerror: ' + e.message));
   p.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
   await p.goto(url);
-  await p.locator('.opt').first().waitFor({ timeout: 20000 });
+  // screens-v2: the panel starts empty (13); an example fills it (16); Compare runs the six stages (20)
+  await p.getByText('Fill in the patient details to start').waitFor({ timeout: 20000 });
+  const newPatient = async () => {  // on a phone the panel folds after Compare: tap the strip to open it
+    if (!(await p.locator('#pd').evaluate((d) => d.open))) await p.locator('.pd__summary').click();
+    await p.getByRole('button', { name: 'New patient' }).click();
+  };
+  const compareWith = async (name) => {
+    await p.getByRole('button', { name }).click();
+    await p.locator('#thread .compare-btn').last().click();
+  };
+  await compareWith(/Typical patient/);
+  await p.locator('#out .opt').first().waitFor({ timeout: 20000 });
   await p.screenshot({ path: out + '/p0.png', fullPage: true });
   const checks = {};
   checks.intended = await p.getByText('Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.').first().isVisible();
-  await p.getByRole('button', { name: /eGFR 40/ }).click();
-  await p.getByText('EXCLUDED').first().waitFor();
-  checks.excluded = await p.locator('.opt--excluded').count();
-  checks.caution = await p.locator('.opt--caution').count();
+  await newPatient();
+  await compareWith(/eGFR 40/);
+  await p.locator('#out').getByText('EXCLUDED').first().waitFor();
+  checks.excluded = await p.locator('#out .opt--excluded').count();
+  checks.caution = await p.locator('#out .opt--caution').count();
   await p.screenshot({ path: out + '/p1.png', fullPage: true });
-  await p.getByRole('button', { name: /Older/ }).click();
-  await p.getByText('INSUFFICIENT EVIDENCE').first().waitFor();
-  checks.insufficient = await p.locator('.opt--insufficient').count();
+  await newPatient();
+  await compareWith(/Older/);
+  await p.locator('#out').getByText('INSUFFICIENT EVIDENCE').first().waitFor();
+  checks.insufficient = await p.locator('#out .opt--insufficient').count();
   await p.screenshot({ path: out + '/p2.png', fullPage: true });
-  await p.click('a[data-route="results"]');
+  await p.click('a[data-route="analysis"]');
   await p.locator('.tile').first().waitFor();
   checks.tiles = await p.locator('.tile').count();
   await p.waitForTimeout(800);
   await p.screenshot({ path: out + '/p3.png', fullPage: false });
-  await p.click('a[data-route="learn"]');
+  await p.click('a[data-route="guide"]');
+  await p.locator('#g-methods > summary').click();
   await p.locator('#doc h1, #doc h2').first().waitFor();
   checks.docHeadings = await p.locator('#doc h2').count();
   await p.screenshot({ path: out + '/p4.png' });
@@ -36,7 +50,7 @@ const { chromium, devices } = require(require('path').join(__dirname, '..', '..'
   await p.getByText('B.Tech in Computer Engineering').waitFor();
   checks.team = await p.getByText('Guide: Mr. Rahul Jadhav.').isVisible();
   await p.screenshot({ path: out + '/p5.png', fullPage: true });
-  await p.click('a[data-route="evidence"]');
+  await p.click('a[data-route="investigate"]');
   await p.getByRole('button', { name: 'Metformin and kidney function' }).click();
   await p.locator('.passage').first().waitFor();
   checks.passages = await p.locator('.passage').count();

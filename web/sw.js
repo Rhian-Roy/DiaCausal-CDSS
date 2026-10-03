@@ -2,11 +2,20 @@
    The cache name changes whenever the site changes, so a new version replaces the old.
    Only this website's own files are cached; sign-in requests to the account service are never cached.
    config.json (made at deploy time, not in git) is cached the first time it loads. */
-const VERSION = "diacausal-v4";
+const VERSION = "diacausal-v5";
 const ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
+  "./styles/tokens.css",
+  "./styles/fonts.css",
+  "./styles/screens.css",
+  "./fonts/atkinson-hyperlegible-latin-400-normal.woff2",
+  "./fonts/atkinson-hyperlegible-latin-700-normal.woff2",
+  "./fonts/atkinson-hyperlegible-latin-ext-400-normal.woff2",
+  "./fonts/atkinson-hyperlegible-latin-ext-700-normal.woff2",
+  "./fonts/source-serif-4-latin-ext-wght-normal.woff2",
+  "./fonts/source-serif-4-latin-wght-normal.woff2",
   "./app.js",
   "./engine.js",
   "./evidence.js",

@@ -361,7 +361,8 @@ def test_results_and_docs_are_copied_for_the_site():
 
 
 def _chromium():
-    """The sandbox's Chromium, else the one `npx playwright install chromium` (in e2e/) downloaded."""
+    """The sandbox's Chromium, else the one `npx playwright install chromium` (in e2e/) downloaded,
+    else an installed Google Chrome (Playwright drives it the same way)."""
     for path in ("/opt/pw-browsers/chromium",):
         if Path(path).exists():
             return path
@@ -371,13 +372,16 @@ def _chromium():
         path = out.stdout.strip()
         if out.returncode == 0 and path and Path(path).exists():
             return path
+    for path in ("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "/usr/bin/google-chrome", "/usr/bin/chromium"):
+        if Path(path).exists():
+            return path
     return None
 
 
 @pytest.mark.skipif(NODE is None or _chromium() is None or not (ROOT / "e2e/node_modules/playwright").exists(),
                     reason="needs Node, Playwright (e2e/node_modules) and a Chromium binary")
 def test_the_site_works_on_an_iphone_sized_screen(tmp_path):
-    """Loads the real page at 393x852, runs the three presets, Results, Learn and About."""
+    """Loads the real page at 393x852, compares the three examples, then Analysis, Guide (Methods), About and Investigate."""
     import functools
     import http.server
     import os
@@ -415,3 +419,134 @@ def test_consultation_summary_prints_the_answer_not_the_form():
     block = css[css.index("@media print"):]
     for hidden in (".tabs", "#patient", ".noprint", ".view:not(#view-try)"):
         assert hidden in block.split("}")[0], hidden
+
+
+# ── screens-v2 (P07): the design's own content rules, applied to the website ────────────────────
+SCREENS_V2 = ROOT / "design" / "screens-v2"
+
+
+def _check_screens():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("check_screens", SCREENS_V2 / "handoff" / "check_screens.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_the_design_package_passes_its_own_checker():
+    r = subprocess.run([sys.executable, str(SCREENS_V2 / "handoff/check_screens.py"), str(SCREENS_V2)], capture_output=True, text=True)
+    assert r.returncode == 0, r.stdout[-2000:]
+
+
+def test_web_text_keeps_the_screens_content_rules():
+    """No single-drug instruction, GLP-1, ADA, dose prompt, microphone or header badge; the intended-use
+    sentence at least twice; no design placeholders left; the Gemini button is gone."""
+    cs = _check_screens()
+    page = cs.audit(str(WEB / "index.html"), content_only=True)
+    assert page["fail"] == [], page["fail"]
+    for name in ("app.js", "account.js", "auth.js"):
+        source = (WEB / name).read_text(encoding="utf-8")
+        strings = " ".join(a or b for a, b in re.findall(r'"((?:[^"\\]|\\.)*)"|`((?:[^`\\]|\\.)*)`', source))
+        for rule, rx in cs.BANNED.items():
+            assert not re.search(rx, strings, re.I), f"{name}: {rule}"
+    for f in [WEB / "index.html", WEB / "app.js", WEB / "account.js"]:
+        text = f.read_text(encoding="utf-8")
+        for placeholder in ("[EMAIL]", "R-[ID]", "[SOURCE]", "[AMOUNT]", "[USER NAME]", "[VERSION]", "[HASH]", "[N]"):
+            assert placeholder not in text, (f.name, placeholder)
+        assert "Explain in plain words with Gemini" not in text and "functions.invoke" not in text, f.name
+        assert "microphone" not in text.lower(), f.name
+
+
+def test_tokens_and_self_hosted_fonts_are_the_only_style_source():
+    """tokens.css is copied from the design; no colour literal anywhere else; fonts are local (no Google Fonts)."""
+    assert (WEB / "styles/tokens.css").read_text() == (SCREENS_V2 / "handoff/tokens.css").read_text()
+    for css in (WEB / "styles/screens.css", WEB / "styles/fonts.css", WEB / "styles.css"):
+        text = css.read_text(encoding="utf-8")
+        assert not re.search(r"#[0-9A-Fa-f]{3,8}\b|rgba?\(", text), f"colour literal in {css.name}"
+        assert "googleapis" not in text and "gstatic" not in text
+    html = (WEB / "index.html").read_text()
+    assert "googleapis" not in html and "gstatic" not in html
+    for href in ("./styles/fonts.css", "./styles/tokens.css", "./styles/screens.css", "./styles.css"):
+        assert f'href="{href}"' in html
+    fonts = (WEB / "styles/fonts.css").read_text()
+    for url in re.findall(r"url\(\.\./fonts/([^)]+)\)", fonts):
+        assert (WEB / "fonts" / url).exists(), url
+    assert "Atkinson Hyperlegible" in fonts and "Source Serif 4" in fonts
+    for lic in ("OFL-Atkinson-Hyperlegible.txt", "OFL-Source-Serif-4.txt"):
+        assert "SIL Open Font License" in (WEB / "fonts" / lic).read_text()
+
+
+def test_five_tabs_in_order_and_old_links_still_work():
+    html = (WEB / "index.html").read_text()
+    tabs = re.findall(r'<a href="#([a-z-]+)" data-route="\1">.*?<span>([^<]+)</span></a>', html)
+    assert [t for _, t in tabs] == ["Patient Details", "Investigate", "Analysis", "Guide", "About"]
+    app = (WEB / "app.js").read_text()
+    aliases = 'const ALIASES = { "patient-details": "try", investigate: "evidence", analysis: "results", learn: "guide" };'
+    assert aliases in app  # the new tab names map to the old views, so #try, #evidence, #results and #learn still work
+    assert 'const VIEWS = ["try", "evidence", "results", "guide", "about",' in app
+    assert 'class="tag"' not in html and ">Research prototype<" not in html  # no header badge
+
+
+@pytest.mark.skipif(NODE is None or _chromium() is None or not (ROOT / "e2e/node_modules/playwright").exists(),
+                    reason="needs Node, Playwright (e2e/node_modules) and a Chromium binary")
+def test_every_screen_built_here_renders_at_desktop_and_phone_size(tmp_path):
+    """Screens 01-03, 06-08, 13-16, 20, 25, 26 and today's answer, at 1280 and 390 px: a screenshot each,
+    the design's content rules on the visible HTML, no sideways scrolling on a phone, and what each must show."""
+    import functools
+    import http.server
+    import os
+    import threading
+
+    handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(WEB))
+    handler.log_message = lambda *a: None
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    try:
+        out = subprocess.run([NODE, str(ROOT / "tests/web/screens_check.cjs"), f"http://127.0.0.1:{server.server_port}/", str(tmp_path)],
+                             capture_output=True, text=True, timeout=600, env={**os.environ, "CHROMIUM_PATH": _chromium()})
+    finally:
+        server.shutdown()
+    assert out.returncode == 0, out.stderr[-2000:]
+    report = json.loads(out.stdout.strip().splitlines()[-1])
+    assert report["errors"] == []
+    cs = _check_screens()
+    names = ["01-signin", "02-signin-error", "03-signin-locked", "06-mfa-setup", "07-intended-use", "08-session-ending",
+             "13-panel-empty", "14-panel-filled", "15-panel-out-of-range", "16-panel-example-data", "20-loading-stages",
+             "answer-today", "25-guide", "26-about"]
+    assert sorted(report["screens"]) == sorted(f"{n}/{s}" for n in names for s in ("desktop", "phone"))
+    for key, shot in report["screens"].items():
+        assert Path(shot["png"]).stat().st_size > 5000, key
+        audit = cs.audit(shot["html"], content_only=True)
+        assert audit["fail"] == [], (key, audit["fail"])
+        assert shot["overflow"] is False, key
+        f = shot["facts"]
+        name = key.split("/")[0]
+        if name == "01-signin":
+            assert f == {"h1": "Sign in", "otp": 1}
+        elif name == "02-signin-error":
+            assert f["alert"].startswith("Those details did not match") and f["invalid"] == 3
+        elif name == "03-signin-locked":
+            assert f["alert"].startswith("Signing in is locked")
+        elif name == "06-mfa-setup":
+            assert f["keyParts"] == 6 and f["qr"] == 1
+        elif name == "07-intended-use":
+            assert f["h1"] == "How to use DiaCausal" and f["doesNot"] == 10
+        elif name == "08-session-ending":
+            assert f["modal"] == "You’ll be signed out in 2 minutes" and f["user"] == "Test Doctor"
+        elif name == "14-panel-filled":
+            assert f["strip"] == "Adult, 58 y · T2D 6 y · on metformin · HbA1c 8.4% · eGFR 62 · BMI 31.2"
+            assert f["badge"] == "Entered by you" and f["ready"] == "Details received"
+        elif name == "15-panel-out-of-range":
+            assert f["error"] == "HbA1c 45%? Check the value — expected 4–20%." and f["invalid"] == 1 and f["compare"] == 0
+        elif name == "16-panel-example-data":
+            assert f["badge"] == "Example data" and f["pressed"] == 1
+        elif name == "20-loading-stages":
+            assert f["states"] == ["Done", "Done", "Running", "Waiting", "Waiting", "Waiting"] and f["current"] == 1
+        elif name == "answer-today":
+            assert f["h2"] == "Three options compared for this patient" and f["excluded"] == 1
+            assert f["last"].endswith("The clinician decides.")
+        elif name == "25-guide":
+            assert f["sections"] == 7 and f["methods"] == "Methods (for reviewers)"
+        elif name == "26-about":
+            assert f["people"] == 5 and f["versions"].startswith("Engine ")

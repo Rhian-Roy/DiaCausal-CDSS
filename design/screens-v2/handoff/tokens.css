@@ -1,0 +1,26 @@
+:root{
+  /* ---- from chat.html (unchanged) ---- */
+  --ground:#F4F7F3; --surface:#FFFFFF;
+  --ink:#12211A; --ink-muted:#3C4A42; --ink-placeholder:#6B776F;
+  --pine:#0E5049; --pine-dark:#083B36; --pine-hairline:#7FB8A8; --on-pine-muted:#CFE3DC;
+  --border-strong:#9FB0A6; --border-soft:#C8D4CB; --track:#DCE6DF;
+  --safe-ink:#14562A;   --safe-line:#1B6B33;  --safe-fill:#DEF0E2;
+  --check-ink:#6E4400;  --check-line:#6E4400; --check-fill:#FBEBCB;
+  --danger-ink:#8A1010; --danger-line:#8A1010;--danger-fill:#FADCDC;
+  --font-body:'Atkinson Hyperlegible', Verdana, system-ui, sans-serif;
+  --font-display:'Source Serif 4', Georgia, serif;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:22px; --s6:24px; --s7:32px;
+  --r-control:8px; --r-status:10px; --r-card:12px;
+  --border-w:2px; --h-input:56px; --h-button:58px; --h-touch:52px;
+  /* ---- added in earlier batches ---- */
+  --pine-fill:#E4EEEB; --on-danger:#FFFFFF; --scrim:rgba(18,33,26,0.55);
+  --border-w-strong:3px; --font-mono:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
+  --row-muted:#EAEFEB; --panel-w:360px; --drawer-w:420px;
+  /* ---- NEW in v2 ---- */
+  --tabbar-h:64px;      /* phone bottom tab bar */
+  /* ---- NEW in P06 (audit: literals turned into tokens, no visual change) ---- */
+  --on-pine:#FFFFFF;    /* text and icons on pine */
+  --r-badge:6px;        /* badges, unit chips, key groups */
+  --r-pill:999px;       /* pills, chips, citation markers */
+  --content-w:1040px;   /* Investigate / Analysis / Guide / About */
+}

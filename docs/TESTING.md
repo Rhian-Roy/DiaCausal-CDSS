@@ -135,7 +135,7 @@ benchmark and `pip-audit` on Linux and macOS. `scripts/check_all.py` is unchange
 | The online Edge Function uses exactly `prompt.v1.txt`, checks aal2 + approval, never logs, holds no key | *online_function_uses_exactly_the_same_prompt_and_rules* |
 | Gold set (60 questions, 20 for doctor review) is well formed; evaluation meets the bar (0 dose leaks, citation precision 1.0, recall@5 ≥ 0.85, abstention ≥ 0.7) and `results/rag_eval_summary.csv` is fresh | *gold_set_is_well_formed*, *evaluation_meets_the_bar_and_the_saved_results_are_fresh* |
 
-**Website** (`python -m pytest tests/web -q`, 19 tests, about 15 s; needs Node):
+**Website** (`python -m pytest tests/web -q`, 24 tests, about 40 s; needs Node, and Chromium or Google Chrome for the two browser tests):
 
 | Requirement | Proved by (`tests/web/test_web.py`) |
 |---|---|
@@ -149,11 +149,16 @@ benchmark and `pip-audit` on Linux and macOS. `scripts/check_all.py` is unchange
 | `web/evidence.json` matches a fresh export of the RAG index; the browser search gives the same passages, order and scores as Python on 40 questions | *evidence_json_is_fresh*, *browser_evidence_search_gives_the_same_passages_as_python* |
 | The browser explanation (quotes, abstentions, citation-check verdicts) matches Python on the 60 gold + 40 extra questions and 7 model answers | *browser_explanations_match_python* |
 | Team details: B.Tech in Computer Engineering; Guide Mr. Rahul Jadhav | *team_details_are_correct* |
-| Sign-in order: sign in → authenticator code → admin approval → intended use; Try it and Evidence are the locked pages; weak passwords refused | *sign_in_steps_come_in_the_right_order* |
+| Sign-in order: sign in → authenticator code → admin approval → intended use; Patient Details and Investigate are the locked pages; weak passwords refused | *sign_in_steps_come_in_the_right_order* |
 | No account key in git (`config.json` says accounts off; the deploy script refuses to write into `web/`) | *no_account_key_is_committed* |
 | The account code touches only the `profiles` table and two functions, never patient fields | *account_code_never_sends_patient_details* |
 | Account database: row-level security, no direct writes, admin actions need the authenticator code, no clinical columns | *accounts_database_is_locked_down* |
-| Works on an iPhone-sized screen: red, amber and grey cards, team details, Evidence answers with FDA citations and abstains when it should, local copy says sign-in is off, no sideways scrolling | *the_site_works_on_an_iphone_sized_screen* (skips without Chromium; get it with `npx playwright install chromium` in `e2e/`, [SETUP.md step 3](SETUP.md#3-one-time-setup)) |
+| Works on an iPhone-sized screen: red, amber and grey cards, team details, Investigate answers with FDA citations and abstains when it should, local copy says sign-in is off, no sideways scrolling | *the_site_works_on_an_iphone_sized_screen* (skips without Chromium or Google Chrome; get it with `npx playwright install chromium` in `e2e/`, [SETUP.md step 3](SETUP.md#3-one-time-setup)) |
+| The design package passes its own checker (`design/screens-v2/handoff/check_screens.py`) | *the_design_package_passes_its_own_checker* |
+| The site's text keeps the design's content rules: no single-drug instruction, GLP-1, ADA, dose prompt, microphone or header badge; intended-use sentence twice; no placeholders; no Gemini button | *web_text_keeps_the_screens_content_rules* |
+| Colours, fonts and spacing only from `tokens.css`; fonts self-hosted with their OFL licences | *tokens_and_self_hosted_fonts_are_the_only_style_source* |
+| Five tabs in order; old links (`#try`, `#evidence`, `#results`, `#learn`) still work | *five_tabs_in_order_and_old_links_still_work* |
+| Screens 01–03, 06–08, 13–16, 20, 25, 26 and today's answer render at 1280 and 390 px: a screenshot each, the content rules on what is visible, no sideways scrolling, and the right message on each (sign-in uses a fake account service) | *every_screen_built_here_renders_at_desktop_and_phone_size* (needs Chromium or Google Chrome, like the row above) |
 
 ## Part 2 — check by eye in a real browser (about 10 minutes)
 

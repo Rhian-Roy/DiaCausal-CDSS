@@ -19,16 +19,18 @@ send the link, show the QR code (About tab), or press **Share this website**.
 
 | Tab | Sign-in? | What it shows |
 |---|---|---|
-| Try it | approved account | Patient form (units, Asian-Indian BMI category), 3 preset patients, colour-coded option cards (red excluded, amber caution, grey insufficient evidence, pine estimate), a 95% range chart, fair comparisons, assumptions, the raw Causal Output JSON |
-| Evidence | approved account | **The RAG part.** Ask a question; it shows the best passages of licence-cleared sources with citations and scores, or "insufficient evidence". How RAG works, and the licence table |
-| Results | open | Benchmark numbers (bias, 95% coverage, refutation) and the five figures |
-| Learn | open | "Every idea, explained simply" and "Results in plain English" |
-| About | open | What it is and is not, privacy, accounts, Add to Home Screen steps, QR code, team |
+| Patient Details | approved account | Screens 13–16 and 20 of `design/screens-v2/`: the patient panel (units, Asian-Indian BMI category, out-of-range messages, 3 example patients), a summary strip, the six loading stages, then today's option cards (red excluded, amber check first, grey insufficient evidence, pine estimate) until P24 builds the new answer card; a message box that answers from the licence-cleared passages on this device |
+| Investigate | approved account | **The RAG part.** Ask a question; it shows the best passages of licence-cleared sources with citations and scores, or "insufficient evidence"; the sources in the search |
+| Analysis | open | Benchmark numbers (bias, 95% coverage, refutation) and the five figures, until P27 builds screen 24 |
+| Guide | open | Screen 25: intro, problem, solution, workflow, cautions, limitations, advantages; "Methods (for reviewers)" holds "Every idea, explained simply" and "Results in plain English" |
+| About | open | Screen 26: team and guide, what it is and is not, privacy, accounts, Add to Home Screen steps, QR code, versions |
+
+Old links still work: `#try`, `#evidence`, `#results` and `#learn` open the new tabs.
 
 ## Accounts: sign up, sign in, approval
 
-Anyone can ask for an account, but **the team's admin approves each one** before Try it and
-Evidence open. The steps, in order (the same order as the chat app's designs 01–08):
+Anyone can ask for an account, but **the team's admin approves each one** before Patient Details and
+Investigate open. The steps, in order (the same order as the chat app's designs 01–08):
 
 1. **Create an account** (name, email, password of at least 12 characters, role: clinician,
    student or examiner, and a tick for the intended-use statement).
@@ -93,13 +95,9 @@ fails if a key is ever committed.
   metformin and kidney function, saxagliptin/alogliptin and heart failure, DPP-4i joint pain, SGLT2i
   ketoacidosis and urinary infections, acute kidney injury, Fournier's gangrene, canagliflozin amputations.
 - **Explanation:** `web/explain.js` (mirror of `diacausal_rag/explain.py`) quotes the sentences that
-  best answer the question, each with its passage number. Approved, signed-in users may press
-  "Explain in plain words with Gemini (online)": the browser sends **only the question and the passage
-  IDs** to the Supabase Edge Function `explain` (`supabase/functions/explain/`), which rebuilds the
-  passages from the published index, calls Gemini's free tier with the key held as a Supabase secret,
-  and returns text that the browser checks sentence by sentence; anything unsupported falls back to
-  the quotes. Patient values are never sent. Set-up: `docs/GEMINI_SETUP.md`.
-- **Evidence fusion:** each option card on Try it has "Evidence for this option": the licence-cleared
+  best answer the question, each with its passage number. Nothing leaves the device. (The "Explain with
+  Gemini" button was removed in P07; P08 removes the Edge Function and the rest of Gemini.)
+- **Evidence fusion:** each option card on Patient Details has "Evidence for this option": the licence-cleared
   passages about that drug class and its fired rules.
 - **Viva sentence:** "The website runs the exact same fitted causal model and the exact same
   evidence search in the browser; tests check them against Python on 155 patients and 40

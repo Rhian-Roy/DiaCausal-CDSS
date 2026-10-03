@@ -13,11 +13,12 @@ it then opens like an app and works offline. Scan to open:
 
 <img src="web/icons/qr.png" alt="QR code for diacausal.netlify.app" width="160">
 
-- **Try it** — the causal engine: three add-ons to metformin for one patient, safety rules first.
-- **Evidence** — the RAG part: cited passages from licence-cleared sources (WHO 2018, FDA safety communications), a quoted explanation, an optional Gemini rewrite checked against the passages, or "insufficient evidence".
-- **Results**, **Learn**, **About** — open to everyone.
+- **Patient Details** — the causal engine: three add-ons to metformin for one patient, safety rules first.
+- **Investigate** — the RAG part: cited passages from licence-cleared sources (WHO 2018, FDA safety communications), a quoted explanation, or "insufficient evidence".
+- **Analysis**, **Guide**, **About** — open to everyone.
 
-Try it and Evidence need an account: **create one, set up an authenticator app, and wait for the
+The look follows the Claude Design screens in [`design/screens-v2/`](design/screens-v2/handoff/HANDOFF.md).
+Patient Details and Investigate need an account: **create one, set up an authenticator app, and wait for the
 team's admin to approve it.** Everything is calculated **on your device** — patient details and
 questions are never sent anywhere. How it works, approving accounts, updating the site:
 [docs/WEBSITE.md](docs/WEBSITE.md). The full chat app: [docs/HOSTING_CHAT_APP.md](docs/HOSTING_CHAT_APP.md).

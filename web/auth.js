@@ -21,6 +21,7 @@
 
   const PROTECTED = ["try", "evidence"];
   const IDLE_MS = 15 * 60 * 1000; // same idle limit as the chat app (backend/app/settings.py)
+  const WARN_BEFORE_MS = 2 * 60 * 1000; // screen 08: warn two minutes before the idle sign-out
   const MIN_PASSWORD = 12; // NIST SP 800-63B / the chat app's rule (app/auth/passwords.py)
   const MAX_PASSWORD = 72;
   const ROLES = ["clinician", "student", "examiner"];
@@ -67,6 +68,14 @@
     if (/rate limit|too many/i.test(m)) return "Too many tries. Please wait a few minutes and try again.";
     if (/failed to fetch|network/i.test(m)) return "No internet connection. Please try again when you are online.";
     return m || "Something went wrong. Please try again.";
+  }
+
+  /** An Error with friendly wording and a `kind` the screens use: "rate_limit" shows screen 03 (locked). */
+  function failure(error) {
+    const e = new Error(friendly(error));
+    const m = String((error && (error.message || error.msg)) || error || "");
+    e.kind = (error && error.status === 429) || /rate limit|too many/i.test(m) ? "rate_limit" : "other";
+    return e;
   }
 
   /** Browser only: the Supabase side. `lib` is window.supabase, `config` is window.DIACAUSAL_CONFIG. */
@@ -131,7 +140,7 @@
       },
       async signIn({ email, password }) {
         const { error } = await client.auth.signInWithPassword({ email, password });
-        if (error) throw new Error(friendly(error));
+        if (error) throw failure(error);
         lastActive = Date.now();
         await refresh();
       },
@@ -169,7 +178,7 @@
           ({ error } = await client.auth.mfa.challengeAndVerify({ factorId: factorId || state.factorId, code: code.trim() }));
           if (!error || !/ip address/i.test(error.message)) break;
         }
-        if (error) throw new Error(friendly(error));
+        if (error) throw failure(error);
         lastActive = Date.now();
         await refresh();
       },
@@ -188,6 +197,9 @@
         if (error) throw new Error(friendly(error));
       },
       touch() { lastActive = Date.now(); },
+      idleFor() { return Date.now() - lastActive; },
+      IDLE_MS,
+      WARN_BEFORE_MS,
       idleCheck() {
         if (state.session && Date.now() - lastActive > IDLE_MS) api.signOut("You were signed out after 15 minutes without activity.");
       },
@@ -201,5 +213,5 @@
     return api;
   }
 
-  return { gateView, passwordProblems, friendly, createController, PROTECTED, IDLE_MS, MIN_PASSWORD, ROLES };
+  return { gateView, passwordProblems, friendly, createController, PROTECTED, IDLE_MS, WARN_BEFORE_MS, MIN_PASSWORD, ROLES };
 });
