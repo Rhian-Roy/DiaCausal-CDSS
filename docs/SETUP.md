@@ -73,6 +73,17 @@ means everyone must set up their authenticator app again).
 It ends with `Setup finished.` Lines starting with `npm warn` (on a Mac, one about
 `fsevents`) are harmless; only a line starting with `[FAIL]` needs action.
 
+The libraries live in `node_modules/` folders that setup makes from `package-lock.json`;
+git ignores them, so `git status` stays clean after setup.
+
+**Optional — the website's iPhone-sized test.** `tests/web` has one test that opens the
+website in Playwright's own **Chromium** (not your Google Chrome). Without it that one
+test is skipped. Download it once (about 150 MB), after setup:
+
+| macOS / Linux | Windows |
+|---|---|
+| `cd e2e` then `npx playwright install chromium` | `cd e2e` then `npx playwright install chromium` (PowerShell: `npx.cmd`) |
+
 ## 4. Check that everything works (one command)
 
 | macOS / Linux | Windows |

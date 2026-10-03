@@ -153,7 +153,7 @@ benchmark and `pip-audit` on Linux and macOS. `scripts/check_all.py` is unchange
 | No account key in git (`config.json` says accounts off; the deploy script refuses to write into `web/`) | *no_account_key_is_committed* |
 | The account code touches only the `profiles` table and two functions, never patient fields | *account_code_never_sends_patient_details* |
 | Account database: row-level security, no direct writes, admin actions need the authenticator code, no clinical columns | *accounts_database_is_locked_down* |
-| Works on an iPhone-sized screen: red, amber and grey cards, team details, Evidence answers with FDA citations and abstains when it should, local copy says sign-in is off, no sideways scrolling | *the_site_works_on_an_iphone_sized_screen* (skips without Chromium) |
+| Works on an iPhone-sized screen: red, amber and grey cards, team details, Evidence answers with FDA citations and abstains when it should, local copy says sign-in is off, no sideways scrolling | *the_site_works_on_an_iphone_sized_screen* (skips without Chromium; get it with `npx playwright install chromium` in `e2e/`, [SETUP.md step 3](SETUP.md#3-one-time-setup)) |
 
 ## Part 2 — check by eye in a real browser (about 10 minutes)
 
