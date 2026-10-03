@@ -1,5 +1,7 @@
 # DiaCausal — working rules
 
+@AGENTS.md
+
 Research prototype chatbot for clinician evaluation; **not a marketed medical device; not
 for unsupervised clinical use.** That sentence appears on every screen, in every chat reply
 (`intended_use`) and in the API docs.
