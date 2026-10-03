@@ -361,8 +361,15 @@ def test_results_and_docs_are_copied_for_the_site():
 
 
 def _chromium():
+    """The sandbox's Chromium, else the one `npx playwright install chromium` (in e2e/) downloaded."""
     for path in ("/opt/pw-browsers/chromium",):
         if Path(path).exists():
+            return path
+    if NODE and (ROOT / "e2e/node_modules/playwright").exists():
+        out = subprocess.run([NODE, "-e", "console.log(require('playwright').chromium.executablePath())"],
+                             cwd=ROOT / "e2e", capture_output=True, text=True, timeout=30)
+        path = out.stdout.strip()
+        if out.returncode == 0 and path and Path(path).exists():
             return path
     return None
 

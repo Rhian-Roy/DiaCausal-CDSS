@@ -12,6 +12,9 @@ build/
 venv/
 env/
 
+# ── Node libraries (npm ci rebuilds them from package-lock.json) ─────────────
+node_modules/
+
 # ── Jupyter ───────────────────────────────────────────────────────────────────
 .ipynb_checkpoints/
 .virtual_documents/
