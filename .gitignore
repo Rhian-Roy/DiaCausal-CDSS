@@ -63,3 +63,7 @@ logs/
 # Netlify / Supabase CLI local state (site link, CLI cache)
 .netlify/
 supabase/.temp/
+
+# Restricted third-party files (licence not cleared; see RAG/sources.csv, docs/HISTORY_PURGE_PLAN.md)
+RAG/IDF_Rec_2025.pdf
+Research Papers/

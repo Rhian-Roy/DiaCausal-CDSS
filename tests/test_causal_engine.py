@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import os
 import sys
+from pathlib import Path
 
 os.environ.setdefault("MPLCONFIGDIR", os.environ.get("TMPDIR", "/tmp"))
 
@@ -894,8 +895,20 @@ class TestDag:
 # (f) RETRIEVAL
 # ═════════════════════════════════════════════════════════════════════════════
 
+# LEGACY (2026-10-03): these three tests were written when RAG/ held four PDFs (two of them unreadable).
+# The third-party PDFs were removed from the repository (licence not cleared; RAG/sources.csv,
+# docs/HISTORY_PURGE_PLAN.md). They run again, unchanged, on a machine that still has all four PDFs
+# in RAG/; elsewhere they are skipped with this reason, which `pytest -rs` prints.
+_ORIGINAL_PDFS = len(list((Path(__file__).resolve().parent.parent / "RAG").glob("*.pdf")))
+needs_original_pdfs = pytest.mark.skipif(
+    _ORIGINAL_PDFS < 4,
+    reason="legacy: needs the four original PDFs in RAG/, which were removed (licence not cleared)",
+)
+
+
 class TestRetrieval:
 
+    @needs_original_pdfs
     def test_the_index_is_built_from_real_pdf_text(self, index):
         """Not only from the curated fallback.
 
@@ -917,6 +930,7 @@ class TestRetrieval:
             "text — the index has quietly become mostly hand-written"
         )
 
+    @needs_original_pdfs
     def test_the_provenance_table_reports_both_tiers(self, index):
         """Two of the four PDFs are unreadable, and the table must say which.
 
@@ -988,6 +1002,7 @@ class TestRetrieval:
         assert all(c.page == 1 for c in chunks)
         assert all(c.source == "test.pdf" for c in chunks)
 
+    @needs_original_pdfs
     def test_extraction_quality_is_reported_honestly(self):
         """Two of the four PDFs are unreadable. That must be VISIBLE.
 
