@@ -84,7 +84,7 @@ works, and the question you are most likely to be asked.
 
 | When | What we built | Where / proof |
 |---|---|---|
-| July – August | Topic, proposal, literature. First research code: a 2-drug causal notebook, a small guideline retrieval (`causal_engine/`, `notebooks/`, `RAG/`). An early RAG prototype on the open-source Kotaemon framework (repo DiaCausal-RAG-Core). | Initial commit 27 Aug |
+| July – August | Topic, proposal, literature. First research code: a 2-drug causal notebook, a small guideline retrieval (`causal_engine/`, `notebooks/`, `RAG/`). An early RAG prototype, later replaced by the native `diacausal_rag` package. | Initial commit 27 Aug |
 | Early September | **Data decision.** The Pima dataset is not Indian and not about drug choice, so we rejected it. We chose a **synthetic, India-calibrated cohort** where the true effect of every drug is known. Scope frozen: adults with type 2 diabetes on metformin; three add-on classes; outcome = 6-month HbA1c change. | `docs/01_Master_Plan.md` |
 | 18 – 19 Sept | **Chat app: walking skeleton.** React page → FastAPI server → six-stage pipeline → reply, with one trace ID on every log line. One command checks everything. | PR #1, #2; `docs/explain/01` |
 | 20 Sept | **Guards.** Foul language, patient identifiers, out of scope, emergency, language. The same rules file is used in the browser and on the server. | `shared/guard_rules/`; `docs/explain/03` |

@@ -31,7 +31,7 @@ Nothing yet compares the three add-on options (SGLT2i, DPP-4i, sulfonylurea). Th
 | Research code | NumPy, pandas, scikit-learn, SciPy, Matplotlib, Streamlit; DoWhy and EconML for cross-checks; networkx for the DAG | **not pinned** (`requirements.txt` uses `>=`) |
 | Deployment | One Docker image (page + API from one origin), Caddy for HTTPS (`Dockerfile`, `compose.yaml`) | python:3.12-slim, node:24, Caddy 2.10 |
 | CI | GitHub Actions (`.github/workflows/check.yml`): `setup.py` + `check_all.py` on Linux, Windows and macOS; Playwright on Linux; pip-audit + npm audit | — |
-| Sibling repo | `DiaCausal-RAG-Core`: a Streamlit RAG prototype (ChromaDB, BM25, sentence-transformers) | unpinned |
+| Earlier RAG prototype | replaced by the native `diacausal_rag` package; nothing from it is used | n/a |
 
 ## 3. Folder by folder
 
@@ -148,19 +148,12 @@ Nothing yet compares the three add-on options (SGLT2i, DPP-4i, sulfonylurea). Th
     it.
 19. `e2e/node_modules` is committed to git: 525 of the repo's 810 tracked files.
 
-**Sibling repo `DiaCausal-RAG-Core`**
+**Earlier RAG prototype**
 
-20. `app/rag/fusion.py:93-110` **prints drug doses** ("100 mg once daily", "Max 8 mg/day") and
-    hard-codes eGFR rules in Python. Both break our rules; don't reuse this code.
-21. Its causal bridge calls `causal_engine.cdss.estimate_cate`, which doesn't exist, so it always
-    falls back to a planted-effect toy model. Its evaluation numbers are therefore circular.
-22. Other problems:
-    - `requirements.txt` is unpinned;
-    - the README mentions a LICENSE file that isn't there;
-    - the seeded "guideline" files are summaries written in code, not verbatim sources.
+20. Replaced by the native `diacausal_rag` package. Nothing from it is copied or used here.
 
-**Secrets:** none found in either repo. I searched for API keys, tokens and `.env` files, including
-the git history of RAG-Core. `.env` and `backend/.env` are gitignored.
+**Secrets:** none found. I searched for API keys, tokens and `.env` files, including
+the git history. `.env` and `backend/.env` are gitignored.
 
 ## 6. What we can reuse for the 3-arm engine
 
@@ -183,4 +176,4 @@ the git history of RAG-Core. `.env` and `backend/.env` are gitignored.
 - `guideline_fallback.py` (wrong sources);
 - the old generator's numbers (no sources, not Indian);
 - the Pima dataset (not Indian, no treatment);
-- RAG-Core's `fusion.py` (doses).
+- the earlier RAG prototype's code (replaced by the native `diacausal_rag` package).

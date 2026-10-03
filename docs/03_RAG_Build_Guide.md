@@ -25,7 +25,7 @@ After the engine shows the numbers, RAG explains them in words — but only usin
 
 ## What to say about RAG on 30 September
 
-> "RAG is our next phase, from 1 to 16 October. We already have an early prototype, DiaCausal-RAG-Core, built on the open-source Kotaemon framework. The October version will search only licence-cleared guidelines and cite every sentence."
+> "RAG is our next phase, from 1 to 16 October. We already have a working native retrieval package, `diacausal_rag`, which replaced the earlier prototype. The October version will search only licence-cleared guidelines and cite every sentence."
 
 Show one screenshot of the prototype, clearly labelled "early prototype".
 
@@ -82,7 +82,7 @@ flowchart LR
 
 | Option | Good | Not so good | Recommendation |
 |---|---|---|---|
-| Keep extending DiaCausal-RAG-Core (Kotaemon) | Already exists; Apache-2.0 licence | Large framework; hard to enforce our citation and dose rules; harder to explain in the viva | Keep only as the early prototype |
+| Build on a large third-party RAG framework | Ready-made | Large framework; hard to enforce our citation and dose rules; harder to explain in the viva | Not used; replaced by the native `diacausal_rag` package |
 | A lean pipeline inside our Python service (about 300 lines) | Small, testable, easy to explain; enforces our rules | Has to be written (1–2 Claude Code sessions) | Recommended |
 
 **Language model options:** the Claude API (billed separately from the Pro plan), Google's Gemini API (you have Google AI Pro — check the API's free tier), or a small local model on the MacBook with Ollama (free, slower). Only synthetic or public text goes to any model — never patient data.
