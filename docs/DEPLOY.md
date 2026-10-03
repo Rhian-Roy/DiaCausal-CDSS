@@ -146,6 +146,35 @@ line `clinical_guardrails: rules …` and for any `clinical rule NOT in use — 
 
 ---
 
+## 9. The website (diacausal.netlify.app): manual deploys only
+
+The Netlify site `diacausal` is **not connected to GitHub**, so pushing or merging never deploys
+it. Every deploy so far was an upload from the command line ("Deploy triggered by upload"). Keep
+it that way: on Netlify's credit plans each **production** deploy costs 15 credits, while draft
+(preview) deploys and failed deploys cost none. The CLI cannot show the credit balance; look in
+the Netlify dashboard → your team → **Billing** (usage and credits).
+
+There is no build step (`web/netlify.toml`: `command = ""`, `publish = "."`). The only thing a
+"build" does is write `config.json` (Supabase URL + publishable key) into a **copy** of `web/`,
+because the committed `web/config.json` must stay `"accounts": "off"`. Both values are stored as
+Netlify environment variables, so the command reads them from there without printing them.
+
+```bash
+# from the repo root, once: netlify login && netlify link --name diacausal
+rm -rf /tmp/diacausal-site && cp -R web /tmp/diacausal-site
+SUPABASE_URL="$(netlify env:get SUPABASE_URL)" \
+SUPABASE_PUBLISHABLE_KEY="$(netlify env:get SUPABASE_PUBLISHABLE_KEY)" \
+  .venv/bin/python scripts/web_config.py /tmp/diacausal-site/config.json
+(cd /tmp/diacausal-site && netlify deploy --site diacausal --dir . )          # free draft: check the link it prints
+(cd /tmp/diacausal-site && netlify deploy --site diacausal --dir . --prod)    # production: 15 credits
+```
+
+Running the deploy from inside the copy makes Netlify read the copied `netlify.toml`, which
+carries the security headers (CSP and friends). After a production deploy, check them:
+`curl -sI https://diacausal.netlify.app/ | grep -i content-security-policy`.
+
+---
+
 ## Deploy checklist
 
 Tick every line before a clinician uses it. (Checked on the 2026-09-20 build.)
