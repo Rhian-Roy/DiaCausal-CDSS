@@ -165,7 +165,6 @@ marketed medical device; not for unsupervised clinical use.
 │   │                               # Akimel O'odham community, Arizona, USA — NOT from India
 │   └── synthetic_diabetes_ehr.csv  # Generated synthetic EHR
 ├── RAG/                            # Clinical guideline PDFs for retrieval
-├── Research Papers/                # Reference literature
 ├── figures/                        # Generated plots and visualisations
 │
 ├── 01_Causal_Inference_Basics.ipynb          # Narrated notebook (10 acts)

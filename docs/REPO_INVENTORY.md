@@ -57,7 +57,7 @@ Nothing yet compares the three add-on options (SGLT2i, DPP-4i, sulfonylurea). Th
 | `build_notebook.py`, `verify_notebook.py`, `*.ipynb` | Notebook generator and checker; three notebooks. | The old package's teaching material. |
 | `Datasets/` | `diabetes.csv` (Pima: Akimel O'odham women in Arizona, **not Indian data**, no treatment column); `synthetic_diabetes_ehr.csv` (2-arm, from the old pipeline). | Neither suits a 3-arm causal question. |
 | `figures/`, `cate_analysis.png` | Plots from the old 2-arm code. Five of them (`act3_dag`, `act7_*`, `act8_*`) are made by no current script. | Old results. |
-| `RAG/` | `sources.csv` (a licence table of 21 sources), `IDF_Rec_2025.pdf`, `Figure.ppt`. | See section 5 about the IDF PDF. |
+| `RAG/` | `sources.csv` (the licence table) and `Figure.ppt`. The IDF PDF and `Research Papers/` were removed on 2026-10-03. | See `docs/HISTORY_PURGE_PLAN.md`. |
 | `docs/` | Team guides 01–08, SETUP, TESTING, DEPLOY, explainers, prompts, research worksheet. | Some pages are stale (section 5). |
 | `docs/research/…worksheet.xlsx` | Member A's parameter worksheet: 25 rows, 5 verified, 6 "needs decision", 20 outstanding. | It mentions a `params.yaml` and `validate_params.py` that are **not in the repo**. |
 
@@ -136,8 +136,8 @@ Nothing yet compares the three add-on options (SGLT2i, DPP-4i, sulfonylurea). Th
     - `docs/SETUP.md:7-9` says the devcontainer is for the old Streamlit demo; it now runs the
       chat app.
 16. README line 30 calls IDF 2025 "cleared". `RAG/sources.csv` S11 says "All rights reserved… remove
-    the PDF from the public repo", yet `RAG/IDF_Rec_2025.pdf` is still committed. **The team should
-    decide on this.**
+    the PDF from the public repo", and the PDF was removed from the files on 2026-10-03; it remains in git history
+    (`docs/HISTORY_PURGE_PLAN.md`).
 17. Colours:
     - The PPT and causal guides say **grey** = insufficient evidence. Design 19 and
       `GuardNotice.tsx` use **amber**.

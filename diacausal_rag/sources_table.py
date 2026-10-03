@@ -9,7 +9,7 @@ from diacausal_rag.ingest import CLEARED, ROOT, is_confirmed, load_sources
 
 OUT = ROOT / "docs" / "SOURCES.md"
 COLS = [("id", "ID"), ("title", "Source"), ("version", "Version / year"), ("bucket", "Licence bucket"),
-        ("use_in_diacausal", "Use in DiaCausal"), ("date_checked", "Checked on"), ("checked_by", "Checked by")]
+        ("use_in_diacausal", "Use in DiaCausal"), ("date_checked", "Checked on"), ("checked_by", "Checked by"), ("status", "Status")]
 
 
 def _cell(text: str) -> str:
