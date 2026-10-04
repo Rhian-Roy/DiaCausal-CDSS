@@ -2,7 +2,8 @@
 
     uvicorn diacausal.api.main:app --port 8001      # docs at http://localhost:8001/docs (the old diacausal_engine.api:app still works)
 
-POST /api/v1/recommend   patient details in -> structured Causal Output out
+POST /api/v1/recommend   patient details in -> structured Causal Output out (the engine alone)
+POST /api/v1/ask         patient details + a question -> AnswerCardV1 (the whole pipeline: routes_v1.py)
 GET  /api/v1/health      is the engine up?
 
 Every response — including errors — carries the intended-use statement:
@@ -24,7 +25,9 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from diacausal import INTENDED_USE, __version__
 from diacausal.causal_inference.recommend import Engine, get_engine
+from diacausal.api.routes_v1 import router as v1_router
 from diacausal.causal_inference.schemas import CausalOutput, ErrorOut, HealthOut, RecommendRequest
+from diacausal.tracing import configure_console
 
 log = logging.getLogger("diacausal.engine")
 if not log.handlers:
@@ -56,7 +59,11 @@ def _plain(error: dict) -> dict:
 def create_app(engine: Engine | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
+        configure_console()  # the pipeline trace in the console while developing (DIACAUSAL_ENV=production: off)
         app.state.engine = engine or get_engine()  # fit once at startup, not on the first request
+        from diacausal.orchestrator.layers import warm_up
+
+        warm_up()  # build the search index now, not on the first /ask
         log.info("[-] engine %s ready", __version__)
         yield
 
@@ -75,7 +82,7 @@ def create_app(engine: Engine | None = None) -> FastAPI:
     @app.exception_handler(RequestValidationError)
     async def invalid(request: Request, exc: RequestValidationError):
         problems = [_plain(e) for e in exc.errors()]
-        log.warning("[-] recommend: rejected (%d problem(s))", len(problems))
+        log.warning("[-] %s: rejected (%d problem(s))", request.url.path.rsplit("/", 1)[-1], len(problems))
         body = ErrorOut(message="The request was not accepted: " + "; ".join(
             f"{p['field']}: {p['message']}" for p in problems), problems=problems)
         return JSONResponse(status_code=422, content=body.model_dump())
@@ -100,6 +107,7 @@ def create_app(engine: Engine | None = None) -> FastAPI:
         )
         return JSONResponse(content=result.model_dump(), headers={"X-Request-Id": result.request_id})
 
+    app.include_router(v1_router)
     return app
 
 

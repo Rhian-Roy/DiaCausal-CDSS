@@ -200,6 +200,21 @@ every example in `tests/contract/examples/` and fails if either generated file i
 TEAM-SET plausibility bounds from `docs/INPUT_RANGES.md` (clinical thresholds stay in `data/rules.csv`). The chat
 app's `backend/app/schemas.py` and the engine API's own models are unchanged; P14 builds `/api/v1/ask` on these.
 
+## Pipeline and `/api/v1/ask` (built, P14) — see docs/PLAN_2026-10.md sections 8.3 to 8.5
+
+`POST /api/v1/ask` (`diacausal/api/routes_v1.py`, in the same app as `/recommend`: `uvicorn diacausal.api.main:app`) runs
+`diacausal/orchestrator/pipeline.py`, which calls the layers **only through `diacausal/registry.py`** (`LAYERS`, in order:
+input guards, rules, causal engine, retrieval, explanation, output guards, formatter) and returns `AnswerCardV1`.
+Layers are `fn(context) -> None` in `orchestrator/layers.py`; stubs are in `orchestrator/stubs.py`. To replace a stub, build
+the real function and change its one line in the registry (`stubs()` lists what is still a pass-through: input guards P15,
+query processing P16, SHAP drivers P25, evidence levels P24, prompt builder P22, full output checks P23).
+Every layer runs inside `diacausal/tracing.py` (`layer(name, request_id)` or `@traced`): `[rid] entered X layer`,
+`executing`, then `passed (N ms)`, `abstained ... reason=CODE` or `failed ... error=ExceptionClass`. A layer that correctly
+cannot go on raises `AbstainSignal(CODE)` (a code, never free text). **Never log patient values, the question, prompts,
+passages or secrets**: only IDs, layer names, statuses, codes, durations and exception class names. The route turns any
+internal error into a plain 500 with the request ID (a pydantic error message would repeat the input). Until P15 lands,
+nothing checks scope or identifiers in `/ask`. Tests: `tests/orchestrator` (CI runs them).
+
 ## Not built yet — where each piece goes
 
 | Piece | Backend | Frontend / other |
