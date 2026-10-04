@@ -115,6 +115,8 @@ Each step uses `git mv` **in its own commit, with no edits**, so history follows
 
 **Baseline (step 0, on the unmoved `main`, on the same computer):** run both exports and the quick benchmark, and keep scratch copies of `web/model.json`, `web/evidence.json`, `web/results.json`, `docs/SOURCES.md`, `openapi.json` and the quick-benchmark CSVs. Compare against these, **not** against the committed files (PR #60 showed the committed `evidence.json` can differ from a fresh export in the last digit of a few floats).
 
+**Step 0 tools (built, in `scripts/`):** `restructure_baseline.py save` (on the unmoved tree; one minute; writes `~/DiaCausal-baselines/<date>-<sha>/`, outside the repo) and `restructure_baseline.py compare` (after each step; recomputes with the new module names if they exist, the old ones otherwise; numbers to 1e-12, text exact; prints the first differences). `check_moves.py --step N` checks the tree against `docs/RESTRUCTURE_FILE_MAP.csv` (old paths stay until their step, new paths exist after it, leftovers at old paths are tiny shims, no root `rag/` folder in any letter case, no case clashes); `check_moves.py --list` shows what each step moves. Their tests are `tests/contract/test_restructure_tools.py`; the one that says "unmoved tree matches at step 0" must be raised to the new step number in the same pull request as each move step.
+
 | Always, after each step | Command | Time | What it proves |
 |---|---|---|---|
 | Contract | `.venv/bin/python -m pytest tests/contract -q` and `.venv/bin/python scripts/export_openapi.py --check` | 10 s | `openapi.json` unchanged, so the moved models are the same models |
