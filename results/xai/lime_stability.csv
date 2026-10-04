@@ -1,0 +1,6 @@
+preset,comparison,option_a,option_b,n_seeds,lime_top3_jaccard,lime_top_weight_cv,top_feature,mean_abs_weight_top
+typical,SGLT2i-DPP4i,SGLT2i,DPP4i,10,1,0.012361,hba1c,0.0561092
+typical,SU-DPP4i,SU,DPP4i,10,1,0.00700553,hba1c,0.0887968
+typical,SGLT2i-SU,SGLT2i,SU,10,1,0.0140097,hba1c,0.0326876
+egfr40_pancreatitis,SU-DPP4i,SU,DPP4i,10,0.9,0.00624799,hba1c,0.0888246
+older_hypo,SU-DPP4i,SU,DPP4i,10,1,0.00793134,hba1c,0.0860275

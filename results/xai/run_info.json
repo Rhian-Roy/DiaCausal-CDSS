@@ -1,0 +1,54 @@
+{
+ "version": "A (XAI-only baseline)",
+ "reps": 20,
+ "n": 5000,
+ "n_test": 2000,
+ "shap_lime_patients_per_replicate": 100,
+ "lime_seeds_per_preset": 10,
+ "lime_samples": 5000,
+ "seed": 7,
+ "params_sha": "b2e2ff46c6",
+ "rules_sha": "dd3f348885",
+ "shap": "0.52.0",
+ "lime": "0.2.0.1",
+ "shap_mode": "tree_path_dependent",
+ "presets": {
+  "typical": {
+   "allowed": [
+    "SGLT2i",
+    "DPP4i",
+    "SU"
+   ],
+   "pick": "SU",
+   "predictions": {
+    "SGLT2i": -0.9280617521048903,
+    "DPP4i": -0.6818103190540763,
+    "SU": -0.9526247675698436
+   }
+  },
+  "egfr40_pancreatitis": {
+   "allowed": [
+    "DPP4i",
+    "SU"
+   ],
+   "pick": "SU",
+   "predictions": {
+    "DPP4i": -0.47703350489937923,
+    "SU": -0.5760528750769514
+   }
+  },
+  "older_hypo": {
+   "allowed": [
+    "DPP4i",
+    "SU"
+   ],
+   "pick": "SU",
+   "predictions": {
+    "DPP4i": -0.416095384757332,
+    "SU": -0.48691403916421744
+   }
+  }
+ },
+ "seconds": 145.6,
+ "note": "synthetic benchmark; version A is a baseline, never shown to a doctor"
+}
