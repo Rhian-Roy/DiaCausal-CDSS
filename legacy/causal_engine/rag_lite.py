@@ -76,7 +76,7 @@ import numpy as np
 
 from .pdf_text import Document, load_clean
 
-DEFAULT_FOLDER = "RAG"
+DEFAULT_FOLDER = "documents"  # legacy/documents/: put the guideline PDFs here (none are kept in the repository: licence not cleared)
 CHUNK_CHARS = 700
 CHUNK_OVERLAP = 120
 
