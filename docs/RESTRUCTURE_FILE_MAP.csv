@@ -1,0 +1,611 @@
+old_path,new_path,step,action,notes
+.devcontainer/devcontainer.json,.devcontainer/devcontainer.json,0,stay + edit,step 10: paths in hints
+.dockerignore,.dockerignore,0,stay + edit,RAG/*.pdf and e2e lines; later backend/ frontend/ lines (step 10)
+.env.example,.env.example,0,stay,
+.github/dependabot.yml,.github/dependabot.yml,0,stay + edit,step 10: /backend and /frontend directories
+.github/workflows/check.yml,.github/workflows/check.yml,0,stay + edit,module names in run: lines; e2e and frontend working-directory; step 10 backend/frontend paths
+.gitignore,.gitignore,0,stay + edit,RAG/ and e2e/ lines; .netlify etc unchanged
+01_Causal_Inference_Basics.ipynb,legacy/01_Causal_Inference_Basics.ipynb,1,move,older 2-arm material
+AGENTS.md,AGENTS.md,0,stay + edit,only if a rule names a path
+CLAUDE.md,CLAUDE.md,0,stay + edit,"layout, commands, module names"
+Causal_Inference_Study_Guide.docx,legacy/Causal_Inference_Study_Guide.docx,1,move,older 2-arm material
+Datasets/Also find and provide me the datasets.pdf,legacy/Datasets/Also find and provide me the datasets.pdf,1,move,used by legacy code only
+Datasets/diabetes.csv,legacy/Datasets/diabetes.csv,1,move,used by legacy code only
+Datasets/pima-indians-diabetes-database-metadata.json,legacy/Datasets/pima-indians-diabetes-database-metadata.json,1,move,used by legacy code only
+Datasets/synthetic_diabetes_ehr.csv,legacy/Datasets/synthetic_diabetes_ehr.csv,1,move,used by legacy code only
+DiaCausal_Causal_Inference.ipynb,legacy/DiaCausal_Causal_Inference.ipynb,1,move,older 2-arm material
+Dockerfile,Dockerfile,0,stay + edit,step 10: COPY backend/ frontend/ paths
+RAG/Figure.ppt,legacy/assets/Figure.ppt,1,move,"PARKED: not in the register; keep, move or remove is still the owner's decision"
+RAG/sources.csv,knowledge_sources/sources.csv,2,move,the licence register
+README.md,README.md,0,stay + edit,commands and layout table
+backend/.env.example,legacy/backend/.env.example,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/__init__.py,legacy/backend/app/__init__.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/auth/README.md,legacy/backend/app/auth/README.md,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/auth/__init__.py,legacy/backend/app/auth/__init__.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/auth/audit.py,legacy/backend/app/auth/audit.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/auth/captcha.py,legacy/backend/app/auth/captcha.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/auth/cli.py,legacy/backend/app/auth/cli.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/auth/clock.py,legacy/backend/app/auth/clock.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/auth/deps.py,legacy/backend/app/auth/deps.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/auth/mfa.py,legacy/backend/app/auth/mfa.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/auth/passwords.py,legacy/backend/app/auth/passwords.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/auth/routes.py,legacy/backend/app/auth/routes.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/auth/schemas.py,legacy/backend/app/auth/schemas.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/auth/sessions.py,legacy/backend/app/auth/sessions.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/auth/throttle.py,legacy/backend/app/auth/throttle.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/clinical/__init__.py,legacy/backend/app/clinical/__init__.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/clinical/check.py,legacy/backend/app/clinical/check.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/clinical/guardrails.v1.yaml,legacy/backend/app/clinical/guardrails.v1.yaml,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/clinical/rules.py,legacy/backend/app/clinical/rules.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/db/README.md,legacy/backend/app/db/README.md,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/db/__init__.py,legacy/backend/app/db/__init__.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/db/migrations/env.py,legacy/backend/app/db/migrations/env.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/db/migrations/script.py.mako,legacy/backend/app/db/migrations/script.py.mako,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/db/migrations/versions/0001_initial.py,legacy/backend/app/db/migrations/versions/0001_initial.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/db/models.py,legacy/backend/app/db/models.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/db/new_migration.py,legacy/backend/app/db/new_migration.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/errors.py,legacy/backend/app/errors.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/main.py,legacy/backend/app/main.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/patient_ranges.py,legacy/backend/app/patient_ranges.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/pipeline/__init__.py,legacy/backend/app/pipeline/__init__.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/pipeline/backend_guard.py,legacy/backend/app/pipeline/backend_guard.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/pipeline/blocklist.py,legacy/backend/app/pipeline/blocklist.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/pipeline/causal_engine.py,legacy/backend/app/pipeline/causal_engine.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/pipeline/clinical_guardrails.py,legacy/backend/app/pipeline/clinical_guardrails.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/pipeline/context.py,legacy/backend/app/pipeline/context.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/pipeline/llm_explanation.py,legacy/backend/app/pipeline/llm_explanation.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/pipeline/output_guard.py,legacy/backend/app/pipeline/output_guard.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/pipeline/rag_retrieval.py,legacy/backend/app/pipeline/rag_retrieval.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/pipeline/runner.py,legacy/backend/app/pipeline/runner.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/routes.py,legacy/backend/app/routes.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/schemas.py,legacy/backend/app/schemas.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/secrets_env.py,legacy/backend/app/secrets_env.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/settings.py,legacy/backend/app/settings.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/tracing.py,legacy/backend/app/tracing.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/voice/README.md,legacy/backend/app/voice/README.md,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/voice/__init__.py,legacy/backend/app/voice/__init__.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/voice/routes.py,legacy/backend/app/voice/routes.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/voice/transcriber.py,legacy/backend/app/voice/transcriber.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/app/web.py,legacy/backend/app/web.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/pytest.ini,legacy/backend/pytest.ini,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/requirements-dev.txt,legacy/backend/requirements-dev.txt,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/requirements.txt,legacy/backend/requirements.txt,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/tests/conftest.py,legacy/backend/tests/conftest.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/tests/test_admin.py,legacy/backend/tests/test_admin.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/tests/test_auth.py,legacy/backend/tests/test_auth.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/tests/test_chat.py,legacy/backend/tests/test_chat.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/tests/test_guard_rules.py,legacy/backend/tests/test_guard_rules.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/tests/test_guardrails.py,legacy/backend/tests/test_guardrails.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/tests/test_health.py,legacy/backend/tests/test_health.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/tests/test_logging.py,legacy/backend/tests/test_logging.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/tests/test_patient.py,legacy/backend/tests/test_patient.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/tests/test_pipeline.py,legacy/backend/tests/test_pipeline.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/tests/test_validation.py,legacy/backend/tests/test_validation.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/tests/test_voice.py,legacy/backend/tests/test_voice.py,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/tests/voice_clips/1-hba1c-metformin.wav,legacy/backend/tests/voice_clips/1-hba1c-metformin.wav,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/tests/voice_clips/2-egfr-empagliflozin.wav,legacy/backend/tests/voice_clips/2-egfr-empagliflozin.wav,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/tests/voice_clips/3-sitagliptin.wav,legacy/backend/tests/voice_clips/3-sitagliptin.wav,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/tests/voice_clips/4-fasting-glucose.wav,legacy/backend/tests/voice_clips/4-fasting-glucose.wav,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/tests/voice_clips/5-gliclazide-dapagliflozin.wav,legacy/backend/tests/voice_clips/5-gliclazide-dapagliflozin.wav,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+backend/tests/voice_clips/README.md,legacy/backend/tests/voice_clips/README.md,10,move,"chat app, AFTER gate G1 (Sun 11 Oct)"
+build_notebook.py,legacy/build_notebook.py,1,move,older 2-arm material
+cate_analysis.png,legacy/cate_analysis.png,1,move,older 2-arm material
+causal_engine/__init__.py,legacy/causal_engine/__init__.py,1,move,2-arm research engine; frozen (numbers in code)
+causal_engine/cdss.py,legacy/causal_engine/cdss.py,1,move,2-arm research engine; frozen (numbers in code)
+causal_engine/crosscheck.py,legacy/causal_engine/crosscheck.py,1,move,2-arm research engine; frozen (numbers in code)
+causal_engine/dag.py,legacy/causal_engine/dag.py,1,move,2-arm research engine; frozen (numbers in code)
+causal_engine/data.py,legacy/causal_engine/data.py,1,move,2-arm research engine; frozen (numbers in code)
+causal_engine/diagnostics.py,legacy/causal_engine/diagnostics.py,1,move,2-arm research engine; frozen (numbers in code)
+causal_engine/estimators.py,legacy/causal_engine/estimators.py,1,move,2-arm research engine; frozen (numbers in code)
+causal_engine/evaluate.py,legacy/causal_engine/evaluate.py,1,move,2-arm research engine; frozen (numbers in code)
+causal_engine/guardrails.py,legacy/causal_engine/guardrails.py,1,move,2-arm research engine; frozen (numbers in code)
+causal_engine/guideline_fallback.py,legacy/causal_engine/guideline_fallback.py,1,move,2-arm research engine; frozen (numbers in code)
+causal_engine/pdf_text.py,legacy/causal_engine/pdf_text.py,1,move,2-arm research engine; frozen (numbers in code)
+causal_engine/rag_lite.py,legacy/causal_engine/rag_lite.py,1,move,2-arm research engine; frozen (numbers in code)
+causal_inference_basics.py,legacy/causal_inference_basics.py,1,move,older 2-arm material
+causal_inference_implementation.py,legacy/causal_inference_implementation.py,1,move,older 2-arm material
+compose.yaml,compose.yaml,0,stay + edit,step 10: check only
+data/params.yaml,data/params.yaml,0,stay,
+data/prices.csv,data/prices.csv,0,stay,
+data/rules.csv,data/rules.csv,0,stay,
+demo/requirements.txt,demo/requirements.txt,0,stay + edit,comment only
+demo/streamlit_app.py,demo/streamlit_app.py,0,stay + edit,imports diacausal_engine -> diacausal.causal_inference
+design/README.md,design/README.md,0,stay,
+design/chat-desktop.png,design/chat-desktop.png,0,stay,
+design/chat-phone.png,design/chat-phone.png,0,stay,
+design/chat.html,design/chat.html,0,stay,
+design/login-desktop.png,design/login-desktop.png,0,stay,
+design/login.html,design/login.html,0,stay,
+design/requirements-notes.jpeg,design/requirements-notes.jpeg,0,stay,
+design/screens-v2/00-preview.html,design/screens-v2/00-preview.html,0,stay,
+design/screens-v2/01-signin.html,design/screens-v2/01-signin.html,0,stay,
+design/screens-v2/02-signin-error.html,design/screens-v2/02-signin-error.html,0,stay,
+design/screens-v2/03-signin-locked.html,design/screens-v2/03-signin-locked.html,0,stay,
+design/screens-v2/06-mfa-setup.html,design/screens-v2/06-mfa-setup.html,0,stay,
+design/screens-v2/07-intended-use.html,design/screens-v2/07-intended-use.html,0,stay,
+design/screens-v2/08-session-ending.html,design/screens-v2/08-session-ending.html,0,stay,
+design/screens-v2/09-notice-identifier.html,design/screens-v2/09-notice-identifier.html,0,stay,
+design/screens-v2/10-notice-out-of-scope.html,design/screens-v2/10-notice-out-of-scope.html,0,stay,
+design/screens-v2/11-notice-emergency.html,design/screens-v2/11-notice-emergency.html,0,stay,
+design/screens-v2/12-notice-blocked.html,design/screens-v2/12-notice-blocked.html,0,stay,
+design/screens-v2/13-panel-empty.html,design/screens-v2/13-panel-empty.html,0,stay,
+design/screens-v2/14-panel-filled.html,design/screens-v2/14-panel-filled.html,0,stay,
+design/screens-v2/15-panel-out-of-range.html,design/screens-v2/15-panel-out-of-range.html,0,stay,
+design/screens-v2/16-panel-example-data.html,design/screens-v2/16-panel-example-data.html,0,stay,
+design/screens-v2/17-answer-options-compared.html,design/screens-v2/17-answer-options-compared.html,0,stay,
+design/screens-v2/18-evidence-drawer.html,design/screens-v2/18-evidence-drawer.html,0,stay,
+design/screens-v2/19-insufficient-evidence.html,design/screens-v2/19-insufficient-evidence.html,0,stay,
+design/screens-v2/20-loading-stages.html,design/screens-v2/20-loading-stages.html,0,stay,
+design/screens-v2/21-answer-no-clear-difference.html,design/screens-v2/21-answer-no-clear-difference.html,0,stay,
+design/screens-v2/22-investigate.html,design/screens-v2/22-investigate.html,0,stay,
+design/screens-v2/23-investigate-insufficient.html,design/screens-v2/23-investigate-insufficient.html,0,stay,
+design/screens-v2/24-analysis.html,design/screens-v2/24-analysis.html,0,stay,
+design/screens-v2/25-guide.html,design/screens-v2/25-guide.html,0,stay,
+design/screens-v2/26-about.html,design/screens-v2/26-about.html,0,stay,
+design/screens-v2/DiaCausal-screens-v2.pdf,design/screens-v2/DiaCausal-screens-v2.pdf,0,stay,
+design/screens-v2/diacausal-chat.html,design/screens-v2/diacausal-chat.html,0,stay,
+design/screens-v2/diacausal-login.html,design/screens-v2/diacausal-login.html,0,stay,
+design/screens-v2/handoff/HANDOFF.md,design/screens-v2/handoff/HANDOFF.md,0,stay,
+design/screens-v2/handoff/check_screens.py,design/screens-v2/handoff/check_screens.py,0,stay,
+design/screens-v2/handoff/tokens.css,design/screens-v2/handoff/tokens.css,0,stay,
+design/screens-v2/png/01-signin-desktop.png,design/screens-v2/png/01-signin-desktop.png,0,stay,
+design/screens-v2/png/01-signin-phone.png,design/screens-v2/png/01-signin-phone.png,0,stay,
+design/screens-v2/png/02-signin-error-desktop.png,design/screens-v2/png/02-signin-error-desktop.png,0,stay,
+design/screens-v2/png/02-signin-error-phone.png,design/screens-v2/png/02-signin-error-phone.png,0,stay,
+design/screens-v2/png/03-signin-locked-desktop.png,design/screens-v2/png/03-signin-locked-desktop.png,0,stay,
+design/screens-v2/png/03-signin-locked-phone.png,design/screens-v2/png/03-signin-locked-phone.png,0,stay,
+design/screens-v2/png/06-mfa-setup-desktop.png,design/screens-v2/png/06-mfa-setup-desktop.png,0,stay,
+design/screens-v2/png/06-mfa-setup-phone.png,design/screens-v2/png/06-mfa-setup-phone.png,0,stay,
+design/screens-v2/png/07-intended-use-desktop.png,design/screens-v2/png/07-intended-use-desktop.png,0,stay,
+design/screens-v2/png/07-intended-use-phone.png,design/screens-v2/png/07-intended-use-phone.png,0,stay,
+design/screens-v2/png/08-session-ending-desktop.png,design/screens-v2/png/08-session-ending-desktop.png,0,stay,
+design/screens-v2/png/08-session-ending-phone.png,design/screens-v2/png/08-session-ending-phone.png,0,stay,
+design/screens-v2/png/09-notice-identifier-desktop.png,design/screens-v2/png/09-notice-identifier-desktop.png,0,stay,
+design/screens-v2/png/09-notice-identifier-phone.png,design/screens-v2/png/09-notice-identifier-phone.png,0,stay,
+design/screens-v2/png/10-notice-out-of-scope-desktop.png,design/screens-v2/png/10-notice-out-of-scope-desktop.png,0,stay,
+design/screens-v2/png/10-notice-out-of-scope-phone.png,design/screens-v2/png/10-notice-out-of-scope-phone.png,0,stay,
+design/screens-v2/png/11-notice-emergency-desktop.png,design/screens-v2/png/11-notice-emergency-desktop.png,0,stay,
+design/screens-v2/png/11-notice-emergency-phone.png,design/screens-v2/png/11-notice-emergency-phone.png,0,stay,
+design/screens-v2/png/12-notice-blocked-desktop.png,design/screens-v2/png/12-notice-blocked-desktop.png,0,stay,
+design/screens-v2/png/12-notice-blocked-phone.png,design/screens-v2/png/12-notice-blocked-phone.png,0,stay,
+design/screens-v2/png/13-panel-empty-desktop.png,design/screens-v2/png/13-panel-empty-desktop.png,0,stay,
+design/screens-v2/png/13-panel-empty-phone.png,design/screens-v2/png/13-panel-empty-phone.png,0,stay,
+design/screens-v2/png/14-panel-filled-desktop.png,design/screens-v2/png/14-panel-filled-desktop.png,0,stay,
+design/screens-v2/png/14-panel-filled-phone.png,design/screens-v2/png/14-panel-filled-phone.png,0,stay,
+design/screens-v2/png/15-panel-out-of-range-desktop.png,design/screens-v2/png/15-panel-out-of-range-desktop.png,0,stay,
+design/screens-v2/png/15-panel-out-of-range-phone.png,design/screens-v2/png/15-panel-out-of-range-phone.png,0,stay,
+design/screens-v2/png/16-panel-example-data-desktop.png,design/screens-v2/png/16-panel-example-data-desktop.png,0,stay,
+design/screens-v2/png/16-panel-example-data-phone.png,design/screens-v2/png/16-panel-example-data-phone.png,0,stay,
+design/screens-v2/png/17-answer-options-compared-desktop.png,design/screens-v2/png/17-answer-options-compared-desktop.png,0,stay,
+design/screens-v2/png/17-answer-options-compared-phone.png,design/screens-v2/png/17-answer-options-compared-phone.png,0,stay,
+design/screens-v2/png/18-evidence-drawer-desktop.png,design/screens-v2/png/18-evidence-drawer-desktop.png,0,stay,
+design/screens-v2/png/18-evidence-drawer-phone.png,design/screens-v2/png/18-evidence-drawer-phone.png,0,stay,
+design/screens-v2/png/19-insufficient-evidence-desktop.png,design/screens-v2/png/19-insufficient-evidence-desktop.png,0,stay,
+design/screens-v2/png/19-insufficient-evidence-phone.png,design/screens-v2/png/19-insufficient-evidence-phone.png,0,stay,
+design/screens-v2/png/20-loading-stages-desktop.png,design/screens-v2/png/20-loading-stages-desktop.png,0,stay,
+design/screens-v2/png/20-loading-stages-phone.png,design/screens-v2/png/20-loading-stages-phone.png,0,stay,
+design/screens-v2/png/21-answer-no-clear-difference-desktop.png,design/screens-v2/png/21-answer-no-clear-difference-desktop.png,0,stay,
+design/screens-v2/png/21-answer-no-clear-difference-phone.png,design/screens-v2/png/21-answer-no-clear-difference-phone.png,0,stay,
+design/screens-v2/png/22-investigate-desktop.png,design/screens-v2/png/22-investigate-desktop.png,0,stay,
+design/screens-v2/png/22-investigate-phone.png,design/screens-v2/png/22-investigate-phone.png,0,stay,
+design/screens-v2/png/23-investigate-insufficient-desktop.png,design/screens-v2/png/23-investigate-insufficient-desktop.png,0,stay,
+design/screens-v2/png/23-investigate-insufficient-phone.png,design/screens-v2/png/23-investigate-insufficient-phone.png,0,stay,
+design/screens-v2/png/24-analysis-desktop.png,design/screens-v2/png/24-analysis-desktop.png,0,stay,
+design/screens-v2/png/24-analysis-phone.png,design/screens-v2/png/24-analysis-phone.png,0,stay,
+design/screens-v2/png/25-guide-desktop.png,design/screens-v2/png/25-guide-desktop.png,0,stay,
+design/screens-v2/png/25-guide-phone.png,design/screens-v2/png/25-guide-phone.png,0,stay,
+design/screens-v2/png/26-about-desktop.png,design/screens-v2/png/26-about-desktop.png,0,stay,
+design/screens-v2/png/26-about-phone.png,design/screens-v2/png/26-about-phone.png,0,stay,
+design/v1/01-signin-step1.html,design/v1/01-signin-step1.html,0,stay,
+design/v1/02-signin-step1-error.html,design/v1/02-signin-step1-error.html,0,stay,
+design/v1/03-signin-step1-locked.html,design/v1/03-signin-step1-locked.html,0,stay,
+design/v1/04-signin-step2-code.html,design/v1/04-signin-step2-code.html,0,stay,
+design/v1/05-signin-step2-code-error.html,design/v1/05-signin-step2-code-error.html,0,stay,
+design/v1/06-mfa-setup.html,design/v1/06-mfa-setup.html,0,stay,
+design/v1/07-intended-use.html,design/v1/07-intended-use.html,0,stay,
+design/v1/08-session-ending.html,design/v1/08-session-ending.html,0,stay,
+design/v1/09-notice-identifier.html,design/v1/09-notice-identifier.html,0,stay,
+design/v1/10-notice-out-of-scope.html,design/v1/10-notice-out-of-scope.html,0,stay,
+design/v1/11-notice-emergency.html,design/v1/11-notice-emergency.html,0,stay,
+design/v1/12-notice-blocked.html,design/v1/12-notice-blocked.html,0,stay,
+design/v1/13-panel-empty.html,design/v1/13-panel-empty.html,0,stay,
+design/v1/14-panel-filled.html,design/v1/14-panel-filled.html,0,stay,
+design/v1/15-panel-out-of-range.html,design/v1/15-panel-out-of-range.html,0,stay,
+design/v1/16-panel-example-data.html,design/v1/16-panel-example-data.html,0,stay,
+design/v1/17-answer-options-compared.html,design/v1/17-answer-options-compared.html,0,stay,
+design/v1/18-evidence-drawer.html,design/v1/18-evidence-drawer.html,0,stay,
+design/v1/19-insufficient-evidence.html,design/v1/19-insufficient-evidence.html,0,stay,
+design/v1/20-loading-stages.html,design/v1/20-loading-stages.html,0,stay,
+diacausal/__init__.py,diacausal/__init__.py,0,stay,already in place (P09)
+diacausal/api/__init__.py,diacausal/api/__init__.py,0,stay,already in place (P09)
+diacausal/api/contract_app.py,diacausal/api/contract_app.py,0,stay,already in place (P09)
+diacausal/api/schemas/__init__.py,diacausal/api/schemas/__init__.py,0,stay,already in place (P09)
+diacausal/api/schemas/base.py,diacausal/api/schemas/base.py,0,stay,already in place (P09)
+diacausal/api/schemas/card.py,diacausal/api/schemas/card.py,0,stay,already in place (P09)
+diacausal/api/schemas/causal.py,diacausal/api/schemas/causal.py,0,stay,already in place (P09)
+diacausal/api/schemas/evidence.py,diacausal/api/schemas/evidence.py,0,stay,already in place (P09)
+diacausal/api/schemas/guards.py,diacausal/api/schemas/guards.py,0,stay,already in place (P09)
+diacausal/api/schemas/llm.py,diacausal/api/schemas/llm.py,0,stay,already in place (P09)
+diacausal/api/schemas/patient.py,diacausal/api/schemas/patient.py,0,stay,already in place (P09)
+diacausal/api/schemas/service.py,diacausal/api/schemas/service.py,0,stay,already in place (P09)
+diacausal_demo.py,legacy/diacausal_demo.py,1,move,older 2-arm material
+diacausal_engine/__init__.py,diacausal/__init__.py,3,merge,INTENDED_USE and __version__ move into diacausal/__init__.py and diacausal/config.py; the old file becomes the package shim
+diacausal_engine/api.py,diacausal/api/main.py,5,move,the engine's own FastAPI app (POST /api/v1/recommend); P14 adds routes_v1.py and /ask
+diacausal_engine/benchmark.py,diacausal/causal_inference/benchmark.py,5,move,python -m entry point; default output results/
+diacausal_engine/cohort.py,diacausal/causal_inference/cohort.py,4,move,
+diacausal_engine/config.py,diacausal/config.py,3,move,"params loader (data/params.yaml); same depth, so ROOT = parent.parent still points at the repo root; step 3 makes it the one shared ROOT"
+diacausal_engine/dag.py,diacausal/causal_inference/dag.py,3,move,
+diacausal_engine/estimators.py,diacausal/causal_inference/estimators.py + diacausal/causal_inference/dr_learner.py,4,split,DRLearner class and pseudo_outcomes go to dr_learner.py (separate commit after the move)
+diacausal_engine/export_web.py,diacausal/causal_inference/export_web.py,5,move,writes web/model.json; output must stay byte-identical
+diacausal_engine/figures.py,diacausal/causal_inference/figures.py,5,move,not named in section 8.3; kept
+diacausal_engine/fitting.py,diacausal/causal_inference/fitting.py,4,move,"not named in section 8.3; kept (shared by benchmark, demo, API)"
+diacausal_engine/guardrails.py,diacausal/guards/rules_loader.py,3,move,loads data/rules.csv; runs BEFORE any estimate
+diacausal_engine/metrics.py,diacausal/causal_inference/metrics.py,4,move,not named in section 8.3; kept
+diacausal_engine/propensity.py,diacausal/causal_inference/propensity.py,4,move,
+diacausal_engine/recommend.py,diacausal/causal_inference/recommend.py,5,move,"Engine, check_output, write_audit; patched by tests (AUDIT_PATH)"
+diacausal_engine/refute.py,diacausal/causal_inference/refute.py,4,move,
+diacausal_engine/schemas.py,diacausal/causal_inference/schemas.py,3,move,"engine models (PatientIn, CausalOutput, ...); diacausal/api/schemas/causal.py imports them"
+diacausal_rag/__init__.py,diacausal/rag/__init__.py,6,move,INTENDED_USE re-exported from diacausal
+diacausal_rag/config.yaml,diacausal/rag/config.yaml,6,move,"RAG settings, each with source and status; sha is name+bytes so evidence.json is unchanged"
+diacausal_rag/corpus/README.md,knowledge_sources/corpus/README.md,2,move,licence-cleared text; name unchanged so the corpus sha is unchanged
+diacausal_rag/corpus/fda_dsc_2015_dpp4_joint_pain.txt,knowledge_sources/corpus/fda_dsc_2015_dpp4_joint_pain.txt,2,move,licence-cleared text; name unchanged so the corpus sha is unchanged
+diacausal_rag/corpus/fda_dsc_2015_sglt2_ketoacidosis_uti.txt,knowledge_sources/corpus/fda_dsc_2015_sglt2_ketoacidosis_uti.txt,2,move,licence-cleared text; name unchanged so the corpus sha is unchanged
+diacausal_rag/corpus/fda_dsc_2016_canagliflozin_dapagliflozin_kidney.txt,knowledge_sources/corpus/fda_dsc_2016_canagliflozin_dapagliflozin_kidney.txt,2,move,licence-cleared text; name unchanged so the corpus sha is unchanged
+diacausal_rag/corpus/fda_dsc_2016_metformin_kidney.txt,knowledge_sources/corpus/fda_dsc_2016_metformin_kidney.txt,2,move,licence-cleared text; name unchanged so the corpus sha is unchanged
+diacausal_rag/corpus/fda_dsc_2016_saxagliptin_alogliptin_hf.txt,knowledge_sources/corpus/fda_dsc_2016_saxagliptin_alogliptin_hf.txt,2,move,licence-cleared text; name unchanged so the corpus sha is unchanged
+diacausal_rag/corpus/fda_dsc_2018_sglt2_genital_infection.txt,knowledge_sources/corpus/fda_dsc_2018_sglt2_genital_infection.txt,2,move,licence-cleared text; name unchanged so the corpus sha is unchanged
+diacausal_rag/corpus/fda_dsc_2020_canagliflozin_amputation.txt,knowledge_sources/corpus/fda_dsc_2020_canagliflozin_amputation.txt,2,move,licence-cleared text; name unchanged so the corpus sha is unchanged
+diacausal_rag/corpus/manifest.csv,knowledge_sources/corpus/manifest.csv,2,move,licence-cleared text; name unchanged so the corpus sha is unchanged
+diacausal_rag/corpus/who_2018_second_line.txt,knowledge_sources/corpus/who_2018_second_line.txt,2,move,licence-cleared text; name unchanged so the corpus sha is unchanged
+diacausal_rag/evaluate.py,diacausal/rag/evaluate.py,6,move,"python -m entry point; reads eval/rag_gold.csv, writes results/"
+diacausal_rag/explain.py,diacausal/llm/providers/template.py + diacausal/llm/providers/ollama.py + diacausal/llm/prompt_builder.py + diacausal/guards/output_guards.py + diacausal/llm/explain.py,7,split,"template() -> providers/template.py; call_ollama -> providers/ollama.py; build_prompt and PROMPT -> prompt_builder.py; check_answer and sentences (the shared citation checker, mirrored by web/explain.js) -> output_guards.py; explain(), render, main -> llm/explain.py (a temporary switch that P14 and P22 dissolve into the orchestrator)"
+diacausal_rag/export_web.py,diacausal/rag/export_web.py,6,move,writes web/evidence.json; output must stay byte-identical
+diacausal_rag/ingest.py,diacausal/rag/ingest/chunking.py + diacausal/rag/ingest/licence_gate.py,6,split,"Chunk, split_sections, chunk_document -> chunking.py; LicenceError, is_confirmed, load_sources, ingest -> licence_gate.py; load_config -> diacausal/config.py"
+diacausal_rag/pdf_text.py,diacausal/rag/ingest/pdf_text.py,6,move,python -m entry point
+diacausal_rag/prompt.v1.txt,diacausal/llm/prompt.v1.txt,7,move,resource next to prompt_builder.py
+diacausal_rag/retrieve.py,diacausal/rag/index/bm25.py + diacausal/rag/index/tfidf.py + diacausal/rag/retrieve/hybrid.py + diacausal/rag/retrieve/rerank.py,6,split,"BM25 -> bm25.py; TF-IDF vectorizer -> tfidf.py; tokens, rrf, Retriever.search -> hybrid.py; the rerank slot -> rerank.py"
+diacausal_rag/sources_table.py,diacausal/rag/sources_table.py,6,move,not named in section 8.3; kept; writes docs/SOURCES.md
+docker/Caddyfile,docker/Caddyfile,0,stay,
+docker/README.md,docker/README.md,0,stay,
+docs/01_Master_Plan.md,docs/01_Master_Plan.md,0,stay,
+docs/02_Causal_Engine_Build_Guide.md,docs/02_Causal_Engine_Build_Guide.md,0,stay,
+docs/03_RAG_Build_Guide.md,docs/03_RAG_Build_Guide.md,0,stay,
+docs/04_Presentation_PPT_Guide.md,docs/04_Presentation_PPT_Guide.md,0,stay,
+docs/05_Project_Report_Guide.md,docs/05_Project_Report_Guide.md,0,stay,
+docs/06_Viva_Prep.md,docs/06_Viva_Prep.md,0,stay,
+docs/07_Research_Paper_Plan.md,docs/07_Research_Paper_Plan.md,0,stay,
+docs/08_Tools_Usage_and_AI_Subscriptions.md,docs/08_Tools_Usage_and_AI_Subscriptions.md,0,stay,
+docs/ATTRIBUTION.md,docs/ATTRIBUTION.md,0,stay,
+docs/AUDIT_2026-10-03.md,docs/AUDIT_2026-10-03.md,0,stay,
+docs/CAUSAL_PLAN.md,docs/CAUSAL_PLAN.md,0,stay,
+docs/DEPLOY.md,docs/DEPLOY.md,0,stay,
+docs/HISTORY_PURGE_PLAN.md,docs/HISTORY_PURGE_PLAN.md,0,stay,
+docs/HOSTING_CHAT_APP.md,docs/HOSTING_CHAT_APP.md,0,stay,
+docs/INPUT_RANGES.md,docs/INPUT_RANGES.md,0,stay,
+docs/INTEGRATING_A_TEAMMATE_ENGINE.md,docs/INTEGRATING_A_TEAMMATE_ENGINE.md,0,stay,
+docs/OFFLINE_INSTALL.md,docs/OFFLINE_INSTALL.md,0,stay,
+docs/PLAN_2026-10.md,docs/PLAN_2026-10.md,0,stay,
+docs/REPO_INVENTORY.md,docs/REPO_INVENTORY.md,0,stay,
+docs/RESULTS_SUMMARY.md,docs/RESULTS_SUMMARY.md,0,stay,
+docs/SETUP.md,docs/SETUP.md,0,stay,
+docs/SOURCES.md,docs/SOURCES.md,0,stay,
+docs/SYSTEM_DESIGN.md,docs/SYSTEM_DESIGN.md,0,stay,
+docs/SYSTEM_REQUIREMENTS.md,docs/SYSTEM_REQUIREMENTS.md,0,stay,
+docs/TESTING.md,docs/TESTING.md,0,stay,
+docs/WEBSITE.md,docs/WEBSITE.md,0,stay,
+docs/explain/01-walking-skeleton.md,docs/explain/01-walking-skeleton.md,0,stay,
+docs/explain/02-presenting-it.md,docs/explain/02-presenting-it.md,0,stay,
+docs/explain/03-guards.md,docs/explain/03-guards.md,0,stay,
+docs/explain/04-login-and-mfa.md,docs/explain/04-login-and-mfa.md,0,stay,
+docs/explain/05-patient-panel.md,docs/explain/05-patient-panel.md,0,stay,
+docs/explain/06-guardrails.md,docs/explain/06-guardrails.md,0,stay,
+docs/explain/07-causal-engine.md,docs/explain/07-causal-engine.md,0,stay,
+docs/explain/11-deploy.md,docs/explain/11-deploy.md,0,stay,
+docs/explain/12-voice.md,docs/explain/12-voice.md,0,stay,
+docs/midsem/DiaCausal_MidSem_Presentation.pptx,docs/midsem/DiaCausal_MidSem_Presentation.pptx,0,stay,
+docs/midsem/DiaCausal_MidSem_Report.pdf,docs/midsem/DiaCausal_MidSem_Report.pdf,0,stay,
+docs/midsem/DiaCausal_Report_Overleaf.zip,docs/midsem/DiaCausal_Report_Overleaf.zip,0,stay,
+docs/midsem/DiaCausal_demo.mp4,docs/midsem/DiaCausal_demo.mp4,0,stay,
+docs/midsem/EXPLAINING_DIACAUSAL.md,docs/midsem/EXPLAINING_DIACAUSAL.md,0,stay,
+docs/midsem/EXPLAINING_DIACAUSAL.pdf,docs/midsem/EXPLAINING_DIACAUSAL.pdf,0,stay,
+docs/midsem/README.md,docs/midsem/README.md,0,stay,
+docs/midsem/diagrams/block.png,docs/midsem/diagrams/block.png,0,stay,
+docs/midsem/diagrams/dag.png,docs/midsem/diagrams/dag.png,0,stay,
+docs/midsem/diagrams/dfd0.png,docs/midsem/diagrams/dfd0.png,0,stay,
+docs/midsem/diagrams/dfd1.png,docs/midsem/diagrams/dfd1.png,0,stay,
+docs/midsem/diagrams/sequence.png,docs/midsem/diagrams/sequence.png,0,stay,
+docs/midsem/diagrams/usecase.png,docs/midsem/diagrams/usecase.png,0,stay,
+docs/midsem/fcritlogo.jpg,docs/midsem/fcritlogo.jpg,0,stay,
+docs/midsem/gantt.png,docs/midsem/gantt.png,0,stay,
+docs/midsem/screens/abstain_desktop.png,docs/midsem/screens/abstain_desktop.png,0,stay,
+docs/midsem/screens/admin_phone.png,docs/midsem/screens/admin_phone.png,0,stay,
+docs/midsem/screens/demo1.png,docs/midsem/screens/demo1.png,0,stay,
+docs/midsem/screens/demo1_cards.png,docs/midsem/screens/demo1_cards.png,0,stay,
+docs/midsem/screens/demo2.png,docs/midsem/screens/demo2.png,0,stay,
+docs/midsem/screens/demo2_cards.png,docs/midsem/screens/demo2_cards.png,0,stay,
+docs/midsem/screens/demo3.png,docs/midsem/screens/demo3.png,0,stay,
+docs/midsem/screens/demo3_cards.png,docs/midsem/screens/demo3_cards.png,0,stay,
+docs/midsem/screens/dose_refused_desktop.png,docs/midsem/screens/dose_refused_desktop.png,0,stay,
+docs/midsem/screens/evidence_desktop.png,docs/midsem/screens/evidence_desktop.png,0,stay,
+docs/midsem/screens/evidence_explanation_desktop.png,docs/midsem/screens/evidence_explanation_desktop.png,0,stay,
+docs/midsem/screens/explanation_card_desktop.png,docs/midsem/screens/explanation_card_desktop.png,0,stay,
+docs/midsem/screens/option_evidence_desktop.png,docs/midsem/screens/option_evidence_desktop.png,0,stay,
+docs/midsem/screens/pending_phone.png,docs/midsem/screens/pending_phone.png,0,stay,
+docs/midsem/screens/phone_explanation.png,docs/midsem/screens/phone_explanation.png,0,stay,
+docs/midsem/screens/phone_form.png,docs/midsem/screens/phone_form.png,0,stay,
+docs/midsem/screens/phone_result.png,docs/midsem/screens/phone_result.png,0,stay,
+docs/midsem/screens/phone_secondary_card.png,docs/midsem/screens/phone_secondary_card.png,0,stay,
+docs/midsem/screens/print_summary.pdf,docs/midsem/screens/print_summary.pdf,0,stay,
+docs/midsem/screens/print_summary.png,docs/midsem/screens/print_summary.png,0,stay,
+docs/midsem/screens/results_desktop.png,docs/midsem/screens/results_desktop.png,0,stay,
+docs/midsem/screens/secondary_cards_desktop.png,docs/midsem/screens/secondary_cards_desktop.png,0,stay,
+docs/midsem/screens/signin_phone.png,docs/midsem/screens/signin_phone.png,0,stay,
+docs/midsem/screens/tryit_desktop.png,docs/midsem/screens/tryit_desktop.png,0,stay,
+docs/midsem/viva/viva_sheet.pdf,docs/midsem/viva/viva_sheet.pdf,0,stay,
+docs/midsem/viva/viva_sheet.tex,docs/midsem/viva/viva_sheet.tex,0,stay,
+docs/prompts/01-guards.md,docs/prompts/01-guards.md,0,stay,
+docs/prompts/02-auth.md,docs/prompts/02-auth.md,0,stay,
+docs/prompts/03-freeze.md,docs/prompts/03-freeze.md,0,stay,
+docs/prompts/04-patient-panel.md,docs/prompts/04-patient-panel.md,0,stay,
+docs/prompts/05-guardrails.md,docs/prompts/05-guardrails.md,0,stay,
+docs/prompts/06-causal-engine.md,docs/prompts/06-causal-engine.md,0,stay,
+docs/prompts/07-rag.md,docs/prompts/07-rag.md,0,stay,
+docs/prompts/08-answer-card.md,docs/prompts/08-answer-card.md,0,stay,
+docs/prompts/09-explanation.md,docs/prompts/09-explanation.md,0,stay,
+docs/prompts/10-deploy.md,docs/prompts/10-deploy.md,0,stay,
+docs/prompts/11-voice.md,docs/prompts/11-voice.md,0,stay,
+docs/prompts/README.md,docs/prompts/README.md,0,stay,
+docs/research/DiaCausal_parameter_extraction_worksheet.xlsx,docs/research/DiaCausal_parameter_extraction_worksheet.xlsx,0,stay,
+docs/research/HANDOVER-2026-09-19.md,docs/research/HANDOVER-2026-09-19.md,0,stay,
+dowhy_ihdp_data_example.ipynb,legacy/dowhy_ihdp_data_example.ipynb,1,move,older 2-arm material
+e2e/global-setup.js,tests/e2e/global-setup.js,8,move,Playwright tests; tests/web/*.cjs and test_web.py find playwright here
+e2e/global-teardown.js,tests/e2e/global-teardown.js,8,move,Playwright tests; tests/web/*.cjs and test_web.py find playwright here
+e2e/helpers.js,tests/e2e/helpers.js,8,move,Playwright tests; tests/web/*.cjs and test_web.py find playwright here
+e2e/package-lock.json,tests/e2e/package-lock.json,8,move,Playwright tests; tests/web/*.cjs and test_web.py find playwright here
+e2e/package.json,tests/e2e/package.json,8,move,Playwright tests; tests/web/*.cjs and test_web.py find playwright here
+e2e/playwright.config.js,tests/e2e/playwright.config.js,8,move,Playwright tests; tests/web/*.cjs and test_web.py find playwright here
+e2e/tests/chat.spec.js,tests/e2e/tests/chat.spec.js,8,move,Playwright tests; tests/web/*.cjs and test_web.py find playwright here
+eval/.gitignore,eval/.gitignore,0,stay,
+eval/README.md,eval/README.md,0,stay,
+eval/doctor-feedback.md,eval/doctor-feedback.md,0,stay,
+eval/rag_gold.csv,eval/rag_gold.csv,0,stay,
+eval/run_vignettes.py,eval/run_vignettes.py,0,stay,
+eval/system-usability-scale.md,eval/system-usability-scale.md,0,stay,
+eval/vignettes.v1.json,eval/vignettes.v1.json,0,stay,
+figures/act3_dag.png,legacy/figures/act3_dag.png,1,move,plots of the old 2-arm code
+figures/act7_calibration.png,legacy/figures/act7_calibration.png,1,move,plots of the old 2-arm code
+figures/act7_cate_recovery.png,legacy/figures/act7_cate_recovery.png,1,move,plots of the old 2-arm code
+figures/act7_leaderboard.png,legacy/figures/act7_leaderboard.png,1,move,plots of the old 2-arm code
+figures/act8_decision_curve.png,legacy/figures/act8_decision_curve.png,1,move,plots of the old 2-arm code
+figures/basics_act3_dag.png,legacy/figures/basics_act3_dag.png,1,move,plots of the old 2-arm code
+figures/basics_act4_love.png,legacy/figures/basics_act4_love.png,1,move,plots of the old 2-arm code
+figures/basics_act4_overlap.png,legacy/figures/basics_act4_overlap.png,1,move,plots of the old 2-arm code
+figures/basics_act5_leaderboard.png,legacy/figures/basics_act5_leaderboard.png,1,move,plots of the old 2-arm code
+figures/basics_act7_calibration.png,legacy/figures/basics_act7_calibration.png,1,move,plots of the old 2-arm code
+figures/basics_act7_decision.png,legacy/figures/basics_act7_decision.png,1,move,plots of the old 2-arm code
+figures/basics_act7_recovery.png,legacy/figures/basics_act7_recovery.png,1,move,plots of the old 2-arm code
+figures/basics_act7_recovery_egfr.png,legacy/figures/basics_act7_recovery_egfr.png,1,move,plots of the old 2-arm code
+figures/nb_act3_dag.png,legacy/figures/nb_act3_dag.png,1,move,plots of the old 2-arm code
+figures/nb_act4_love.png,legacy/figures/nb_act4_love.png,1,move,plots of the old 2-arm code
+figures/nb_act4_overlap.png,legacy/figures/nb_act4_overlap.png,1,move,plots of the old 2-arm code
+figures/nb_act5_leaderboard.png,legacy/figures/nb_act5_leaderboard.png,1,move,plots of the old 2-arm code
+figures/nb_act7_calibration.png,legacy/figures/nb_act7_calibration.png,1,move,plots of the old 2-arm code
+figures/nb_act7_decision.png,legacy/figures/nb_act7_decision.png,1,move,plots of the old 2-arm code
+figures/nb_act7_recovery.png,legacy/figures/nb_act7_recovery.png,1,move,plots of the old 2-arm code
+frontend/.gitignore,legacy/frontend/.gitignore,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/.oxlintrc.json,legacy/frontend/.oxlintrc.json,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/README.md,legacy/frontend/README.md,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/components.json,legacy/frontend/components.json,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/index.html,legacy/frontend/index.html,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/package-lock.json,legacy/frontend/package-lock.json,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/package.json,legacy/frontend/package.json,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/public/favicon.svg,legacy/frontend/public/favicon.svg,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/App.test.tsx,legacy/frontend/src/App.test.tsx,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/App.tsx,legacy/frontend/src/App.tsx,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/components/chat/AnswerCard.tsx,legacy/frontend/src/components/chat/AnswerCard.tsx,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/components/chat/Composer.tsx,legacy/frontend/src/components/chat/Composer.tsx,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/components/chat/GuardNotice.tsx,legacy/frontend/src/components/chat/GuardNotice.tsx,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/components/chat/OptionsList.tsx,legacy/frontend/src/components/chat/OptionsList.tsx,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/components/chat/PulseIcon.tsx,legacy/frontend/src/components/chat/PulseIcon.tsx,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/components/chat/StageList.tsx,legacy/frontend/src/components/chat/StageList.tsx,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/components/chat/StatusBlock.tsx,legacy/frontend/src/components/chat/StatusBlock.tsx,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/components/chat/Thread.tsx,legacy/frontend/src/components/chat/Thread.tsx,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/components/chat/TopBar.tsx,legacy/frontend/src/components/chat/TopBar.tsx,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/components/chat/options.test.tsx,legacy/frontend/src/components/chat/options.test.tsx,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/components/ui/button.tsx,legacy/frontend/src/components/ui/button.tsx,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/components/ui/textarea.tsx,legacy/frontend/src/components/ui/textarea.tsx,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/features/auth/CodePage.tsx,legacy/frontend/src/features/auth/CodePage.tsx,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/features/auth/IntendedUsePage.tsx,legacy/frontend/src/features/auth/IntendedUsePage.tsx,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/features/auth/MfaSetupPage.tsx,legacy/frontend/src/features/auth/MfaSetupPage.tsx,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/features/auth/README.md,legacy/frontend/src/features/auth/README.md,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/features/auth/SessionTimer.tsx,legacy/frontend/src/features/auth/SessionTimer.tsx,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/features/auth/SignInPage.tsx,legacy/frontend/src/features/auth/SignInPage.tsx,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/features/auth/api.ts,legacy/frontend/src/features/auth/api.ts,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/features/auth/ui.tsx,legacy/frontend/src/features/auth/ui.tsx,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/features/patient/PatientPanel.tsx,legacy/frontend/src/features/patient/PatientPanel.tsx,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/features/patient/panelValues.ts,legacy/frontend/src/features/patient/panelValues.ts,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/features/patient/patient.test.tsx,legacy/frontend/src/features/patient/patient.test.tsx,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/features/patient/ranges.ts,legacy/frontend/src/features/patient/ranges.ts,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/features/voice/HighlightNumbers.tsx,legacy/frontend/src/features/voice/HighlightNumbers.tsx,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/features/voice/README.md,legacy/frontend/src/features/voice/README.md,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/features/voice/api.ts,legacy/frontend/src/features/voice/api.ts,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/features/voice/useVoiceInput.ts,legacy/frontend/src/features/voice/useVoiceInput.ts,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/features/voice/voice.test.tsx,legacy/frontend/src/features/voice/voice.test.tsx,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/hooks/useChat.ts,legacy/frontend/src/hooks/useChat.ts,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/hooks/useMediaQuery.ts,legacy/frontend/src/hooks/useMediaQuery.ts,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/index.css,legacy/frontend/src/index.css,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/lib/api.test.ts,legacy/frontend/src/lib/api.test.ts,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/lib/api.ts,legacy/frontend/src/lib/api.ts,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/lib/authSession.ts,legacy/frontend/src/lib/authSession.ts,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/lib/chatFlow.ts,legacy/frontend/src/lib/chatFlow.ts,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/lib/contract.ts,legacy/frontend/src/lib/contract.ts,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/lib/guards.test.ts,legacy/frontend/src/lib/guards.test.ts,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/lib/guards.ts,legacy/frontend/src/lib/guards.ts,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/lib/trace.test.ts,legacy/frontend/src/lib/trace.test.ts,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/lib/trace.ts,legacy/frontend/src/lib/trace.ts,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/lib/utils.ts,legacy/frontend/src/lib/utils.ts,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/main.tsx,legacy/frontend/src/main.tsx,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/pages/ChatPage.test.tsx,legacy/frontend/src/pages/ChatPage.test.tsx,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/pages/ChatPage.tsx,legacy/frontend/src/pages/ChatPage.tsx,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/test/fakeBackend.ts,legacy/frontend/src/test/fakeBackend.ts,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/test/guardAgreement.json,legacy/frontend/src/test/guardAgreement.json,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/src/test/setup.ts,legacy/frontend/src/test/setup.ts,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/tsconfig.app.json,legacy/frontend/tsconfig.app.json,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/tsconfig.json,legacy/frontend/tsconfig.json,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/tsconfig.node.json,legacy/frontend/tsconfig.node.json,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+frontend/vite.config.ts,legacy/frontend/vite.config.ts,10,move,"chat page, AFTER gate G1 (Sun 11 Oct)"
+openapi.json,openapi.json,0,stay,
+pytest.ini,pytest.ini,0,stay + edit,root pytest.ini keeps testpaths = tests; legacy gets its own
+report/.gitignore,report/.gitignore,0,stay,
+report/0Synopsis.bib,report/0Synopsis.bib,0,stay,
+report/0Synopsis.tex,report/0Synopsis.tex,0,stay,
+report/1Title.tex,report/1Title.tex,0,stay,
+report/2Approval.tex,report/2Approval.tex,0,stay,
+report/3Declaration.tex,report/3Declaration.tex,0,stay,
+report/Abstract.tex,report/Abstract.tex,0,stay,
+report/Acknowledgment.tex,report/Acknowledgment.tex,0,stay,
+report/Chapter1Introduction.tex,report/Chapter1Introduction.tex,0,stay,
+report/Chapter2LiteratureSurvey.tex,report/Chapter2LiteratureSurvey.tex,0,stay,
+report/Chapter3ProposedSystem.tex,report/Chapter3ProposedSystem.tex,0,stay,
+report/Chapter4Design.tex,report/Chapter4Design.tex,0,stay,
+report/Chapter5ResultandDiscussion.tex,report/Chapter5ResultandDiscussion.tex,0,stay,
+report/Chapter6Conclusion.tex,report/Chapter6Conclusion.tex,0,stay,
+report/appendixA.tex,report/appendixA.tex,0,stay,
+report/appendixB.tex,report/appendixB.tex,0,stay,
+report/code/estimators.py,report/code/estimators.py,0,stay,
+report/code/guardrails.py,report/code/guardrails.py,0,stay,
+report/fcritlogo.jpg,report/fcritlogo.jpg,0,stay,
+report/figures/gantt.png,report/figures/gantt.png,0,stay,
+report/results/figures/ate_vs_truth.png,report/results/figures/ate_vs_truth.png,0,stay,
+report/results/figures/calibration.png,report/results/figures/calibration.png,0,stay,
+report/results/figures/cate_recovery.png,report/results/figures/cate_recovery.png,0,stay,
+report/results/figures/love_plot.png,report/results/figures/love_plot.png,0,stay,
+report/results/figures/overlap.png,report/results/figures/overlap.png,0,stay,
+report/results/results_table.tex,report/results/results_table.tex,0,stay,
+report/screens/admin_phone.png,report/screens/admin_phone.png,0,stay,
+report/screens/demo1.png,report/screens/demo1.png,0,stay,
+report/screens/demo2.png,report/screens/demo2.png,0,stay,
+report/screens/demo3.png,report/screens/demo3.png,0,stay,
+report/screens/evidence_desktop.png,report/screens/evidence_desktop.png,0,stay,
+report/screens/explanation_card_desktop.png,report/screens/explanation_card_desktop.png,0,stay,
+report/screens/phone_result.png,report/screens/phone_result.png,0,stay,
+report/screens/secondary_cards_desktop.png,report/screens/secondary_cards_desktop.png,0,stay,
+report/screens/signin_phone.png,report/screens/signin_phone.png,0,stay,
+report/screens/tryit_desktop.png,report/screens/tryit_desktop.png,0,stay,
+requirements-engine.txt,requirements-engine.txt,0,stay + edit,comment names diacausal_engine/ -> diacausal/
+requirements.txt,legacy/requirements.txt,1,move,the old research code's unpinned libraries
+results/benchmark_summary.csv,results/benchmark_summary.csv,0,stay,
+results/evalues.csv,results/evalues.csv,0,stay,
+results/figures/ate_vs_truth.png,results/figures/ate_vs_truth.png,0,stay,
+results/figures/calibration.png,results/figures/calibration.png,0,stay,
+results/figures/cate_recovery.png,results/figures/cate_recovery.png,0,stay,
+results/figures/love_plot.png,results/figures/love_plot.png,0,stay,
+results/figures/overlap.png,results/figures/overlap.png,0,stay,
+results/rag_eval.csv,results/rag_eval.csv,0,stay,
+results/rag_eval_summary.csv,results/rag_eval_summary.csv,0,stay,
+results/refutation.csv,results/refutation.csv,0,stay,
+results/results_table.tex,results/results_table.tex,0,stay,
+results/run_info.json,results/run_info.json,0,stay,
+screens/demo1.png,screens/demo1.png,0,stay,
+screens/demo2.png,screens/demo2.png,0,stay,
+screens/demo3.png,screens/demo3.png,0,stay,
+scripts/admin.py,scripts/admin.py,0,stay,
+scripts/backup_repos.sh,scripts/backup_repos.sh,0,stay,
+scripts/check_all.py,scripts/check_all.py,0,stay + edit,step 8: e2e path (the browser check); step 10: BACKEND/FRONTEND paths
+scripts/create_admin.py,scripts/create_admin.py,0,stay,
+scripts/export_openapi.py,scripts/export_openapi.py,0,stay + edit,none expected (checked by --check)
+scripts/fetch_fda_dsc.py,scripts/fetch_fda_dsc.py,0,stay + edit,writes into diacausal_rag/corpus -> knowledge_sources/corpus; reads RAG/sources.csv
+scripts/make_contract_examples.py,scripts/make_contract_examples.py,0,stay + edit,imports
+scripts/make_gantt.py,scripts/make_gantt.py,0,stay,
+scripts/make_midsem_deck.js,scripts/make_midsem_deck.js,0,stay,
+scripts/make_types.sh,scripts/make_types.sh,0,stay + edit,none
+scripts/setup.py,scripts/setup.py,0,stay + edit,step 8: e2e path; step 10: backend/frontend paths
+scripts/web_config.py,scripts/web_config.py,0,stay + edit,none
+shared/guard_rules/examples.v1.json,shared/guard_rules/examples.v1.json,0,stay,
+shared/guard_rules/reference_guard.py,shared/guard_rules/reference_guard.py,0,stay,
+shared/guard_rules/rules.v1.json,shared/guard_rules/rules.v1.json,0,stay,
+smoke_streamlit.py,legacy/smoke_streamlit.py,1,move,older 2-arm material
+supabase/migrations/20260926000000_accounts.sql,supabase/migrations/20260926000000_accounts.sql,0,stay,
+supabase/migrations/20260926000100_private_is_admin.sql,supabase/migrations/20260926000100_private_is_admin.sql,0,stay,
+supabase/migrations/20260926000200_approved_by_set_null.sql,supabase/migrations/20260926000200_approved_by_set_null.sql,0,stay,
+tests/contract/examples/AnswerCardV1.json,tests/contract/examples/AnswerCardV1.json,0,stay,"same path, unchanged"
+tests/contract/examples/AnswerDraftV1.json,tests/contract/examples/AnswerDraftV1.json,0,stay,"same path, unchanged"
+tests/contract/examples/AskRequestV1.json,tests/contract/examples/AskRequestV1.json,0,stay,"same path, unchanged"
+tests/contract/examples/CausalOutputV1.json,tests/contract/examples/CausalOutputV1.json,0,stay,"same path, unchanged"
+tests/contract/examples/DriverV1.json,tests/contract/examples/DriverV1.json,0,stay,"same path, unchanged"
+tests/contract/examples/EligibleOptionsV1.json,tests/contract/examples/EligibleOptionsV1.json,0,stay,"same path, unchanged"
+tests/contract/examples/EvidenceBundleV1.json,tests/contract/examples/EvidenceBundleV1.json,0,stay,"same path, unchanged"
+tests/contract/examples/EvidenceChunkV1.json,tests/contract/examples/EvidenceChunkV1.json,0,stay,"same path, unchanged"
+tests/contract/examples/GuardResultV1.json,tests/contract/examples/GuardResultV1.json,0,stay,"same path, unchanged"
+tests/contract/examples/GuardedDraftV1.json,tests/contract/examples/GuardedDraftV1.json,0,stay,"same path, unchanged"
+tests/contract/examples/LLMRequestV1.json,tests/contract/examples/LLMRequestV1.json,0,stay,"same path, unchanged"
+tests/contract/examples/PatientV1.json,tests/contract/examples/PatientV1.json,0,stay,"same path, unchanged"
+tests/contract/test_contract.py,tests/contract/test_contract.py,8,stay + edit,same path; imports move to the new module names (step 8)
+tests/engine/conftest.py,tests/engine/conftest.py,8,stay + edit,same path; imports move to the new module names (step 8)
+tests/engine/test_a_cohort.py,tests/engine/test_a_cohort.py,8,stay + edit,same path; imports move to the new module names (step 8)
+tests/engine/test_b_guardrails.py,tests/engine/test_b_guardrails.py,8,stay + edit,same path; imports move to the new module names (step 8)
+tests/engine/test_c_propensity.py,tests/engine/test_c_propensity.py,8,stay + edit,same path; imports move to the new module names (step 8)
+tests/engine/test_d_average_effects.py,tests/engine/test_d_average_effects.py,8,stay + edit,same path; imports move to the new module names (step 8)
+tests/engine/test_e_dr_learner.py,tests/engine/test_e_dr_learner.py,8,stay + edit,same path; imports move to the new module names (step 8)
+tests/engine/test_f_metrics.py,tests/engine/test_f_metrics.py,8,stay + edit,same path; imports move to the new module names (step 8)
+tests/engine/test_g_benchmark.py,tests/engine/test_g_benchmark.py,8,stay + edit,same path; imports move to the new module names (step 8)
+tests/engine/test_h_demo.py,tests/engine/test_h_demo.py,8,stay + edit,same path; imports move to the new module names (step 8)
+tests/engine/test_i_api.py,tests/engine/test_i_api.py,8,stay + edit,same path; imports move to the new module names (step 8)
+tests/engine/test_j_invariants.py,tests/engine/test_j_invariants.py,8,stay + edit,same path; imports move to the new module names (step 8)
+tests/engine/test_k_refute.py,tests/engine/test_k_refute.py,8,stay + edit,same path; imports move to the new module names (step 8)
+tests/engine/test_l_secondary.py,tests/engine/test_l_secondary.py,8,stay + edit,same path; imports move to the new module names (step 8)
+tests/rag/test_explain.py,tests/rag/test_explain.py,8,stay + edit,same path; imports move to the new module names (step 8)
+tests/rag/test_rag_skeleton.py,tests/rag/test_rag_skeleton.py,8,stay + edit,same path; imports move to the new module names (step 8)
+tests/test_causal_engine.py,legacy/tests/test_causal_engine.py,1,move,needs legacy/pytest.ini (pythonpath = legacy); CI never ran it
+tests/web/phone_check.cjs,tests/web/phone_check.cjs,8,stay + edit,same path; imports move to the new module names (step 8)
+tests/web/run_engine.cjs,tests/web/run_engine.cjs,8,stay + edit,same path; imports move to the new module names (step 8)
+tests/web/run_evidence.cjs,tests/web/run_evidence.cjs,8,stay + edit,same path; imports move to the new module names (step 8)
+tests/web/run_explain.cjs,tests/web/run_explain.cjs,8,stay + edit,same path; imports move to the new module names (step 8)
+tests/web/screens_check.cjs,tests/web/screens_check.cjs,8,stay + edit,same path; imports move to the new module names (step 8)
+tests/web/test_web.py,tests/web/test_web.py,8,stay + edit,same path; imports move to the new module names (step 8)
+verify_notebook.py,legacy/verify_notebook.py,1,move,older 2-arm material
+walkthrough.md,legacy/walkthrough.md,1,move,older 2-arm material
+web/account.js,web/account.js,0,stay,
+web/app.js,web/app.js,0,stay,
+web/auth.js,web/auth.js,0,stay,
+web/config.json,web/config.json,0,stay,
+web/docs/causal-engine.md,web/docs/causal-engine.md,0,stay,
+web/docs/results-summary.md,web/docs/results-summary.md,0,stay,
+web/engine.js,web/engine.js,0,stay,
+web/evidence.js,web/evidence.js,0,stay,
+web/evidence.json,web/evidence.json,0,stay,
+web/explain.js,web/explain.js,0,stay,
+web/fonts/OFL-Atkinson-Hyperlegible.txt,web/fonts/OFL-Atkinson-Hyperlegible.txt,0,stay,
+web/fonts/OFL-Source-Serif-4.txt,web/fonts/OFL-Source-Serif-4.txt,0,stay,
+web/fonts/atkinson-hyperlegible-latin-400-normal.woff2,web/fonts/atkinson-hyperlegible-latin-400-normal.woff2,0,stay,
+web/fonts/atkinson-hyperlegible-latin-700-normal.woff2,web/fonts/atkinson-hyperlegible-latin-700-normal.woff2,0,stay,
+web/fonts/atkinson-hyperlegible-latin-ext-400-normal.woff2,web/fonts/atkinson-hyperlegible-latin-ext-400-normal.woff2,0,stay,
+web/fonts/atkinson-hyperlegible-latin-ext-700-normal.woff2,web/fonts/atkinson-hyperlegible-latin-ext-700-normal.woff2,0,stay,
+web/fonts/source-serif-4-latin-ext-wght-normal.woff2,web/fonts/source-serif-4-latin-ext-wght-normal.woff2,0,stay,
+web/fonts/source-serif-4-latin-wght-normal.woff2,web/fonts/source-serif-4-latin-wght-normal.woff2,0,stay,
+web/icons/apple-touch-icon.png,web/icons/apple-touch-icon.png,0,stay,
+web/icons/icon-192.png,web/icons/icon-192.png,0,stay,
+web/icons/icon-512.png,web/icons/icon-512.png,0,stay,
+web/icons/icon.svg,web/icons/icon.svg,0,stay,
+web/icons/qr.png,web/icons/qr.png,0,stay,
+web/index.html,web/index.html,0,stay,
+web/manifest.webmanifest,web/manifest.webmanifest,0,stay,
+web/model.json,web/model.json,0,stay,
+web/netlify.toml,web/netlify.toml,0,stay,
+web/results.json,web/results.json,0,stay,
+web/results/ate_vs_truth.png,web/results/ate_vs_truth.png,0,stay,
+web/results/calibration.png,web/results/calibration.png,0,stay,
+web/results/cate_recovery.png,web/results/cate_recovery.png,0,stay,
+web/results/love_plot.png,web/results/love_plot.png,0,stay,
+web/results/overlap.png,web/results/overlap.png,0,stay,
+web/styles.css,web/styles.css,0,stay,
+web/styles/fonts.css,web/styles/fonts.css,0,stay,
+web/styles/screens.css,web/styles/screens.css,0,stay,
+web/styles/tokens.css,web/styles/tokens.css,0,stay,
+web/sw.js,web/sw.js,0,stay,
+web/types.d.ts,web/types.d.ts,0,stay,
+web/vendor/marked.LICENSE.md,web/vendor/marked.LICENSE.md,0,stay,
+web/vendor/marked.min.js,web/vendor/marked.min.js,0,stay,
+web/vendor/supabase.LICENSE.md,web/vendor/supabase.LICENSE.md,0,stay,
+web/vendor/supabase.min.js,web/vendor/supabase.min.js,0,stay,
+web/vercel.json,web/vercel.json,0,stay,
