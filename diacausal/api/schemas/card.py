@@ -11,8 +11,8 @@ from pydantic import Field, field_validator, model_validator
 from diacausal.api.schemas.base import OptionName, V1
 from diacausal.api.schemas.causal import DriverV1
 from diacausal.api.schemas.guards import RuleHitV1
-from diacausal_engine import INTENDED_USE
-from diacausal_engine.schemas import Interval, Versions
+from diacausal import INTENDED_USE
+from diacausal.causal_inference.schemas import Interval, Versions
 
 EvidenceLevel = Literal["Moderate", "Low", "Insufficient"]  # never "High" on synthetic data
 

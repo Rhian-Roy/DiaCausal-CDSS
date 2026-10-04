@@ -1,0 +1,53 @@
+"""Shims (docs/RESTRUCTURE_PLAN.md, section 4): an old import path must give the very same module as the new one,
+so a test that patches `old.X` reaches the real code, and the shim file stays tiny."""
+
+from __future__ import annotations
+
+import importlib
+from pathlib import Path
+
+import pytest
+
+from diacausal.registry import REGISTRY
+
+ROOT = Path(__file__).resolve().parent.parent
+SHIMS = [e for e in REGISTRY if e.shim_for]
+
+
+@pytest.mark.parametrize("entry", SHIMS, ids=lambda e: e.module)
+def test_the_old_path_is_the_new_module(entry):
+    assert importlib.import_module(entry.module) is importlib.import_module(entry.shim_for)
+
+
+@pytest.mark.parametrize("entry", SHIMS, ids=lambda e: e.module)
+def test_a_shim_file_is_tiny_and_names_the_new_module(entry):
+    path = ROOT / (entry.module.replace(".", "/") + ".py")
+    lines = path.read_text(encoding="utf-8").splitlines()
+    assert len(lines) <= 25, f"{path.name} is {len(lines)} lines: a shim must stay tiny"
+    assert any(entry.shim_for in line for line in lines), f"{path.name} does not name {entry.shim_for}"
+
+
+def test_a_patch_through_a_shim_reaches_the_real_module(monkeypatch):
+    import diacausal.config as real
+    import diacausal_engine.config as old
+
+    monkeypatch.setattr(old, "ROOT", Path("/nowhere"))
+    assert real.ROOT == Path("/nowhere")
+
+
+def test_the_old_package_still_exports_the_shared_constants():
+    import diacausal
+    import diacausal.config
+    import diacausal_engine
+
+    assert diacausal_engine.INTENDED_USE is diacausal.INTENDED_USE
+    assert diacausal_engine.__version__ == diacausal.__version__ == "0.3.0"
+    assert diacausal_engine.ARMS is diacausal.config.ARMS
+    assert diacausal_engine.CONTRASTS is diacausal.config.CONTRASTS
+
+
+def test_the_one_root_is_the_repository_root():
+    from diacausal.config import DATA_DIR, KNOWLEDGE_DIR, RESULTS_DIR, ROOT as R, WEB_DIR
+
+    assert R == ROOT and (R / "pytest.ini").exists()
+    assert DATA_DIR.is_dir() and WEB_DIR.is_dir() and RESULTS_DIR.is_dir() and KNOWLEDGE_DIR.is_dir()
