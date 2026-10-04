@@ -1,45 +1,17 @@
-"""Document ingestion: licence gate, section-aware chunking, metadata on every chunk.
+"""Section-aware, sentence-aware chunking with metadata on every chunk (split out of ingest.py in restructure step 6).
 
-Plain English: we only read documents whose licence lets us copy them into our index
-(bucket "cleared_ingest" in knowledge_sources/sources.csv). Each document is a text file whose sections start
-with a line "## Section name" (and optionally "[page N]" markers). We cut each section into
-pieces of about 400 words — never mixing two sections — and label every piece with where it came
-from, so every sentence we show later can be cited.
+Plain English: each document is a text file whose sections start with a line "## Section name" (and optionally
+"[page N]" markers). We cut each section into pieces of about 400 words, never mixing two sections, and label
+every piece with where it came from (source, version, section, page), so every sentence we show later can be cited.
+`chunk_document` refuses a source that is not licence-cleared; the gate itself is in licence_gate.py.
 """
 
 from __future__ import annotations
 
-import csv
 import re
 from dataclasses import asdict, dataclass
-from pathlib import Path
 
-from diacausal.config import load_rag_config
-
-ROOT = Path(__file__).resolve().parent.parent
-SOURCES_CSV = ROOT / "knowledge_sources" / "sources.csv"
-CORPUS = ROOT / "knowledge_sources" / "corpus"
-CONFIG = Path(__file__).resolve().parent / "config.yaml"
-CLEARED = "cleared_ingest"
-
-
-class LicenceError(ValueError):
-    """A document whose source is not licence-cleared for ingestion."""
-
-
-def is_confirmed(source: dict) -> bool:
-    """A licence counts only after a team member has checked it: "checked_by" filled, not a draft."""
-    who = (source.get("checked_by") or "").strip().lower()
-    return bool(who) and "draft" not in who and "to confirm" not in who
-
-
-def load_config(path: Path = CONFIG) -> dict:
-    return load_rag_config(path)
-
-
-def load_sources(path: Path = SOURCES_CSV) -> dict[str, dict]:
-    with Path(path).open(newline="", encoding="utf-8") as fh:
-        return {row["id"]: row for row in csv.DictReader(fh)}
+from diacausal.rag.ingest.licence_gate import CLEARED, LicenceError
 
 
 @dataclass(frozen=True)
@@ -119,29 +91,6 @@ def chunk_document(text: str, source: dict, chunk_words: int, part: int = 0) -> 
                 source_id=source["id"], title=source["title"], version=source["version"],
                 section=section, page=page or "?", licence_bucket=source["bucket"],
             ))
-    return chunks
-
-
-def ingest(corpus: Path = CORPUS, sources: dict[str, dict] | None = None, chunk_words: int | None = None) -> list[Chunk]:
-    """Read corpus/manifest.csv (file,source_id) and chunk every listed file."""
-    sources = sources if sources is not None else load_sources()
-    chunk_words = int(chunk_words or load_config()["chunk_words"])
-    manifest = Path(corpus) / "manifest.csv"
-    if not manifest.exists():
-        return []
-    chunks: list[Chunk] = []
-    parts: dict[str, int] = {}
-    with manifest.open(newline="", encoding="utf-8") as fh:
-        for row in csv.DictReader(fh):
-            source = sources.get(row["source_id"])
-            if source is None:
-                raise LicenceError(f"{row['file']}: unknown source id {row['source_id']!r}")
-            if not is_confirmed(source):
-                raise LicenceError(f"{row['file']}: the licence of {source['id']} is still a draft; "
-                                   "a team member must confirm it and fill checked_by first")
-            part = parts.get(source["id"], 0)
-            parts[source["id"]] = part + 1
-            chunks += chunk_document((Path(corpus) / row["file"]).read_text(encoding="utf-8"), source, chunk_words, part)
     return chunks
 
 

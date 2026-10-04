@@ -22,10 +22,11 @@ import re
 import urllib.request
 from pathlib import Path
 
-from diacausal_engine.recommend import DOSE_PATTERN
-from diacausal_rag import INTENDED_USE
-from diacausal_rag.ingest import load_config
-from diacausal_rag.retrieve import WITHHELD, tokens
+from diacausal.causal_inference.recommend import DOSE_PATTERN
+from diacausal import INTENDED_USE
+from diacausal.config import load_rag_config
+from diacausal.rag.index.bm25 import tokens
+from diacausal.rag.retrieve.hybrid import WITHHELD
 
 PROMPT = (Path(__file__).resolve().parent / "prompt.v1.txt").read_text(encoding="utf-8")
 BACKENDS = ("template", "ollama")
@@ -76,7 +77,7 @@ def _weighted_overlap(q: set[str], words: set[str], idf: dict[str, float]) -> fl
 def template(question: str, evidence: dict, cfg: dict | None = None, idf: dict[str, float] | None = None) -> dict:
     """Extractive answer: the best-matching sentences, quoted exactly, each with its passage number.
     idf: the retriever's BM25 IDF table (retriever.bm25.idf); without it every word counts the same."""
-    cfg = cfg or load_config()
+    cfg = cfg or load_rag_config()
     if evidence.get("status") != "SUCCESS":
         return _reply(question, "template", "INSUFFICIENT_EVIDENCE", [], evidence.get("reason", ""))
     q = _content(question)
@@ -161,7 +162,7 @@ CALLERS = {"ollama": call_ollama}
 def explain(question: str, evidence: dict, backend: str = "template", cfg: dict | None = None, caller=None,
             idf: dict[str, float] | None = None) -> dict:
     """One question + its retrieved evidence -> a cited explanation (or INSUFFICIENT_EVIDENCE)."""
-    cfg = cfg or load_config()
+    cfg = cfg or load_rag_config()
     if backend not in BACKENDS:
         raise ValueError(f"backend must be one of {BACKENDS}")
     if DOSE_QUESTION.search(question):
@@ -193,8 +194,8 @@ def render(reply: dict) -> str:
 
 
 def main(argv: list[str] | None = None) -> None:
-    from diacausal_rag.ingest import ingest
-    from diacausal_rag.retrieve import Retriever
+    from diacausal.rag.ingest.licence_gate import ingest
+    from diacausal.rag.retrieve.hybrid import Retriever
 
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("question")

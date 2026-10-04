@@ -19,11 +19,12 @@ import argparse
 import csv
 from pathlib import Path
 
-from diacausal_engine.recommend import DOSE_PATTERN
-from diacausal_rag import INTENDED_USE
+from diacausal.causal_inference.recommend import DOSE_PATTERN
+from diacausal import INTENDED_USE
 from diacausal_rag.explain import BACKENDS, check_answer, explain, render
-from diacausal_rag.ingest import ROOT, ingest, load_config
-from diacausal_rag.retrieve import Retriever
+from diacausal.config import ROOT, load_rag_config
+from diacausal.rag.ingest.licence_gate import ingest
+from diacausal.rag.retrieve.hybrid import Retriever
 
 GOLD = ROOT / "eval" / "rag_gold.csv"
 OUT = ROOT / "results"
@@ -40,7 +41,7 @@ def hit(evidence: dict, source: str, section: str) -> bool:
 
 
 def run(backend: str = "template", gold: list[dict] | None = None) -> tuple[list[dict], dict]:
-    cfg = load_config()
+    cfg = load_rag_config()
     retriever = Retriever(ingest(), cfg)
     rows = []
     for g in gold or load_gold():

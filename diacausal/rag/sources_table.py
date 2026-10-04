@@ -1,11 +1,12 @@
 """Write docs/SOURCES.md (RAG guide step R1) from knowledge_sources/sources.csv — the licence table.
 
-    python -m diacausal_rag.sources_table        # regenerate after editing knowledge_sources/sources.csv
+    python -m diacausal.rag.sources_table        # regenerate after editing knowledge_sources/sources.csv
 """
 
 from __future__ import annotations
 
-from diacausal_rag.ingest import CLEARED, ROOT, is_confirmed, load_sources
+from diacausal.config import ROOT
+from diacausal.rag.ingest.licence_gate import CLEARED, is_confirmed, load_sources
 
 OUT = ROOT / "docs" / "SOURCES.md"
 COLS = [("id", "ID"), ("title", "Source"), ("version", "Version / year"), ("bucket", "Licence bucket"),
@@ -23,7 +24,7 @@ def render() -> str:
         "",
         "> Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.",
         "",
-        "Generated from `knowledge_sources/sources.csv` by `python -m diacausal_rag.sources_table`. Edit the CSV, then regenerate.",
+        "Generated from `knowledge_sources/sources.csv` by `python -m diacausal.rag.sources_table`. Edit the CSV, then regenerate.",
         f"`diacausal_rag/ingest.py` ingests **only** rows whose bucket is exactly `{CLEARED}`; every other row is refused.",
         "A row stays a draft until a team member confirms the licence and fills \"Checked by\"; drafts are never ingested.",
         "",
@@ -40,6 +41,10 @@ def render() -> str:
     return "\n".join(lines) + "\n"
 
 
-if __name__ == "__main__":
+def main() -> None:
     OUT.write_text(render(), encoding="utf-8")
     print(f"wrote {OUT}")
+
+
+if __name__ == "__main__":
+    main()

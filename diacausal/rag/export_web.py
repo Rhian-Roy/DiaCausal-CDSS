@@ -1,6 +1,6 @@
 """Export the RAG index to the website (web/evidence.json) so the search runs in any browser.
 
-    python -m diacausal_rag.export_web
+    python -m diacausal.rag.export_web
 
 Plain English: the search needs only a few numbers per passage — how often each word appears
 (for BM25) and the passage's TF-IDF vector (for the vector search) — plus the passage text to
@@ -21,11 +21,14 @@ from pathlib import Path
 
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
 
-from diacausal_engine.recommend import DOSE_PATTERN
-from diacausal_rag import INTENDED_USE
+from diacausal.causal_inference.recommend import DOSE_PATTERN
+from diacausal import INTENDED_USE
 from diacausal_rag.explain import DOSE_QUESTION, NO_DOSE_NOTE
-from diacausal_rag.ingest import CLEARED, CONFIG, CORPUS, ROOT, SOURCES_CSV, ingest, is_confirmed, load_config, load_sources
-from diacausal_rag.retrieve import DOSE, TOKEN, WITHHELD, Retriever, index_text, tokens
+from diacausal.config import RAG_CONFIG_PATH as CONFIG
+from diacausal.config import ROOT, load_rag_config
+from diacausal.rag.index.bm25 import TOKEN, tokens
+from diacausal.rag.ingest.licence_gate import CLEARED, CORPUS, SOURCES_CSV, ingest, is_confirmed, load_sources
+from diacausal.rag.retrieve.hybrid import DOSE, WITHHELD, Retriever, index_text
 
 WEB = ROOT / "web"
 
@@ -38,7 +41,7 @@ def _sha(paths: list[Path]) -> str:
 
 
 def evidence_dict() -> dict:
-    cfg = load_config()
+    cfg = load_rag_config()
     chunks = ingest()
     sources = load_sources()
     corpus_files = sorted(p for p in CORPUS.iterdir() if p.suffix in (".txt", ".csv"))
@@ -93,6 +96,10 @@ def export() -> dict:
     return data
 
 
-if __name__ == "__main__":
+def main() -> None:
     d = export()
     print(f"wrote web/evidence.json ({len(d['chunks'])} passages, corpus {d['versions']['corpus_sha']})")
+
+
+if __name__ == "__main__":
+    main()
