@@ -114,7 +114,7 @@ def test_gold_set_is_well_formed():
     cats = [g["category"] for g in gold]
     assert cats.count("answerable") == 45 and cats.count("out_of_scope") == 10 and cats.count("dose") == 5
     assert sum(g["doctor_review"] == "yes" for g in gold) == 20
-    sources = {r["id"] for r in csv.DictReader((ROOT / "RAG/sources.csv").open(encoding="utf-8"))}
+    sources = {r["id"] for r in csv.DictReader((ROOT / "knowledge_sources/sources.csv").open(encoding="utf-8"))}
     assert all(g["expected_source"] in sources for g in gold if g["category"] == "answerable")
 
 

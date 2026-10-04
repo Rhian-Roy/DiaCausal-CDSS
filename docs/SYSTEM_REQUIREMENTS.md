@@ -89,5 +89,5 @@ marks work for October; "Not measured" means we have no evidence yet, so do not 
 - **Causal assumptions:** no unmeasured confounding (the E-value quantifies the risk), overlap
   (checked), and a correct DAG. Stated in every Causal Output.
 - **Data licences:** RAG may ingest only sources in the `cleared_ingest` bucket of
-  `RAG/sources.csv`.
+  `knowledge_sources/sources.csv`.
 - **Privacy:** India's Digital Personal Data Protection Act, 2023, applies to any future real data.

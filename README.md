@@ -138,7 +138,7 @@ marketed medical device; not for unsupervised clinical use.
 
 - **10 estimators implemented from scratch** — Naive, Stratification, G-Computation, Propensity Score Matching, IPW, Stabilised IPW, AIPW, S-Learner, T-Learner, X-Learner
 - **Cross-checked against DoWhy & EconML** — every hand-written result is verified to ≤4 decimal places against the standard libraries
-- **Guideline citations (research code)** — retrieves passages with page-level citations from guideline PDFs we are licensed to use (IDF 2025 is **not** licence-cleared — `RAG/sources.csv` S11 says "all rights reserved"; ADA's Standards of Care are not cleared either). Licences are tracked in `RAG/sources.csv`
+- **Guideline citations (research code)** — retrieves passages with page-level citations from guideline PDFs we are licensed to use (IDF 2025 is **not** licence-cleared — `knowledge_sources/sources.csv` S11 says "all rights reserved"; ADA's Standards of Care are not cleared either). Licences are tracked in `knowledge_sources/sources.csv`
 - **Clinical guardrails** — hard safety rules (eGFR thresholds, contraindications) that override any statistical estimate
 - **Interactive Streamlit demo** — move sliders to watch confounding change the answer, and see personalised CATE recommendations update live
 

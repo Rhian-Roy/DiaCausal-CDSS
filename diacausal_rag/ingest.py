@@ -1,7 +1,7 @@
 """Document ingestion: licence gate, section-aware chunking, metadata on every chunk.
 
 Plain English: we only read documents whose licence lets us copy them into our index
-(bucket "cleared_ingest" in RAG/sources.csv). Each document is a text file whose sections start
+(bucket "cleared_ingest" in knowledge_sources/sources.csv). Each document is a text file whose sections start
 with a line "## Section name" (and optionally "[page N]" markers). We cut each section into
 pieces of about 400 words — never mixing two sections — and label every piece with where it came
 from, so every sentence we show later can be cited.
@@ -17,8 +17,8 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
-SOURCES_CSV = ROOT / "RAG" / "sources.csv"
-CORPUS = Path(__file__).resolve().parent / "corpus"
+SOURCES_CSV = ROOT / "knowledge_sources" / "sources.csv"
+CORPUS = ROOT / "knowledge_sources" / "corpus"
 CONFIG = Path(__file__).resolve().parent / "config.yaml"
 CLEARED = "cleared_ingest"
 

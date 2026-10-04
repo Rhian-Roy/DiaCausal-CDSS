@@ -46,5 +46,5 @@ shown. Other tools, all offline: `streamlit run demo/streamlit_app.py` (demo),
   hospital's own sign-in; never expose it to the internet.
 - Replace the synthetic cohort with a de-identified local dataset only after ethics approval
   (`diacausal_engine/cohort.py: load_dataset`), rerun the benchmark and refit.
-- Keep the licence rules: only sources the hospital may copy go into `diacausal_rag/corpus/`.
+- Keep the licence rules: only sources the hospital may copy go into `knowledge_sources/corpus/`.
 - The doctor stays in charge: decision support only, no doses, every number with its 95% range.

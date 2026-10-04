@@ -13,11 +13,11 @@ World Health Organization. *Guidelines on second- and third-line medicines and t
 the control of blood glucose levels in non-pregnant adults with diabetes mellitus.* Geneva: WHO; 2018.
 Licence: CC BY-NC-SA 3.0 IGO (https://creativecommons.org/licenses/by-nc-sa/3.0/igo).
 Changes made by DiaCausal: text of PDF pages 7–26 extracted (layout, contents, references and
-appendices removed) into `diacausal_rag/corpus/who_2018_second_line.txt`, shared under the same
+appendices removed) into `knowledge_sources/corpus/who_2018_second_line.txt`, shared under the same
 licence for non-commercial use. WHO does not endorse DiaCausal or any product.
 
 ## FDA Drug Safety Communications (RAG corpus)
 
 US Food and Drug Administration texts (US federal government works, not subject to copyright in the
-US): the communications listed as S08 and S19–S23 in `RAG/sources.csv`. Brand-name tables and reference
+US): the communications listed as S08 and S19–S23 in `knowledge_sources/sources.csv`. Brand-name tables and reference
 lists removed. They describe US labelling, not Indian CDSCO labelling.

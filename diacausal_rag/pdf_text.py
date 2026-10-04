@@ -1,6 +1,6 @@
 """PDF -> corpus text (RAG guide Step R2): page markers kept, section headings turned into '## '.
 
-    python -m diacausal_rag.pdf_text IN.pdf diacausal_rag/corpus/OUT.txt --pages 7-26 \
+    python -m diacausal_rag.pdf_text IN.pdf knowledge_sources/corpus/OUT.txt --pages 7-26 \
         --heading '^(\\d+\\.\\d+(\\.\\d+)?\\.?\\s+[A-Z].*|\\d+\\.\\s+(Introduction|Recommendations))$'
 
 Plain English: the licence gate still decides what may be ingested (only `cleared_ingest` rows

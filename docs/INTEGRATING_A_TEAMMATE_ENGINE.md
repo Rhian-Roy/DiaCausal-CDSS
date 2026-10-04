@@ -19,7 +19,7 @@ it directly.
 Please **never upload to `main`**, and never upload:
 - any real patient data;
 - API keys or passwords (for example a `.env` file);
-- datasets or PDFs whose licence we have not checked (see `RAG/sources.csv`).
+- datasets or PDFs whose licence we have not checked (see `knowledge_sources/sources.csv`).
 
 ## 2. What I compare (the checklist)
 
