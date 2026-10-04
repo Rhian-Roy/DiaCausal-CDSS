@@ -1,0 +1,9 @@
+# Explainable-AI extras: version A (the XAI-only baseline, diacausal/xai/baseline.py) and its tests (tests/xai).
+# On top of the engine's exact pins. SHAP pulls numba and llvmlite, which the website export, the engine's CI job and the
+# Streamlit demo do not need, so these two packages are NOT in requirements-engine.txt (docs/XAI_PLAN.md section 5.3).
+# Version A never reaches the website or the API.
+#
+#   .venv/bin/pip install -r requirements-xai.txt
+-r requirements-engine.txt
+shap==0.52.0
+lime==0.2.0.1

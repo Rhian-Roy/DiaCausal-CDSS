@@ -68,6 +68,25 @@ jobs:
           python -m pip install --disable-pip-version-check -q pip-audit==2.9.0
           python -m pip_audit -r requirements-engine.txt --strict --progress-spinner off
 
+  # Version A of the XAI work (diacausal/xai/baseline.py) needs SHAP and LIME, which pull numba: its own job and its own
+  # pinned file, so the engine job above stays light (docs/XAI_PLAN.md section 5.3).
+  xai:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install the engine's libraries plus SHAP and LIME
+        run: python -m pip install --disable-pip-version-check -q -r requirements-xai.txt
+      - name: XAI tests (version A, ground truth, metrics, committed results)
+        run: python -m pytest tests/xai -q
+      - name: Known security problems in the XAI libraries (pip-audit)
+        run: |
+          python -m pip install --disable-pip-version-check -q pip-audit==2.9.0
+          python -m pip_audit -r requirements-xai.txt --strict --progress-spinner off
+
   # The real-browser tests need Chrome; the Linux runner has it. The matrix job above
   # already runs everything else on Linux, Windows and macOS.
   browser:

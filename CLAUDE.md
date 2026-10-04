@@ -239,6 +239,18 @@ with a brand and status VERIFIED ever applies. Never write a brand name from mem
 CDSCO or manufacturer label.** A question word counts as covered if it or a word of its expansion is in the passages.
 `python -m diacausal.rag.evaluate` runs the gold questions through the plan, as the pipeline does.
 
+## XAI baseline, version A (built, P17) — see docs/XAI_PLAN.md and results/xai/README.md
+
+`diacausal/xai/baseline.py` (plus `truth.py`, the true effect modifiers derived from `params.yaml`): the benchmark's S-learner
+(HistGradientBoostingRegressor, engine settings) trained on FACTUAL data only (12 features + one-hot drug -> observed HbA1c change),
+asked "what if drug a?" by switching the drug columns, limited to the options the SAME rules leave; the lowest prediction is its
+pick; it never abstains. TreeSHAP in `tree_path_dependent` mode (exact; the interventional mode is off by a constant ~0.002 on this
+model class with shap 0.52.0) and LIME (seeded, 10 seeds per preset). Scored against the true potential outcomes:
+`python -m diacausal.xai.baseline [--quick]` writes `results/xai/` (needs `pip install -r requirements-xai.txt`: shap 0.52.0 and
+lime 0.2.0.1 are pinned there and NOT in requirements-engine.txt; `shap`, `lime` and matplotlib are imported lazily so the module
+imports without them). **Version A is a baseline for the Analysis tab only: never import it from `web/`, the API, the pipeline or
+anything a doctor sees (a test scans for it).** SHAP and LIME explain models, not causes. CI job `xai` runs `tests/xai`.
+
 ## Not built yet — where each piece goes
 
 | Piece | Backend | Frontend / other |
