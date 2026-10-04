@@ -1,0 +1,24 @@
+{
+  "_note": "Plan 8.4.",
+  "schema_version": "1.0",
+  "request_id": "c2f1",
+  "patient": {
+    "age": 52,
+    "sex": "M",
+    "duration_years": 6,
+    "hba1c_pct": 8.6,
+    "egfr": 72,
+    "bmi": 27.1,
+    "ascvd": false,
+    "heart_failure": false,
+    "ckd": false,
+    "past_hypo": false,
+    "past_dka": false,
+    "past_pancreatitis": false,
+    "type1": false,
+    "on_metformin": true,
+    "cost_concern": true
+  },
+  "question": "Is an SGLT2 inhibitor reasonable for this patient?",
+  "mode": "template"
+}

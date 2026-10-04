@@ -1,0 +1,17 @@
+{
+  "_note": "Plan 8.4, with a real rule (R07, data/rules.csv) in place of 'R0x'.",
+  "rules_version": "rules.csv@23fcccf59e",
+  "excluded": [],
+  "caution": [
+    {
+      "option": "SU",
+      "rule_id": "R07",
+      "source": "Glimepiride US prescribing information, Sec 5.1"
+    }
+  ],
+  "eligible": [
+    "SGLT2i",
+    "DPP4i",
+    "SU"
+  ]
+}

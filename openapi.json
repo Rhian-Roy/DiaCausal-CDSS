@@ -1,0 +1,1867 @@
+{
+  "components": {
+    "schemas": {
+      "AbstainNoticeV1": {
+        "additionalProperties": false,
+        "properties": {
+          "option": {
+            "enum": [
+              "SGLT2i",
+              "DPP4i",
+              "SU"
+            ],
+            "title": "Option",
+            "type": "string"
+          },
+          "propensity": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Propensity"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "threshold": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold"
+          },
+          "why": {
+            "title": "Why",
+            "type": "string"
+          }
+        },
+        "required": [
+          "option",
+          "why"
+        ],
+        "title": "AbstainNoticeV1",
+        "type": "object"
+      },
+      "AnswerCardV1": {
+        "additionalProperties": false,
+        "properties": {
+          "abstain": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/AbstainNoticeV1"
+            },
+            "title": "Abstain",
+            "type": "array"
+          },
+          "claims": {
+            "items": {
+              "$ref": "#/components/schemas/CardClaimV1"
+            },
+            "maxItems": 4,
+            "title": "Claims",
+            "type": "array"
+          },
+          "comparator": {
+            "enum": [
+              "SGLT2i",
+              "DPP4i",
+              "SU"
+            ],
+            "title": "Comparator",
+            "type": "string"
+          },
+          "decision": {
+            "default": "Decision support only. The clinician decides.",
+            "title": "Decision",
+            "type": "string"
+          },
+          "drivers": {
+            "additionalProperties": {
+              "items": {
+                "$ref": "#/components/schemas/DriverV1"
+              },
+              "type": "array"
+            },
+            "default": {},
+            "propertyNames": {
+              "enum": [
+                "SGLT2i",
+                "DPP4i",
+                "SU"
+              ]
+            },
+            "title": "Drivers",
+            "type": "object"
+          },
+          "effects": {
+            "items": {
+              "$ref": "#/components/schemas/EffectRowV1"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Effects",
+            "type": "array"
+          },
+          "evidence_levels": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceLevelV1"
+            },
+            "title": "Evidence Levels",
+            "type": "array"
+          },
+          "excluded": {
+            "items": {
+              "$ref": "#/components/schemas/RuleHitV1"
+            },
+            "title": "Excluded",
+            "type": "array"
+          },
+          "intended_use": {
+            "default": "Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.",
+            "title": "Intended Use",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "template",
+              "ollama"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "patient_summary": {
+            "title": "Patient Summary",
+            "type": "string"
+          },
+          "question": {
+            "title": "Question",
+            "type": "string"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "versions": {
+            "$ref": "#/components/schemas/Versions"
+          }
+        },
+        "required": [
+          "request_id",
+          "mode",
+          "question",
+          "patient_summary",
+          "comparator",
+          "claims",
+          "effects",
+          "evidence_levels",
+          "excluded",
+          "versions"
+        ],
+        "title": "AnswerCardV1",
+        "type": "object"
+      },
+      "AnswerDraftV1": {
+        "additionalProperties": false,
+        "description": "What the LLM may return (and nothing else).",
+        "properties": {
+          "evidence_summary": {
+            "items": {
+              "$ref": "#/components/schemas/ClaimV1"
+            },
+            "title": "Evidence Summary",
+            "type": "array"
+          },
+          "insufficient": {
+            "default": false,
+            "title": "Insufficient",
+            "type": "boolean"
+          },
+          "insufficient_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "one sentence, when insufficient is true",
+            "title": "Insufficient Reason"
+          },
+          "limitations": {
+            "title": "Limitations",
+            "type": "string"
+          },
+          "question_context": {
+            "title": "Question Context",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "question_context",
+          "evidence_summary",
+          "limitations"
+        ],
+        "title": "AnswerDraftV1",
+        "type": "object"
+      },
+      "AskRequestV1": {
+        "additionalProperties": false,
+        "description": "POST /api/v1/ask. `schema_version` is required here (the one payload every client builds).",
+        "properties": {
+          "mode": {
+            "default": "template",
+            "enum": [
+              "template",
+              "ollama"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "patient": {
+            "$ref": "#/components/schemas/PatientV1"
+          },
+          "question": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Question",
+            "type": "string"
+          },
+          "request_id": {
+            "description": "the client's trace ID (1-64 of A-Z a-z 0-9 - _)",
+            "pattern": "^[A-Za-z0-9_-]{1,64}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "request_id",
+          "patient",
+          "question"
+        ],
+        "title": "AskRequestV1",
+        "type": "object"
+      },
+      "CardClaimV1": {
+        "additionalProperties": false,
+        "properties": {
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/CitationV1"
+            },
+            "minItems": 1,
+            "title": "Citations",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text",
+          "citations"
+        ],
+        "title": "CardClaimV1",
+        "type": "object"
+      },
+      "CausalOutputV1": {
+        "additionalProperties": false,
+        "description": "The engine's CausalOutput, unchanged (applicable, intervention, outcome, options, comparisons,\nassumptions, bmi_category, versions, decision, intended_use), with options that may carry drivers.",
+        "properties": {
+          "applicable": {
+            "enum": [
+              "APPLICABLE",
+              "NOT_APPLICABLE"
+            ],
+            "title": "Applicable",
+            "type": "string"
+          },
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "bmi_category": {
+            "title": "Bmi Category",
+            "type": "string"
+          },
+          "comparisons": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Comparison"
+            },
+            "title": "Comparisons",
+            "type": "array"
+          },
+          "decision": {
+            "default": "Decision support only. The clinician decides.",
+            "title": "Decision",
+            "type": "string"
+          },
+          "intended_use": {
+            "default": "Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.",
+            "title": "Intended Use",
+            "type": "string"
+          },
+          "intervention": {
+            "default": "Add one of three options to metformin: SGLT2 inhibitor, DPP-4 inhibitor or sulfonylurea",
+            "title": "Intervention",
+            "type": "string"
+          },
+          "not_applicable_reasons": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Not Applicable Reasons",
+            "type": "array"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/OptionV1"
+            },
+            "title": "Options",
+            "type": "array"
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/Outcome",
+            "default": {
+              "direction": "negative = HbA1c falls (better glucose control)",
+              "name": "Change in HbA1c at 6 months",
+              "unit": "percentage points of HbA1c (%)"
+            }
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "versions": {
+            "$ref": "#/components/schemas/Versions"
+          }
+        },
+        "required": [
+          "request_id",
+          "applicable",
+          "options",
+          "assumptions",
+          "bmi_category",
+          "versions"
+        ],
+        "title": "CausalOutputV1",
+        "type": "object"
+      },
+      "CitationV1": {
+        "additionalProperties": false,
+        "properties": {
+          "chunk_id": {
+            "title": "Chunk Id",
+            "type": "string"
+          },
+          "label": {
+            "description": "e.g. 'WHO 2018, p.12'",
+            "title": "Label",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "chunk_id",
+          "label"
+        ],
+        "title": "CitationV1",
+        "type": "object"
+      },
+      "ClaimV1": {
+        "additionalProperties": false,
+        "properties": {
+          "chunk_ids": {
+            "description": "the retrieved passages that support the claim; an uncited claim is dropped by the output guards",
+            "items": {
+              "type": "string"
+            },
+            "title": "Chunk Ids",
+            "type": "array"
+          },
+          "claim": {
+            "title": "Claim",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "claim",
+          "chunk_ids"
+        ],
+        "title": "ClaimV1",
+        "type": "object"
+      },
+      "Comparison": {
+        "additionalProperties": false,
+        "properties": {
+          "difference": {
+            "$ref": "#/components/schemas/Interval"
+          },
+          "first": {
+            "title": "First",
+            "type": "string"
+          },
+          "second": {
+            "title": "Second",
+            "type": "string"
+          }
+        },
+        "required": [
+          "first",
+          "second",
+          "difference"
+        ],
+        "title": "Comparison",
+        "type": "object"
+      },
+      "Confidence": {
+        "additionalProperties": false,
+        "properties": {
+          "interval_level": {
+            "default": 0.95,
+            "title": "Interval Level",
+            "type": "number"
+          },
+          "method": {
+            "title": "Method",
+            "type": "string"
+          },
+          "overlap_threshold": {
+            "title": "Overlap Threshold",
+            "type": "number"
+          },
+          "propensity": {
+            "title": "Propensity",
+            "type": "number"
+          }
+        },
+        "required": [
+          "propensity",
+          "overlap_threshold",
+          "method"
+        ],
+        "title": "Confidence",
+        "type": "object"
+      },
+      "Cost": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of Date"
+          },
+          "inr_per_month": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inr Per Month"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          }
+        },
+        "required": [
+          "inr_per_month",
+          "label"
+        ],
+        "title": "Cost",
+        "type": "object"
+      },
+      "DriverV1": {
+        "additionalProperties": false,
+        "description": "One SHAP driver of one option's estimate: 'the estimate is larger/smaller for patients with ...'\n(never a cause). `contribution` is in HbA1c percentage points, signed.",
+        "properties": {
+          "ci95": {
+            "anyOf": [
+              {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "95% interval, when computed (P25)",
+            "title": "Ci95"
+          },
+          "contribution": {
+            "title": "Contribution",
+            "type": "number"
+          },
+          "feature": {
+            "title": "Feature",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "this patient's value for the feature",
+            "title": "Value"
+          }
+        },
+        "required": [
+          "feature",
+          "value",
+          "contribution"
+        ],
+        "title": "DriverV1",
+        "type": "object"
+      },
+      "EffectRowV1": {
+        "additionalProperties": false,
+        "properties": {
+          "caution": {
+            "default": false,
+            "description": "a 'check first' rule fired for this option",
+            "title": "Caution",
+            "type": "boolean"
+          },
+          "cost_label": {
+            "description": "'price unavailable' until a verified price exists",
+            "title": "Cost Label",
+            "type": "string"
+          },
+          "hba1c_change": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Interval"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "6-month change, percentage points, with its 95% interval"
+          },
+          "hypo_risk_pct": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Interval"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "option": {
+            "enum": [
+              "SGLT2i",
+              "DPP4i",
+              "SU"
+            ],
+            "title": "Option",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ESTIMATED",
+              "INSUFFICIENT_EVIDENCE",
+              "EXCLUDED"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "vs_comparator": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Interval"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "null for the comparator itself"
+          },
+          "weight_change_kg": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Interval"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "option",
+          "status",
+          "cost_label"
+        ],
+        "title": "EffectRowV1",
+        "type": "object"
+      },
+      "EligibleOptionsV1": {
+        "additionalProperties": false,
+        "description": "What the rules leave: removed options never reach the causal engine.",
+        "properties": {
+          "caution": {
+            "items": {
+              "$ref": "#/components/schemas/RuleHitV1"
+            },
+            "title": "Caution",
+            "type": "array"
+          },
+          "eligible": {
+            "items": {
+              "enum": [
+                "SGLT2i",
+                "DPP4i",
+                "SU"
+              ],
+              "type": "string"
+            },
+            "title": "Eligible",
+            "type": "array"
+          },
+          "excluded": {
+            "items": {
+              "$ref": "#/components/schemas/RuleHitV1"
+            },
+            "title": "Excluded",
+            "type": "array"
+          },
+          "rules_version": {
+            "description": "e.g. rules.csv@<git-sha>",
+            "title": "Rules Version",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rules_version",
+          "excluded",
+          "caution",
+          "eligible"
+        ],
+        "title": "EligibleOptionsV1",
+        "type": "object"
+      },
+      "ErrorV1": {
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "const": "invalid_request",
+            "default": "invalid_request",
+            "title": "Error",
+            "type": "string"
+          },
+          "intended_use": {
+            "default": "Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.",
+            "title": "Intended Use",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "problems": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Problems",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "message",
+          "problems"
+        ],
+        "title": "ErrorV1",
+        "type": "object"
+      },
+      "EvidenceBundleV1": {
+        "additionalProperties": false,
+        "properties": {
+          "chunks": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceChunkV1"
+            },
+            "title": "Chunks",
+            "type": "array"
+          },
+          "index_version": {
+            "title": "Index Version",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "why, when status is INSUFFICIENT_EVIDENCE",
+            "title": "Reason"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "OK",
+              "INSUFFICIENT_EVIDENCE"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "index_version",
+          "chunks"
+        ],
+        "title": "EvidenceBundleV1",
+        "type": "object"
+      },
+      "EvidenceChunkV1": {
+        "additionalProperties": false,
+        "properties": {
+          "chunk_id": {
+            "title": "Chunk Id",
+            "type": "string"
+          },
+          "licence": {
+            "title": "Licence",
+            "type": "string"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "null for a web page",
+            "title": "Page"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "scores": {
+            "$ref": "#/components/schemas/ScoresV1"
+          },
+          "section": {
+            "title": "Section",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "chunk_id",
+          "source",
+          "version",
+          "section",
+          "licence",
+          "text",
+          "scores"
+        ],
+        "title": "EvidenceChunkV1",
+        "type": "object"
+      },
+      "EvidenceLevelV1": {
+        "additionalProperties": false,
+        "properties": {
+          "level": {
+            "enum": [
+              "Moderate",
+              "Low",
+              "Insufficient"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "option": {
+            "enum": [
+              "SGLT2i",
+              "DPP4i",
+              "SU"
+            ],
+            "title": "Option",
+            "type": "string"
+          },
+          "reason": {
+            "description": "the one-line reason, from the TEAM-SET rule in params.yaml",
+            "title": "Reason",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "option",
+          "level",
+          "reason"
+        ],
+        "title": "EvidenceLevelV1",
+        "type": "object"
+      },
+      "GuardCheckV1": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "enum": [
+              "scope",
+              "identifier",
+              "red_flag",
+              "injection",
+              "range",
+              "length_language",
+              "dose_request"
+            ],
+            "title": "Id",
+            "type": "string"
+          },
+          "result": {
+            "enum": [
+              "PASS",
+              "BLOCK"
+            ],
+            "title": "Result",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "result"
+        ],
+        "title": "GuardCheckV1",
+        "type": "object"
+      },
+      "GuardResultV1": {
+        "additionalProperties": false,
+        "description": "Seven input checks, in order. A BLOCK stops the request with a notice; the matched word is never shown.",
+        "properties": {
+          "blocked_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "plain English; never repeats the matched word",
+            "title": "Blocked Reason"
+          },
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/GuardCheckV1"
+            },
+            "maxItems": 7,
+            "minItems": 1,
+            "title": "Checks",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "PASS",
+              "BLOCK"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "checks"
+        ],
+        "title": "GuardResultV1",
+        "type": "object"
+      },
+      "GuardedDraftV1": {
+        "additionalProperties": false,
+        "description": "The output guards' verdict (plan 8.10). FALLBACK = use the template wording instead; ABSTAIN = no claim\nsurvived; BLOCK = an identifier or causal wording about a driver.",
+        "properties": {
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/OutputCheckV1"
+            },
+            "title": "Checks",
+            "type": "array"
+          },
+          "draft": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AnswerDraftV1"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "the kept claims; null on FALLBACK, ABSTAIN or BLOCK"
+          },
+          "dropped_claims": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Dropped Claims",
+            "type": "integer"
+          },
+          "fallback_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Fallback Reason"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "PASS",
+              "FALLBACK",
+              "ABSTAIN",
+              "BLOCK"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "checks"
+        ],
+        "title": "GuardedDraftV1",
+        "type": "object"
+      },
+      "HealthV1": {
+        "additionalProperties": false,
+        "properties": {
+          "engine": {
+            "title": "Engine",
+            "type": "string"
+          },
+          "intended_use": {
+            "default": "Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.",
+            "title": "Intended Use",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "const": "ok",
+            "default": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "engine"
+        ],
+        "title": "HealthV1",
+        "type": "object"
+      },
+      "Interval": {
+        "additionalProperties": false,
+        "description": "Expected 6-month change in HbA1c (percentage points) with its 95% interval.",
+        "properties": {
+          "ci_high": {
+            "title": "Ci High",
+            "type": "number"
+          },
+          "ci_low": {
+            "title": "Ci Low",
+            "type": "number"
+          },
+          "level": {
+            "default": 0.95,
+            "title": "Level",
+            "type": "number"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "value",
+          "ci_low",
+          "ci_high"
+        ],
+        "title": "Interval",
+        "type": "object"
+      },
+      "LLMRequestV1": {
+        "additionalProperties": false,
+        "description": "What the prompt builder hands to a provider (the fields of the 8.9 template). Temperature 0 and a\n4,096-token context are provider settings, not part of this contract.",
+        "properties": {
+          "causal_output": {
+            "$ref": "#/components/schemas/CausalOutputV1"
+          },
+          "drivers": {
+            "additionalProperties": {
+              "items": {
+                "$ref": "#/components/schemas/DriverV1"
+              },
+              "type": "array"
+            },
+            "propertyNames": {
+              "enum": [
+                "SGLT2i",
+                "DPP4i",
+                "SU"
+              ]
+            },
+            "title": "Drivers",
+            "type": "object"
+          },
+          "evidence": {
+            "$ref": "#/components/schemas/EvidenceBundleV1"
+          },
+          "excluded_by_rules": {
+            "items": {
+              "$ref": "#/components/schemas/RuleHitV1"
+            },
+            "title": "Excluded By Rules",
+            "type": "array"
+          },
+          "max_claims": {
+            "default": 4,
+            "maximum": 4,
+            "minimum": 1,
+            "title": "Max Claims",
+            "type": "integer"
+          },
+          "mode": {
+            "enum": [
+              "template",
+              "ollama"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "patient_summary": {
+            "description": "e.g. '52 y, M, HbA1c 8.6%, eGFR 72, BMI 27.1 (overweight)'",
+            "title": "Patient Summary",
+            "type": "string"
+          },
+          "question": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Question",
+            "type": "string"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "mode",
+          "question",
+          "patient_summary",
+          "excluded_by_rules",
+          "causal_output",
+          "drivers",
+          "evidence"
+        ],
+        "title": "LLMRequestV1",
+        "type": "object"
+      },
+      "OptionV1": {
+        "additionalProperties": false,
+        "description": "The engine's OptionOut, unchanged, plus drivers.",
+        "properties": {
+          "arm": {
+            "enum": [
+              "SGLT2i",
+              "DPP4i",
+              "SU"
+            ],
+            "title": "Arm",
+            "type": "string"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Confidence"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cost": {
+            "$ref": "#/components/schemas/Cost"
+          },
+          "drivers": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/DriverV1"
+            },
+            "title": "Drivers",
+            "type": "array"
+          },
+          "effect": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Interval"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "example_molecule": {
+            "title": "Example Molecule",
+            "type": "string"
+          },
+          "insufficient_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Insufficient Reason"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "safety": {
+            "items": {
+              "$ref": "#/components/schemas/SafetyNote"
+            },
+            "title": "Safety",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "secondary": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Secondary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "enum": [
+              "estimate",
+              "insufficient_evidence",
+              "excluded"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "arm",
+          "name",
+          "example_molecule",
+          "status",
+          "safety",
+          "cost"
+        ],
+        "title": "OptionV1",
+        "type": "object"
+      },
+      "Outcome": {
+        "additionalProperties": false,
+        "properties": {
+          "direction": {
+            "default": "negative = HbA1c falls (better glucose control)",
+            "title": "Direction",
+            "type": "string"
+          },
+          "name": {
+            "default": "Change in HbA1c at 6 months",
+            "title": "Name",
+            "type": "string"
+          },
+          "unit": {
+            "default": "percentage points of HbA1c (%)",
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "title": "Outcome",
+        "type": "object"
+      },
+      "OutputCheckV1": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "enum": [
+              "parse",
+              "citations",
+              "numbers",
+              "dose_threshold",
+              "excluded_option",
+              "insufficient_wording",
+              "identifier_causal"
+            ],
+            "title": "Id",
+            "type": "string"
+          },
+          "result": {
+            "enum": [
+              "PASS",
+              "FAIL"
+            ],
+            "title": "Result",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "result"
+        ],
+        "title": "OutputCheckV1",
+        "type": "object"
+      },
+      "PatientV1": {
+        "additionalProperties": false,
+        "description": "One patient. Units: years, HbA1c %, eGFR mL/min/1.73m², BMI kg/m², waist cm, glucose mg/dL.",
+        "properties": {
+          "age": {
+            "description": "years",
+            "maximum": 100.0,
+            "minimum": 18.0,
+            "title": "Age",
+            "type": "integer"
+          },
+          "ascvd": {
+            "title": "Ascvd",
+            "type": "boolean"
+          },
+          "bmi": {
+            "description": "BMI, kg/m²",
+            "maximum": 60.0,
+            "minimum": 12.0,
+            "title": "Bmi",
+            "type": "number"
+          },
+          "ckd": {
+            "title": "Ckd",
+            "type": "boolean"
+          },
+          "cost_concern": {
+            "default": false,
+            "title": "Cost Concern",
+            "type": "boolean"
+          },
+          "duration_years": {
+            "description": "years since type 2 diabetes was diagnosed",
+            "maximum": 60.0,
+            "minimum": 0.0,
+            "title": "Duration Years",
+            "type": "number"
+          },
+          "egfr": {
+            "description": "eGFR, mL/min/1.73m²",
+            "maximum": 150.0,
+            "minimum": 5.0,
+            "title": "Egfr",
+            "type": "number"
+          },
+          "glucose_mg_dl": {
+            "anyOf": [
+              {
+                "maximum": 600.0,
+                "minimum": 40.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "NOT used in the estimate",
+            "title": "Glucose Mg Dl"
+          },
+          "hba1c_pct": {
+            "description": "HbA1c, %",
+            "maximum": 20.0,
+            "minimum": 4.0,
+            "title": "Hba1C Pct",
+            "type": "number"
+          },
+          "heart_failure": {
+            "title": "Heart Failure",
+            "type": "boolean"
+          },
+          "on_metformin": {
+            "description": "must be true; the scope guard blocks false",
+            "title": "On Metformin",
+            "type": "boolean"
+          },
+          "past_dka": {
+            "title": "Past Dka",
+            "type": "boolean"
+          },
+          "past_hypo": {
+            "title": "Past Hypo",
+            "type": "boolean"
+          },
+          "past_pancreatitis": {
+            "title": "Past Pancreatitis",
+            "type": "boolean"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "sex": {
+            "enum": [
+              "F",
+              "M"
+            ],
+            "title": "Sex",
+            "type": "string"
+          },
+          "type1": {
+            "description": "type 1 diabetes: out of scope; the input guard blocks it",
+            "title": "Type1",
+            "type": "boolean"
+          },
+          "waist_cm": {
+            "anyOf": [
+              {
+                "maximum": 200.0,
+                "minimum": 50.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "display only",
+            "title": "Waist Cm"
+          }
+        },
+        "required": [
+          "age",
+          "sex",
+          "duration_years",
+          "hba1c_pct",
+          "egfr",
+          "bmi",
+          "ascvd",
+          "heart_failure",
+          "ckd",
+          "past_hypo",
+          "past_dka",
+          "past_pancreatitis",
+          "type1",
+          "on_metformin"
+        ],
+        "title": "PatientV1",
+        "type": "object"
+      },
+      "RecommendRequestV1": {
+        "additionalProperties": false,
+        "description": "POST /api/v1/recommend: the causal engine alone, for one patient.",
+        "properties": {
+          "patient": {
+            "$ref": "#/components/schemas/PatientV1"
+          },
+          "request_id": {
+            "pattern": "^[A-Za-z0-9_-]{1,64}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "request_id",
+          "patient"
+        ],
+        "title": "RecommendRequestV1",
+        "type": "object"
+      },
+      "RuleHitV1": {
+        "additionalProperties": false,
+        "properties": {
+          "option": {
+            "enum": [
+              "SGLT2i",
+              "DPP4i",
+              "SU"
+            ],
+            "title": "Option",
+            "type": "string"
+          },
+          "rule_id": {
+            "description": "a rule id from data/rules.csv, e.g. R04",
+            "title": "Rule Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "source": {
+            "description": "label and section, e.g. 'JANUVIA US prescribing information, Sec 2.2'",
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "option",
+          "rule_id",
+          "source"
+        ],
+        "title": "RuleHitV1",
+        "type": "object"
+      },
+      "SafetyNote": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "enum": [
+              "EXCLUDE",
+              "CAUTION"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "condition": {
+            "title": "Condition",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "rule_id": {
+            "title": "Rule Id",
+            "type": "string"
+          },
+          "rule_status": {
+            "enum": [
+              "VERIFIED",
+              "UNVERIFIED"
+            ],
+            "title": "Rule Status",
+            "type": "string"
+          },
+          "section": {
+            "title": "Section",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rule_id",
+          "action",
+          "condition",
+          "message",
+          "source",
+          "section",
+          "rule_status"
+        ],
+        "title": "SafetyNote",
+        "type": "object"
+      },
+      "ScoresV1": {
+        "additionalProperties": false,
+        "properties": {
+          "bm25": {
+            "title": "Bm25",
+            "type": "number"
+          },
+          "dense": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "null until the dense index exists (P18)",
+            "title": "Dense"
+          },
+          "rrf": {
+            "title": "Rrf",
+            "type": "number"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "bm25",
+          "rrf"
+        ],
+        "title": "ScoresV1",
+        "type": "object"
+      },
+      "Secondary": {
+        "additionalProperties": false,
+        "description": "FR7: this patient's expected 6-month weight change and hypoglycaemia risk under the option.",
+        "properties": {
+          "hypo_risk_pct": {
+            "$ref": "#/components/schemas/Interval"
+          },
+          "note": {
+            "default": "Secondary outcomes from the same synthetic cohort and method; the clinician decides.",
+            "title": "Note",
+            "type": "string"
+          },
+          "weight_change_kg": {
+            "$ref": "#/components/schemas/Interval"
+          }
+        },
+        "required": [
+          "weight_change_kg",
+          "hypo_risk_pct"
+        ],
+        "title": "Secondary",
+        "type": "object"
+      },
+      "Versions": {
+        "additionalProperties": false,
+        "properties": {
+          "cohort": {
+            "title": "Cohort",
+            "type": "string"
+          },
+          "engine": {
+            "title": "Engine",
+            "type": "string"
+          },
+          "params": {
+            "title": "Params",
+            "type": "string"
+          },
+          "params_sha": {
+            "title": "Params Sha",
+            "type": "string"
+          },
+          "rules_sha": {
+            "title": "Rules Sha",
+            "type": "string"
+          }
+        },
+        "required": [
+          "engine",
+          "params",
+          "params_sha",
+          "rules_sha",
+          "cohort"
+        ],
+        "title": "Versions",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Version 1 of the DiaCausal API contract. Every payload carries `schema_version: \"1.0\"` and unknown fields are rejected. Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.",
+    "title": "DiaCausal API",
+    "version": "1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/ask": {
+      "post": {
+        "operationId": "ask",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AskRequestV1"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnswerCardV1"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorV1"
+                }
+              }
+            },
+            "description": "The request did not match the contract."
+          }
+        },
+        "summary": "Ask"
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthV1"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health"
+      }
+    },
+    "/api/v1/recommend": {
+      "post": {
+        "operationId": "recommend",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecommendRequestV1"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CausalOutputV1"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorV1"
+                }
+              }
+            },
+            "description": "The request did not match the contract."
+          }
+        },
+        "summary": "Recommend"
+      }
+    }
+  }
+}

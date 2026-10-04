@@ -1,0 +1,35 @@
+{
+  "_note": "Plan 8.4.",
+  "status": "PASS",
+  "blocked_reason": null,
+  "checks": [
+    {
+      "id": "scope",
+      "result": "PASS"
+    },
+    {
+      "id": "identifier",
+      "result": "PASS"
+    },
+    {
+      "id": "red_flag",
+      "result": "PASS"
+    },
+    {
+      "id": "injection",
+      "result": "PASS"
+    },
+    {
+      "id": "range",
+      "result": "PASS"
+    },
+    {
+      "id": "length_language",
+      "result": "PASS"
+    },
+    {
+      "id": "dose_request",
+      "result": "PASS"
+    }
+  ]
+}

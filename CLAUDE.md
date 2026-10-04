@@ -186,6 +186,18 @@ Tabs: Patient Details, Investigate, Analysis, Guide, About (`#patient-details` �
 `#results`, `#learn` still work. `.venv/bin/python -m pytest tests/web -q` (24 tests; the two browser tests
 need Node, `e2e/node_modules` and Chromium or Google Chrome). Full chat app hosting: docs/HOSTING_CHAT_APP.md.
 
+## API contract v1 (built) — see docs/INPUT_RANGES.md and docs/PLAN_2026-10.md §8.4
+
+`diacausal/api/schemas/` holds the v1 Pydantic models (`PatientV1`, `AskRequestV1`, `GuardResultV1`,
+`EligibleOptionsV1`, `CausalOutputV1`, `DriverV1`, `EvidenceChunkV1`, `EvidenceBundleV1`, `LLMRequestV1`,
+`AnswerDraftV1`, `GuardedDraftV1`, `AnswerCardV1`): `schema_version` "1.0", unknown fields rejected.
+`CausalOutputV1` is the engine's `CausalOutput` by subclassing (never rename its fields); it only adds optional
+per-option `drivers`. They generate `openapi.json` (`scripts/export_openapi.py`), which generates
+`web/types.d.ts` (`scripts/make_types.sh`, openapi-typescript 7.13.0); `tests/contract` (64 tests, in CI) validates
+every example in `tests/contract/examples/` and fails if either generated file is stale. `PatientV1` ranges are
+TEAM-SET plausibility bounds from `docs/INPUT_RANGES.md` (clinical thresholds stay in `data/rules.csv`). The chat
+app's `backend/app/schemas.py` and the engine API's own models are unchanged; P14 builds `/api/v1/ask` on these.
+
 ## Not built yet — where each piece goes
 
 | Piece | Backend | Frontend / other |

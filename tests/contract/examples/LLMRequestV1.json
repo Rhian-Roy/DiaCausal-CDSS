@@ -1,0 +1,255 @@
+{
+  "_note": "ILLUSTRATIVE: numbers from plan section 8.4/8.11, not a measured result. Fields are the placeholders of the plan-8.9 prompt.",
+  "request_id": "c2f1",
+  "mode": "ollama",
+  "question": "Is an SGLT2 inhibitor reasonable for this patient?",
+  "patient_summary": "52 y, M, HbA1c 8.6%, eGFR 72, BMI 27.1 (overweight)",
+  "excluded_by_rules": [],
+  "causal_output": {
+    "schema_version": "1.0",
+    "request_id": "c2f1",
+    "applicable": "APPLICABLE",
+    "not_applicable_reasons": [],
+    "intervention": "Add one of three options to metformin: SGLT2 inhibitor, DPP-4 inhibitor or sulfonylurea",
+    "outcome": {
+      "name": "Change in HbA1c at 6 months",
+      "unit": "percentage points of HbA1c (%)",
+      "direction": "negative = HbA1c falls (better glucose control)"
+    },
+    "options": [
+      {
+        "arm": "SGLT2i",
+        "name": "SGLT2 inhibitor",
+        "example_molecule": "dapagliflozin",
+        "status": "estimate",
+        "safety": [],
+        "effect": {
+          "value": -0.882,
+          "ci_low": -0.974,
+          "ci_high": -0.791,
+          "level": 0.95
+        },
+        "confidence": {
+          "propensity": 0.181,
+          "overlap_threshold": 0.05,
+          "interval_level": 0.95,
+          "method": "DR-learner on cross-fitted AIPW scores, HC3 95% interval"
+        },
+        "insufficient_reason": null,
+        "secondary": {
+          "weight_change_kg": {
+            "value": -2.03,
+            "ci_low": -2.33,
+            "ci_high": -1.74,
+            "level": 0.95
+          },
+          "hypo_risk_pct": {
+            "value": 3.1,
+            "ci_low": 1.2,
+            "ci_high": 5.0,
+            "level": 0.95
+          },
+          "note": "Secondary outcomes from the same synthetic cohort and method; the clinician decides."
+        },
+        "cost": {
+          "inr_per_month": null,
+          "label": "price unavailable",
+          "as_of_date": null,
+          "source": null
+        },
+        "drivers": [
+          {
+            "feature": "hba1c_pct",
+            "value": 8.6,
+            "contribution": -0.04
+          },
+          {
+            "feature": "egfr",
+            "value": 72,
+            "contribution": 0.032
+          },
+          {
+            "feature": "bmi",
+            "value": 27.1,
+            "contribution": -0.011
+          }
+        ]
+      },
+      {
+        "arm": "DPP4i",
+        "name": "DPP-4 inhibitor",
+        "example_molecule": "sitagliptin",
+        "status": "estimate",
+        "safety": [],
+        "effect": {
+          "value": -0.691,
+          "ci_low": -0.776,
+          "ci_high": -0.606,
+          "level": 0.95
+        },
+        "confidence": {
+          "propensity": 0.22,
+          "overlap_threshold": 0.05,
+          "interval_level": 0.95,
+          "method": "DR-learner on cross-fitted AIPW scores, HC3 95% interval"
+        },
+        "insufficient_reason": null,
+        "secondary": {
+          "weight_change_kg": {
+            "value": -0.21,
+            "ci_low": -0.47,
+            "ci_high": 0.05,
+            "level": 0.95
+          },
+          "hypo_risk_pct": {
+            "value": 2.4,
+            "ci_low": 0.1,
+            "ci_high": 4.7,
+            "level": 0.95
+          },
+          "note": "Secondary outcomes from the same synthetic cohort and method; the clinician decides."
+        },
+        "cost": {
+          "inr_per_month": null,
+          "label": "price unavailable",
+          "as_of_date": null,
+          "source": null
+        },
+        "drivers": []
+      },
+      {
+        "arm": "SU",
+        "name": "Sulfonylurea",
+        "example_molecule": "glimepiride",
+        "status": "estimate",
+        "safety": [],
+        "effect": {
+          "value": -0.981,
+          "ci_low": -1.048,
+          "ci_high": -0.915,
+          "level": 0.95
+        },
+        "confidence": {
+          "propensity": 0.599,
+          "overlap_threshold": 0.05,
+          "interval_level": 0.95,
+          "method": "DR-learner on cross-fitted AIPW scores, HC3 95% interval"
+        },
+        "insufficient_reason": null,
+        "secondary": {
+          "weight_change_kg": {
+            "value": 1.24,
+            "ci_low": 1.03,
+            "ci_high": 1.44,
+            "level": 0.95
+          },
+          "hypo_risk_pct": {
+            "value": 16.1,
+            "ci_low": 12.1,
+            "ci_high": 20.1,
+            "level": 0.95
+          },
+          "note": "Secondary outcomes from the same synthetic cohort and method; the clinician decides."
+        },
+        "cost": {
+          "inr_per_month": null,
+          "label": "price unavailable",
+          "as_of_date": null,
+          "source": null
+        },
+        "drivers": []
+      }
+    ],
+    "comparisons": [
+      {
+        "first": "SGLT2i",
+        "second": "DPP4i",
+        "difference": {
+          "value": -0.191,
+          "ci_low": -0.315,
+          "ci_high": -0.067,
+          "level": 0.95
+        }
+      },
+      {
+        "first": "SU",
+        "second": "DPP4i",
+        "difference": {
+          "value": -0.29,
+          "ci_low": -0.398,
+          "ci_high": -0.182,
+          "level": 0.95
+        }
+      },
+      {
+        "first": "SGLT2i",
+        "second": "SU",
+        "difference": {
+          "value": 0.099,
+          "ci_low": -0.015,
+          "ci_high": 0.212,
+          "level": 0.95
+        }
+      }
+    ],
+    "assumptions": [
+      "Synthetic data only: estimates come from an India-calibrated SIMULATED cohort, not real patients.",
+      "No unmeasured confounding: every reason doctors chose a drug is among the patient details used.",
+      "Positivity/overlap: similar patients received each option (checked; below 0.05 we abstain).",
+      "The DAG in data/params.yaml is correct; weight change is a mediator and is not adjusted for.",
+      "Effect sizes are ASSUMED-DIRECTIONAL: direction and rough size follow cited trials; exact values are team choices.",
+      "The DR-learner interval assumes the effect changes roughly linearly with each patient detail.",
+      "One example drug per class; safety rules are from US labels and await review for Indian practice."
+    ],
+    "bmi_category": "Obese (25 or above, Asian-Indian cut-off)",
+    "versions": {
+      "engine": "0.3.0",
+      "params": "0.3.0",
+      "params_sha": "49f7cd717c",
+      "rules_sha": "23fcccf59e",
+      "cohort": "synthetic n=5000 seed=2026"
+    },
+    "decision": "Decision support only. The clinician decides.",
+    "intended_use": "Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use."
+  },
+  "drivers": {
+    "SGLT2i": [
+      {
+        "feature": "hba1c_pct",
+        "value": 8.6,
+        "contribution": -0.04
+      },
+      {
+        "feature": "egfr",
+        "value": 72,
+        "contribution": 0.032
+      },
+      {
+        "feature": "bmi",
+        "value": 27.1,
+        "contribution": -0.011
+      }
+    ]
+  },
+  "evidence": {
+    "status": "OK",
+    "index_version": "kb-2026-10-15",
+    "chunks": [
+      {
+        "chunk_id": "S01-p12-c3",
+        "source": "WHO 2018 second- and third-line medicines",
+        "version": "2018",
+        "section": "Recommendations",
+        "page": 12,
+        "licence": "CC BY-NC-SA 3.0 IGO",
+        "text": "ILLUSTRATIVE passage text, shown verbatim in the real bundle.",
+        "scores": {
+          "bm25": 7.1,
+          "dense": 0.62,
+          "rrf": 0.031
+        }
+      }
+    ]
+  },
+  "max_claims": 4
+}

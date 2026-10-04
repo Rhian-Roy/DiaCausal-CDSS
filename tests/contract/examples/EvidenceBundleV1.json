@@ -1,0 +1,21 @@
+{
+  "_note": "ILLUSTRATIVE: numbers from plan section 8.4/8.11, not a measured result.",
+  "status": "OK",
+  "index_version": "kb-2026-10-15",
+  "chunks": [
+    {
+      "chunk_id": "S01-p12-c3",
+      "source": "WHO 2018 second- and third-line medicines",
+      "version": "2018",
+      "section": "Recommendations",
+      "page": 12,
+      "licence": "CC BY-NC-SA 3.0 IGO",
+      "text": "ILLUSTRATIVE passage text, shown verbatim in the real bundle.",
+      "scores": {
+        "bm25": 7.1,
+        "dense": 0.62,
+        "rrf": 0.031
+      }
+    }
+  ]
+}

@@ -135,6 +135,21 @@ benchmark and `pip-audit` on Linux and macOS. `scripts/check_all.py` is unchange
 | The online Edge Function uses exactly `prompt.v1.txt`, checks aal2 + approval, never logs, holds no key | *online_function_uses_exactly_the_same_prompt_and_rules* |
 | Gold set (60 questions, 20 for doctor review) is well formed; evaluation meets the bar (0 dose leaks, citation precision 1.0, recall@5 ≥ 0.85, abstention ≥ 0.7) and `results/rag_eval_summary.csv` is fresh | *gold_set_is_well_formed*, *evaluation_meets_the_bar_and_the_saved_results_are_fresh* |
 
+**API contract v1** (`python -m pytest tests/contract -q`, 64 tests, about 6 s; no Node needed):
+
+| What it checks | Tests |
+|---|---|
+| The twelve models of plan 8.4 exist, and each has a JSON example in `tests/contract/examples/` that validates and round-trips | *twelve_models…*, *every_example_validates_and_round_trips*, *there_is_an_example_for_every_model…* |
+| Unknown fields and a wrong `schema_version` are refused by every model; the two requests must send `"1.0"` | *unknown_fields_are_rejected*, *a_wrong_schema_version_is_rejected*, *every_v1_model_forbids_extra_fields…* |
+| `PatientV1` ranges equal the table in `docs/INPUT_RANGES.md` (TEAM-SET), are enforced at both edges, and sit inside the engine's own ranges | *ranges_in_code_match_the_table…*, *patient_ranges_are_enforced…*, *every_8_2_range_sits_inside…* |
+| A valid `PatientV1` always converts to a valid engine patient | *corner_patients_convert…*, *conversion_maps_every_field…* |
+| `CausalOutputV1` keeps every field name of the engine's `CausalOutput`, and the engine's real output validates as it | *engines_real_output_is_a_valid…*, *keeps_every_existing_engine_field_name* |
+| Safety invariants in the contract: a removed option never carries an estimate; the card keeps the intended-use sentence and ends "The clinician decides."; evidence level is never High; at most 4 cited claims; no drivers for a removed option; a draft only when guards passed | *an_option_a_rule_removed…*, *the_card_keeps…*, *evidence_level_is_never_high…*, *drivers_are_not_allowed…*, *a_guarded_draft…* |
+| `openapi.json` is fresh (`python scripts/export_openapi.py --check`), has the three endpoints and all twelve models, and `web/types.d.ts` was generated from exactly this `openapi.json` | *openapi_json_is_fresh*, *openapi_has_the_three_endpoints…*, *types_d_ts_matches_openapi_json* |
+
+Regenerate after changing a model: `.venv/bin/python scripts/export_openapi.py && bash scripts/make_types.sh`
+(the second needs Node and internet the first time: `npx` fetches `openapi-typescript@7.13.0`).
+
 **Website** (`python -m pytest tests/web -q`, 24 tests, about 40 s; needs Node, and Chromium or Google Chrome for the two browser tests):
 
 | Requirement | Proved by (`tests/web/test_web.py`) |
