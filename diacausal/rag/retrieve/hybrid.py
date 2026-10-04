@@ -74,6 +74,7 @@ class Retriever:
         for i in best:
             c = self.chunks[i]
             passages.append({
+                "chunk_id": c.chunk_id,
                 "text": WITHHELD if DOSE.search(c.text) else c.text,
                 "citation": {"source_id": c.source_id, "title": c.title, "version": c.version,
                              "section": c.section, "page": c.page, "licence_bucket": c.licence_bucket},

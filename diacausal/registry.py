@@ -11,6 +11,8 @@ clinical use.
 
 from __future__ import annotations
 
+import importlib
+from collections.abc import Callable
 from typing import NamedTuple
 
 
@@ -25,7 +27,16 @@ REGISTRY: tuple[Entry, ...] = (
     Entry("diacausal", "the new single package (plan section 8.3)"),
     Entry("diacausal.causal_inference", "package: the 3-arm causal engine"),
     Entry("diacausal.guards", "package: safety rules and checkers"),
-    Entry("diacausal.registry", "this list"),
+    Entry("diacausal.registry", "this list, and the ordered pipeline layers"),
+    Entry("diacausal.tracing", "console tracing: layer(), @traced, AbstainSignal (plan 8.5)"),
+    Entry("diacausal.api.routes_v1", "POST /api/v1/ask"),
+    Entry("diacausal.orchestrator", "package: the request pipeline"),
+    Entry("diacausal.orchestrator.context", "what travels through the pipeline for one request"),
+    Entry("diacausal.orchestrator.pipeline", "runs the layers in registry order, each in a trace"),
+    Entry("diacausal.orchestrator.layers", "the layers that are built (rules, causal, retrieval, explanation, output guards, formatter)"),
+    Entry("diacausal.orchestrator.stubs", "pass-through stubs for what is not built yet"),
+    Entry("diacausal.output", "package: assembling what the screen shows"),
+    Entry("diacausal.output.formatter", "assemble AnswerCardV1 from the layers' results"),
     Entry("diacausal.api", "package"),
     Entry("diacausal.api.contract_app", "the v1 contract app"),
     Entry("diacausal.api.schemas", "v1 models (package)"),
@@ -103,3 +114,60 @@ REGISTRY: tuple[Entry, ...] = (
 
 def modules() -> list[str]:
     return [e.module for e in REGISTRY]
+
+
+# ── the request pipeline (docs/PLAN_2026-10.md, section 8.3) ─────────────────────────────────────────────────────
+# diacausal/orchestrator/pipeline.py reaches every layer ONLY through layer_function() below, in this order.
+# `stub=True` marks a pass-through that is not built yet; `replaced_by` names the prompt that builds the real one
+# (then change the one line here: nothing else needs to move). tests/orchestrator checks this list.
+
+
+class Layer(NamedTuple):
+    name: str  # as it appears in the trace: "[rid] passed input guards layer (3 ms)"
+    function: str  # "module:attribute"
+    stub: bool = False
+    replaced_by: str = ""
+
+
+_O = "diacausal.orchestrator"
+LAYERS: tuple[Layer, ...] = (
+    Layer("input guards", f"{_O}.stubs:input_guards", stub=True, replaced_by="P15"),
+    Layer("rules", f"{_O}.layers:rules_layer"),
+    Layer("causal engine", f"{_O}.layers:causal_layer"),
+    Layer("retrieval", f"{_O}.layers:retrieval_layer"),
+    Layer("explanation", f"{_O}.layers:explanation_layer"),
+    Layer("output guards", f"{_O}.layers:output_guards_layer"),
+    Layer("formatter", f"{_O}.layers:formatter_layer"),
+)
+
+# Parts inside a layer that are still stubs (each is called by its layer through part_function()).
+PARTS: tuple[Layer, ...] = (
+    Layer("query processing", f"{_O}.stubs:query_processing", stub=True, replaced_by="P16"),
+    Layer("shap drivers", f"{_O}.stubs:shap_drivers", stub=True, replaced_by="P25"),
+    Layer("evidence levels", f"{_O}.stubs:evidence_levels", stub=True, replaced_by="P24"),
+    Layer("prompt builder", f"{_O}.stubs:prompt_builder", stub=True, replaced_by="P22"),
+    Layer("full output checks", f"{_O}.stubs:full_output_checks", stub=True, replaced_by="P23"),
+)
+
+
+def _resolve(entries: tuple[Layer, ...], name: str) -> Callable:
+    for e in entries:
+        if e.name == name:
+            module, attr = e.function.split(":")
+            return getattr(importlib.import_module(module), attr)
+    raise KeyError(f"no layer or part called {name!r} in the registry")
+
+
+def layer_function(name: str) -> Callable:
+    """The function that runs one pipeline layer: fn(context) -> None."""
+    return _resolve(LAYERS, name)
+
+
+def part_function(name: str) -> Callable:
+    """The function behind a part of a layer (a stub today for the parts in PARTS)."""
+    return _resolve(PARTS, name)
+
+
+def stubs() -> list[Layer]:
+    """Every layer and part that is still a pass-through."""
+    return [e for e in (*LAYERS, *PARTS) if e.stub]
