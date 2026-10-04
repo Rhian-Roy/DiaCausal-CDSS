@@ -212,8 +212,19 @@ Every layer runs inside `diacausal/tracing.py` (`layer(name, request_id)` or `@t
 `executing`, then `passed (N ms)`, `abstained ... reason=CODE` or `failed ... error=ExceptionClass`. A layer that correctly
 cannot go on raises `AbstainSignal(CODE)` (a code, never free text). **Never log patient values, the question, prompts,
 passages or secrets**: only IDs, layer names, statuses, codes, durations and exception class names. The route turns any
-internal error into a plain 500 with the request ID (a pydantic error message would repeat the input). Until P15 lands,
-nothing checks scope or identifiers in `/ask`. Tests: `tests/orchestrator` (CI runs them).
+internal error into a plain 500 with the request ID (a pydantic error message would repeat the input). Tests: `tests/orchestrator` (CI runs them).
+
+## Input guards (built, P15) — see docs/PLAN_2026-10.md section 8.6
+
+`diacausal/guards/input_guards.py`: seven deterministic guards (scope, identifier, red flag, injection, range and unit, length and
+language, dose request), each returning `GuardResultV1`; `run_input_guards` runs all seven (never stopping early) and lists them in
+the order of 8.6. The word lists (identifiers, emergency phrases, out-of-scope topics, foul language, the "not"/"history of" cues) are
+read from `shared/guard_rules/rules.v1.json`, the same file the chat app uses: edit them there. The numeric triggers and the new lists
+(length, language share, glucose 54 and 400 mg/dL, honorifics, injection phrases, dose patterns, the drug-in-general words) are in
+`data/params.yaml` section `guards`, all TEAM-SET. A block stops the request in the pipeline's first layer (`/ask` answers HTTP 422:
+`message` plus one `problems` entry per blocking check; an emergency is shown first). **A message never repeats what matched.**
+A question framed as general drug knowledge ("can SGLT2 inhibitors cause ketoacidosis?") is not an emergency unless a present-state
+word is also there; `tests/guards/test_shared_cases.py` keeps every answerable RAG gold question passing and every dose question refused.
 
 ## Not built yet — where each piece goes
 

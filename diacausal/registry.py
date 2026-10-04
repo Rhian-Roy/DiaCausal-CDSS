@@ -35,6 +35,7 @@ REGISTRY: tuple[Entry, ...] = (
     Entry("diacausal.orchestrator.pipeline", "runs the layers in registry order, each in a trace"),
     Entry("diacausal.orchestrator.layers", "the layers that are built (rules, causal, retrieval, explanation, output guards, formatter)"),
     Entry("diacausal.orchestrator.stubs", "pass-through stubs for what is not built yet"),
+    Entry("diacausal.guards.input_guards", "the seven input guards of plan 8.6 (scope, identifier, red flag, injection, range, length and language, dose request)"),
     Entry("diacausal.output", "package: assembling what the screen shows"),
     Entry("diacausal.output.formatter", "assemble AnswerCardV1 from the layers' results"),
     Entry("diacausal.api", "package"),
@@ -131,7 +132,7 @@ class Layer(NamedTuple):
 
 _O = "diacausal.orchestrator"
 LAYERS: tuple[Layer, ...] = (
-    Layer("input guards", f"{_O}.stubs:input_guards", stub=True, replaced_by="P15"),
+    Layer("input guards", f"{_O}.layers:input_guards_layer"),
     Layer("rules", f"{_O}.layers:rules_layer"),
     Layer("causal engine", f"{_O}.layers:causal_layer"),
     Layer("retrieval", f"{_O}.layers:retrieval_layer"),

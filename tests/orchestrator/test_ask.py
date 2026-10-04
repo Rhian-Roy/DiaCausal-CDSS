@@ -1,7 +1,7 @@
 """POST /api/v1/ask end to end: each demo preset returns a schema-valid AnswerCardV1, in the order of plan 8.3."""
 
 import pytest
-from conftest import PRESETS, body
+from pipeline_helpers import PRESETS, body
 
 from diacausal import INTENDED_USE
 from diacausal.api.schemas import AnswerCardV1
@@ -89,11 +89,13 @@ def test_a_question_nothing_matches_abstains_at_retrieval_and_the_card_has_no_cl
     assert "abstained explanation layer" in " ".join(layer_lines(trace, "noev"))
 
 
-def test_a_dose_question_gets_no_explanation(client, trace):
+def test_a_dose_question_is_stopped_by_the_input_guards_before_anything_runs(client, trace):
     patient, _ = PRESETS["typical"]
-    card = AnswerCardV1.model_validate(client.post("/api/v1/ask", json=body(patient, "What dose of sitagliptin should I use?", "dose")).json())
-    assert card.claims == []
-    assert "abstained explanation layer reason=DOSE_REQUEST" in " ".join(layer_lines(trace, "dose"))
+    r = client.post("/api/v1/ask", json=body(patient, "What dose of sitagliptin should I use?", "dose"))
+    assert r.status_code == 422 and "never gives doses" in r.json()["message"]
+    assert [p["check"] for p in r.json()["problems"]] == ["dose_request"]
+    text = " ".join(layer_lines(trace, "dose"))
+    assert "abstained input guards layer reason=DOSE_REQUEST" in text and "rules layer" not in text
 
 
 def test_the_local_model_mode_falls_back_to_the_template_when_there_is_no_model(client):

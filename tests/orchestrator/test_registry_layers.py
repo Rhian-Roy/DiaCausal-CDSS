@@ -6,10 +6,10 @@ import logging
 from pathlib import Path
 
 import pytest
-from conftest import PRESETS, body
+from pipeline_helpers import PRESETS, body
 
 from diacausal import registry
-from diacausal.orchestrator import stubs
+from diacausal.orchestrator import layers
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -20,8 +20,9 @@ def test_the_layers_are_in_the_order_of_plan_8_3():
 
 
 def test_exactly_these_layers_and_parts_are_stubs_and_each_names_the_prompt_that_replaces_it():
+    """The input guards left this list when P15 built them."""
     assert {e.name: e.replaced_by for e in registry.stubs()} == {
-        "input guards": "P15", "query processing": "P16", "shap drivers": "P25", "evidence levels": "P24",
+        "query processing": "P16", "shap drivers": "P25", "evidence levels": "P24",
         "prompt builder": "P22", "full output checks": "P23"}
     assert all(e.replaced_by for e in registry.stubs()) and not any(e.replaced_by for e in (*registry.LAYERS, *registry.PARTS) if not e.stub)
 
@@ -48,7 +49,7 @@ def test_the_pipeline_does_not_import_a_layer_directly():
 def test_every_layer_runs_inside_a_trace_even_when_swapped_for_another_function(client, trace, monkeypatch):
     """A layer replaced in the registry (as P15 will do) is traced like any other: nothing is wired by hand."""
     seen = []
-    monkeypatch.setattr(stubs, "input_guards", lambda ctx: seen.append(ctx.request_id))
+    monkeypatch.setattr(layers, "input_guards_layer", lambda ctx: seen.append(ctx.request_id))
     patient, question = PRESETS["typical"]
     client.post("/api/v1/ask", json=body(patient, question, "swap1"))
     assert seen == ["swap1"]
@@ -62,10 +63,10 @@ def test_an_input_guard_abstain_stops_the_request_before_the_rules_run(client, t
     def blocked(ctx):
         raise AbstainSignal("OUT_OF_SCOPE")
 
-    monkeypatch.setattr(stubs, "input_guards", blocked)
+    monkeypatch.setattr(layers, "input_guards_layer", blocked)
     patient, question = PRESETS["typical"]
     r = client.post("/api/v1/ask", json=body(patient, question, "stop1"))
-    assert r.status_code == 422 and "OUT_OF_SCOPE" in r.json()["message"]
+    assert r.status_code == 422 and r.json()["message"]
     text = " ".join(r.getMessage() for r in trace.records if r.name == "diacausal.trace")
     assert "abstained input guards layer reason=OUT_OF_SCOPE" in text and "rules layer" not in text
 

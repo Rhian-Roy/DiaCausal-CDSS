@@ -30,6 +30,7 @@ def ask(request: AskRequestV1, engine: Engine | None = None) -> AnswerCardV1:
         except AbstainSignal as abstain:
             ctx.abstained[entry.name] = abstain.code
             if entry.name == STOPS_THE_REQUEST:
-                raise RequestBlocked(abstain.code) from None
+                detail = abstain.result or {}
+                raise RequestBlocked(abstain.code, detail.get("message", ""), detail.get("problems")) from None
     assert ctx.card is not None, "the formatter layer did not produce a card"
     return ctx.card
