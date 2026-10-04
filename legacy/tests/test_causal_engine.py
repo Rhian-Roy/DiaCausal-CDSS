@@ -732,6 +732,7 @@ class TestLibraryAgreement:
         difference is DoWhy's internal propensity model differing slightly from
         ours. A larger gap would mean one of us has the formula wrong.
         """
+        pytest.importorskip("dowhy")
         comparisons = crosscheck.dowhy_comparison(strong, n_strata=10)
         ipw = next(c for c in comparisons if "IPW" in c.estimand)
         assert ipw.error is None, f"DoWhy failed to run: {ipw.error}"
@@ -740,6 +741,7 @@ class TestLibraryAgreement:
         )
 
     def test_our_stratification_agrees_with_dowhy(self, strong):
+        pytest.importorskip("dowhy")
         comparisons = crosscheck.dowhy_comparison(strong, n_strata=10)
         strat = next(c for c in comparisons if "stratification" in c.estimand)
         assert strat.error is None, f"DoWhy failed to run: {strat.error}"
@@ -755,6 +757,7 @@ class TestLibraryAgreement:
         anything beyond floating-point noise indicates a real difference in what
         is being computed — not sampling variation.
         """
+        pytest.importorskip("econml")
         comparisons = crosscheck.econml_comparison(strong)
         checked = 0
         for c in comparisons:
@@ -854,6 +857,7 @@ class TestRefutation:
 class TestDag:
 
     def test_the_adjustment_set_is_the_confounders_only(self):
+        pytest.importorskip("networkx")
         sets = dag.adjustment_sets()
         for c in ("BMI", "HbA1c_baseline", "eGFR", "Age", "Comorbidities"):
             assert c in sets["adjust_for"], f"{c} is a confounder and must be adjusted"
@@ -863,6 +867,7 @@ class TestDag:
             assert bad not in sets["adjust_for"]
 
     def test_backdoor_paths_exist_and_are_blockable(self):
+        pytest.importorskip("networkx")
         paths = dag.backdoor_paths()
         assert paths, "no backdoor paths — then there is nothing to adjust for"
 

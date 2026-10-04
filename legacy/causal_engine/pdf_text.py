@@ -444,7 +444,7 @@ def load_clean(path: str | Path) -> Document:
 
 
 
-def extraction_report(folder: str | Path = "RAG") -> str:
+def extraction_report(folder: str | Path = "documents") -> str:
     """Try every PDF in a folder and print an honest per-file verdict.
 
     This is a good first cell in a demo: it shows that two of four guidelines

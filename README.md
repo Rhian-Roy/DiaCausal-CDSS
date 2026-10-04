@@ -145,7 +145,7 @@ marketed medical device; not for unsupervised clinical use.
 ## 📁 Project Structure
 
 ```
-.
+legacy/                             # the older 2-arm research code (moved here in restructure step 1)
 ├── causal_engine/                  # Core Python package
 │   ├── __init__.py
 │   ├── data.py                     # Synthetic EHR data with authored ground truth
@@ -165,7 +165,6 @@ marketed medical device; not for unsupervised clinical use.
 │   ├── diabetes.csv                # "Pima Indians Diabetes" dataset: women of the
 │   │                               # Akimel O'odham community, Arizona, USA — NOT from India
 │   └── synthetic_diabetes_ehr.csv  # Generated synthetic EHR
-├── RAG/                            # Clinical guideline PDFs for retrieval
 ├── figures/                        # Generated plots and visualisations
 │
 ├── 01_Causal_Inference_Basics.ipynb          # Narrated notebook (10 acts)
@@ -176,16 +175,16 @@ marketed medical device; not for unsupervised clinical use.
 ├── smoke_streamlit.py                        # Headless smoke test for the demo
 ├── build_notebook.py                         # Script to regenerate the notebook
 ├── verify_notebook.py                        # Notebook output verifier
-└── pytest.ini                                # Test configuration
+└── pytest.ini                                # Test configuration for this folder
 ```
 
 ## 🚀 Quick Start — older 2-arm research code (notebooks)
 
-### 1. Clone & install dependencies
+### 1. Clone & install dependencies (everything below runs from the `legacy/` folder)
 
 ```bash
 git clone https://github.com/Rhian-Roy/DiaCausal-CDSS.git
-cd DiaCausal-CDSS
+cd DiaCausal-CDSS/legacy
 pip install -r requirements.txt
 ```
 
@@ -206,8 +205,7 @@ streamlit run diacausal_demo.py
 ### 4. Run the test suite
 
 ```bash
-python -m pytest tests/ -q                    # full suite (~85s)
-python -m pytest tests/ -q -m "not slow"      # skip library cross-checks (~37s)
+python -m pytest tests -q                     # full suite (~60s; the 5 tests needing DoWhy/EconML/NetworkX skip if they are not installed)
 ```
 
 ## 🔬 The Ten Acts
@@ -236,7 +234,7 @@ Safety rules run **before** any estimate and override it. Their thresholds are n
 - **Chat app:** [`backend/app/clinical/guardrails.v1.yaml`](backend/app/clinical/guardrails.v1.yaml),
   a draft table that differs from `rules.csv`. [`docs/CAUSAL_PLAN.md`](docs/CAUSAL_PLAN.md) §4
   lists every difference for the doctor to resolve.
-- The older 2-arm research code in `causal_engine/guardrails.py` still has numbers in code. It is
+- The older 2-arm research code in `legacy/causal_engine/guardrails.py` still has numbers in code. It is
   kept for the notebooks only; don't use it for the demo.
 
 ## 📦 Dependencies

@@ -11,7 +11,8 @@ for unsupervised clinical use.** That sentence appears on every screen, in every
 - `frontend/` — React + Vite + TypeScript + Tailwind v4 + shadcn/ui (Node 24 LTS)
 - `backend/` — FastAPI + Pydantic v2 on Python 3.12, in its own venv at `backend/.venv`
 - `design/` — the screens to match (`chat.html` / `login.html` hold the exact colours, fonts, spacing)
-- `causal_engine/`, notebooks — earlier 2-arm research code, kept as is (legacy); `RAG/` holds
+- `legacy/` — the earlier 2-arm research code (`causal_engine/`, notebooks, scripts; restructure step 1). Its tests run from
+  inside it (`cd legacy && ../.venv/bin/python -m pytest tests -q`); nothing under `diacausal/` may use it. `RAG/` holds
   `sources.csv`, the licence register. The backend will call `diacausal_engine/` and `diacausal_rag/`
   instead (see "Not built yet" below)
 
@@ -206,6 +207,9 @@ app's `backend/app/schemas.py` and the engine API's own models are unchanged; P1
 | RAG in the chat app (built standalone in `diacausal_rag/`: licence gate, WHO 2018 + FDA S08/S19–S23, sentence-aware chunks, BM25 + TF-IDF, RRF, coverage abstention, `explain.py` template/Ollama + citation checker, `eval/rag_gold.csv` + `evaluate`; `tests/rag` 33; website Evidence tab). Still to do: medical embedding model, reranker, doctor review of the gold set | `backend/app/pipeline/rag_retrieval.py`, `llm_explanation.py` call `diacausal_rag` | `docs/03_RAG_Build_Guide.md`; only `cleared_ingest` sources |
 
 Each folder's README says how it connects.
+
+`diacausal/registry.py` lists every importable module; `tests/test_imports.py` imports each one and fails if a module is
+missing from the list. Update it whenever a module moves (docs/RESTRUCTURE_PLAN.md).
 
 ## Tooling
 
