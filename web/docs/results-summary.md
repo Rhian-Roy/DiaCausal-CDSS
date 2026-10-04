@@ -82,8 +82,9 @@ HbA1c compared with perfect knowledge. Choosing by the naive averages loses abou
 
 ## 5. How often does the system abstain?
 
-**2.5%** of patient–option pairs in the test cohorts were answered with "insufficient evidence"
-(propensity below 0.05) or "excluded" by a safety rule instead of a number.
+**2.7%** of patient–option pairs in the test cohorts were answered with "insufficient evidence"
+(propensity below 0.05) or "excluded" by a safety rule instead of a number. (It was 2.5% before the rule
+merge of 4 October 2026 added R11 and made R03 an exclusion: docs/RULES_MERGE.md.)
 
 ## 6. Covariate balance before and after weighting
 

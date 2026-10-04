@@ -9,7 +9,7 @@
   "psm_bootstrap": 100,
   "params_version": "0.3.0",
   "params_sha": "49f7cd717c",
-  "rules_sha": "23fcccf59e",
+  "rules_sha": "dd3f348885",
   "true_population_effects": {
     "SGLT2i": -0.96146283,
     "DPP4i": -0.75046544,
@@ -33,6 +33,6 @@
     "hypo:SGLT2i-SU": -0.12854517830623477
   },
   "refutation_checks_passed": "9 of 9",
-  "python": "3.12.3",
-  "seconds": 861.9
+  "python": "3.12.14",
+  "seconds": 693.1
 }

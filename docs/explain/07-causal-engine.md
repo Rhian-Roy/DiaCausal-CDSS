@@ -171,7 +171,7 @@ flowchart LR
 | **Coverage** | how often the 95% range contains the truth | 19 of 20 → 95% | AIPW 90–95% |
 | **PEHE** | per-patient error | true −0.3, −0.2, −0.1 vs estimated −0.4, −0.2, 0.0 → √(0.02/3) = 0.08 | DR-learner 0.10–0.12 |
 | **Policy regret** | how much worse the pick is than the true best | picked −0.9 when −1.0 was possible → 0.1 | DR-learner 0.011; naive 0.062 |
-| **Abstention** | share of answers that are "insufficient evidence" or excluded | 1 of 12 pairs → 8% | 2.5% |
+| **Abstention** | share of answers that are "insufficient evidence" or excluded | 1 of 12 pairs → 8% | 2.7% |
 | **SMD (balance)** | how different two groups look | HbA1c 8.9 vs 8.4 with SD 1.0 → 0.5; below 0.1 is balanced | 0.70 before → 0.08 after weighting |
 
 - **Viva:** "Because the truth is known, we measured bias, RMSE, coverage, per-patient error, regret and balance directly."

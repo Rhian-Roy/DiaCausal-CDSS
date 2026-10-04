@@ -266,8 +266,8 @@
    "coverage_95": "",
    "mean_ci_width": "",
    "pehe": "",
-   "policy_regret": "0.0112",
-   "abstention_rate": "0.0248",
+   "policy_regret": "0.0110",
+   "abstention_rate": "0.0274",
    "smd_max_before": "",
    "smd_max_after": "",
    "n_reps": "20"
@@ -334,8 +334,8 @@
    "coverage_95": "",
    "mean_ci_width": "",
    "pehe": "",
-   "policy_regret": "0.0290",
-   "abstention_rate": "0.0248",
+   "policy_regret": "0.0288",
+   "abstention_rate": "0.0274",
    "smd_max_before": "",
    "smd_max_after": "",
    "n_reps": "20"
@@ -402,8 +402,8 @@
    "coverage_95": "",
    "mean_ci_width": "",
    "pehe": "",
-   "policy_regret": "0.0124",
-   "abstention_rate": "0.0248",
+   "policy_regret": "0.0123",
+   "abstention_rate": "0.0274",
    "smd_max_before": "",
    "smd_max_after": "",
    "n_reps": "20"
@@ -470,8 +470,8 @@
    "coverage_95": "",
    "mean_ci_width": "",
    "pehe": "",
-   "policy_regret": "0.0623",
-   "abstention_rate": "0.0248",
+   "policy_regret": "0.0619",
+   "abstention_rate": "0.0274",
    "smd_max_before": "",
    "smd_max_after": "",
    "n_reps": "20"
@@ -931,7 +931,7 @@
   "reps": 20,
   "n_patients": 5000,
   "n_test_patients": 2000,
-  "seconds": 861.9,
+  "seconds": 693.1,
   "refutation_checks_passed": "9 of 9",
   "true_population_effects": {
    "SGLT2i": -0.96146283,

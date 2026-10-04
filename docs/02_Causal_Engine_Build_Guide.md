@@ -164,7 +164,7 @@ Rules marked VERIFIED were checked against the US FDA prescribing information on
 |---|---|---|---|---|---|
 | R01 | SGLT2i (dapagliflozin) | eGFR below 45 | Exclude for glucose lowering | FDA label §1, §2.2; KDIGO 2022 Rec 1.3.1 | Verified |
 | R02 | SGLT2i | Type 1 diabetes | Exclude | FDA label §1 | Verified |
-| R03 | SGLT2i | History of ketoacidosis | Caution | FDA label §5.1 | Section to confirm |
+| R03 | SGLT2i | History of ketoacidosis | Exclude (was Caution; the chat-app table says do not use, the stricter applies until the doctor reviews) | FDA label §5.1 | Section to confirm |
 | R04 | DPP-4i (sitagliptin) | eGFR below 45 | Caution: dose adjustment needed (no dose shown) | FDA label §2.2 | Verified |
 | R05 | DPP-4i | History of pancreatitis | Caution | FDA label §1, §5.1 | Verified |
 | R06 | DPP-4i | Heart failure | Caution (seen with two other DPP-4 inhibitors) | FDA label §5.2 | Verified |
@@ -172,6 +172,9 @@ Rules marked VERIFIED were checked against the US FDA prescribing information on
 | R08 | SU | Age 65 or over | Caution | FDA label §2.1, §8.5; cut-off team-set | Unverified cut-off |
 | R09 | SU | eGFR below 60 | Caution | FDA label §2.1, §8.6; cut-off team-set | Unverified cut-off |
 | R10 | SU | eGFR below 30 | Exclude | Team rule pending clinician review | Unverified |
+| R11 | DPP-4i (sitagliptin) | eGFR below 30 (metformin contraindicated) | Exclude (added by the merge; R01 and R10 already exclude the other two options here) | FDA Drug Safety Communication, 8 Apr 2016 | Verified |
+
+**Merged 4 October 2026** (docs/RULES_MERGE.md): R03 became Exclude and R11 was added so that this table is never weaker than the chat-app table (`backend/app/clinical/guardrails.v1.yaml`) or the old research code; the doctor decides whether to relax either.
 
 KDIGO 2022 supports SGLT2 inhibitors down to eGFR 20 for kidney and heart protection. That is a different purpose from lowering HbA1c, so R01 shows it as a note for the doctor.
 
@@ -181,7 +184,7 @@ KDIGO 2022 supports SGLT2 inhibitors down to eGFR 20 for kidney and heart protec
 rule_id,arm,representative_molecule,field,op,value,action,message,source,section,status
 R01,SGLT2i,dapagliflozin,egfr,lt,45,EXCLUDE,"Not recommended to improve glycaemic control when eGFR < 45 mL/min/1.73 m2. KDIGO 2022 Rec 1.3.1 supports SGLT2i at eGFR >= 20 for kidney/heart protection - a different purpose; flag for the clinician.","FARXIGA (dapagliflozin) US prescribing information (DailyMed); KDIGO 2022 Diabetes in CKD","PI Sec 1 Limitations of Use, 2.2; KDIGO Rec 1.3.1",VERIFIED
 R02,SGLT2i,dapagliflozin,t1d,eq,1,EXCLUDE,"Not recommended for glycaemic control in type 1 diabetes.","FARXIGA US prescribing information (DailyMed)","Sec 1 Limitations of Use",VERIFIED
-R03,SGLT2i,dapagliflozin,dka_history,eq,1,CAUTION,"History of ketoacidosis: SGLT2 inhibitors carry a ketoacidosis warning; clinician review.","FARXIGA US prescribing information (DailyMed)","Sec 5.1 (to confirm)",UNVERIFIED
+R03,SGLT2i,dapagliflozin,dka_history,eq,1,EXCLUDE,"History of ketoacidosis: SGLT2 inhibitors carry a ketoacidosis warning (label Sec 5 Warnings and Precautions). Excluded until the doctor reviews: the chat-app table says do not use, this table said caution, and the stricter action applies (docs/RULES_MERGE.md).","FARXIGA US prescribing information (DailyMed)","Sec 5.1 (to confirm)",UNVERIFIED
 R04,DPP4i,sitagliptin,egfr,lt,45,CAUTION,"Renal dose adjustment required per label when eGFR < 45 mL/min/1.73 m2. This system never displays doses - consult the label.","JANUVIA (sitagliptin) US prescribing information (DailyMed)","Sec 2.2",VERIFIED
 R05,DPP4i,sitagliptin,pancreatitis_history,eq,1,CAUTION,"Not studied in patients with a history of pancreatitis; acute pancreatitis reported after marketing.","JANUVIA US prescribing information (DailyMed)","Sec 1; 5.1",VERIFIED
 R06,DPP4i,sitagliptin,hf,eq,1,CAUTION,"Heart failure observed with two other DPP-4 inhibitors (class-level); consider risks and benefits.","JANUVIA US prescribing information (DailyMed)","Sec 5.2",VERIFIED
@@ -189,6 +192,7 @@ R07,SU,glimepiride,hypo_history,eq,1,CAUTION,"Sulfonylureas can cause severe hyp
 R08,SU,glimepiride,age,ge,65,CAUTION,"Older patients are at higher hypoglycaemia risk; label advises a conservative start. Age cut-off 65 is team-set.","Glimepiride US prescribing information (DailyMed)","Sec 2.1; 8.5",UNVERIFIED
 R09,SU,glimepiride,egfr,lt,60,CAUTION,"Kidney impairment increases hypoglycaemia risk; label advises a conservative start. eGFR cut-off 60 is team-set.","Glimepiride US prescribing information (DailyMed)","Sec 2.1; 8.6",UNVERIFIED
 R10,SU,glimepiride,egfr,lt,30,EXCLUDE,"Severe kidney impairment: team-set exclusion pending clinician and KDIGO confirmation.","Team rule pending review","TBD",UNVERIFIED
+R11,DPP4i,sitagliptin,egfr,lt,30,EXCLUDE,"Adding to metformin does not apply below eGFR 30: metformin is contraindicated there (FDA Drug Safety Communication, Apr 2016). The same reason excludes every option; SGLT2i (R01) and SU (R10) are already excluded at this eGFR.","FDA Drug Safety Communication: revised warnings for metformin in reduced kidney function (8 Apr 2016)","Recommendations for health care professionals",VERIFIED
 ```
 
 ### Where the generator's numbers come from (params.yaml)
