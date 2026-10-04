@@ -1,0 +1,48 @@
+{
+  "_note": "ILLUSTRATIVE: numbers from plan section 8.4/8.11, not a measured result.",
+  "status": "PASS",
+  "dropped_claims": 0,
+  "fallback_reason": null,
+  "checks": [
+    {
+      "id": "parse",
+      "result": "PASS"
+    },
+    {
+      "id": "citations",
+      "result": "PASS"
+    },
+    {
+      "id": "numbers",
+      "result": "PASS"
+    },
+    {
+      "id": "dose_threshold",
+      "result": "PASS"
+    },
+    {
+      "id": "excluded_option",
+      "result": "PASS"
+    },
+    {
+      "id": "insufficient_wording",
+      "result": "PASS"
+    },
+    {
+      "id": "identifier_causal",
+      "result": "PASS"
+    }
+  ],
+  "draft": {
+    "question_context": "The question asks whether an SGLT2 inhibitor is reasonable for this patient.",
+    "evidence_summary": [
+      {
+        "claim": "ILLUSTRATIVE claim supported by the passage.",
+        "chunk_ids": [
+          "S01-p12-c3"
+        ]
+      }
+    ],
+    "limitations": "Estimates come from a synthetic cohort and have not been validated on real patients."
+  }
+}
