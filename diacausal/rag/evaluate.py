@@ -21,7 +21,8 @@ from pathlib import Path
 
 from diacausal.causal_inference.recommend import DOSE_PATTERN
 from diacausal import INTENDED_USE
-from diacausal_rag.explain import BACKENDS, check_answer, explain, render
+from diacausal.guards.output_guards import check_answer
+from diacausal.llm.explain import BACKENDS, explain, render
 from diacausal.config import ROOT, load_rag_config
 from diacausal.rag.ingest.licence_gate import ingest
 from diacausal.rag.retrieve.hybrid import Retriever
