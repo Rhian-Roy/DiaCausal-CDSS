@@ -79,3 +79,20 @@ def test_the_one_root_is_the_repository_root():
 
     assert R == ROOT and (R / "pytest.ini").exists()
     assert DATA_DIR.is_dir() and WEB_DIR.is_dir() and RESULTS_DIR.is_dir() and KNOWLEDGE_DIR.is_dir()
+
+
+def test_python_dash_m_on_the_old_name_forwards_to_the_new_module():
+    import subprocess
+    import sys
+
+    old = subprocess.run([sys.executable, "-m", "diacausal_engine.benchmark", "--help"], cwd=ROOT, capture_output=True, text=True)
+    new = subprocess.run([sys.executable, "-m", "diacausal.causal_inference.benchmark", "--help"], cwd=ROOT, capture_output=True, text=True)
+    assert old.returncode == 0 and new.returncode == 0, old.stderr + new.stderr
+    assert old.stdout == new.stdout and "--quick" in old.stdout
+
+
+def test_the_old_uvicorn_target_still_resolves():
+    import diacausal.api.main as new
+    import diacausal_engine.api as old
+
+    assert old.app is new.app and old.create_app is new.create_app

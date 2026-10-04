@@ -208,10 +208,10 @@ app's `backend/app/schemas.py` and the engine API's own models are unchanged; P1
 
 Each folder's README says how it connects.
 
-Restructure progress (docs/RESTRUCTURE_PLAN.md): steps 1 to 4 are done. `diacausal/config.py` is the one place for `ROOT`,
+Restructure progress (docs/RESTRUCTURE_PLAN.md): steps 1 to 5 are done. `diacausal/config.py` is the one place for `ROOT`,
 `DATA_DIR`, `WEB_DIR`, `RESULTS_DIR`, `KNOWLEDGE_DIR`, `ARMS`, `CONTRASTS`, the params loader and `load_rag_config`;
-`diacausal/__init__.py` holds `INTENDED_USE` and `__version__`; `dag`, `schemas`, `cohort`, `propensity`, `estimators`, `dr_learner` (split out of estimators), `fitting`, `refute` and `metrics` are in
-`diacausal/causal_inference/`, the rules loader is `diacausal/guards/rules_loader.py`. The old `diacausal_engine.*` paths of the moved modules are shims
+`diacausal/__init__.py` holds `INTENDED_USE` and `__version__`; `dag`, `schemas`, `cohort`, `propensity`, `estimators`, `dr_learner` (split out of estimators), `fitting`, `refute`, `metrics`, `recommend`, `figures`, `benchmark` and `export_web` are in
+`diacausal/causal_inference/` (the engine's FastAPI app is `diacausal/api/main.py`; `uvicorn diacausal.api.main:app`), the rules loader is `diacausal/guards/rules_loader.py`. The old `diacausal_engine.*` paths of the moved modules are shims
 (the same module object, or for the split `estimators` a list of re-exports; `tests/test_shims.py`). New code imports from `diacausal`.
 
 `diacausal/registry.py` lists every importable module; `tests/test_imports.py` imports each one and fails if a module is

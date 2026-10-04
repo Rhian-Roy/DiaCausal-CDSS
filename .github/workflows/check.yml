@@ -58,7 +58,7 @@ jobs:
       - name: Website tests (the browser engine gives the same answers as Python)
         run: python -m pytest tests/web -q
       - name: Quick benchmark (writes to a temporary folder)
-        run: python -m diacausal_engine.benchmark --quick --out "${{ runner.temp }}/results"
+        run: python -m diacausal.causal_inference.benchmark --quick --out "${{ runner.temp }}/results"
       - name: Known security problems in the engine's libraries (pip-audit)
         run: |
           python -m pip install --disable-pip-version-check -q pip-audit==2.9.0
