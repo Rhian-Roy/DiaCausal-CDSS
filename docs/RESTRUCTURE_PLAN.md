@@ -126,7 +126,7 @@ Each step uses `git mv` **in its own commit, with no edits**, so history follows
 
 | Step | Also run | Because |
 |---|---|---|
-| 1 | `cd legacy && ../.venv/bin/python -m pytest tests -q -p no:cacheprovider` (expect today's 89 passed, 3 skipped, 5 failed for missing optional libraries) | the legacy numbers must not get worse |
+| 1 | `cd legacy && ../.venv/bin/python -m pytest tests -q -p no:cacheprovider` (expect 89 passed, 8 skipped, 0 failed: the 5 optional-library tests skip, decision 5) | the legacy numbers must not get worse |
 | 2 | `tests/engine/test_a_cohort.py`, `tests/rag` (corpus and sources tests) | the paths changed |
 | 3 | `tests/engine/test_a_cohort.py test_b_guardrails.py test_i_api.py test_j_invariants.py` | config, schemas, dag, rules |
 | 4 | `tests/engine/test_c_propensity.py test_d_average_effects.py test_e_dr_learner.py test_f_metrics.py test_k_refute.py` | the estimators |
@@ -348,7 +348,7 @@ Also to `legacy/` in step 1: **20 files** in `figures/` (to `legacy/figures/`) a
 | R6 | **Moving `backend/` loses untracked files**: `.venv` (its absolute paths break), `.env` (the key that encrypts MFA secrets), `*.db` (accounts) | likely / **locks admins out** | step 10 only after G1; first copy `.env` and `*.db`; move them by hand next to the moved folder; recreate the `.venv`; never regenerate `.env` while a database exists |
 | R7 | Docker, compose, CI or Dependabot still name `backend/` or `frontend/` after step 10 | likely / the deployment build fails | step 10 edits all of them in one pull request and runs `docker compose build` and `check_all.py` from a fresh clone |
 | R8 | A split loses git history (rename detection needs most of the file unchanged) | certain for the 4 split files / only history | `git mv` first (own commit), edit after; `git log --follow` works for the moved part |
-| R9 | The legacy code defaults to a folder named `RAG` (`causal_engine/rag_lite.py`, `pdf_text.py`) that no longer exists | likely / legacy tests change | step 1 sets the legacy default to a folder under `legacy/`; baseline 89 passed, 3 skipped, 5 failed must not get worse |
+| R9 | The legacy code defaults to a folder named `RAG` (`causal_engine/rag_lite.py`, `pdf_text.py`) that no longer exists | likely / legacy tests change | step 1 sets the legacy default to a folder under `legacy/`; after decision 5 the result must be 89 passed, 8 skipped, 0 failed |
 | R10 | A case-only clash on macOS or Windows | low / hard to debug | the map was checked: no two destinations equal ignoring case, and no root `rag/`; `check_moves.py` repeats the check |
 | R11 | Circular imports after splits (`retrieve` into bm25, tfidf, hybrid; `explain` into five files) | medium | splits go one layer at a time (index, then retrieve, then providers); `diacausal/rag/__init__.py` re-exports the public names |
 | R12 | `report/code/estimators.py` and `report/code/guardrails.py` are byte copies of engine files and will silently drift | certain / the report shows old code | decide in step 8: regenerate them from the new paths, or add a note in the report that they are a snapshot of 3 Oct (open decision 3) |
@@ -360,10 +360,10 @@ Also to `legacy/` in step 1: **20 files** in `figures/` (to `legacy/figures/`) a
 
 Do **steps 0, 1, 2, 3, 4, 5 only**, and **move whole files without splitting them** (skip the `dr_learner.py` split and everything in steps 6 and 7 that divides a file). Keep the shims for the RAG package and `diacausal_rag/` itself until after the report. This still gives P14 to P25 a package to build on (`diacausal/api`, `orchestrator`, `guards`, `xai` exist), and the chat app and the legacy move can wait for after submission or never happen. **Never cut:** the baseline and the byte-identical exports check, the two code-scanning tests (R3), and the backup in step 0.
 
-## 12. Decisions for Rhian before step 0
+## 12. Decisions (made 4 October 2026; Rhian asked Claude to decide)
 
-1. **`RAG/Figure.ppt`:** parked in `legacy/assets/`. Keep there, move to `docs/`, or remove?
-2. **Additions to the section 8.3 tree** listed in section 3 (`schemas`, `fitting`, `metrics`, `figures` under `causal_inference/`; `sources_table.py`; `llm/explain.py`; `llm/prompt.v1.txt`): accept?
-3. **`report/code/*.py`** (copies of engine files, risk R12): regenerate in step 8, or keep as a dated snapshot with a note?
-4. **Timing of steps 9 and 10** after G1 (Mon 12 and Tue 13 Oct): accept, or do step 9 (shim removal) before G1?
-5. **`legacy/tests/test_causal_engine.py`**: 5 of its tests fail only because `dowhy`, `econml` and `networkx` are not installed. Keep failing in `legacy/`, or mark them skipped there? (A change to a test needs its own explanation.)
+1. **`RAG/Figure.ppt` → `legacy/assets/Figure.ppt` (step 1), kept.** It is not a licensed source, so it does not belong in `knowledge_sources/`; deleting it could lose the team's own diagram. Before submission (30 Oct), whoever made it confirms it is team-made; if it is third-party, remove it in its own pull request.
+2. **The five additions to the section 8.3 tree are accepted** (`causal_inference/{schemas,fitting,metrics,figures}.py`, `rag/sources_table.py`, `llm/explain.py`, `llm/prompt.v1.txt`). Today's code needs a home, and inventing new splits would add risk without benefit. `llm/explain.py` is temporary; P14/P22 dissolve it into the orchestrator.
+3. **`report/code/*.py` stays a dated snapshot.** In step 8 add a first-line comment: `# Snapshot of diacausal_engine/<file> on 3 Oct 2026 (before the restructure); the live code is diacausal/...`. P32 refreshes the copies **once**, after the code freeze at G2 (18 Oct), so the report shows frozen code.
+4. **Step 9 (remove shims) on Mon 12 Oct and step 10 (chat app to `legacy/`) after G1, but step 10 is optional.** Do step 10 only if P14's `/api/v1/ask` no longer needs `backend/` and there is a free day before G2. Otherwise leave `backend/` and `frontend/` where they are until after submission. Moving them buys nothing for the report and risks the MFA key and the database (R6).
+5. **The 5 legacy tests that need `dowhy`, `econml` or `networkx` are skipped, not left failing.** In step 1, use `pytest.importorskip("dowhy")` (and the same for the others) at the top of those tests, so pytest prints "skipped: could not import 'dowhy'". This is honest (the reason is visible, nothing is deleted, they run again where the libraries are installed) and gives `legacy/` a clean result: expected 89 passed, 8 skipped, 0 failed.
