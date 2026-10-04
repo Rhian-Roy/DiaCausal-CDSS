@@ -14,19 +14,19 @@ average_effect,AIPW,SGLT2i-SU,0.0455,0.0507,0.0053,0.0302,0.9000,0.1024,,,,,,20
 patient_effect,DR-learner,SGLT2i-DPP4i,,,,,0.9441,0.3701,0.1048,,,,,20
 patient_effect,DR-learner,SU-DPP4i,,,,,0.9472,0.4099,0.1171,,,,,20
 patient_effect,DR-learner,SGLT2i-SU,,,,,0.9271,0.3636,0.1078,,,,,20
-policy,DR-learner,choose lowest predicted HbA1c among allowed options,,,,,,,,0.0112,0.0248,,,20
+policy,DR-learner,choose lowest predicted HbA1c among allowed options,,,,,,,,0.0110,0.0274,,,20
 patient_effect,T-learner,SGLT2i-DPP4i,,,,,,,0.1891,,,,,20
 patient_effect,T-learner,SU-DPP4i,,,,,,,0.1920,,,,,20
 patient_effect,T-learner,SGLT2i-SU,,,,,,,0.1836,,,,,20
-policy,T-learner,choose lowest predicted HbA1c among allowed options,,,,,,,,0.0290,0.0248,,,20
+policy,T-learner,choose lowest predicted HbA1c among allowed options,,,,,,,,0.0288,0.0274,,,20
 patient_effect,S-learner,SGLT2i-DPP4i,,,,,,,0.1033,,,,,20
 patient_effect,S-learner,SU-DPP4i,,,,,,,0.1035,,,,,20
 patient_effect,S-learner,SGLT2i-SU,,,,,,,0.1104,,,,,20
-policy,S-learner,choose lowest predicted HbA1c among allowed options,,,,,,,,0.0124,0.0248,,,20
+policy,S-learner,choose lowest predicted HbA1c among allowed options,,,,,,,,0.0123,0.0274,,,20
 patient_effect,naive,SGLT2i-DPP4i,,,,,,,0.2136,,,,,20
 patient_effect,naive,SU-DPP4i,,,,,,,0.1971,,,,,20
 patient_effect,naive,SGLT2i-SU,,,,,,,0.1686,,,,,20
-policy,naive,choose lowest predicted HbA1c among allowed options,,,,,,,,0.0623,0.0248,,,20
+policy,naive,choose lowest predicted HbA1c among allowed options,,,,,,,,0.0619,0.0274,,,20
 balance,IPW weights,largest |SMD| over covariates and pairs,,,,,,,,,,0.7038,0.0775,20
 secondary_weight,AIPW,SGLT2i (kg),-2.1256,-2.1328,-0.0072,0.0437,1.0000,0.2187,,,,,,20
 secondary_weight,AIPW,DPP4i (kg),-0.3000,-0.2869,0.0131,0.0635,0.9500,0.2666,,,,,,20

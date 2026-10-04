@@ -153,8 +153,9 @@ Rules that must never be broken:
    thresholds live only in `data/rules.csv` (Part 6 of docs/02_Causal_Engine_Build_Guide.md,
    verbatim; a test compares them), each with a source. Never hard-code or invent them (a test
    scans the code). An excluded option is never estimated. Never show drug doses (output check +
-   tests). The chat app still uses `backend/app/clinical/guardrails.v1.yaml`; the two tables
-   differ (docs/CAUSAL_PLAN.md §4) — when joined, the stricter action wins until the doctor decides.
+   tests). The chat app still uses `backend/app/clinical/guardrails.v1.yaml`; the tables were merged on 4 Oct 2026
+   (docs/RULES_MERGE.md): `data/rules.csv` (R01–R11) is never weaker than the YAML (a test checks it) and the stricter
+   action wins until the doctor decides; every rule not merged is listed there with its reason.
 3. Every estimate has a 95% interval. Propensity below 0.05 (`engine.overlap_min_propensity`)
    → "insufficient evidence", never a number.
 4. Synthetic data only. Every number in `data/params.yaml` has a `source` and a `status`

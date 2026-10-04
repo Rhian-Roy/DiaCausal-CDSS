@@ -75,9 +75,10 @@ def test_safety_rules_run_before_the_estimate_and_excluded_options_get_no_number
 
 
 def test_egfr_below_the_cohort_gets_no_number_at_all(engine, audit_file):
-    """eGFR 25: R01 and R10 exclude SGLT2i and SU; DPP-4i is outside the cohort (which starts at 30)."""
+    """eGFR 25: R01 and R10 exclude SGLT2i and SU, and R11 (metformin is contraindicated below 30) excludes DPP-4i.
+    Before the rule merge the DPP-4i said "insufficient_evidence" here (outside the cohort, which starts at 30)."""
     r = engine.recommend(PatientIn(**TYPICAL | {"egfr": 25}))
-    assert status(r) == {"SGLT2i": "excluded", "DPP4i": "insufficient_evidence", "SU": "excluded"}
+    assert status(r) == {"SGLT2i": "excluded", "DPP4i": "excluded", "SU": "excluded"}
     assert r.applicable == "NOT_APPLICABLE"
     assert all(o.effect is None for o in r.options)
 
