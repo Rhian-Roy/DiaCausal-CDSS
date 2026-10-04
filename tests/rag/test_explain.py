@@ -12,7 +12,7 @@ sys.path.insert(0, str(ROOT))
 from diacausal import INTENDED_USE  # noqa: E402
 from diacausal.rag.evaluate import load_gold, run  # noqa: E402
 from diacausal.guards.output_guards import check_answer, sentences  # noqa: E402
-from diacausal.llm.explain import explain, NO_DOSE_NOTE  # noqa: E402
+from diacausal.llm.explain import DOSE_QUESTION, NO_DOSE_NOTE, explain  # noqa: E402
 from diacausal.llm.prompt_builder import build_prompt  # noqa: E402
 from diacausal.config import load_rag_config as load_rag_config  # noqa: E402
 from diacausal.rag.ingest.licence_gate import ingest  # noqa: E402
@@ -60,6 +60,33 @@ def test_a_dose_question_never_gets_an_explanation(q, cfg):
     ev = Retriever(ingest(), cfg).search(q)
     r = explain(q, ev, "ollama", cfg, caller=lambda *a: "Start with a low dose [1].")
     assert r["status"] == "INSUFFICIENT_EVIDENCE" and r["note"] == NO_DOSE_NOTE
+
+
+GLUCOSE_QUESTIONS = ["Finger-prick glucose 180 mg/dL after lunch. Can SGLT2 inhibitors cause ketoacidosis?",
+                     "Fasting glucose 126 mg/dl: can SGLT2 inhibitors cause ketoacidosis?",
+                     "With glucose 210 mg / dL, can SGLT2 inhibitors cause ketoacidosis?",
+                     "CRP 5 mg/L: can SGLT2 inhibitors cause ketoacidosis?",
+                     "Blood sugar 200 mg per dL, can SGLT2 inhibitors cause ketoacidosis?"]
+
+
+@pytest.mark.parametrize("q", GLUCOSE_QUESTIONS)
+def test_a_glucose_unit_is_not_a_dose_request(q):
+    """"mg/dL" is a unit of glucose, not an amount of a drug: the pattern must not match it."""
+    assert DOSE_QUESTION.search(q) is None
+
+
+@pytest.mark.parametrize("q", GLUCOSE_QUESTIONS)
+def test_a_question_that_quotes_a_glucose_value_still_gets_its_explanation(q, cfg):
+    ev = Retriever(ingest(), cfg).search(q)
+    r = explain(q, ev, "template", cfg)
+    assert r["note"] != NO_DOSE_NOTE
+    assert r["status"] == "SUCCESS" and r["sentences"], "the passages about ketoacidosis answer it"
+
+
+@pytest.mark.parametrize("q", ["Is 10 mg right?", "How many mg of sitagliptin?", "glimepiride 2 mg once daily?", "5 mg or 10 mg?",
+                               "mg per day for gliclazide", "Give 25 milligrams?", "dapagliflozin 10mg daily", "tablets for sitagliptin?"])
+def test_real_dose_requests_are_still_caught_after_the_unit_fix(q):
+    assert DOSE_QUESTION.search(q) is not None, q
 
 
 def test_a_good_model_answer_is_kept(evidence, cfg):

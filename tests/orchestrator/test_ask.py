@@ -98,6 +98,15 @@ def test_a_dose_question_is_stopped_by_the_input_guards_before_anything_runs(cli
     assert "abstained input guards layer reason=DOSE_REQUEST" in text and "rules layer" not in text
 
 
+def test_a_question_that_quotes_a_glucose_value_in_mg_dl_still_gets_cited_claims(client, trace):
+    """"mg/dL" is a glucose unit, not a dose: before the fix of DOSE_QUESTION the explanation layer refused this question."""
+    patient, _ = PRESETS["typical"]
+    r = client.post("/api/v1/ask", json=body(patient, "Finger-prick glucose 180 mg/dL after lunch. Can SGLT2 inhibitors cause ketoacidosis?", "mgdl"))
+    card = AnswerCardV1.model_validate(r.json())
+    assert card.claims and all(c.citations for c in card.claims)
+    assert "reason=DOSE_REQUEST" not in " ".join(layer_lines(trace, "mgdl"))
+
+
 def test_the_local_model_mode_falls_back_to_the_template_when_there_is_no_model(client):
     patient, question = PRESETS["typical"]
     r = client.post("/api/v1/ask", json={**body(patient, question), "mode": "ollama"})
