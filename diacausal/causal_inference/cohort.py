@@ -16,9 +16,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from diacausal_engine import ARMS, CONTRASTS
-from diacausal_engine.config import Params
-from diacausal_engine.dag import load_dag
+from diacausal.config import ARMS, CONTRASTS
+from diacausal.config import Params
+from diacausal.causal_inference.dag import load_dag
 
 BINARY = ("female", "ascvd", "hf", "hypo_history", "dka_history", "pancreatitis_history", "low_income")
 CONTINUOUS = ("age", "duration_years", "hba1c", "egfr", "bmi")

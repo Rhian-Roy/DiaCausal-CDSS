@@ -19,10 +19,10 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from diacausal_engine import CONTRASTS
-from diacausal_engine.config import Params
-from diacausal_engine.estimators import Estimate, aipw, aipw_scores, by_target, crossfit_outcomes
-from diacausal_engine.propensity import clip, crossfit_propensity
+from diacausal.config import CONTRASTS
+from diacausal.config import Params
+from diacausal.causal_inference.estimators import Estimate, aipw, aipw_scores, by_target, crossfit_outcomes
+from diacausal.causal_inference.propensity import clip, crossfit_propensity
 
 
 def aipw_contrasts(params: Params, X: np.ndarray, T: np.ndarray, Y: np.ndarray, seed: int) -> dict[str, Estimate]:

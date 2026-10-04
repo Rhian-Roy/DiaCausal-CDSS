@@ -17,7 +17,7 @@ from itertools import combinations
 
 import numpy as np
 
-from diacausal_engine import ARMS
+from diacausal.config import ARMS
 
 
 def bias(estimates, truth: float) -> float:

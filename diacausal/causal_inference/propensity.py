@@ -22,9 +22,9 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-from diacausal_engine import ARMS
-from diacausal_engine.config import Params
-from diacausal_engine.dag import load_dag
+from diacausal.config import ARMS
+from diacausal.config import Params
+from diacausal.causal_inference.dag import load_dag
 
 
 def propensity_model() -> Pipeline:

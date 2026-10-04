@@ -9,10 +9,11 @@ import numpy as np
 import pandas as pd
 from sklearn.pipeline import Pipeline
 
-from diacausal_engine.cohort import features, observed_view, treatment_index
-from diacausal_engine.config import Params
-from diacausal_engine.estimators import DRLearner, aipw_scores, crossfit_outcomes
-from diacausal_engine.propensity import clip, crossfit_propensity, fit_full
+from diacausal.causal_inference.cohort import features, observed_view, treatment_index
+from diacausal.config import Params
+from diacausal.causal_inference.dr_learner import DRLearner
+from diacausal.causal_inference.estimators import aipw_scores, crossfit_outcomes
+from diacausal.causal_inference.propensity import clip, crossfit_propensity, fit_full
 
 
 @dataclass
