@@ -18,6 +18,7 @@ from diacausal.config import load_rag_config
 from diacausal.rag.index import tfidf
 from diacausal.rag.index.bm25 import BM25, TOKEN, tokens  # noqa: F401  (TOKEN is re-exported for export_web)
 from diacausal.rag.ingest.chunking import Chunk
+from diacausal.rag.retrieve.query_processing import QueryPlan
 from diacausal.rag.retrieve.rerank import rerank as rerank_slot
 
 DOSE = re.compile(r"\b\d+(\.\d+)?\s*(mg|mcg|µg)\b|\b(once|twice)\s+daily\b|\bmg\s*/\s*day\b", re.I)
@@ -52,22 +53,30 @@ class Retriever:
         """Slot for a cross-encoder reranker (October). Identity today."""
         return rerank_slot(question, candidates)
 
-    def search(self, question: str) -> dict:
+    def search(self, question: str, plan: QueryPlan | None = None) -> dict:
+        """Hybrid search. With a `plan` (diacausal.rag.retrieve.query_processing) the KEYWORD search (BM25) runs once per
+        expanded sub-query; the vector search ALWAYS uses `question` as asked. Without a plan this is exactly the
+        search of one question (the browser's web/evidence.js mirrors this case)."""
         k = int(self.cfg["top_k"])
         if not self.chunks:
             return self._abstain(question, "the index is empty (no licence-cleared documents ingested yet)")
-        bm = self.bm25.scores(question)
-        vec = tfidf.similarities(self.vectorizer, self.matrix, question)
-        by_bm = sorted(range(len(bm)), key=lambda i: -bm[i])
+        queries = list(plan.sub_queries) if plan else [question]
+        per_query = [self.bm25.scores(q) for q in queries]
+        bm = [max(column) for column in zip(*per_query)]  # a passage's keyword score: its best sub-query
+        vec = tfidf.similarities(self.vectorizer, self.matrix, question)  # the original question, never the expansion
+        by_bm = [sorted(range(len(scores)), key=lambda i: -scores[i]) for scores in per_query]
         by_vec = sorted(range(len(vec)), key=lambda i: -vec[i])
-        fused = rrf([by_bm, by_vec], int(self.cfg["rrf_k"]))
+        fused = rrf([*by_bm, by_vec], int(self.cfg["rrf_k"]))
         # passages that match neither search (both scores 0) are never shown just to fill the top k
         ranked = [i for i in sorted(fused, key=lambda i: -fused[i]) if bm[i] > 0 or vec[i] > 0]
         best = self.rerank(question, ranked)[:k]
         if max(bm) < self.cfg["min_bm25_score"]:
             return self._abstain(question, "no approved passage matches this question well enough")
         q = set(tokens(question))
-        found = q & set().union(*(self.bm25.tf[i].keys() for i in best))
+        shown = set().union(*(self.bm25.tf[i].keys() for i in best))
+        equivalents = plan.equivalents if plan else {}
+        # a question word is covered if it, or a word its expansion added, is in the passages ("DKA" by "ketoacidosis")
+        found = {w for w in q if w in shown or any(e in shown for e in equivalents.get(w, ()))}
         if q and len(found) / len(q) < self.cfg.get("min_query_coverage", 0.0):
             return self._abstain(question, "the passages found cover too few of the question's words")
         passages = []

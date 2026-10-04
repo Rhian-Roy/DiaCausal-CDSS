@@ -155,8 +155,8 @@ section that answer them, 10 out of scope, 5 dose requests). Numbers from `resul
 
 | Metric | Value | Team target |
 |---|---|---|
-| Recall@5 (right source and section in the top 5) | 0.933 | ≥ 0.80 |
-| Answerable questions answered | 0.978 | — |
+| Recall@5 (right source and section in the top 5) | 0.956 | ≥ 0.80 |
+| Answerable questions answered | 1.000 | — |
 | Out-of-scope questions refused | 0.800 | ≥ 0.95 (not met) |
 | Citation precision (explanation sentences passing the checker) | 1.000 | ≥ 0.95 |
 | Dose leaks | 0 | 0 |

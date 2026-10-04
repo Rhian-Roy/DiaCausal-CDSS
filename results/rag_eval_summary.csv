@@ -1,8 +1,8 @@
 metric,value
 backend,template
 questions,60
-recall_at_5,0.933
-answered,0.978
+recall_at_5,0.956
+answered,1.000
 abstention_accuracy,0.800
 citation_precision,1.000
 dose_leaks,0

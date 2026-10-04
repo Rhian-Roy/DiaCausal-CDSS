@@ -27,7 +27,7 @@ G25,answerable,What did the saxagliptin trial show for hospitalisation for heart
 G26,answerable,What should clinicians do if a patient on alogliptin develops heart failure?,SUCCESS,SUCCESS,template,1,S08,4,4,0,no,
 G27,answerable,Can DPP-4 inhibitors cause severe joint pain?,SUCCESS,SUCCESS,template,1,S19,4,4,0,yes,
 G28,answerable,How soon after starting a DPP-4 inhibitor can joint pain begin?,SUCCESS,SUCCESS,template,1,S19,4,4,0,no,
-G29,answerable,What happened when patients with joint pain stopped the gliptin?,INSUFFICIENT_EVIDENCE,INSUFFICIENT_EVIDENCE,template,0,,0,0,0,no,the passages found cover too few of the question's words
+G29,answerable,What happened when patients with joint pain stopped the gliptin?,SUCCESS,SUCCESS,template,1,S19,4,4,0,no,
 G30,answerable,How many cases of severe arthralgia with DPP-4 inhibitors were found in FAERS?,SUCCESS,SUCCESS,template,1,S19,4,4,0,no,
 G31,answerable,Can SGLT2 inhibitors cause ketoacidosis?,SUCCESS,SUCCESS,template,1,S22,4,4,0,yes,
 G32,answerable,What are the symptoms of ketoacidosis in a patient taking an SGLT2 inhibitor?,SUCCESS,SUCCESS,template,1,S20,4,4,0,yes,

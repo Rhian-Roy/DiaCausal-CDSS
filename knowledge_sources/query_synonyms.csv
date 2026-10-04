@@ -1,0 +1,38 @@
+abbreviation,expansion,source,status
+sglt2,sglt-2,knowledge_sources/corpus: who_2018_second_line.txt,IN-CORPUS
+sglt-2,sglt2,knowledge_sources/corpus: fda_dsc_2018_sglt2_genital_infection.txt and fda_dsc_2016_canagliflozin_dapagliflozin_kidney.txt,IN-CORPUS
+sglt2i,sglt2; sglt-2; inhibitors,knowledge_sources/corpus: fda_dsc_2018_sglt2_genital_infection.txt and fda_dsc_2020_canagliflozin_amputation.txt,IN-CORPUS
+sglt-2i,sglt2; sglt-2; inhibitors,knowledge_sources/corpus: fda_dsc_2018_sglt2_genital_infection.txt and fda_dsc_2020_canagliflozin_amputation.txt,IN-CORPUS
+gliflozin,sglt2; sglt-2; inhibitors,knowledge_sources/corpus: fda_dsc_2018_sglt2_genital_infection.txt and fda_dsc_2020_canagliflozin_amputation.txt,IN-CORPUS
+gliflozins,sglt2; sglt-2; inhibitors,knowledge_sources/corpus: fda_dsc_2018_sglt2_genital_infection.txt and fda_dsc_2020_canagliflozin_amputation.txt,IN-CORPUS
+dpp4,dpp-4,knowledge_sources/corpus: fda_dsc_2015_dpp4_joint_pain.txt and fda_dsc_2016_saxagliptin_alogliptin_hf.txt,IN-CORPUS
+dpp4i,dpp-4; inhibitors,knowledge_sources/corpus: fda_dsc_2016_saxagliptin_alogliptin_hf.txt and fda_dsc_2015_dpp4_joint_pain.txt,IN-CORPUS
+dpp-4i,dpp-4; inhibitors,knowledge_sources/corpus: fda_dsc_2016_saxagliptin_alogliptin_hf.txt and fda_dsc_2015_dpp4_joint_pain.txt,IN-CORPUS
+gliptin,dpp-4; inhibitors,knowledge_sources/corpus: fda_dsc_2016_saxagliptin_alogliptin_hf.txt and fda_dsc_2015_dpp4_joint_pain.txt,IN-CORPUS
+gliptins,dpp-4; inhibitors,knowledge_sources/corpus: fda_dsc_2016_saxagliptin_alogliptin_hf.txt and fda_dsc_2015_dpp4_joint_pain.txt,IN-CORPUS
+egfr,estimated glomerular filtration rate,knowledge_sources/corpus: fda_dsc_2016_canagliflozin_dapagliflozin_kidney.txt and fda_dsc_2016_metformin_kidney.txt,IN-CORPUS
+gfr,glomerular filtration rate,knowledge_sources/corpus: fda_dsc_2016_canagliflozin_dapagliflozin_kidney.txt and fda_dsc_2016_metformin_kidney.txt,IN-CORPUS
+dka,diabetic ketoacidosis; ketoacidosis,knowledge_sources/corpus: fda_dsc_2018_sglt2_genital_infection.txt and fda_dsc_2015_sglt2_ketoacidosis_uti.txt,IN-CORPUS
+t2dm,type 2 diabetes mellitus; type 2 diabetes,knowledge_sources/corpus: fda_dsc_2016_saxagliptin_alogliptin_hf.txt and fda_dsc_2015_sglt2_ketoacidosis_uti.txt,IN-CORPUS
+t2d,type 2 diabetes,knowledge_sources/corpus: fda_dsc_2018_sglt2_genital_infection.txt and fda_dsc_2016_saxagliptin_alogliptin_hf.txt,IN-CORPUS
+dm,diabetes mellitus,knowledge_sources/corpus: fda_dsc_2016_saxagliptin_alogliptin_hf.txt and fda_dsc_2015_sglt2_ketoacidosis_uti.txt,IN-CORPUS
+ckd,chronic kidney disease,knowledge_sources/corpus: fda_dsc_2016_canagliflozin_dapagliflozin_kidney.txt and fda_dsc_2016_metformin_kidney.txt,IN-CORPUS
+hf,heart failure,knowledge_sources/corpus: fda_dsc_2016_saxagliptin_alogliptin_hf.txt and fda_dsc_2020_canagliflozin_amputation.txt,IN-CORPUS
+cvd,cardiovascular disease,knowledge_sources/corpus: fda_dsc_2016_saxagliptin_alogliptin_hf.txt and who_2018_second_line.txt,IN-CORPUS
+ascvd,atherosclerotic cardiovascular disease; cardiovascular disease,"TEAM: standard clinical abbreviation; not in the corpus (atherosclerotic), so it only helps if a source that uses it is added",TEAM-SET
+uti,urinary tract infection; urinary tract infections,knowledge_sources/corpus: fda_dsc_2015_sglt2_ketoacidosis_uti.txt and fda_dsc_2018_sglt2_genital_infection.txt,IN-CORPUS
+su,sulfonylurea; sulfonylureas,knowledge_sources/corpus: who_2018_second_line.txt and fda_dsc_2018_sglt2_genital_infection.txt,IN-CORPUS
+sulphonylurea,sulfonylurea,knowledge_sources/corpus: who_2018_second_line.txt,IN-CORPUS
+hypo,hypoglycaemia; hypoglycemia,knowledge_sources/corpus: fda_dsc_2016_saxagliptin_alogliptin_hf.txt and who_2018_second_line.txt,IN-CORPUS
+hypoglycemia,hypoglycaemia,knowledge_sources/corpus: who_2018_second_line.txt,IN-CORPUS
+hypoglycaemia,hypoglycemia,knowledge_sources/corpus: fda_dsc_2016_saxagliptin_alogliptin_hf.txt,IN-CORPUS
+hyperglycemia,hyperglycaemia,knowledge_sources/corpus: who_2018_second_line.txt,IN-CORPUS
+hyperglycaemia,hyperglycemia,knowledge_sources/corpus: fda_dsc_2015_sglt2_ketoacidosis_uti.txt,IN-CORPUS
+glycemic,glycaemic,knowledge_sources/corpus: who_2018_second_line.txt,IN-CORPUS
+glycaemic,glycemic,knowledge_sources/corpus: fda_dsc_2018_sglt2_genital_infection.txt,IN-CORPUS
+a1c,hba1c; glycated haemoglobin,knowledge_sources/corpus: who_2018_second_line.txt,IN-CORPUS
+hba1c,glycated haemoglobin,knowledge_sources/corpus: who_2018_second_line.txt,IN-CORPUS
+bmi,body mass index,"TEAM: standard clinical abbreviation; not in the corpus (index, mass), so it only helps if a source that uses it is added",TEAM-SET
+ogla,oral hypoglycaemic agents,knowledge_sources/corpus: who_2018_second_line.txt and fda_dsc_2015_sglt2_ketoacidosis_uti.txt,IN-CORPUS
+oad,oral hypoglycaemic agents,knowledge_sources/corpus: who_2018_second_line.txt and fda_dsc_2015_sglt2_ketoacidosis_uti.txt,IN-CORPUS
+fbs,fasting plasma glucose,"TEAM: standard clinical abbreviation; not in the corpus (plasma), so it only helps if a source that uses it is added",TEAM-SET

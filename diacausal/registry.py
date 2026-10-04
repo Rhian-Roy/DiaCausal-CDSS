@@ -78,6 +78,7 @@ REGISTRY: tuple[Entry, ...] = (
     Entry("diacausal.rag.index.tfidf", "TF-IDF vector search (split from retrieve)"),
     Entry("diacausal.rag.retrieve", "package: hybrid retrieval"),
     Entry("diacausal.rag.retrieve.hybrid", "BM25 + TF-IDF + RRF and evidence JSON (split from retrieve)"),
+    Entry("diacausal.rag.retrieve.query_processing", "normalise, expand abbreviations and brands, split into at most 3 sub-queries (keyword search only)"),
     Entry("diacausal.rag.retrieve.rerank", "the reranker slot (split from retrieve)"),
     Entry("diacausal.llm", "package: the cited explanation"),
     Entry("diacausal.llm.explain", "the switch between providers: explain(), render(), command line"),
@@ -143,7 +144,7 @@ LAYERS: tuple[Layer, ...] = (
 
 # Parts inside a layer that are still stubs (each is called by its layer through part_function()).
 PARTS: tuple[Layer, ...] = (
-    Layer("query processing", f"{_O}.stubs:query_processing", stub=True, replaced_by="P16"),
+    Layer("query processing", f"{_O}.layers:query_processing_part"),
     Layer("shap drivers", f"{_O}.stubs:shap_drivers", stub=True, replaced_by="P25"),
     Layer("evidence levels", f"{_O}.stubs:evidence_levels", stub=True, replaced_by="P24"),
     Layer("prompt builder", f"{_O}.stubs:prompt_builder", stub=True, replaced_by="P22"),

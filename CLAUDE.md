@@ -207,7 +207,7 @@ app's `backend/app/schemas.py` and the engine API's own models are unchanged; P1
 input guards, rules, causal engine, retrieval, explanation, output guards, formatter) and returns `AnswerCardV1`.
 Layers are `fn(context) -> None` in `orchestrator/layers.py`; stubs are in `orchestrator/stubs.py`. To replace a stub, build
 the real function and change its one line in the registry (`stubs()` lists what is still a pass-through: input guards P15,
-query processing P16, SHAP drivers P25, evidence levels P24, prompt builder P22, full output checks P23).
+SHAP drivers P25, evidence levels P24, prompt builder P22, full output checks P23).
 Every layer runs inside `diacausal/tracing.py` (`layer(name, request_id)` or `@traced`): `[rid] entered X layer`,
 `executing`, then `passed (N ms)`, `abstained ... reason=CODE` or `failed ... error=ExceptionClass`. A layer that correctly
 cannot go on raises `AbstainSignal(CODE)` (a code, never free text). **Never log patient values, the question, prompts,
@@ -225,6 +225,19 @@ read from `shared/guard_rules/rules.v1.json`, the same file the chat app uses: e
 `message` plus one `problems` entry per blocking check; an emergency is shown first). **A message never repeats what matched.**
 A question framed as general drug knowledge ("can SGLT2 inhibitors cause ketoacidosis?") is not an emergency unless a present-state
 word is also there; `tests/guards/test_shared_cases.py` keeps every answerable RAG gold question passing and every dose question refused.
+
+## Query processing (built, P16)
+
+`diacausal/rag/retrieve/query_processing.py` turns the question into a `QueryPlan`: normalise (NFKC, one dash, case folded),
+**append** abbreviations and spelling variants from `knowledge_sources/query_synonyms.csv` ("DKA" also searches "diabetic
+ketoacidosis"; `status` IN-CORPUS means every word of the expansion is in the corpus, a test checks it) and brand-to-generic
+names from `knowledge_sources/brand_generic.csv`, and split into at most 3 sub-queries (never where the second part points
+back with "it", "they", "this"; it lost the subject of a gold question). **The expanded sub-queries feed BM25 only; the vector
+search always gets the original question** (`Retriever.search(question, plan)`; without a plan it is the search it always was,
+which is what `web/evidence.js` mirrors). **`brand_generic.csv` holds no brand names: every row is `TODO-VERIFY` and only a row
+with a brand and status VERIFIED ever applies. Never write a brand name from memory; Member B verifies them against a
+CDSCO or manufacturer label.** A question word counts as covered if it or a word of its expansion is in the passages.
+`python -m diacausal.rag.evaluate` runs the gold questions through the plan, as the pipeline does.
 
 ## Not built yet — where each piece goes
 

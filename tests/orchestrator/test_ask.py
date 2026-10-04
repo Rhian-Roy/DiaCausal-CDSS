@@ -107,6 +107,17 @@ def test_a_question_that_quotes_a_glucose_value_in_mg_dl_still_gets_cited_claims
     assert "reason=DOSE_REQUEST" not in " ".join(layer_lines(trace, "mgdl"))
 
 
+def test_an_abbreviation_in_the_question_reaches_its_source_through_the_pipeline(client, trace):
+    """"gliptin" is not a word of the corpus, "dpp-4 inhibitors" is: query processing adds it for the keyword search
+    (gold G29 abstained before P16), while the question on the card stays exactly as asked."""
+    patient, _ = PRESETS["typical"]
+    q = "What happened when patients with joint pain stopped the gliptin?"
+    card = AnswerCardV1.model_validate(client.post("/api/v1/ask", json=body(patient, q, "qp1")).json())
+    assert card.question == q and card.claims and all(c.citations for c in card.claims)
+    text = " ".join(layer_lines(trace, "qp1"))
+    assert "passed retrieval layer" in text and "query processing layer is a STUB" not in text
+
+
 def test_the_local_model_mode_falls_back_to_the_template_when_there_is_no_model(client):
     patient, question = PRESETS["typical"]
     r = client.post("/api/v1/ask", json={**body(patient, question), "mode": "ollama"})
