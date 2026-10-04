@@ -28,7 +28,13 @@ from diacausal.llm.providers.template import _reply, template
 
 BACKENDS = ("template", "ollama")
 # A question that asks for a dose gets no explanation at all (doses come only from the drug label).
-DOSE_QUESTION = re.compile(r"\b(doses?|dosage|dosing|milligrams?|mg|tablets?|titrat\w*|how much \w+ (should|can|to) (i|we|he|she|they) (give|take|start))\b", re.I)
+# "mg" is a dose, but "mg/dL" (and "mg/L", "mg per dL") is a unit of glucose or another lab value, so `mg` is not matched
+# when a "per volume" unit follows it; "10mg" (no space) is matched as a dose. The same pattern runs in the browser
+# (web/explain.js builds a RegExp from the string in web/evidence.json), so keep it to features both engines share.
+_PER_VOLUME = r"(?!\s*(?:/|per)\s*(?:d?l|ml)\b)"
+DOSE_QUESTION = re.compile(
+    r"\b(doses?|dosage|dosing|milligrams?|mg" + _PER_VOLUME + r"|\d+(?:\.\d+)?\s*mg" + _PER_VOLUME
+    + r"|tablets?|titrat\w*|how much \w+ (should|can|to) (i|we|he|she|they) (give|take|start))\b", re.I)
 NO_DOSE_NOTE = "DiaCausal never gives doses. Doses come only from the official drug label and the treating clinician."
 
 CALLERS = {"ollama": call_ollama}

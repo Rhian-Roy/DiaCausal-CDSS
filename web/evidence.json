@@ -335,7 +335,7 @@
  "dose_pattern": "\\b\\d+(\\.\\d+)?\\s*(mg|mcg|µg)\\b|\\b(once|twice)\\s+daily\\b|\\bmg\\s*/\\s*day\\b",
  "withheld_text": "[Passage withheld: it contains dosing text. Doses come only from the official drug label.]",
  "strict_dose_pattern": "\\b\\d+(\\.\\d+)?\\s*(mg|mcg|µg|microgram|milligram)s?\\b|\\b(once|twice|thrice)\\s+(a\\s+)?daily\\b|\\bmg\\s*/\\s*day\\b|\\b\\d+\\s*(tablet|tab)s?\\b",
- "dose_question_pattern": "\\b(doses?|dosage|dosing|milligrams?|mg|tablets?|titrat\\w*|how much \\w+ (should|can|to) (i|we|he|she|they) (give|take|start))\\b",
+ "dose_question_pattern": "\\b(doses?|dosage|dosing|milligrams?|mg(?!\\s*(?:/|per)\\s*(?:d?l|ml)\\b)|\\d+(?:\\.\\d+)?\\s*mg(?!\\s*(?:/|per)\\s*(?:d?l|ml)\\b)|tablets?|titrat\\w*|how much \\w+ (should|can|to) (i|we|he|she|they) (give|take|start))\\b",
  "no_dose_note": "DiaCausal never gives doses. Doses come only from the official drug label and the treating clinician.",
  "sources": [
   {

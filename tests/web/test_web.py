@@ -138,6 +138,9 @@ QUESTIONS = [
     "patients with type 2 diabetes", "dye injected into a vein X-ray", "pancreatitis", "hypoglycaemia sulfonylurea",
     "FDA labeling changes", "measure of kidney function", "safety announcement", "data summary 1995",
     "chronic kidney disease", "Glucophage", "diet and exercise", "insulin", "heart disease blindness", "eGFR",
+    "Finger-prick glucose 180 mg/dL after lunch. Can SGLT2 inhibitors cause ketoacidosis?",
+    "Fasting glucose 126 mg/dl: can SGLT2 inhibitors cause ketoacidosis?", "With glucose 210 mg / dL, can SGLT2 inhibitors cause ketoacidosis?",
+    "Blood sugar 200 mg per dL, can SGLT2 inhibitors cause ketoacidosis?", "dapagliflozin 10mg daily", "Is 10 mg right for dapagliflozin?"
 ]
 
 
