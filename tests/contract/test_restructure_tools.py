@@ -37,9 +37,13 @@ def test_the_file_map_is_consistent():
     assert {r["action"] for r in rows} <= {"stay", "stay + edit", "move", "split", "merge"}
 
 
-def test_the_unmoved_tree_matches_the_map_at_step_zero_until_a_step_is_done():
-    """Fails once a move step lands on main: then run check_moves.py --step N and raise N in this test."""
-    assert check_moves.check(check_moves.read_map(), ROOT, step=0) == []
+LAST_STEP_DONE = 1  # raise by one in each restructure pull request (docs/RESTRUCTURE_PLAN.md, section 5)
+
+
+def test_the_tree_matches_the_map_for_the_last_step_done():
+    """Steps up to LAST_STEP_DONE must be done and later steps must not have started. Fails when a move
+    lands without raising LAST_STEP_DONE (or the other way round): run check_moves.py --step N."""
+    assert check_moves.check(check_moves.read_map(), ROOT, step=LAST_STEP_DONE) == []
 
 
 def _tree(tmp_path: Path, files: dict[str, str]) -> None:

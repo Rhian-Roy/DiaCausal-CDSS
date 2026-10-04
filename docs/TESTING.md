@@ -135,6 +135,8 @@ benchmark and `pip-audit` on Linux and macOS. `scripts/check_all.py` is unchange
 | The online Edge Function uses exactly `prompt.v1.txt`, checks aal2 + approval, never logs, holds no key | *online_function_uses_exactly_the_same_prompt_and_rules* |
 | Gold set (60 questions, 20 for doctor review) is well formed; evaluation meets the bar (0 dose leaks, citation precision 1.0, recall@5 ≥ 0.85, abstention ≥ 0.7) and `results/rag_eval_summary.csv` is fresh | *gold_set_is_well_formed*, *evaluation_meets_the_bar_and_the_saved_results_are_fresh* |
 
+**Registry and legacy fence** (`python -m pytest tests/test_imports.py tests/test_no_legacy_imports.py -q`, about 2 s; restructure step 1): every module listed in `diacausal/registry.py` imports and no module on disk is missing from the list; nothing under `diacausal/` imports or names `legacy/` (the scan checks it looked at 12 or more files). The old research code is tested separately: `cd legacy && ../.venv/bin/python -m pytest tests -q` (88 passed, 8 skipped; 5 skip because DoWhy, EconML or NetworkX are not installed). CI runs the first, not the second.
+
 **API contract v1** (`python -m pytest tests/contract -q`, 64 tests, about 6 s; no Node needed):
 
 | What it checks | Tests |
