@@ -46,12 +46,12 @@ Cowork uses your normal weekly limit, not the cloud credit.
 
 | Tool | Yours until | Best use in this project |
 |---|---|---|
-| Google AI Pro | About April 2027 (free) | **Jules** — Google's coding agent that works on your GitHub repo and opens pull requests (the Pro plan allows 100 tasks a day); Gemini CLI and Google Antigravity with higher limits; **NotebookLM** to read and question the research papers; Gemini for drafts and explanations |
+| Google AI Pro | About April 2027 (free) | **Jules** — Google's coding agent that works on your GitHub repo and opens pull requests (the Pro plan allows 100 tasks a day); Google Antigravity with higher limits; **NotebookLM** to read and question the research papers; Google's assistant for drafts and explanations |
 | ChatGPT Go | 5 November 2026 | Second opinions, quick explanations, proofreading |
 
 ## Should you buy anything after Claude Pro ends? An honest answer
 
-- **You probably don't need a new subscription.** Google AI Pro is already a strong free fallback for coding (Jules, Gemini CLI, Antigravity) and for reading papers (NotebookLM).
+- **You probably don't need a new subscription.** Google AI Pro is already a strong free fallback for coding (Jules, Antigravity) and for reading papers (NotebookLM).
 - **The one purchase worth considering is one more month of Claude Pro (about 6 October to 6 November)** — and only if you are still in the middle of the build after 6 October. It keeps the Claude Code workflow and prompts you've built, and probably keeps the $100 cloud credit usable, since that credit is for existing Pro and Max subscribers.
 - **Decide on 5 October.** If the causal engine and most of RAG are done, let Pro lapse and finish the writing with Google AI Pro and ChatGPT Go. If not, renew for one month.
 - **GitHub Copilot's free student plan:** GitHub paused new student sign-ups on 20 April 2026. Check github.com/settings/education/benefits in case it has reopened.

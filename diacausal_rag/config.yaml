@@ -9,6 +9,5 @@ min_bm25_score: {value: 1.0, source: "Group 28 team choice — below this the be
 min_query_coverage: {value: 0.6, source: "Group 28 team choice — at least 60% of the question's content words must appear in the retrieved passages, otherwise abstain; tuned on eval/rag_gold.csv (results/rag_eval.csv)", status: TEAM-SET}
 explain_max_sentences: {value: 4, source: "Group 28 team choice — a short answer a clinician can check against the passages", status: TEAM-SET}
 explain_min_support: {value: 0.6, source: "Group 28 team choice — share of a sentence's content words that must appear in the passages it cites (citation checker)", status: TEAM-SET}
-gemini_model: {value: "gemini-flash-latest", source: "Google AI Studio free tier model alias (ai.google.dev/gemini-api/docs/models); change here if Google renames it", status: TEAM-SET}
 ollama_model: {value: "llama3.2:3b", source: "Ollama model library (ollama.com/library/llama3.2), small enough for a laptop without a GPU", status: TEAM-SET}
 ollama_host: {value: "http://localhost:11434", source: "Ollama default local address (github.com/ollama/ollama docs/api.md)", status: TEAM-SET}

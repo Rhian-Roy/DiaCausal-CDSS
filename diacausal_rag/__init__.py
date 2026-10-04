@@ -8,7 +8,7 @@ not for unsupervised clinical use.
     pdf_text.py   an approved PDF -> corpus text with page markers and headings
     retrieve.py   BM25 + TF-IDF vector search, reciprocal rank fusion, a reranker slot, and evidence
                   JSON — or INSUFFICIENT_EVIDENCE (weak match, or the question's words poorly covered)
-    explain.py    cited explanation: template (offline, quotes), Gemini (free, online) or Ollama (local),
+    explain.py    cited explanation: template (offline, quotes) or Ollama (a local model),
                   every model answer checked sentence by sentence against the passages
     evaluate.py   recall@5, abstention, citation precision and dose leaks on eval/rag_gold.csv
 

@@ -116,7 +116,7 @@ Licence compliance & Every knowledge source recorded with its licence category\\
 \textbf{API design.} \texttt{POST /api/v1/recommend} accepts the patient details and returns, for each drug, the estimate with its 95\% interval or ``insufficient evidence'', any exclusions and cautions with sources, fair pairwise comparisons, the assumptions, the version strings, a request id and the intended-use statement. Supporting endpoints are \texttt{GET /api/v1/rules} and \texttt{GET /health}.
 
 \subsubsection{Cost Analysis}
-All software is open source, so the licence cost is zero. Development uses the team's own laptops. The website is hosted on Netlify's free tier and the accounts on Supabase's free tier (Mumbai region), so the running cost is zero. The RAG explanation writer uses a template (free, offline), Google's Gemini free tier through a Supabase Edge Function, or a local Ollama model; no paid service is required. The main cost is effort: about four members $\times$ 12 hours per week $\times$ 14 weeks, roughly 670 person-hours (team estimate).
+All software is open source, so the licence cost is zero. Development uses the team's own laptops. The website is hosted on Netlify's free tier and the accounts on Supabase's free tier (Mumbai region), so the running cost is zero. The RAG explanation writer uses a template (free, offline) or a local Ollama model; no paid service is required. The main cost is effort: about four members $\times$ 12 hours per week $\times$ 14 weeks, roughly 670 person-hours (team estimate).
 
 \subsubsection{Hardware and software requirement}
 \begin{table}[H]\centering\small\caption{Hardware and software requirements}\label{tab:hwsw}

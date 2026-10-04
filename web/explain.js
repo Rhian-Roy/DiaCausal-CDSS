@@ -6,8 +6,8 @@
  * not for unsupervised clinical use.
  *
  * template(): quotes the passage sentences that share the most words with the question, each with
- * its passage number; it cannot invent anything. fromModel(): runs a model's answer (Gemini, via
- * the DiaCausal server) through checkAnswer(); if any sentence fails, the template answer is shown
+ * its passage number; it cannot invent anything. fromModel(): runs a model's answer (a local
+ * model) through checkAnswer(); if any sentence fails, the template answer is shown
  * instead and the reply says why. Every setting comes from evidence.json. tests/web/test_web.py
  * checks this file gives the same answers as Python.
  */

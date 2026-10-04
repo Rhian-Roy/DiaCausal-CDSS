@@ -9,7 +9,7 @@ const cases = JSON.parse(fs.readFileSync(process.argv[3], "utf8"));
 const out = cases.map((c) => {
   const res = E.search(index, c.question);
   const o = { status: res.status, explain: X.explain(index, c.question, res) };
-  if (c.answer !== undefined) o.model = X.fromModel(index, c.question, res, "gemini", c.answer);
+  if (c.answer !== undefined) o.model = X.fromModel(index, c.question, res, "ollama", c.answer);
   return o;
 });
 process.stdout.write(JSON.stringify(out));

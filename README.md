@@ -114,7 +114,7 @@ way to run the demo**, and the recorded video stays the backup.
 | `docs/explain/07-causal-engine.md` | **Start here for the viva:** every idea with an analogy, a tiny worked example and the one-sentence answer |
 | `docs/RESULTS_SUMMARY.md` | The benchmark results in plain English, and how to read each figure |
 | `docs/SYSTEM_REQUIREMENTS.md`, `docs/SYSTEM_DESIGN.md` | Mid-sem items 2 and 4: requirements mapped to tests; architecture, DFDs, use case, sequence, data and API design |
-| `diacausal_rag/`, `tests/rag/`, `eval/rag_gold.csv`, `docs/SOURCES.md` | RAG: licence gate, WHO 2018 + FDA safety communications, hybrid search, cited explanations (template / Gemini / Ollama), gold set and evaluation |
+| `diacausal_rag/`, `tests/rag/`, `eval/rag_gold.csv`, `docs/SOURCES.md` | RAG: licence gate, WHO 2018 + FDA safety communications, hybrid search, cited explanations (template / Ollama), gold set and evaluation |
 | `docs/INTEGRATING_A_TEAMMATE_ENGINE.md` | How a teammate adds their own causal code without overwriting `main` |
 
 ## 💬 Chat app (walking skeleton)

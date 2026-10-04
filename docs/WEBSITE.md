@@ -95,8 +95,7 @@ fails if a key is ever committed.
   metformin and kidney function, saxagliptin/alogliptin and heart failure, DPP-4i joint pain, SGLT2i
   ketoacidosis and urinary infections, acute kidney injury, Fournier's gangrene, canagliflozin amputations.
 - **Explanation:** `web/explain.js` (mirror of `diacausal_rag/explain.py`) quotes the sentences that
-  best answer the question, each with its passage number. Nothing leaves the device. (The "Explain with
-  Gemini" button was removed in P07; P08 removes the Edge Function and the rest of Gemini.)
+  best answer the question, each with its passage number. Nothing leaves the device: the website has no online model.
 - **Evidence fusion:** each option card on Patient Details has "Evidence for this option": the licence-cleared
   passages about that drug class and its fired rules.
 - **Viva sentence:** "The website runs the exact same fitted causal model and the exact same

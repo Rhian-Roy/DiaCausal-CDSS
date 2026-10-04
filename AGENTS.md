@@ -20,7 +20,7 @@ TF-IDF + RRF over 78 passages from WHO 2018 and FDA safety communications); stat
 Netlify with Supabase sign-in.
 
 **NOW:** tabs renamed (Patient Details, Investigate, Analysis, Guide, About); code restructured
-into one diacausal/ package; Gemini removed; local LLM via Ollama with a template fallback and
+into one diacausal/ package; online model removed; local LLM via Ollama with a template fallback and
 output guards; SHAP on the causal estimate plus an XAI-only baseline (SHAP + LIME) compared in an
 A-D ablation; evaluation; report and IEEE paper.
 
