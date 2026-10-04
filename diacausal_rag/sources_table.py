@@ -1,6 +1,6 @@
-"""Write docs/SOURCES.md (RAG guide step R1) from RAG/sources.csv — the licence table.
+"""Write docs/SOURCES.md (RAG guide step R1) from knowledge_sources/sources.csv — the licence table.
 
-    python -m diacausal_rag.sources_table        # regenerate after editing RAG/sources.csv
+    python -m diacausal_rag.sources_table        # regenerate after editing knowledge_sources/sources.csv
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ def render() -> str:
         "",
         "> Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.",
         "",
-        "Generated from `RAG/sources.csv` by `python -m diacausal_rag.sources_table`. Edit the CSV, then regenerate.",
+        "Generated from `knowledge_sources/sources.csv` by `python -m diacausal_rag.sources_table`. Edit the CSV, then regenerate.",
         f"`diacausal_rag/ingest.py` ingests **only** rows whose bucket is exactly `{CLEARED}`; every other row is refused.",
         "A row stays a draft until a team member confirms the licence and fills \"Checked by\"; drafts are never ingested.",
         "",

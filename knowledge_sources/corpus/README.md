@@ -1,6 +1,6 @@
-# diacausal_rag/corpus — licence-cleared documents only
+# knowledge_sources/corpus — licence-cleared documents only
 
-Put a document here only if its source row in `RAG/sources.csv` has bucket **exactly**
+Put a document here only if its source row in `knowledge_sources/sources.csv` has bucket **exactly**
 `cleared_ingest` **and** a team member has confirmed the licence in `checked_by` (not a draft).
 Everything else is refused by `diacausal_rag/ingest.py`, and a test fails if a `.txt` file here is
 missing from `manifest.csv`.

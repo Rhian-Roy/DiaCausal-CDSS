@@ -11,6 +11,7 @@ backend/*.db
 figures
 Research Papers
 RAG/*.pdf
+knowledge_sources/*.pdf
 Datasets
 *.ipynb
 legacy

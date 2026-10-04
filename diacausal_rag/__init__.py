@@ -3,7 +3,7 @@
 Research prototype for clinician evaluation; not a marketed medical device;
 not for unsupervised clinical use.
 
-    ingest.py     licence gate (only confirmed "cleared_ingest" rows of RAG/sources.csv), section-aware,
+    ingest.py     licence gate (only confirmed "cleared_ingest" rows of knowledge_sources/sources.csv), section-aware,
                   sentence-aware chunks of about 400 words with source, version, section and page
     pdf_text.py   an approved PDF -> corpus text with page markers and headings
     retrieve.py   BM25 + TF-IDF vector search, reciprocal rank fusion, a reranker slot, and evidence

@@ -123,7 +123,7 @@ benchmark and `pip-audit` on Linux and macOS. `scripts/check_all.py` is unchange
 
 | Requirement | Proved by (`tests/rag/test_rag_skeleton.py`) |
 |---|---|
-| Only sources with bucket `cleared_ingest` in `RAG/sources.csv` are ingested (IDF, ADA, NICE refused) | *only_licence_cleared_sources_are_ingested*, *real_licence_table_refuses_idf_and_admits_who* |
+| Only sources with bucket `cleared_ingest` in `knowledge_sources/sources.csv` are ingested (IDF, ADA, NICE refused) | *only_licence_cleared_sources_are_ingested*, *real_licence_table_refuses_idf_and_admits_who* |
 | Chunks never cross a section and carry source, version, section and page | *sections_are_never_mixed*, *long_sections_are_cut_to_the_chunk_size* |
 | Hybrid BM25 + vector search with reciprocal rank fusion returns cited passages | *hybrid_search_finds_the_right_section_with_a_citation*, *reciprocal_rank_fusion* |
 | Unsupported questions get INSUFFICIENT_EVIDENCE; passages with doses are withheld | *unsupported_questions*, *empty_index_abstains*, *passages_with_dose_text_are_withheld* |

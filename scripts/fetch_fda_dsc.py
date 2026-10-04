@@ -1,12 +1,12 @@
 """Fetch FDA Drug Safety Communications (US government work, public domain) into the RAG corpus.
 
-    .venv/bin/python scripts/fetch_fda_dsc.py          # writes diacausal_rag/corpus/fda_*.txt
+    .venv/bin/python scripts/fetch_fda_dsc.py          # writes knowledge_sources/corpus/fda_*.txt
 
 fda.gov refuses the build machine, so the text comes from the Internet Archive's copy of the
 official fda.gov page (web.archive.org, unmodified HTML). Kept: the announcement and the
 "Facts", "Additional Information" and "Data Summary" sections. Left out: brand-name tables,
-reference lists and site navigation. Every file must also be listed in RAG/sources.csv
-(bucket cleared_ingest, checked_by filled) and in diacausal_rag/corpus/manifest.csv.
+reference lists and site navigation. Every file must also be listed in knowledge_sources/sources.csv
+(bucket cleared_ingest, checked_by filled) and in knowledge_sources/corpus/manifest.csv.
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-CORPUS = ROOT / "diacausal_rag" / "corpus"
+CORPUS = ROOT / "knowledge_sources" / "corpus"
 BASE = "https://www.fda.gov/drugs/drug-safety-and-availability/"
 ARCHIVE = "https://web.archive.org/web/2025id_/"  # "id_" = the page exactly as fda.gov served it
 

@@ -12,8 +12,8 @@ for unsupervised clinical use.** That sentence appears on every screen, in every
 - `backend/` — FastAPI + Pydantic v2 on Python 3.12, in its own venv at `backend/.venv`
 - `design/` — the screens to match (`chat.html` / `login.html` hold the exact colours, fonts, spacing)
 - `legacy/` — the earlier 2-arm research code (`causal_engine/`, notebooks, scripts; restructure step 1). Its tests run from
-  inside it (`cd legacy && ../.venv/bin/python -m pytest tests -q`); nothing under `diacausal/` may use it. `RAG/` holds
-  `sources.csv`, the licence register. The backend will call `diacausal_engine/` and `diacausal_rag/`
+  inside it (`cd legacy && ../.venv/bin/python -m pytest tests -q`); nothing under `diacausal/` may use it. `knowledge_sources/` holds
+  `sources.csv` (the licence register) and `corpus/`. The backend will call `diacausal_engine/` and `diacausal_rag/`
   instead (see "Not built yet" below)
 
 All commands run from the repo root. The `( ... )` keeps each `cd` inside its own line,
