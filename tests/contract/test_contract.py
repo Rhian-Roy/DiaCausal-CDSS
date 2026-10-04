@@ -108,7 +108,7 @@ def test_ask_request_requires_schema_version_and_a_valid_request_id():
         with pytest.raises(ValidationError):
             AskRequestV1.model_validate(data)
     data = load("AskRequestV1")
-    data["mode"] = "gemini"  # only template and ollama exist
+    data["mode"] = "online"  # only template and ollama exist
     with pytest.raises(ValidationError):
         AskRequestV1.model_validate(data)
 
