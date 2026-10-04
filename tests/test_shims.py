@@ -16,6 +16,11 @@ ALIASES = [e for e in SHIMS if e.alias]
 SPLIT = [e for e in SHIMS if not e.alias]
 
 # estimators.py before it was split: every name the old module offered, which the shim must still offer.
+OLD_INGEST_API = (
+    "ROOT Chunk _pieces as_dicts chunk_document split_sections CLEARED CORPUS SOURCES_CSV LicenceError ingest "
+    "is_confirmed load_sources"
+).split()
+OLD_RETRIEVE_API = "BM25 TOKEN tokens DOSE WITHHELD Retriever index_text rrf".split()
 OLD_ESTIMATORS_API = (
     "IDX TARGETS Estimate _est _from_influence _matched_outcomes aipw aipw_scores by_target crossfit_outcomes DRLearner "
     "ipw ipw_mean levels_to_targets matching naive outcome_model pseudo_outcomes s_learner t_learner"
@@ -35,15 +40,49 @@ def test_a_shim_file_is_tiny_and_names_the_new_module(entry):
     assert any(entry.shim_for in line for line in lines), f"{path.name} does not name {entry.shim_for}"
 
 
-def test_the_split_estimators_shim_offers_every_old_name_and_they_are_the_real_objects():
-    import diacausal.causal_inference.dr_learner as dr
-    import diacausal.causal_inference.estimators as es
-    import diacausal_engine.estimators as old
+def test_the_split_shims_are_exactly_the_modules_that_were_split():
+    assert sorted(e.module for e in SPLIT) == ["diacausal_engine.estimators", "diacausal_rag.ingest", "diacausal_rag.retrieve"]
 
-    assert [e.module for e in SPLIT] == ["diacausal_engine.estimators"]
-    for name in OLD_ESTIMATORS_API:
-        assert getattr(old, name) is getattr(es, name, None) or getattr(old, name) is getattr(dr, name, None), name
+
+def _offers(old_module: str, new_modules: list[str], names: list[str]):
+    old = importlib.import_module(old_module)
+    news = [importlib.import_module(m) for m in new_modules]
+    for name in names:
+        theirs = [getattr(m, name) for m in news if hasattr(m, name)]
+        assert theirs, f"{name} is in none of {new_modules}"
+        assert any(getattr(old, name) is t for t in theirs), f"{old_module}.{name} is not the real object"
+
+
+def test_the_split_estimators_shim_offers_every_old_name_and_they_are_the_real_objects():
+    import diacausal.causal_inference.estimators as es
+
+    _offers("diacausal_engine.estimators", ["diacausal.causal_inference.estimators", "diacausal.causal_inference.dr_learner"], OLD_ESTIMATORS_API)
     assert not hasattr(es, "DRLearner") and not hasattr(es, "pseudo_outcomes"), "they moved to dr_learner.py"
+
+
+def test_the_split_ingest_shim_offers_every_old_name_and_they_are_the_real_objects():
+    import diacausal.config as cfg
+    import diacausal_rag.ingest as old
+
+    _offers("diacausal_rag.ingest", ["diacausal.rag.ingest.chunking", "diacausal.rag.ingest.licence_gate", "diacausal.config"], OLD_INGEST_API)
+    assert old.load_config is cfg.load_rag_config and old.CONFIG == cfg.RAG_CONFIG_PATH  # renamed on the way
+
+
+def test_the_split_retrieve_shim_offers_every_old_name_and_they_are_the_real_objects():
+    _offers("diacausal_rag.retrieve", ["diacausal.rag.index.bm25", "diacausal.rag.retrieve.hybrid"], OLD_RETRIEVE_API)
+
+
+def test_the_rag_modules_that_would_form_a_cycle_do_not():
+    """licence_gate is imported by chunking at the top; chunking is imported by licence_gate only inside ingest()."""
+    import ast
+
+    def top_level_imports(path):
+        tree = ast.parse((ROOT / path).read_text())
+        return {n.module for n in tree.body if isinstance(n, ast.ImportFrom) and n.module}
+
+    assert "diacausal.rag.ingest.chunking" not in top_level_imports("diacausal/rag/ingest/licence_gate.py")
+    assert "diacausal.rag.retrieve.hybrid" not in top_level_imports("diacausal/rag/index/bm25.py")
+    assert "diacausal.rag.retrieve.hybrid" not in top_level_imports("diacausal/rag/index/tfidf.py")
 
 
 def test_dr_learner_does_not_create_an_import_cycle():

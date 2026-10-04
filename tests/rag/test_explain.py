@@ -138,4 +138,4 @@ def test_the_online_model_is_gone_from_the_repository():
     out = subprocess.run(["git", "grep", "-l", "-i", "-E", "AIza|gemini|generativelanguage"], cwd=ROOT, capture_output=True, text=True).stdout
     assert {f for f in out.split() if f not in allowed} == set(), out
     assert not (ROOT / "supabase/functions/explain").exists() and not (ROOT / "docs/GEMINI_SETUP.md").exists()
-    assert "gemini_model" not in (ROOT / "diacausal_rag/config.yaml").read_text()
+    assert "gemini_model" not in (ROOT / "diacausal/rag/config.yaml").read_text()

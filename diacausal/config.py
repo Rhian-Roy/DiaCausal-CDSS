@@ -24,7 +24,7 @@ DATA_DIR = ROOT / "data"
 WEB_DIR = ROOT / "web"
 RESULTS_DIR = ROOT / "results"
 KNOWLEDGE_DIR = ROOT / "knowledge_sources"
-RAG_CONFIG_PATH = ROOT / "diacausal_rag" / "config.yaml"  # moves to diacausal/rag/ in step 6
+RAG_CONFIG_PATH = ROOT / "diacausal" / "rag" / "config.yaml"
 PARAMS_PATH = DATA_DIR / "params.yaml"
 RULES_PATH = DATA_DIR / "rules.csv"
 PRICES_PATH = DATA_DIR / "prices.csv"
@@ -155,5 +155,5 @@ def load_rag_config(path: Path | str = RAG_CONFIG_PATH) -> dict:
     raw = yaml.safe_load(Path(path).read_text())
     for key, entry in raw.items():
         if not entry.get("source") or entry.get("status") not in STATUSES:
-            raise ValueError(f"diacausal_rag/config.yaml: {key} needs a source and a valid status")
+            raise ValueError(f"diacausal/rag/config.yaml: {key} needs a source and a valid status")
     return {k: v["value"] for k, v in raw.items()}
