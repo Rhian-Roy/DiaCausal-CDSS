@@ -25,6 +25,7 @@ from diacausal.guards.output_guards import check_answer
 from diacausal.llm.explain import BACKENDS, explain, render
 from diacausal.config import ROOT, load_rag_config
 from diacausal.rag.ingest.licence_gate import ingest
+from diacausal.rag.retrieve import query_processing
 from diacausal.rag.retrieve.hybrid import Retriever
 
 GOLD = ROOT / "eval" / "rag_gold.csv"
@@ -46,7 +47,7 @@ def run(backend: str = "template", gold: list[dict] | None = None) -> tuple[list
     retriever = Retriever(ingest(), cfg)
     rows = []
     for g in gold or load_gold():
-        ev = retriever.search(g["question"])
+        ev = retriever.search(g["question"], query_processing.process(g["question"]))  # as the pipeline does
         reply = explain(g["question"], ev, backend, cfg, idf=retriever.bm25.idf)
         text = render(reply) if reply["status"] == "SUCCESS" else ""
         shown = " ".join(p["text"] for p in ev["passages"]) + " " + text

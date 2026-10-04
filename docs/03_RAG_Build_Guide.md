@@ -12,7 +12,7 @@
 | Gold set + evaluation | Built (`eval/rag_gold.csv`, `python -m diacausal_rag.evaluate`); the doctor still has to review the 20 flagged questions |
 | Connect to engine and UI | Website: Evidence tab explanation + "Evidence for this option" on each card. Chat app: not yet |
 
-Results (`results/rag_eval_summary.csv`, template back-end) against the targets below: recall@5 0.933
+Results (`results/rag_eval_summary.csv`, template back-end) against the targets below: recall@5 0.956 (0.933 before query processing, P16)
 (target ≥ 0.80, met); citation precision 1.000 (≥ 0.95, met); doses 0 (met); abstention accuracy
 0.800 (target ≥ 0.95, **not met**: 2 of 10 out-of-scope questions — gestational-diabetes diet and
 statins — still get passages). The coverage threshold was tuned on this same gold set, so these

@@ -10,12 +10,6 @@ from diacausal.orchestrator.context import Context
 from diacausal.tracing import stub_notice
 
 
-def query_processing(ctx: Context, question: str) -> str:
-    """P16: rewrite the question for search. Today the question is searched as typed."""
-    stub_notice("query processing", ctx.request_id)
-    return question
-
-
 def shap_drivers(ctx: Context) -> dict:
     """P25: SHAP drivers of each option's estimate. Today: none."""
     stub_notice("shap drivers", ctx.request_id)

@@ -20,10 +20,9 @@ def test_the_layers_are_in_the_order_of_plan_8_3():
 
 
 def test_exactly_these_layers_and_parts_are_stubs_and_each_names_the_prompt_that_replaces_it():
-    """The input guards left this list when P15 built them."""
+    """The input guards left this list when P15 built them, query processing when P16 did."""
     assert {e.name: e.replaced_by for e in registry.stubs()} == {
-        "query processing": "P16", "shap drivers": "P25", "evidence levels": "P24",
-        "prompt builder": "P22", "full output checks": "P23"}
+        "shap drivers": "P25", "evidence levels": "P24", "prompt builder": "P22", "full output checks": "P23"}
     assert all(e.replaced_by for e in registry.stubs()) and not any(e.replaced_by for e in (*registry.LAYERS, *registry.PARTS) if not e.stub)
 
 

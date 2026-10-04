@@ -22,6 +22,7 @@ from diacausal.llm.explain import DOSE_QUESTION, explain
 from diacausal.orchestrator.context import Context
 from diacausal.output.formatter import build_card
 from diacausal.rag.ingest.licence_gate import CORPUS, ingest, load_sources
+from diacausal.rag.retrieve import query_processing
 from diacausal.rag.retrieve.hybrid import Retriever
 from diacausal.tracing import AbstainSignal
 
@@ -110,10 +111,10 @@ def _label(source: dict, page: str) -> str:
 
 
 def retrieval_layer(ctx: Context) -> None:
-    query = registry.part_function("query processing")(ctx, ctx.request.question)
+    plan = registry.part_function("query processing")(ctx, ctx.request.question)
     retriever = get_retriever()
     ctx.idf = retriever.bm25.idf if retriever.chunks else None
-    raw = retriever.search(query)
+    raw = retriever.search(ctx.request.question, plan)  # BM25 gets the expanded sub-queries, the vector search the question
     ctx.retrieval = raw
     sources = load_sources()
     chunks = []
@@ -129,6 +130,11 @@ def retrieval_layer(ctx: Context) -> None:
                                     chunks=chunks, reason=None if ok else raw.get("reason"))
     if not ok:
         raise AbstainSignal("NO_EVIDENCE")
+
+
+def query_processing_part(ctx: Context, question: str):
+    """Part of the retrieval layer (P16): the question as a QueryPlan. Nothing about it is logged."""
+    return query_processing.process(question)
 
 
 # ── layer 5: explanation ─────────────────────────────────────────────────────────────────────────────────────────
