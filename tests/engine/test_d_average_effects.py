@@ -3,19 +3,10 @@
 import numpy as np
 import pytest
 
-from diacausal_engine import CONTRASTS
-from diacausal_engine.cohort import features, observed_view, treatment_index, true_population_effects
-from diacausal_engine.estimators import (
-    aipw,
-    aipw_scores,
-    by_target,
-    crossfit_outcomes,
-    ipw,
-    ipw_mean,
-    matching,
-    naive,
-)
-from diacausal_engine.propensity import clip, crossfit_propensity
+from diacausal.config import CONTRASTS
+from diacausal.causal_inference.cohort import features, observed_view, treatment_index, true_population_effects
+from diacausal.causal_inference.estimators import aipw, aipw_scores, by_target, crossfit_outcomes, ipw, ipw_mean, matching, naive
+from diacausal.causal_inference.propensity import clip, crossfit_propensity
 
 Z = 1.959964
 

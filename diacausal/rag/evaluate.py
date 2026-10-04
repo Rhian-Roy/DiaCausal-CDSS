@@ -1,7 +1,7 @@
 """RAG evaluation on the gold question set (RAG guide Step R5).
 
-    python -m diacausal_rag.evaluate                     # template explanations (offline)
-    python -m diacausal_rag.evaluate --backend ollama    # a local model (needs Ollama running)
+    python -m diacausal.rag.evaluate                       # template explanations (offline)
+    python -m diacausal.rag.evaluate --backend ollama      # a local model (needs Ollama running)
 
 Reads eval/rag_gold.csv (45 answerable questions with the source and section that answer them,
 10 out-of-scope questions, 5 dose requests). Writes results/rag_eval.csv (one row per question)

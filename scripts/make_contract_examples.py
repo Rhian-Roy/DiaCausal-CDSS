@@ -19,7 +19,7 @@ sys.path.insert(0, str(ROOT))
 
 from diacausal.api.schemas import (AnswerCardV1, AnswerDraftV1, AskRequestV1, CausalOutputV1, GuardedDraftV1,  # noqa: E402
                                    PatientV1, to_engine_patient)
-from diacausal_engine.recommend import Engine  # noqa: E402
+from diacausal.causal_inference.recommend import Engine  # noqa: E402
 
 OUT = ROOT / "tests" / "contract" / "examples"
 ILLUSTRATIVE = "ILLUSTRATIVE: numbers from plan section 8.4/8.11, not a measured result."

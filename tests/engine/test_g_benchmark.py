@@ -5,7 +5,7 @@ import json
 
 import pytest
 
-from diacausal_engine.benchmark import SUMMARY_COLUMNS, run
+from diacausal.causal_inference.benchmark import run, SUMMARY_COLUMNS
 
 FIGURES = ("overlap.png", "love_plot.png", "ate_vs_truth.png", "cate_recovery.png", "calibration.png")
 

@@ -25,7 +25,7 @@ def render() -> str:
         "> Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.",
         "",
         "Generated from `knowledge_sources/sources.csv` by `python -m diacausal.rag.sources_table`. Edit the CSV, then regenerate.",
-        f"`diacausal_rag/ingest.py` ingests **only** rows whose bucket is exactly `{CLEARED}`; every other row is refused.",
+        f"`diacausal/rag/ingest/licence_gate.py` ingests **only** rows whose bucket is exactly `{CLEARED}`; every other row is refused.",
         "A row stays a draft until a team member confirms the licence and fills \"Checked by\"; drafts are never ingested.",
         "",
         "| " + " | ".join(h for _, h in COLS) + " |",

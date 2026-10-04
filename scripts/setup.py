@@ -21,7 +21,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 BACKEND = ROOT / "backend"
 FRONTEND = ROOT / "frontend"
-E2E = ROOT / "e2e"
+E2E = ROOT / "tests" / "e2e"
 WINDOWS = sys.platform == "win32"
 VENV = BACKEND / ".venv"
 VENV_PY = VENV / ("Scripts/python.exe" if WINDOWS else "bin/python")
@@ -138,7 +138,7 @@ def main() -> None:
     run([npm, "ci", "--no-audit", "--no-fund"], FRONTEND)
     print("   [OK] frontend libraries installed")
 
-    step("     End-to-end tests: libraries in e2e/node_modules")
+    step("     End-to-end tests: libraries in tests/e2e/node_modules")
     run([npm, "ci", "--no-audit", "--no-fund"], E2E)
     print("   [OK] end-to-end libraries installed (they drive the Google Chrome you already have)")
     print("   (Lines starting with 'npm warn' - on a Mac, one about 'fsevents' - are harmless.)")

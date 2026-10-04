@@ -8,16 +8,10 @@ import numpy as np
 import pytest
 import yaml
 
-from diacausal_engine import ARMS
-from diacausal_engine.cohort import (
-    features,
-    generate_cohort,
-    load_dataset,
-    observed_view,
-    true_population_effects,
-)
-from diacausal_engine.config import PARAMS_PATH, STATUSES, ParamsError, load_params, validate
-from diacausal_engine.dag import DagError, load_dag
+from diacausal.config import ARMS
+from diacausal.causal_inference.cohort import features, generate_cohort, load_dataset, observed_view, true_population_effects
+from diacausal.config import load_params, PARAMS_PATH, ParamsError, STATUSES, validate
+from diacausal.causal_inference.dag import DagError, load_dag
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -126,7 +120,7 @@ def test_generator_only_uses_arrows_drawn_in_the_dag(params):
 def test_a_role_that_contradicts_the_arrows_is_refused(params):
     bad = copy.deepcopy(params.raw)
     bad["dag"]["nodes"]["bmi"] = "confounder"  # bmi has no arrow to the outcome
-    from diacausal_engine.config import Params
+    from diacausal.config import Params
 
     with pytest.raises(DagError):
         load_dag(Params(raw=bad, version="x", fingerprint="x"))

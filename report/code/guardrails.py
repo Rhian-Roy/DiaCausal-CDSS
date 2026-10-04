@@ -135,3 +135,6 @@ def load_rules(path: Path | str = RULES_PATH) -> RuleTable:
     if not rules:
         raise RulesError("rules.csv has no rules")
     return RuleTable(rules=rules, version=file_hash(path))
+
+# Snapshot of diacausal_engine/guardrails.py on 3 Oct 2026 (before the restructure); the live code is diacausal/guards/rules_loader.py.
+# The note is at the end so that the line ranges used by the report's listings (Chapter 5) stay valid.

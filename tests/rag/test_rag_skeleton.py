@@ -11,9 +11,11 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
-from diacausal_rag import INTENDED_USE  # noqa: E402
-from diacausal_rag.ingest import CLEARED, CORPUS, LicenceError, chunk_document, ingest, load_config, load_sources, split_sections  # noqa: E402
-from diacausal_rag.retrieve import WITHHELD, Retriever, rrf  # noqa: E402
+from diacausal import INTENDED_USE  # noqa: E402
+from diacausal.config import load_rag_config as load_rag_config  # noqa: E402
+from diacausal.rag.ingest.chunking import chunk_document, split_sections  # noqa: E402
+from diacausal.rag.ingest.licence_gate import CLEARED, CORPUS, ingest, LicenceError, load_sources  # noqa: E402
+from diacausal.rag.retrieve.hybrid import Retriever, rrf, WITHHELD  # noqa: E402
 
 DOC = """[page 1]
 ## Choosing a second medicine
@@ -94,13 +96,13 @@ def test_reciprocal_rank_fusion_rewards_agreement():
 
 
 def test_config_numbers_are_sourced():
-    cfg = load_config()
+    cfg = load_rag_config()
     assert cfg["chunk_words"] == 400 and cfg["top_k"] == 5 and cfg["rrf_k"] == 60
 
 
 def test_the_committed_corpus_holds_only_confirmed_licence_cleared_sources():
     """Every committed document maps to a cleared_ingest source whose licence a team member confirmed."""
-    from diacausal_rag.ingest import is_confirmed
+    from diacausal.rag.ingest.licence_gate import is_confirmed
 
     sources = load_sources()
     chunks = ingest()
@@ -127,9 +129,9 @@ def test_a_draft_licence_is_refused_even_in_the_cleared_bucket(tmp_path):
 
 
 def test_sources_md_is_in_sync_with_the_licence_csv():
-    from diacausal_rag.sources_table import OUT, render
+    from diacausal.rag.sources_table import OUT, render
 
-    assert OUT.read_text(encoding="utf-8") == render(), "run: python -m diacausal_rag.sources_table"
+    assert OUT.read_text(encoding="utf-8") == render(), "run: python -m diacausal.rag.sources_table"
 
 
 def test_pdf_pages_become_corpus_text_with_page_markers_and_headings(tmp_path):
@@ -140,7 +142,7 @@ def test_pdf_pages_become_corpus_text_with_page_markers_and_headings(tmp_path):
     from matplotlib.backends.backend_pdf import PdfPages
     import matplotlib.pyplot as plt
 
-    from diacausal_rag.pdf_text import pdf_to_corpus_text
+    from diacausal.rag.ingest.pdf_text import pdf_to_corpus_text
 
     pdf = tmp_path / "doc.pdf"
     with PdfPages(pdf) as out:

@@ -3,16 +3,9 @@
 import numpy as np
 import pytest
 
-from diacausal_engine import ARMS
-from diacausal_engine.cohort import features, observed_view, treatment_index
-from diacausal_engine.propensity import (
-    clip,
-    crossfit_propensity,
-    fit_full,
-    overlap_check,
-    predict,
-    support_check,
-)
+from diacausal.config import ARMS
+from diacausal.causal_inference.cohort import features, observed_view, treatment_index
+from diacausal.causal_inference.propensity import clip, crossfit_propensity, fit_full, overlap_check, predict, support_check
 
 
 @pytest.fixture(scope="module")
@@ -57,7 +50,7 @@ def test_rare_patient_types_fall_below_the_threshold(params, fitted):
     _, _, _, full = fitted
     import pandas as pd
 
-    from diacausal_engine.dag import load_dag
+    from diacausal.causal_inference.dag import load_dag
 
     cols = load_dag(params).adjustment_set
     row = {c: 0 for c in cols} | {"age": 80, "duration_years": 15, "hba1c": 8.0, "egfr": 38, "bmi": 24, "hypo_history": 1, "ascvd": 1}

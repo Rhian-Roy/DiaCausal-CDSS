@@ -17,13 +17,13 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
-from diacausal_engine import INTENDED_USE  # noqa: E402
-from diacausal_engine.export_web import model_dict  # noqa: E402
-from diacausal_engine.recommend import DOSE_PATTERN, Engine  # noqa: E402
-from diacausal_engine.schemas import PatientIn  # noqa: E402
-from diacausal_rag.export_web import evidence_dict  # noqa: E402
-from diacausal_rag.ingest import ingest  # noqa: E402
-from diacausal_rag.retrieve import Retriever  # noqa: E402
+from diacausal import INTENDED_USE  # noqa: E402
+from diacausal.causal_inference.export_web import model_dict  # noqa: E402
+from diacausal.causal_inference.recommend import DOSE_PATTERN, Engine  # noqa: E402
+from diacausal.causal_inference.schemas import PatientIn  # noqa: E402
+from diacausal.rag.export_web import evidence_dict  # noqa: E402
+from diacausal.rag.ingest.licence_gate import ingest  # noqa: E402
+from diacausal.rag.retrieve.hybrid import Retriever  # noqa: E402
 
 WEB = ROOT / "web"
 NODE = shutil.which("node")
@@ -61,7 +61,7 @@ def model():
 def test_model_json_is_fresh(engine, model):
     """web/model.json must be the export of the current params, rules and code."""
     fresh = json.loads(json.dumps(model_dict(engine)))
-    assert model["versions"] == fresh["versions"], "run: python -m diacausal_engine.export_web"
+    assert model["versions"] == fresh["versions"], "run: python -m diacausal.causal_inference.export_web"
     for key in ("features", "rules", "thresholds", "support", "prices", "assumptions", "arms", "secondary_note"):
         assert model[key] == fresh[key], key
     for part in ("propensity", "dr"):
@@ -163,7 +163,7 @@ def test_evidence_json_is_fresh():
     """web/evidence.json must be the export of the current corpus, licence table and settings."""
     data = json.loads((WEB / "evidence.json").read_text())
     diff = _first_difference(data, json.loads(json.dumps(evidence_dict())))
-    assert diff is None, f"{diff} -- run: python -m diacausal_rag.export_web"
+    assert diff is None, f"{diff} -- run: python -m diacausal.rag.export_web"
     assert data["chunks"], "the confirmed FDA communication should be in the website index"
     assert {c["citation"]["source_id"] for c in data["chunks"]} >= {"S01", "S08"}  # WHO 2018 + FDA
     assert all(c["citation"]["licence_bucket"] == "cleared_ingest" for c in data["chunks"])
@@ -193,11 +193,12 @@ def test_browser_evidence_search_gives_the_same_passages_as_python(tmp_path):
 @pytest.mark.skipif(NODE is None, reason="Node.js is needed to run web/explain.js")
 def test_browser_explanations_match_python(tmp_path):
     """web/explain.js gives the same quoted sentences, abstentions and citation-check verdicts as Python."""
-    from diacausal_rag.evaluate import load_gold
-    from diacausal_rag.explain import explain, sentences
-    from diacausal_rag.ingest import load_config
+    from diacausal.rag.evaluate import load_gold
+    from diacausal.guards.output_guards import sentences
+    from diacausal.llm.explain import explain
+    from diacausal.config import load_rag_config as load_rag_config
 
-    cfg = load_config()
+    cfg = load_rag_config()
     retriever = Retriever(ingest(), cfg)
     cases = [{"question": g["question"]} for g in load_gold()] + [{"question": q} for q in QUESTIONS]
     probe = "Can SGLT2 inhibitors cause ketoacidosis?"
@@ -361,14 +362,14 @@ def test_results_and_docs_are_copied_for_the_site():
 
 
 def _chromium():
-    """The sandbox's Chromium, else the one `npx playwright install chromium` (in e2e/) downloaded,
+    """The sandbox's Chromium, else the one `npx playwright install chromium` (in tests/e2e/) downloaded,
     else an installed Google Chrome (Playwright drives it the same way)."""
     for path in ("/opt/pw-browsers/chromium",):
         if Path(path).exists():
             return path
-    if NODE and (ROOT / "e2e/node_modules/playwright").exists():
+    if NODE and (ROOT / "tests/e2e/node_modules/playwright").exists():
         out = subprocess.run([NODE, "-e", "console.log(require('playwright').chromium.executablePath())"],
-                             cwd=ROOT / "e2e", capture_output=True, text=True, timeout=30)
+                             cwd=ROOT / "tests" / "e2e", capture_output=True, text=True, timeout=30)
         path = out.stdout.strip()
         if out.returncode == 0 and path and Path(path).exists():
             return path
@@ -378,8 +379,8 @@ def _chromium():
     return None
 
 
-@pytest.mark.skipif(NODE is None or _chromium() is None or not (ROOT / "e2e/node_modules/playwright").exists(),
-                    reason="needs Node, Playwright (e2e/node_modules) and a Chromium binary")
+@pytest.mark.skipif(NODE is None or _chromium() is None or not (ROOT / "tests/e2e/node_modules/playwright").exists(),
+                    reason="needs Node, Playwright (tests/e2e/node_modules) and a Chromium binary")
 def test_the_site_works_on_an_iphone_sized_screen(tmp_path):
     """Loads the real page at 393x852, compares the three examples, then Analysis, Guide (Methods), About and Investigate."""
     import functools
@@ -403,7 +404,7 @@ def test_the_site_works_on_an_iphone_sized_screen(tmp_path):
     assert c["intended"] and c["excluded"] == 1 and c["caution"] >= 1 and c["insufficient"] >= 1
     assert c["tiles"] == 8 and c["docHeadings"] > 10 and c["horizontalOverflow"] is False
     assert c["team"] is True
-    from diacausal_rag.ingest import CLEARED, is_confirmed, load_sources
+    from diacausal.rag.ingest.licence_gate import CLEARED, is_confirmed, load_sources
 
     in_search = sum(r["bucket"] == CLEARED and is_confirmed(r) for r in load_sources().values())
     assert c["passages"] >= 1 and c["citesFda"] and c["sourcesInSearch"] == in_search >= 7 and c["abstains"]
@@ -488,8 +489,8 @@ def test_five_tabs_in_order_and_old_links_still_work():
     assert 'class="tag"' not in html and ">Research prototype<" not in html  # no header badge
 
 
-@pytest.mark.skipif(NODE is None or _chromium() is None or not (ROOT / "e2e/node_modules/playwright").exists(),
-                    reason="needs Node, Playwright (e2e/node_modules) and a Chromium binary")
+@pytest.mark.skipif(NODE is None or _chromium() is None or not (ROOT / "tests/e2e/node_modules/playwright").exists(),
+                    reason="needs Node, Playwright (tests/e2e/node_modules) and a Chromium binary")
 def test_every_screen_built_here_renders_at_desktop_and_phone_size(tmp_path):
     """Screens 01-03, 06-08, 13-16, 20, 25, 26 and today's answer, at 1280 and 390 px: a screenshot each,
     the design's content rules on the visible HTML, no sideways scrolling on a phone, and what each must show."""

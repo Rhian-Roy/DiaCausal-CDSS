@@ -82,7 +82,7 @@ test is skipped. Download it once (about 150 MB), after setup:
 
 | macOS / Linux | Windows |
 |---|---|
-| `cd e2e` then `npx playwright install chromium` | `cd e2e` then `npx playwright install chromium` (PowerShell: `npx.cmd`) |
+| `cd tests/e2e` then `npx playwright install chromium` | `cd tests/e2e` then `npx playwright install chromium` (PowerShell: `npx.cmd`) |
 
 ## 4. Check that everything works (one command)
 

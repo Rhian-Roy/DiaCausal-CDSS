@@ -57,12 +57,12 @@ source .venv/bin/activate
 
 python -m pytest tests/engine -q                  # the tests: must end "149 passed" (about 3 min)
 python -m pytest tests/rag -q                     # the RAG tests (33, about 3 s)
-python -m diacausal_rag.evaluate                  # RAG evaluation on the 60-question gold set -> results/rag_eval*.csv
-python -m diacausal_rag.explain "Can SGLT2 inhibitors cause ketoacidosis?"   # cited explanation (add --backend ollama offline)
-python -m diacausal_engine.benchmark --quick      # quick benchmark (about 30 s)
-python -m diacausal_engine.benchmark              # full benchmark: 20 x 5,000 patients (about 3 min), rewrites results/
+python -m diacausal.rag.evaluate                  # RAG evaluation on the 60-question gold set -> results/rag_eval*.csv
+python -m diacausal.llm.explain "Can SGLT2 inhibitors cause ketoacidosis?"   # cited explanation (add --backend ollama offline)
+python -m diacausal.causal_inference.benchmark --quick      # quick benchmark (about 30 s)
+python -m diacausal.causal_inference.benchmark              # full benchmark: 20 x 5,000 patients (about 3 min), rewrites results/
 streamlit run demo/streamlit_app.py               # the demo; opens http://localhost:8501
-uvicorn diacausal_engine.api:app --port 8001      # the API; docs at http://localhost:8001/docs
+uvicorn diacausal.api.main:app --port 8001      # the API; docs at http://localhost:8001/docs
 ```
 
 - **Demo:** the demo takes about 5 seconds to warm up the first time. Then use the three preset
@@ -102,7 +102,7 @@ way to run the demo**, and the recorded video stays the backup.
 
 | Path | What it is |
 |---|---|
-| `diacausal_engine/` | The engine. Its parts follow the "Causal Inference Pipeline" of our flow chart: the dataset (`cohort.py`), the DAG (`dag.py`), safety rules (`guardrails.py`), propensity and overlap (`propensity.py`), naive / IPW / matching / AIPW and the DR-learner (`estimators.py`), metrics, the benchmark, the one-patient **Causal Output** (`recommend.py`, `schemas.py`) and the API (`api.py`) |
+| `diacausal/causal_inference/` (+ `diacausal/config.py`, `diacausal/guards/`) | The engine. Its parts follow the "Causal Inference Pipeline" of our flow chart: the dataset (`cohort.py`), the DAG (`dag.py`), safety rules (`guardrails.py`), propensity and overlap (`propensity.py`), naive / IPW / matching / AIPW and the DR-learner (`estimators.py`), metrics, the benchmark, the one-patient **Causal Output** (`recommend.py`, `schemas.py`) and the API (`api.py`) |
 | `data/rules.csv` | Safety rules R01–R10, each with a source (Part 6 of `docs/02_Causal_Engine_Build_Guide.md`, verbatim) |
 | `data/params.yaml` | Every generator and engine number, each with `source` and `status` (CITED / ASSUMED-DIRECTIONAL / TEAM-SET) |
 | `data/prices.csv` | Prices: "price unavailable" until confirmed on the Jan Aushadhi list, with a date |
@@ -114,7 +114,7 @@ way to run the demo**, and the recorded video stays the backup.
 | `docs/explain/07-causal-engine.md` | **Start here for the viva:** every idea with an analogy, a tiny worked example and the one-sentence answer |
 | `docs/RESULTS_SUMMARY.md` | The benchmark results in plain English, and how to read each figure |
 | `docs/SYSTEM_REQUIREMENTS.md`, `docs/SYSTEM_DESIGN.md` | Mid-sem items 2 and 4: requirements mapped to tests; architecture, DFDs, use case, sequence, data and API design |
-| `diacausal_rag/`, `tests/rag/`, `eval/rag_gold.csv`, `docs/SOURCES.md` | RAG: licence gate, WHO 2018 + FDA safety communications, hybrid search, cited explanations (template / Ollama), gold set and evaluation |
+| `diacausal/rag/`, `diacausal/llm/`, `knowledge_sources/`, `tests/rag/`, `eval/rag_gold.csv`, `docs/SOURCES.md` | RAG: licence gate, WHO 2018 + FDA safety communications, hybrid search, cited explanations (template / Ollama), gold set and evaluation |
 | `docs/INTEGRATING_A_TEAMMATE_ENGINE.md` | How a teammate adds their own causal code without overwriting `main` |
 
 ## 💬 Chat app (walking skeleton)

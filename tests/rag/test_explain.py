@@ -9,18 +9,21 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
-from diacausal_rag import INTENDED_USE  # noqa: E402
-from diacausal_rag.evaluate import load_gold, run  # noqa: E402
-from diacausal_rag.explain import NO_DOSE_NOTE, build_prompt, check_answer, explain, sentences  # noqa: E402
-from diacausal_rag.ingest import ingest, load_config  # noqa: E402
-from diacausal_rag.retrieve import WITHHELD, Retriever  # noqa: E402
+from diacausal import INTENDED_USE  # noqa: E402
+from diacausal.rag.evaluate import load_gold, run  # noqa: E402
+from diacausal.guards.output_guards import check_answer, sentences  # noqa: E402
+from diacausal.llm.explain import explain, NO_DOSE_NOTE  # noqa: E402
+from diacausal.llm.prompt_builder import build_prompt  # noqa: E402
+from diacausal.config import load_rag_config as load_rag_config  # noqa: E402
+from diacausal.rag.ingest.licence_gate import ingest  # noqa: E402
+from diacausal.rag.retrieve.hybrid import Retriever, WITHHELD  # noqa: E402
 
 Q = "Can SGLT2 inhibitors cause ketoacidosis?"
 
 
 @pytest.fixture(scope="module")
 def cfg():
-    return load_config()
+    return load_rag_config()
 
 
 @pytest.fixture(scope="module")
@@ -93,7 +96,7 @@ def test_ollama_not_running_falls_back_to_quoted_sentences(evidence, cfg):
 
 
 def test_only_template_and_ollama_back_ends_exist():
-    from diacausal_rag.explain import BACKENDS, CALLERS
+    from diacausal.llm.explain import BACKENDS, CALLERS
 
     assert BACKENDS == ("template", "ollama") and set(CALLERS) == {"ollama"}
     with pytest.raises(ValueError):
@@ -125,7 +128,7 @@ def test_evaluation_meets_the_bar_and_the_saved_results_are_fresh():
     assert summary["recall_at_5"] >= 0.85 and summary["answered"] >= 0.9 and summary["abstention_accuracy"] >= 0.7
     saved = {r["metric"]: r["value"] for r in csv.DictReader((ROOT / "results/rag_eval_summary.csv").open())}
     fresh = {k: (f"{v:.3f}" if isinstance(v, float) else str(v)) for k, v in summary.items()}
-    assert saved == fresh, "run: python -m diacausal_rag.evaluate"
+    assert saved == fresh, "run: python -m diacausal.rag.evaluate"
 
 
 def test_the_online_model_is_gone_from_the_repository():

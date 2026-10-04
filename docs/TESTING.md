@@ -83,7 +83,7 @@ You can also run the parts separately:
 
 ## Part 1b — the causal engine (its own command)
 
-The 3-arm causal engine (`diacausal_engine/`, `demo/`, `data/`) has its own pinned
+The 3-arm causal engine (`diacausal/causal_inference/`, `demo/`, `data/`) has its own pinned
 libraries and its own tests, so it does not need the chat app's setup:
 
 ```bash
@@ -211,7 +211,7 @@ terminal side by side.
 | The causal engine, RAG and the explanation | Not connected yet; they return `skipped` (prompts 06, 07, 09) |
 | Whether the clinical rules are **clinically right** | The mechanism is tested; the table itself is a DRAFT until Member D checks every source and the collaborating doctor reviews it. Every answer says so |
 | Whether the guard lists are clinically right | `rules.v1.json` is a **draft**: Member D must review every list and the collaborating doctor the clinical ones (status field in the file) |
-| ~~The real page against the real backend~~ | **Closed.** Section 8 drives real Google Chrome with Playwright (`e2e/tests/chat.spec.js`): sign in with a CAPTCHA and a 6-digit code, ask a question, check the four console lines and the same trace ID in the backend log, the notices, scrolling, and the 390×844 phone layout |
+| ~~The real page against the real backend~~ | **Closed.** Section 8 drives real Google Chrome with Playwright (`tests/e2e/tests/chat.spec.js`): sign in with a CAPTCHA and a 6-digit code, ask a question, check the four console lines and the same trace ID in the backend log, the notices, scrolling, and the 390×844 phone layout |
 | `contract.ts` and `schemas.py` staying the same | They are kept in sync by hand; section 6 catches some drift in what the backend sends |
 | Every browser | Automated page tests run in a simulated browser (jsdom) plus real Google Chrome (section 8). Safari and Firefox tried by hand only. Safari's special keyboard behaviour for Hindi/Japanese input is covered by a simulated test only |
 | Windows and Linux setup by a person | Run by hand on macOS only. GitHub's automatic check runs setup + check on Linux, Windows and macOS for every push — all three passed all 21 checks (pull request #1) |

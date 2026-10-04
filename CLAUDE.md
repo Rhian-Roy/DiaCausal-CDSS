@@ -13,7 +13,7 @@ for unsupervised clinical use.** That sentence appears on every screen, in every
 - `design/` — the screens to match (`chat.html` / `login.html` hold the exact colours, fonts, spacing)
 - `legacy/` — the earlier 2-arm research code (`causal_engine/`, notebooks, scripts; restructure step 1). Its tests run from
   inside it (`cd legacy && ../.venv/bin/python -m pytest tests -q`); nothing under `diacausal/` may use it. `knowledge_sources/` holds
-  `sources.csv` (the licence register) and `corpus/`. The backend will call `diacausal_engine/` and `diacausal_rag/`
+  `sources.csv` (the licence register) and `corpus/`. The backend will call `diacausal/causal_inference/` and `diacausal/rag/`
   instead (see "Not built yet" below)
 
 All commands run from the repo root. The `( ... )` keeps each `cd` inside its own line,
@@ -128,7 +128,7 @@ The evaluation pack is `eval/` (25 synthetic vignettes + the SUS and feedback fo
 
 ## Causal engine v0.3 (built, standalone) — see docs/CAUSAL_PLAN.md
 
-`diacausal_engine/` compares three options added to metformin (SGLT2i, DPP-4i, sulfonylurea)
+`diacausal/causal_inference/` (with `diacausal/config.py`, `diacausal/guards/rules_loader.py`; the old `diacausal_engine/` holds shims) compares three options added to metformin (SGLT2i, DPP-4i, sulfonylurea)
 for one patient: the expected 6-month HbA1c change with a 95% interval (plus secondary outcomes:
 weight change in kg and hypoglycaemia risk in %, each with a 95% interval; an option whose range is
 wider than `engine.max_interval_width` abstains as "too uncertain"). It is the "Causal
@@ -139,9 +139,9 @@ assumptions) for the Evidence Fusion layer. Separate venv at the repo root:
 ```bash
 python3.12 -m venv .venv && .venv/bin/pip install -r requirements-engine.txt   # once
 .venv/bin/python -m pytest tests/engine -q                                      # 149 tests
-.venv/bin/python -m diacausal_engine.benchmark --quick                          # full: drop --quick
+.venv/bin/python -m diacausal.causal_inference.benchmark --quick                          # full: drop --quick
 .venv/bin/streamlit run demo/streamlit_app.py                                   # the demo
-.venv/bin/uvicorn diacausal_engine.api:app --port 8001                          # POST /api/v1/recommend
+.venv/bin/uvicorn diacausal.api.main:app --port 8001                          # POST /api/v1/recommend
 ```
 
 Rules that must never be broken:
@@ -171,21 +171,21 @@ After changing params.yaml or the estimators, rerun the full benchmark and commi
 ## Website (built) — see docs/WEBSITE.md
 
 Live at https://diacausal.netlify.app. `web/` is a static phone-first PWA; `web/engine.js`
-mirrors `recommend.py` using `web/model.json` from `python -m diacausal_engine.export_web`, and
-`web/evidence.js` mirrors `diacausal_rag/retrieve.py` using `web/evidence.json` from
-`python -m diacausal_rag.export_web` (rerun after any change; `tests/web` fails if stale).
+mirrors `recommend.py` using `web/model.json` from `python -m diacausal.causal_inference.export_web`, and
+`web/evidence.js` mirrors `diacausal/rag/retrieve/hybrid.py` and `diacausal/rag/index/` using `web/evidence.json` from
+`python -m diacausal.rag.export_web` (rerun after any change; `tests/web` fails if stale).
 Never type a threshold into `web/*.js`; no inline script or style (strict CSP in `web/netlify.toml` =
 `web/vercel.json`). Accounts: Supabase project `diacausal` (`supabase/migrations/`, RLS, admin approval,
 TOTP); `web/auth.js` + `account.js`; Patient Details and Investigate need an approved account. **Never commit
 the Supabase key**: `web/config.json` stays `"accounts": "off"`; `scripts/web_config.py` writes the
 deploy copy only. Patient values and questions never leave the device (the website has no online model: P07 removed
 the button, P08 removed the Edge Function).
-`web/explain.js` mirrors `diacausal_rag/explain.py` (template + citation checker).
+`web/explain.js` mirrors `diacausal/llm/providers/template.py` and `diacausal/guards/output_guards.py` (template + citation checker).
 Look: `design/screens-v2/` is the only design source (`handoff/HANDOFF.md`); colours, fonts and spacing come
 only from `web/styles/tokens.css` (copied from the handoff); fonts are self-hosted in `web/fonts/` (SIL OFL).
 Tabs: Patient Details, Investigate, Analysis, Guide, About (`#patient-details` …); `#try`, `#evidence`,
 `#results`, `#learn` still work. `.venv/bin/python -m pytest tests/web -q` (24 tests; the two browser tests
-need Node, `e2e/node_modules` and Chromium or Google Chrome). Full chat app hosting: docs/HOSTING_CHAT_APP.md.
+need Node, `tests/e2e/node_modules` and Chromium or Google Chrome). Full chat app hosting: docs/HOSTING_CHAT_APP.md.
 
 ## API contract v1 (built) — see docs/INPUT_RANGES.md and docs/PLAN_2026-10.md §8.4
 
@@ -203,8 +203,8 @@ app's `backend/app/schemas.py` and the engine API's own models are unchanged; P1
 
 | Piece | Backend | Frontend / other |
 |---|---|---|
-| Causal engine in the chat app (October) | `backend/app/pipeline/causal_engine.py` calls `diacausal_engine` on `ctx.options` only | designs 17 and 19; `contract.ts` + `schemas.py` together |
-| RAG in the chat app (built standalone in `diacausal_rag/`: licence gate, WHO 2018 + FDA S08/S19–S23, sentence-aware chunks, BM25 + TF-IDF, RRF, coverage abstention, `explain.py` template/Ollama + citation checker, `eval/rag_gold.csv` + `evaluate`; `tests/rag` 33; website Evidence tab). Still to do: medical embedding model, reranker, doctor review of the gold set | `backend/app/pipeline/rag_retrieval.py`, `llm_explanation.py` call `diacausal_rag` | `docs/03_RAG_Build_Guide.md`; only `cleared_ingest` sources |
+| Causal engine in the chat app (October) | `backend/app/pipeline/causal_engine.py` calls `diacausal.causal_inference` on `ctx.options` only | designs 17 and 19; `contract.ts` + `schemas.py` together |
+| RAG in the chat app (built standalone in `diacausal/rag/` and `diacausal/llm/`: licence gate, WHO 2018 + FDA S08/S19–S23, sentence-aware chunks, BM25 + TF-IDF, RRF, coverage abstention, `explain.py` template/Ollama + citation checker, `eval/rag_gold.csv` + `evaluate`; `tests/rag` 33; website Evidence tab). Still to do: medical embedding model, reranker, doctor review of the gold set | `backend/app/pipeline/rag_retrieval.py`, `llm_explanation.py` call `diacausal_rag` | `docs/03_RAG_Build_Guide.md`; only `cleared_ingest` sources |
 
 Each folder's README says how it connects.
 

@@ -4,12 +4,12 @@ import numpy as np
 import pytest
 from conftest import OLDER_HYPO, TYPICAL
 
-from diacausal_engine import ARMS
-from diacausal_engine.cohort import generate_cohort, observed_view, true_secondary_population
-from diacausal_engine.estimators import aipw, by_target
-from diacausal_engine.fitting import fit_all
-from diacausal_engine.recommend import OutputCheckError, check_output
-from diacausal_engine.schemas import PatientIn
+from diacausal.config import ARMS
+from diacausal.causal_inference.cohort import generate_cohort, observed_view, true_secondary_population
+from diacausal.causal_inference.estimators import aipw, by_target
+from diacausal.causal_inference.fitting import fit_all
+from diacausal.causal_inference.recommend import check_output, OutputCheckError
+from diacausal.causal_inference.schemas import PatientIn
 
 
 def test_secondary_outcomes_never_change_the_primary_cohort(params):
