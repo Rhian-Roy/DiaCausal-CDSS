@@ -18,6 +18,7 @@ class Entry(NamedTuple):
     module: str  # dotted import path
     role: str  # one line, plain English
     shim_for: str = ""  # set on a tiny file left at an old path: the new module it stands for
+    alias: bool = True  # False for a split module: the shim re-exports names (several new modules) instead of aliasing one
 
 
 REGISTRY: tuple[Entry, ...] = (
@@ -40,21 +41,28 @@ REGISTRY: tuple[Entry, ...] = (
     Entry("diacausal.causal_inference.dag", "causal graph and adjustment sets"),
     Entry("diacausal.guards.rules_loader", "rules loader for data/rules.csv (runs before any estimate)"),
     Entry("diacausal.causal_inference.schemas", "engine models (PatientIn, CausalOutput, ...)"),
+    Entry("diacausal.causal_inference.cohort", "synthetic India-calibrated cohort"),
+    Entry("diacausal.causal_inference.propensity", "cross-fitted propensity model"),
+    Entry("diacausal.causal_inference.estimators", "AIPW and DR-learner estimators"),
+    Entry("diacausal.causal_inference.fitting", "shared model fitting"),
+    Entry("diacausal.causal_inference.refute", "refutation tests and E-values"),
+    Entry("diacausal.causal_inference.metrics", "benchmark metrics"),
+    Entry("diacausal.causal_inference.dr_learner", "DR-learner: per-patient estimates with 95% intervals (split from estimators)"),
     Entry("diacausal_engine", "the 3-arm causal engine (package)"),
     Entry("diacausal_engine.api", "the engine's own FastAPI app (POST /api/v1/recommend)"),
     Entry("diacausal_engine.benchmark", "benchmark runner (python -m entry point)"),
-    Entry("diacausal_engine.cohort", "synthetic India-calibrated cohort"),
+    Entry("diacausal_engine.cohort", "old path of diacausal.causal_inference.cohort", shim_for="diacausal.causal_inference.cohort"),
     Entry("diacausal_engine.config", "old path of diacausal.config", shim_for="diacausal.config"),
     Entry("diacausal_engine.dag", "old path of diacausal.causal_inference.dag", shim_for="diacausal.causal_inference.dag"),
-    Entry("diacausal_engine.estimators", "AIPW and DR-learner estimators"),
+    Entry("diacausal_engine.estimators", "old path of diacausal.causal_inference.estimators", shim_for="diacausal.causal_inference.estimators", alias=False),
     Entry("diacausal_engine.export_web", "writes web/model.json"),
     Entry("diacausal_engine.figures", "benchmark figures"),
-    Entry("diacausal_engine.fitting", "shared model fitting"),
+    Entry("diacausal_engine.fitting", "old path of diacausal.causal_inference.fitting", shim_for="diacausal.causal_inference.fitting"),
     Entry("diacausal_engine.guardrails", "old path of diacausal.guards.rules_loader", shim_for="diacausal.guards.rules_loader"),
-    Entry("diacausal_engine.metrics", "benchmark metrics"),
-    Entry("diacausal_engine.propensity", "cross-fitted propensity model"),
+    Entry("diacausal_engine.metrics", "old path of diacausal.causal_inference.metrics", shim_for="diacausal.causal_inference.metrics"),
+    Entry("diacausal_engine.propensity", "old path of diacausal.causal_inference.propensity", shim_for="diacausal.causal_inference.propensity"),
     Entry("diacausal_engine.recommend", "Engine: the three-option recommendation"),
-    Entry("diacausal_engine.refute", "refutation tests and E-values"),
+    Entry("diacausal_engine.refute", "old path of diacausal.causal_inference.refute", shim_for="diacausal.causal_inference.refute"),
     Entry("diacausal_engine.schemas", "old path of diacausal.causal_inference.schemas", shim_for="diacausal.causal_inference.schemas"),
     Entry("diacausal_rag", "licence-gated RAG (package)"),
     Entry("diacausal_rag.evaluate", "RAG evaluation (python -m entry point)"),

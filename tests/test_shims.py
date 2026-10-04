@@ -12,9 +12,17 @@ from diacausal.registry import REGISTRY
 
 ROOT = Path(__file__).resolve().parent.parent
 SHIMS = [e for e in REGISTRY if e.shim_for]
+ALIASES = [e for e in SHIMS if e.alias]
+SPLIT = [e for e in SHIMS if not e.alias]
+
+# estimators.py before it was split: every name the old module offered, which the shim must still offer.
+OLD_ESTIMATORS_API = (
+    "IDX TARGETS Estimate _est _from_influence _matched_outcomes aipw aipw_scores by_target crossfit_outcomes DRLearner "
+    "ipw ipw_mean levels_to_targets matching naive outcome_model pseudo_outcomes s_learner t_learner"
+).split()
 
 
-@pytest.mark.parametrize("entry", SHIMS, ids=lambda e: e.module)
+@pytest.mark.parametrize("entry", ALIASES, ids=lambda e: e.module)
 def test_the_old_path_is_the_new_module(entry):
     assert importlib.import_module(entry.module) is importlib.import_module(entry.shim_for)
 
@@ -25,6 +33,26 @@ def test_a_shim_file_is_tiny_and_names_the_new_module(entry):
     lines = path.read_text(encoding="utf-8").splitlines()
     assert len(lines) <= 25, f"{path.name} is {len(lines)} lines: a shim must stay tiny"
     assert any(entry.shim_for in line for line in lines), f"{path.name} does not name {entry.shim_for}"
+
+
+def test_the_split_estimators_shim_offers_every_old_name_and_they_are_the_real_objects():
+    import diacausal.causal_inference.dr_learner as dr
+    import diacausal.causal_inference.estimators as es
+    import diacausal_engine.estimators as old
+
+    assert [e.module for e in SPLIT] == ["diacausal_engine.estimators"]
+    for name in OLD_ESTIMATORS_API:
+        assert getattr(old, name) is getattr(es, name, None) or getattr(old, name) is getattr(dr, name, None), name
+    assert not hasattr(es, "DRLearner") and not hasattr(es, "pseudo_outcomes"), "they moved to dr_learner.py"
+
+
+def test_dr_learner_does_not_create_an_import_cycle():
+    import ast
+    from pathlib import Path as P
+
+    tree = ast.parse((ROOT / "diacausal/causal_inference/estimators.py").read_text())
+    imported = {n.module for n in ast.walk(tree) if isinstance(n, ast.ImportFrom) and n.module}
+    assert "diacausal.causal_inference.dr_learner" not in imported
 
 
 def test_a_patch_through_a_shim_reaches_the_real_module(monkeypatch):
