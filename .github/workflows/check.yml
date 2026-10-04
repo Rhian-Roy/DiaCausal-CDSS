@@ -80,13 +80,13 @@ jobs:
       - name: One-time setup
         run: python scripts/setup.py
       - name: End-to-end tests in Chrome
-        working-directory: e2e
+        working-directory: tests/e2e
         run: npm test
       - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-report
-          path: e2e/test-results/
+          path: tests/e2e/test-results/
           retention-days: 7
 
   # Known security problems in the libraries we depend on. Separate from `check` so a

@@ -50,7 +50,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 BACKEND = ROOT / "backend"
 FRONTEND = ROOT / "frontend"
-E2E = ROOT / "e2e"
+E2E = ROOT / "tests" / "e2e"
 WINDOWS = sys.platform == "win32"
 VENV_PY = BACKEND / ".venv" / ("Scripts/python.exe" if WINDOWS else "bin/python")
 VITE = FRONTEND / "node_modules" / "vite" / "bin" / "vite.js"
@@ -474,7 +474,7 @@ def check_vignettes() -> None:
 def check_browser(npm: str) -> None:
     section(9, "Real browser (Playwright drives Google Chrome through the whole app)")
     if not (E2E / "node_modules").is_dir():
-        check(False, "end-to-end libraries installed (e2e/node_modules)", f"Run the setup again:  {SETUP}")
+        check(False, "end-to-end libraries installed (tests/e2e/node_modules)", f"Run the setup again:  {SETUP}")
         return
     code, out = run([npm, "test"], E2E, timeout=900)
     passed = re.search(r"(\d+) passed", out)

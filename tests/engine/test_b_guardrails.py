@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from diacausal_engine.config import RULES_PATH
-from diacausal_engine.guardrails import FIELDS, RulesError, load_rules
+from diacausal.config import RULES_PATH
+from diacausal.guards.rules_loader import FIELDS, load_rules, RulesError
 
 ROOT = Path(__file__).resolve().parents[2]
 

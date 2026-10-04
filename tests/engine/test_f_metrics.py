@@ -3,19 +3,10 @@
 import numpy as np
 import pytest
 
-from diacausal_engine.cohort import features, observed_view, treatment_index
-from diacausal_engine.dag import load_dag
-from diacausal_engine.metrics import (
-    abstention_rate,
-    balance_table,
-    bias,
-    coverage,
-    pehe,
-    policy_regret,
-    rmse,
-    smd,
-)
-from diacausal_engine.propensity import clip, crossfit_propensity
+from diacausal.causal_inference.cohort import features, observed_view, treatment_index
+from diacausal.causal_inference.dag import load_dag
+from diacausal.causal_inference.metrics import abstention_rate, balance_table, bias, coverage, pehe, policy_regret, rmse, smd
+from diacausal.causal_inference.propensity import clip, crossfit_propensity
 
 
 def test_bias_and_rmse():

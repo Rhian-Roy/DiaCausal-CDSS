@@ -1,5 +1,5 @@
 // iPhone 15-sized browser run of the website (screens-v2 markup) (used by tests/web/test_web.py): node phone_check.cjs URL OUTDIR
-const { chromium, devices } = require(require('path').join(__dirname, '..', '..', 'e2e', 'node_modules', 'playwright'));
+const { chromium, devices } = require(require('path').join(__dirname, '..', 'e2e', 'node_modules', 'playwright'));
 (async () => {
   const url = process.argv[2], out = process.argv[3];
   const b = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});

@@ -7,9 +7,9 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from diacausal_engine import INTENDED_USE
-from diacausal_engine.recommend import DOSE_PATTERN
-from diacausal_engine.schemas import PatientIn
+from diacausal import INTENDED_USE
+from diacausal.causal_inference.recommend import DOSE_PATTERN
+from diacausal.causal_inference.schemas import PatientIn
 
 ROOT = Path(__file__).resolve().parents[2]
 

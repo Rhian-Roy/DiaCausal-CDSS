@@ -3,18 +3,11 @@
 import numpy as np
 import pytest
 
-from diacausal_engine import ARMS, CONTRASTS
-from diacausal_engine.cohort import features, generate_cohort, observed_view, treatment_index
-from diacausal_engine.estimators import (
-    TARGETS,
-    DRLearner,
-    aipw_scores,
-    crossfit_outcomes,
-    levels_to_targets,
-    s_learner,
-    t_learner,
-)
-from diacausal_engine.propensity import clip, crossfit_propensity
+from diacausal.config import ARMS, CONTRASTS
+from diacausal.causal_inference.cohort import features, generate_cohort, observed_view, treatment_index
+from diacausal.causal_inference.dr_learner import DRLearner
+from diacausal.causal_inference.estimators import aipw_scores, crossfit_outcomes, levels_to_targets, s_learner, t_learner, TARGETS
+from diacausal.causal_inference.propensity import clip, crossfit_propensity
 
 Z = 1.959964
 

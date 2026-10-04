@@ -20,8 +20,8 @@ sys.path.insert(0, str(ROOT))
 
 from diacausal.api.schemas import (MODELS, RANGES, AnswerCardV1, AskRequestV1, CausalOutputV1, GuardedDraftV1,  # noqa: E402
                                    LLMRequestV1, PatientV1, to_engine_patient)
-from diacausal_engine import INTENDED_USE  # noqa: E402
-from diacausal_engine.recommend import Engine  # noqa: E402
+from diacausal import INTENDED_USE  # noqa: E402
+from diacausal.causal_inference.recommend import Engine  # noqa: E402
 
 EXAMPLES = ROOT / "tests" / "contract" / "examples"
 NAMES = sorted(MODELS)
@@ -165,7 +165,7 @@ def test_every_required_yes_no_question_must_be_answered():
 
 
 def test_every_8_2_range_sits_inside_the_engines_range_so_the_engine_never_rejects_a_valid_patient():
-    from diacausal_engine.schemas import PatientIn
+    from diacausal.causal_inference.schemas import PatientIn
 
     eng = {"age": "age", "duration_years": "duration_years", "hba1c_pct": "hba1c", "egfr": "egfr", "bmi": "bmi"}
     for field, engine_field in eng.items():
@@ -203,7 +203,7 @@ def test_the_engines_real_output_is_a_valid_causal_output_v1():
 
 
 def test_causal_output_v1_keeps_every_existing_engine_field_name():
-    from diacausal_engine.schemas import CausalOutput, OptionOut
+    from diacausal.causal_inference.schemas import CausalOutput, OptionOut
 
     assert set(CausalOutput.model_fields) <= set(CausalOutputV1.model_fields)
     assert set(OptionOut.model_fields) | {"drivers", "schema_version"} == set(CausalOutputV1.model_fields["options"].annotation.__args__[0].model_fields)

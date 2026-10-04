@@ -4,8 +4,8 @@
 **/__pycache__
 **/.pytest_cache
 .git
-e2e/test-results
-e2e/node_modules
+tests/e2e/test-results
+tests/e2e/node_modules
 backend/.env
 backend/*.db
 figures

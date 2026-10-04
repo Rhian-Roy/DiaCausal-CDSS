@@ -251,3 +251,6 @@ def levels_to_targets(levels: np.ndarray) -> dict[str, np.ndarray]:
     for a, b in CONTRASTS:
         out[f"{a}-{b}"] = levels[:, IDX[a]] - levels[:, IDX[b]]
     return out
+
+# Snapshot of diacausal_engine/estimators.py on 3 Oct 2026 (before the restructure); the live code is diacausal/causal_inference/estimators.py (the DR-learner is now diacausal/causal_inference/dr_learner.py).
+# The note is at the end so that the line ranges used by the report's listings (Chapter 5) stay valid.

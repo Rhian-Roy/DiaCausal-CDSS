@@ -6,9 +6,9 @@ from pathlib import Path
 import pytest
 from conftest import EGFR40_PANCREATITIS, OLDER_HYPO, TYPICAL
 
-from diacausal_engine import INTENDED_USE
-from diacausal_engine.recommend import DOSE_PATTERN, OutputCheckError, bmi_category, check_output, load_prices
-from diacausal_engine.schemas import PatientIn
+from diacausal import INTENDED_USE
+from diacausal.causal_inference.recommend import bmi_category, check_output, DOSE_PATTERN, load_prices, OutputCheckError
+from diacausal.causal_inference.schemas import PatientIn
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -62,7 +62,7 @@ def test_causal_output_has_every_flow_chart_field(engine, audit_file):
 
 def test_safety_rules_run_before_the_estimate_and_excluded_options_get_no_number(engine, audit_file, monkeypatch):
     """Call order is rules -> DR-learner, and an excluded option never carries an estimate."""
-    from diacausal_engine.guardrails import RuleTable
+    from diacausal.guards.rules_loader import RuleTable
 
     calls = []
     real_apply, real_predict = RuleTable.apply, engine.fitted.dr.predict

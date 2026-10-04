@@ -10,8 +10,8 @@ os.environ.setdefault("MPLBACKEND", "Agg")
 
 import pytest  # noqa: E402
 
-from diacausal_engine.cohort import generate_cohort  # noqa: E402
-from diacausal_engine.config import load_params  # noqa: E402
+from diacausal.causal_inference.cohort import generate_cohort  # noqa: E402
+from diacausal.config import load_params  # noqa: E402
 
 
 @pytest.fixture(scope="session")
@@ -28,7 +28,7 @@ def cohort(params):
 @pytest.fixture(scope="session")
 def engine(tmp_path_factory):
     """The demo/API engine, fitted once on a smaller reference cohort to keep tests quick."""
-    from diacausal_engine.recommend import Engine
+    from diacausal.causal_inference.recommend import Engine
 
     return Engine(n=3000)
 
@@ -36,7 +36,7 @@ def engine(tmp_path_factory):
 @pytest.fixture()
 def audit_file(tmp_path, monkeypatch):
     path = tmp_path / "audit.jsonl"
-    monkeypatch.setattr("diacausal_engine.recommend.AUDIT_PATH", path)
+    monkeypatch.setattr("diacausal.causal_inference.recommend.AUDIT_PATH", path)
     return path
 
 
@@ -45,12 +45,15 @@ EGFR40_PANCREATITIS = dict(age=60, sex="female", duration_years=8, hba1c=8.2, eg
 OLDER_HYPO = dict(age=80, sex="male", duration_years=15, hba1c=8.0, egfr=38, bmi=24.0, hypo_history=True, ascvd=True)
 
 
+MIN_ENGINE_FILES = 18  # today: config.py + 14 in causal_inference/ (with __init__) + 3 in guards/
+
+
 @pytest.fixture(scope="session")
 def engine_code_files() -> list[Path]:
-    """Every engine source file wherever it lives now: the old package (moved modules are shims there) and the
-    new places. Scanning only the old folder would, after a move, scan shims and pass without checking anything."""
-    files = [*(ROOT / "diacausal_engine").glob("*.py"), ROOT / "diacausal" / "config.py",
-             *(ROOT / "diacausal" / "causal_inference").glob("*.py"), *(ROOT / "diacausal" / "guards").glob("*.py")]
-    assert len(files) >= 16, f"scan looked at only {len(files)} files: the engine had 16 in the old package alone"
+    """Every source file of the causal engine at its real place: diacausal/config.py, diacausal/causal_inference/ and
+    diacausal/guards/ (the old diacausal_engine/ package holds only shims now and is deleted in step 9).
+    The count guards against a scan that silently looks at nothing: the engine had 16 files before the restructure."""
+    files = [ROOT / "diacausal" / "config.py", *(ROOT / "diacausal" / "causal_inference").glob("*.py"),
+             *(ROOT / "diacausal" / "guards").glob("*.py")]
+    assert len(files) >= MIN_ENGINE_FILES, f"scan looked at only {len(files)} files; expected at least {MIN_ENGINE_FILES}"
     return files
-

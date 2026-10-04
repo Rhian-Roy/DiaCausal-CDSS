@@ -5,9 +5,9 @@ import csv
 import numpy as np
 import pytest
 
-from diacausal_engine.cohort import features, observed_view, treatment_index
-from diacausal_engine.estimators import Estimate
-from diacausal_engine.refute import _evalue_from_rr, e_value, refute
+from diacausal.causal_inference.cohort import features, observed_view, treatment_index
+from diacausal.causal_inference.estimators import Estimate
+from diacausal.causal_inference.refute import _evalue_from_rr, e_value, refute
 
 
 @pytest.fixture(scope="module")
@@ -53,7 +53,7 @@ def test_evalue_uses_the_interval_bound_nearest_zero(params):
 
 
 def test_benchmark_writes_refutation_and_evalue_files(tmp_path):
-    from diacausal_engine.benchmark import run
+    from diacausal.causal_inference.benchmark import run
 
     run(reps=1, n=1000, n_test=300, out=tmp_path, n_boot=5)
     ref = list(csv.DictReader((tmp_path / "refutation.csv").open()))

@@ -24,9 +24,9 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import streamlit as st  # noqa: E402
 
-from diacausal_engine import INTENDED_USE  # noqa: E402
-from diacausal_engine.recommend import AUDIT_PATH, Engine  # noqa: E402
-from diacausal_engine.schemas import PatientIn  # noqa: E402
+from diacausal import INTENDED_USE  # noqa: E402
+from diacausal.causal_inference.recommend import AUDIT_PATH, Engine  # noqa: E402
+from diacausal.causal_inference.schemas import PatientIn  # noqa: E402
 
 # Tokens copied from frontend/src/index.css (design/chat.html).
 INK, MUTED, PINE, PINE_FILL = "#1A1F1C", "#52514E", "#0E5049", "#E4EEEB"

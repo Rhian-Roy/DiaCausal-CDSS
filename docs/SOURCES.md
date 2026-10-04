@@ -3,7 +3,7 @@
 > Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.
 
 Generated from `knowledge_sources/sources.csv` by `python -m diacausal.rag.sources_table`. Edit the CSV, then regenerate.
-`diacausal_rag/ingest.py` ingests **only** rows whose bucket is exactly `cleared_ingest`; every other row is refused.
+`diacausal/rag/ingest/licence_gate.py` ingests **only** rows whose bucket is exactly `cleared_ingest`; every other row is refused.
 A row stays a draft until a team member confirms the licence and fills "Checked by"; drafts are never ingested.
 
 | ID | Source | Version / year | Licence bucket | Use in DiaCausal | Checked on | Checked by | Status |

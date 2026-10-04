@@ -2,7 +2,7 @@
 // (checked by tests/web/test_web.py with design/screens-v2/handoff/check_screens.py) and a few facts.
 // Sign-in screens use a fake account service: Supabase's replies are answered here, in the browser,
 // so no real account, key or network is involved.      node screens_check.cjs URL OUTDIR
-const { chromium } = require(require('path').join(__dirname, '..', '..', 'e2e', 'node_modules', 'playwright'));
+const { chromium } = require(require('path').join(__dirname, '..', 'e2e', 'node_modules', 'playwright'));
 const fs = require('fs');
 
 const MOCK = 'https://mock-account-service.test';

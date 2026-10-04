@@ -6,14 +6,14 @@ import pytest
 from conftest import EGFR40_PANCREATITIS, TYPICAL
 from fastapi.testclient import TestClient
 
-from diacausal_engine import INTENDED_USE
-from diacausal_engine.api import create_app
-from diacausal_engine.recommend import DOSE_PATTERN
+from diacausal import INTENDED_USE
+from diacausal.api.main import create_app
+from diacausal.causal_inference.recommend import DOSE_PATTERN
 
 
 @pytest.fixture(scope="module")
 def client(engine, tmp_path_factory):
-    import diacausal_engine.recommend as rec
+    import diacausal.causal_inference.recommend as rec
 
     rec.AUDIT_PATH = tmp_path_factory.mktemp("api") / "audit.jsonl"
     with TestClient(create_app(engine)) as c:

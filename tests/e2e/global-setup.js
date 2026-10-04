@@ -11,7 +11,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
+const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..')
 const BACKEND = path.join(REPO, 'backend')
 const WINDOWS = process.platform === 'win32'
 const VENV_PY = path.join(BACKEND, '.venv', WINDOWS ? 'Scripts/python.exe' : 'bin/python')
