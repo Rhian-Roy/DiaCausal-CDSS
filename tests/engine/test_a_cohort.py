@@ -98,8 +98,8 @@ def test_plausibility_ranges_match_the_backend(params):
         assert params.get(f"display.input_ranges.{ours}") == [float(m.group(1)), float(m.group(2))]
 
 
-def test_pima_is_not_used_anywhere_in_the_engine():
-    for f in (ROOT / "diacausal_engine").glob("*.py"):
+def test_pima_is_not_used_anywhere_in_the_engine(engine_code_files):
+    for f in engine_code_files:
         assert "diabetes.csv" not in f.read_text(), f.name
 
 

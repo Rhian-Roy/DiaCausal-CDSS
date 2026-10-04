@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Literal
 
 from diacausal.api.schemas.base import V1
-from diacausal_engine import INTENDED_USE
+from diacausal import INTENDED_USE
 
 
 class HealthV1(V1):

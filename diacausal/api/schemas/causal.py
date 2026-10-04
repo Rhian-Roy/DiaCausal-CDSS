@@ -8,7 +8,7 @@ from typing import Literal
 from pydantic import Field
 
 from diacausal.api.schemas.base import V1
-from diacausal_engine.schemas import CausalOutput, OptionOut
+from diacausal.causal_inference.schemas import CausalOutput, OptionOut
 
 
 class DriverV1(V1):

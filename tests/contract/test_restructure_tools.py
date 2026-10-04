@@ -37,7 +37,7 @@ def test_the_file_map_is_consistent():
     assert {r["action"] for r in rows} <= {"stay", "stay + edit", "move", "split", "merge"}
 
 
-LAST_STEP_DONE = 2  # raise by one in each restructure pull request (docs/RESTRUCTURE_PLAN.md, section 5)
+LAST_STEP_DONE = 3  # raise by one in each restructure pull request (docs/RESTRUCTURE_PLAN.md, section 5)
 
 
 def test_the_tree_matches_the_map_for_the_last_step_done():

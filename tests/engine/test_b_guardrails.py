@@ -95,10 +95,10 @@ def test_duplicate_rule_ids_are_refused(tmp_path):
         load_rules(_broken(tmp_path, "R02,SGLT2i", "R01,SGLT2i"))
 
 
-def test_no_clinical_threshold_is_typed_into_the_engine_code():
+def test_no_clinical_threshold_is_typed_into_the_engine_code(engine_code_files):
     """Thresholds live only in data/rules.csv and data/params.yaml."""
     pattern = re.compile(r"\b(egfr|hba1c|age|bmi)\w*\"?\]?\s*(<=|>=|<|>|==)\s*\d", re.I)
-    for f in (ROOT / "diacausal_engine").glob("*.py"):
+    for f in engine_code_files:
         for n, line in enumerate(f.read_text().splitlines(), 1):
             assert not pattern.search(line), f"{f.name}:{n}: {line.strip()}"
     assert set(FIELDS) >= {"egfr", "age"}

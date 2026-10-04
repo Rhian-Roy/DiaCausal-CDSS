@@ -14,8 +14,17 @@ from typing import Any
 
 import yaml
 
+ARMS = ("SGLT2i", "DPP4i", "SU")
+# Every pairwise comparison, written "first minus second".
+CONTRASTS = (("SGLT2i", "DPP4i"), ("SU", "DPP4i"), ("SGLT2i", "SU"))
+
+# The one place that knows where things are: this file is diacausal/config.py, so its parent's parent is the repository root.
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
+WEB_DIR = ROOT / "web"
+RESULTS_DIR = ROOT / "results"
+KNOWLEDGE_DIR = ROOT / "knowledge_sources"
+RAG_CONFIG_PATH = ROOT / "diacausal_rag" / "config.yaml"  # moves to diacausal/rag/ in step 6
 PARAMS_PATH = DATA_DIR / "params.yaml"
 RULES_PATH = DATA_DIR / "rules.csv"
 PRICES_PATH = DATA_DIR / "prices.csv"
@@ -139,3 +148,12 @@ def load_params(path: Path | str = PARAMS_PATH) -> Params:
         raise ParamsError("params.yaml refused: not a mapping")
     validate(raw)
     return Params(raw=raw, version=str(raw.get("version", "?")), fingerprint=file_hash(path))
+
+
+def load_rag_config(path: Path | str = RAG_CONFIG_PATH) -> dict:
+    """The RAG settings: every entry needs a source and a valid status (same rule as params.yaml)."""
+    raw = yaml.safe_load(Path(path).read_text())
+    for key, entry in raw.items():
+        if not entry.get("source") or entry.get("status") not in STATUSES:
+            raise ValueError(f"diacausal_rag/config.yaml: {key} needs a source and a valid status")
+    return {k: v["value"] for k, v in raw.items()}

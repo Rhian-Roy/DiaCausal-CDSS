@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from diacausal_engine.config import Params
+from diacausal.config import Params
 
 ROLES = ("confounder", "treatment_predictor", "outcome_predictor", "derived", "mediator")
 ADJUST_ROLES = ("confounder", "treatment_predictor", "outcome_predictor")

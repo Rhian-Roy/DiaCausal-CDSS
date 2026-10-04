@@ -67,9 +67,9 @@ class RecommendRequestV1(V1):
 
 
 def to_engine_patient(p: PatientV1):
-    """Convert to the engine's own input model (diacausal_engine.schemas.PatientIn), keeping its names.
+    """Convert to the engine's own input model (diacausal.causal_inference.schemas.PatientIn), keeping its names.
     `ckd`, `waist_cm`, `glucose_mg_dl` and `on_metformin` are not engine inputs (the engine adds no inputs)."""
-    from diacausal_engine.schemas import PatientIn
+    from diacausal.causal_inference.schemas import PatientIn
 
     return PatientIn(
         age=p.age, sex="female" if p.sex == "F" else "male", duration_years=p.duration_years, hba1c=p.hba1c_pct,

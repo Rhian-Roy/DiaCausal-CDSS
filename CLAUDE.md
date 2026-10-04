@@ -208,6 +208,12 @@ app's `backend/app/schemas.py` and the engine API's own models are unchanged; P1
 
 Each folder's README says how it connects.
 
+Restructure progress (docs/RESTRUCTURE_PLAN.md): steps 1 to 3 are done. `diacausal/config.py` is the one place for `ROOT`,
+`DATA_DIR`, `WEB_DIR`, `RESULTS_DIR`, `KNOWLEDGE_DIR`, `ARMS`, `CONTRASTS`, the params loader and `load_rag_config`;
+`diacausal/__init__.py` holds `INTENDED_USE` and `__version__`; `dag` and `schemas` are in `diacausal/causal_inference/`, the
+rules loader is `diacausal/guards/rules_loader.py`. The old `diacausal_engine.config/dag/schemas/guardrails` paths are shims
+(the same module object; `tests/test_shims.py`). New code imports from `diacausal`.
+
 `diacausal/registry.py` lists every importable module; `tests/test_imports.py` imports each one and fails if a module is
 missing from the list. Update it whenever a module moves (docs/RESTRUCTURE_PLAN.md).
 

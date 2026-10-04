@@ -17,8 +17,7 @@ import operator
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from diacausal_engine import ARMS
-from diacausal_engine.config import RULES_PATH, file_hash
+from diacausal.config import ARMS, RULES_PATH, file_hash
 
 COLUMNS = [
     "rule_id", "arm", "representative_molecule", "field", "op", "value",

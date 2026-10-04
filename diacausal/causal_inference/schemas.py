@@ -14,8 +14,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from diacausal_engine import INTENDED_USE
-from diacausal_engine.config import load_params
+from diacausal import INTENDED_USE
+from diacausal.config import load_params
 
 _RANGES = load_params().group("display.input_ranges")
 

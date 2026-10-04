@@ -43,3 +43,14 @@ def audit_file(tmp_path, monkeypatch):
 TYPICAL = dict(age=52, sex="male", duration_years=5, hba1c=8.4, egfr=88, bmi=27.0)
 EGFR40_PANCREATITIS = dict(age=60, sex="female", duration_years=8, hba1c=8.2, egfr=40, bmi=25.5, pancreatitis_history=True)
 OLDER_HYPO = dict(age=80, sex="male", duration_years=15, hba1c=8.0, egfr=38, bmi=24.0, hypo_history=True, ascvd=True)
+
+
+@pytest.fixture(scope="session")
+def engine_code_files() -> list[Path]:
+    """Every engine source file wherever it lives now: the old package (moved modules are shims there) and the
+    new places. Scanning only the old folder would, after a move, scan shims and pass without checking anything."""
+    files = [*(ROOT / "diacausal_engine").glob("*.py"), ROOT / "diacausal" / "config.py",
+             *(ROOT / "diacausal" / "causal_inference").glob("*.py"), *(ROOT / "diacausal" / "guards").glob("*.py")]
+    assert len(files) >= 16, f"scan looked at only {len(files)} files: the engine had 16 in the old package alone"
+    return files
+

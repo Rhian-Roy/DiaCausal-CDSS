@@ -12,7 +12,7 @@ from pydantic.json_schema import models_json_schema
 
 from diacausal.api.schemas import (MODELS, AnswerCardV1, AskRequestV1, CausalOutputV1, ErrorV1, HealthV1,
                                    RecommendRequestV1)
-from diacausal_engine import INTENDED_USE
+from diacausal import INTENDED_USE
 
 DESCRIPTION = (
     "Version 1 of the DiaCausal API contract. Every payload carries `schema_version: \"1.0\"` and unknown fields "
