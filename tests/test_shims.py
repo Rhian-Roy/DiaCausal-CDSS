@@ -20,6 +20,10 @@ OLD_INGEST_API = (
     "ROOT Chunk _pieces as_dicts chunk_document split_sections CLEARED CORPUS SOURCES_CSV LicenceError ingest "
     "is_confirmed load_sources"
 ).split()
+OLD_EXPLAIN_API = (
+    "BACKENDS CALLERS DOSE_QUESTION NO_DOSE_NOTE PROMPT _ANSWER_SPLIT _BULLET _CITES _SPLIT _content _post _reply _usable "
+    "_weighted_overlap build_prompt call_ollama check_answer explain main render sentences template"
+).split()
 OLD_RETRIEVE_API = "BM25 TOKEN tokens DOSE WITHHELD Retriever index_text rrf".split()
 OLD_ESTIMATORS_API = (
     "IDX TARGETS Estimate _est _from_influence _matched_outcomes aipw aipw_scores by_target crossfit_outcomes DRLearner "
@@ -41,7 +45,7 @@ def test_a_shim_file_is_tiny_and_names_the_new_module(entry):
 
 
 def test_the_split_shims_are_exactly_the_modules_that_were_split():
-    assert sorted(e.module for e in SPLIT) == ["diacausal_engine.estimators", "diacausal_rag.ingest", "diacausal_rag.retrieve"]
+    assert sorted(e.module for e in SPLIT) == ["diacausal_engine.estimators", "diacausal_rag.explain", "diacausal_rag.ingest", "diacausal_rag.retrieve"]
 
 
 def _offers(old_module: str, new_modules: list[str], names: list[str]):
@@ -66,6 +70,31 @@ def test_the_split_ingest_shim_offers_every_old_name_and_they_are_the_real_objec
 
     _offers("diacausal_rag.ingest", ["diacausal.rag.ingest.chunking", "diacausal.rag.ingest.licence_gate", "diacausal.config"], OLD_INGEST_API)
     assert old.load_config is cfg.load_rag_config and old.CONFIG == cfg.RAG_CONFIG_PATH  # renamed on the way
+
+
+def test_the_split_explain_shim_offers_every_old_name_and_they_are_the_real_objects():
+    _offers("diacausal_rag.explain", ["diacausal.llm.explain", "diacausal.llm.prompt_builder", "diacausal.llm.providers.template",
+                                      "diacausal.llm.providers.ollama", "diacausal.guards.output_guards"], OLD_EXPLAIN_API)
+
+
+def test_explain_modules_form_a_one_way_chain():
+    """output_guards <- template <- explain; prompt_builder <- explain: no module imports one that imports it."""
+    import ast
+
+    def imported(path):
+        tree = ast.parse((ROOT / path).read_text())
+        return {n.module for n in ast.walk(tree) if isinstance(n, ast.ImportFrom) and n.module}
+
+    assert not {m for m in imported("diacausal/guards/output_guards.py") if m.startswith("diacausal.llm")}
+    assert "diacausal.llm.explain" not in imported("diacausal/llm/providers/template.py") | imported("diacausal/llm/prompt_builder.py") \
+        | imported("diacausal/llm/providers/ollama.py")
+
+
+def test_the_prompt_text_sits_next_to_its_builder():
+    from diacausal.llm.prompt_builder import PROMPT
+
+    assert (ROOT / "diacausal/llm/prompt.v1.txt").read_text(encoding="utf-8") == PROMPT
+    assert not (ROOT / "diacausal_rag/prompt.v1.txt").exists()
 
 
 def test_the_split_retrieve_shim_offers_every_old_name_and_they_are_the_real_objects():
@@ -118,6 +147,16 @@ def test_the_one_root_is_the_repository_root():
 
     assert R == ROOT and (R / "pytest.ini").exists()
     assert DATA_DIR.is_dir() and WEB_DIR.is_dir() and RESULTS_DIR.is_dir() and KNOWLEDGE_DIR.is_dir()
+
+
+def test_python_dash_m_on_the_old_explain_name_forwards_to_the_new_module():
+    import subprocess
+    import sys
+
+    old = subprocess.run([sys.executable, "-m", "diacausal_rag.explain", "--help"], cwd=ROOT, capture_output=True, text=True)
+    new = subprocess.run([sys.executable, "-m", "diacausal.llm.explain", "--help"], cwd=ROOT, capture_output=True, text=True)
+    assert old.returncode == 0 and new.returncode == 0, old.stderr + new.stderr
+    assert "--backend" in old.stdout and "diacausal.llm.explain" in new.stdout
 
 
 def test_python_dash_m_on_the_old_name_forwards_to_the_new_module():

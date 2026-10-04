@@ -23,7 +23,7 @@ from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
 
 from diacausal.causal_inference.recommend import DOSE_PATTERN
 from diacausal import INTENDED_USE
-from diacausal_rag.explain import DOSE_QUESTION, NO_DOSE_NOTE
+from diacausal.llm.explain import DOSE_QUESTION, NO_DOSE_NOTE
 from diacausal.config import RAG_CONFIG_PATH as CONFIG
 from diacausal.config import ROOT, load_rag_config
 from diacausal.rag.index.bm25 import TOKEN, tokens
