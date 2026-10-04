@@ -97,7 +97,7 @@ works, and the question you are most likely to be asked.
 | 25 – 26 Sept | **Phone website** running the same engine in the browser (parity-tested against Python). **Accounts**: Supabase, authenticator MFA, admin approval. **Evidence tab** (first FDA source). | PR #13, #14; https://diacausal.netlify.app |
 | 26 Sept | **Mid-sem kit.** Report (LaTeX), slides, Gantt chart, backup video, viva sheet. | PR #15; `docs/midsem/` |
 | 26 Sept | **Engine extras**: weight change and hypoglycaemia risk (each with a 95% range), "too uncertain" abstention, printable consultation summary. Full benchmark rerun; the primary numbers are unchanged. | PR #16 |
-| 26 Sept | **Full RAG.** WHO 2018 plus seven FDA safety communications; sentence-aware chunks; dose text kept out of the index; coverage abstention; explanations in three modes (quoted / Gemini free tier / local Ollama) behind one citation checker; a 60-question test set and evaluation; the Supabase Edge Function for Gemini; evidence on every option card. | PR #16; website redeployed |
+| 26 Sept | **Full RAG.** WHO 2018 plus seven FDA safety communications; sentence-aware chunks; dose text kept out of the index; coverage abstention; explanations in two modes (quoted / local Ollama) behind one citation checker; a 60-question test set and evaluation; evidence on every option card. (An online mode built on 26 Sept was removed on 4 Oct.) | PR #16; website redeployed |
 
 **What "25% implementation" means for us.** The mentor asked for about 25%. Every core part now
 works on its own: the causal engine, the evidence search with explanations, the website with
@@ -398,7 +398,6 @@ Each part follows the same pattern: **What**, **How**, **Why**, **Where**, **Pro
   | Mode | Where | Cost | What it does |
   |---|---|---|---|
   | **Template** (default) | everywhere, offline | free | Quotes the sentences that best answer the question, each with its passage number. It cannot invent anything. |
-  | **Gemini** free tier | website, approved users only | free | Rewords the passages in plain English. It receives only the question and the passage IDs; our server rebuilds the passages. Never patient details. |
   | **Ollama** local model | laptop / hospital computer | free, offline | The same, with nothing leaving the machine. |
 
 - **Citation checker:** runs on every model answer. Each sentence must:
@@ -546,8 +545,7 @@ screen, and keep each slide under about 45 seconds unless it's the demo.
    ```
    Then open http://localhost:8080. It shows "Local copy: sign-in is switched off".
 4. **Backup B:** `docs/midsem/DiaCausal_demo.mp4` (112 s, captioned), opened and paused on the first frame.
-5. Only if the Gemini key has been set **and tested that morning**, the Gemini button may be
-   shown. Otherwise don't press it; just say what it does.
+5. There is no online-model button: the website explains by quoting the passages, entirely on the device.
 
 **Live (about 3 minutes)**
 
@@ -636,7 +634,7 @@ The detailed answers are in `docs/06_Viva_Prep.md`. These are the ones most like
 ### RAG and LLMs
 24. **What is RAG?** Retrieval-augmented generation: first *find* the relevant passages in
     approved documents, then answer *only* from them, citing each one.
-25. **Why not just ask ChatGPT or Gemini?** They can state things that aren't in any source and
+25. **Why not just ask a general chatbot?** They can state things that aren't in any source and
     can't show where each claim came from. We need every sentence traceable to a licensed page,
     and a refusal when there is nothing.
 26. **How do you stop the model inventing things?** The citation checker. Every sentence must
@@ -654,9 +652,8 @@ The detailed answers are in `docs/06_Viva_Prep.md`. These are the ones most like
 31. **Licences?** Each source has a licence row. Only confirmed, cleared sources are ingested:
     WHO under CC BY-NC-SA 3.0 IGO with attribution, and FDA texts as US government works. ADA,
     IDF and NICE are cite-only.
-32. **Does Gemini see patient data?** No. Only the question and the IDs of the passages go to our
-    server, which rebuilds the passages. Only approved, MFA-verified users can call it. The key
-    is a server secret.
+32. **Does any online AI see patient data?** No. The website has no online model: questions and
+    patient details stay on the device. (An online option existed until 4 Oct and was removed.)
 33. **Offline?** Yes. The quoted explanations need no internet, and a local model (Ollama) can
     reword them on a laptop or hospital PC (`docs/OFFLINE_INSTALL.md`).
 

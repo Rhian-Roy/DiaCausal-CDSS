@@ -177,8 +177,8 @@ Never type a threshold into `web/*.js`; no inline script or style (strict CSP in
 `web/vercel.json`). Accounts: Supabase project `diacausal` (`supabase/migrations/`, RLS, admin approval,
 TOTP); `web/auth.js` + `account.js`; Patient Details and Investigate need an approved account. **Never commit
 the Supabase key**: `web/config.json` stays `"accounts": "off"`; `scripts/web_config.py` writes the
-deploy copy only. Patient values and questions never leave the device (the Gemini button was removed in
-P07; P08 removes the Edge Function `supabase/functions/explain/` and the rest of Gemini).
+deploy copy only. Patient values and questions never leave the device (the website has no online model: P07 removed
+the button, P08 removed the Edge Function).
 `web/explain.js` mirrors `diacausal_rag/explain.py` (template + citation checker).
 Look: `design/screens-v2/` is the only design source (`handoff/HANDOFF.md`); colours, fonts and spacing come
 only from `web/styles/tokens.css` (copied from the handoff); fonts are self-hosted in `web/fonts/` (SIL OFL).
@@ -191,7 +191,7 @@ need Node, `e2e/node_modules` and Chromium or Google Chrome). Full chat app host
 | Piece | Backend | Frontend / other |
 |---|---|---|
 | Causal engine in the chat app (October) | `backend/app/pipeline/causal_engine.py` calls `diacausal_engine` on `ctx.options` only | designs 17 and 19; `contract.ts` + `schemas.py` together |
-| RAG in the chat app (built standalone in `diacausal_rag/`: licence gate, WHO 2018 + FDA S08/S19–S23, sentence-aware chunks, BM25 + TF-IDF, RRF, coverage abstention, `explain.py` template/Gemini/Ollama + citation checker, `eval/rag_gold.csv` + `evaluate`; `tests/rag` 33; website Evidence tab). Still to do: medical embedding model, reranker, doctor review of the gold set | `backend/app/pipeline/rag_retrieval.py`, `llm_explanation.py` call `diacausal_rag` | `docs/03_RAG_Build_Guide.md`; only `cleared_ingest` sources |
+| RAG in the chat app (built standalone in `diacausal_rag/`: licence gate, WHO 2018 + FDA S08/S19–S23, sentence-aware chunks, BM25 + TF-IDF, RRF, coverage abstention, `explain.py` template/Ollama + citation checker, `eval/rag_gold.csv` + `evaluate`; `tests/rag` 33; website Evidence tab). Still to do: medical embedding model, reranker, doctor review of the gold set | `backend/app/pipeline/rag_retrieval.py`, `llm_explanation.py` call `diacausal_rag` | `docs/03_RAG_Build_Guide.md`; only `cleared_ingest` sources |
 
 Each folder's README says how it connects.
 

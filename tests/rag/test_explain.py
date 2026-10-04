@@ -47,7 +47,7 @@ def test_the_template_answer_passes_its_own_citation_check(evidence, cfg):
 
 def test_no_evidence_means_no_explanation(cfg):
     ev = Retriever(ingest(), cfg).search("What is the capital of France?")
-    r = explain("What is the capital of France?", ev, "gemini", cfg, caller=lambda *a: "Paris [1].")
+    r = explain("What is the capital of France?", ev, "ollama", cfg, caller=lambda *a: "Paris [1].")
     assert r["status"] == "INSUFFICIENT_EVIDENCE" and r["sentences"] == []
 
 
@@ -55,14 +55,14 @@ def test_no_evidence_means_no_explanation(cfg):
                                "dapagliflozin 10 mg or 5 mg?", "Maximum daily dosage of gliclazide"])
 def test_a_dose_question_never_gets_an_explanation(q, cfg):
     ev = Retriever(ingest(), cfg).search(q)
-    r = explain(q, ev, "gemini", cfg, caller=lambda *a: "Start with a low dose [1].")
+    r = explain(q, ev, "ollama", cfg, caller=lambda *a: "Start with a low dose [1].")
     assert r["status"] == "INSUFFICIENT_EVIDENCE" and r["note"] == NO_DOSE_NOTE
 
 
 def test_a_good_model_answer_is_kept(evidence, cfg):
     s = sentences(evidence["passages"][0]["text"])[0]
-    r = explain(Q, evidence, "gemini", cfg, caller=lambda prompt, c: f"{s} [1]")
-    assert r["status"] == "SUCCESS" and r["backend"] == "gemini" and r["sentences"][0]["cites"] == [1]
+    r = explain(Q, evidence, "ollama", cfg, caller=lambda prompt, c: f"{s} [1]")
+    assert r["status"] == "SUCCESS" and r["backend"] == "ollama" and r["sentences"][0]["cites"] == [1]
 
 
 @pytest.mark.parametrize("answer, why", [
@@ -72,7 +72,7 @@ def test_a_good_model_answer_is_kept(evidence, cfg):
     ("Give 10 mg once daily [1].", "dose"),
 ])
 def test_a_bad_model_answer_falls_back_to_quoted_sentences(answer, why, evidence, cfg):
-    r = explain(Q, evidence, "gemini", cfg, caller=lambda prompt, c: answer)
+    r = explain(Q, evidence, "ollama", cfg, caller=lambda prompt, c: answer)
     assert r["backend"] == "template" and r["status"] == "SUCCESS"
     assert "failed the citation check" in r["note"] and why in r["note"]
 
@@ -85,10 +85,19 @@ def test_an_unreachable_model_falls_back_to_quoted_sentences(evidence, cfg):
     assert r["backend"] == "template" and "ollama unavailable" in r["note"]
 
 
-def test_gemini_without_a_key_falls_back(evidence, cfg, monkeypatch):
-    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
-    r = explain(Q, evidence, "gemini", cfg)
-    assert r["backend"] == "template" and "gemini unavailable" in r["note"]
+def test_ollama_not_running_falls_back_to_quoted_sentences(evidence, cfg):
+    """Replaces the Gemini-without-a-key test (Gemini was removed in P08): the default caller, with no
+    Ollama listening on a closed port, must give the template answer and say so."""
+    r = explain(Q, evidence, "ollama", {**cfg, "ollama_host": "http://127.0.0.1:9"})
+    assert r["backend"] == "template" and "ollama unavailable" in r["note"]
+
+
+def test_only_template_and_ollama_back_ends_exist():
+    from diacausal_rag.explain import BACKENDS, CALLERS
+
+    assert BACKENDS == ("template", "ollama") and set(CALLERS) == {"ollama"}
+    with pytest.raises(ValueError):
+        explain(Q, {"status": "SUCCESS", "passages": []}, "gem" + "ini")
 
 
 def test_the_prompt_holds_only_the_question_and_the_passages(evidence):
@@ -119,13 +128,14 @@ def test_evaluation_meets_the_bar_and_the_saved_results_are_fresh():
     assert saved == fresh, "run: python -m diacausal_rag.evaluate"
 
 
-def test_the_online_function_uses_exactly_the_same_prompt_and_rules():
-    """supabase/functions/explain/index.ts embeds prompt.v1.txt verbatim and keeps the safety checks."""
-    ts = (ROOT / "supabase/functions/explain/index.ts").read_text(encoding="utf-8")
-    embedded = ts.split("const PROMPT = `", 1)[1].split("`;", 1)[0]
-    assert embedded == (ROOT / "diacausal_rag/prompt.v1.txt").read_text(encoding="utf-8")
-    for must in ('claims(jwt).aal !== "aal2"', "profile?.approved", "GEMINI_API_KEY", "dose_question_pattern",
-                 "c.withheld", "MAX_PASSAGES = 5", "`[${i + 1}] (${c.citation.source_id}, ${c.citation.section}) ${c.text}`"):
-        assert must in ts, must
-    assert "console.log" not in ts  # the question is never logged
-    assert "AIza" not in ts  # no key in the code
+def test_the_online_model_is_gone_from_the_repository():
+    """P08 removed Gemini (code, Edge Function, key setup, config flag). Nothing may bring it back, except the
+    secret scanner (it must keep recognising a leaked Google key) and the dated plan and audit records."""
+    import subprocess
+
+    allowed = {"tests/engine/test_j_invariants.py", "docs/PLAN_2026-10.md", "docs/AUDIT_2026-10-03.md",
+               "tests/rag/test_explain.py", "tests/web/test_web.py"}
+    out = subprocess.run(["git", "grep", "-l", "-i", "-E", "AIza|gemini|generativelanguage"], cwd=ROOT, capture_output=True, text=True).stdout
+    assert {f for f in out.split() if f not in allowed} == set(), out
+    assert not (ROOT / "supabase/functions/explain").exists() and not (ROOT / "docs/GEMINI_SETUP.md").exists()
+    assert "gemini_model" not in (ROOT / "diacausal_rag/config.yaml").read_text()

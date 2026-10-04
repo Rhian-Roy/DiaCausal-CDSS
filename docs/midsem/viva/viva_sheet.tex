@@ -15,7 +15,7 @@
 \item \textbf{Hardware/software:} any 8 GB laptop; Python 3.12 + scikit-learn + FastAPI; phone website on Netlify with Supabase accounts; all free.
 \item \textbf{Timeline:} scope and design (Jul--Sep); chat app, engine, website and RAG done by 26 Sept (ahead of plan); integration, clinician review, embedding search in Oct; results frozen 16 Oct; paper and report by 30 Oct.
 \item \textbf{Design:} safety rules $\rightarrow$ propensity/overlap $\rightarrow$ AIPW/DR-learner $\rightarrow$ cost $\rightarrow$ cited evidence $\rightarrow$ clinician; audit log without patient values.
-\item \textbf{Implementation:} secure chat app (guards, CAPTCHA+MFA, patient panel, guardrails, voice, Docker; 630 tests); causal engine + benchmark + refutation + secondary outcomes; live website with MFA and approval; RAG with WHO 2018 + 7 FDA notices, quoted/Gemini/Ollama explanations and a citation checker; 201 engine/RAG/web tests.
+\item \textbf{Implementation:} secure chat app (guards, CAPTCHA+MFA, patient panel, guardrails, voice, Docker; 630 tests); causal engine + benchmark + refutation + secondary outcomes; live website with MFA and approval; RAG with WHO 2018 + 7 FDA notices, quoted/Ollama explanations and a citation checker; 201 engine/RAG/web tests.
 \item \textbf{Results:} naive bias $-0.159$ $\rightarrow$ AIPW $+0.002$; AIPW coverage 90--95\%; per-patient coverage 92.7--94.7\%; regret 0.011 vs 0.062; balance 0.70 $\rightarrow$ 0.08; refutation 9/9. RAG (60 questions): recall@5 0.933, citation precision 1.0, 0 dose leaks, abstention 0.80 (target 0.95).
 \end{enumerate}
 \h{Key words, one line each}

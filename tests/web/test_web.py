@@ -217,7 +217,7 @@ def test_browser_explanations_match_python(tmp_path):
             (py["status"], py["sentences"], py["note"]), c["question"]
         statuses.add(py["status"])
         if "answer" in c:
-            pm = explain(c["question"], ev, "gemini", cfg, caller=lambda p, cf, a=c["answer"]: a, idf=retriever.bm25.idf)
+            pm = explain(c["question"], ev, "ollama", cfg, caller=lambda p, cf, a=c["answer"]: a, idf=retriever.bm25.idf)
             assert (j["model"]["backend"], j["model"]["status"], j["model"]["sentences"]) == \
                 (pm["backend"], pm["status"], pm["sentences"]), c["answer"]
             assert ("failed the citation check" in j["model"]["note"]) == ("failed the citation check" in pm["note"])

@@ -2,12 +2,10 @@
 
     python -m diacausal_rag.explain "Can SGLT2 inhibitors cause ketoacidosis?"                 # template
     python -m diacausal_rag.explain "..." --backend ollama    # local model (laptop / hospital, offline)
-    GEMINI_API_KEY=... python -m diacausal_rag.explain "..." --backend gemini    # free online tier
 
-Three interchangeable back-ends, one rule:
+Two interchangeable back-ends, one rule:
     template  (default, offline) quotes the passage sentences that share the most words with the
               question, each with its passage number. It cannot invent anything.
-    gemini    Google's free Gemini API. Receives ONLY the question and the passages, never patient values.
     ollama    a small model running on this computer; nothing leaves the machine.
 
 Whatever a model writes goes through check_answer(): every sentence must cite a passage that was
@@ -20,7 +18,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import re
 import urllib.request
 from pathlib import Path
@@ -31,7 +28,7 @@ from diacausal_rag.ingest import load_config
 from diacausal_rag.retrieve import WITHHELD, tokens
 
 PROMPT = (Path(__file__).resolve().parent / "prompt.v1.txt").read_text(encoding="utf-8")
-BACKENDS = ("template", "gemini", "ollama")
+BACKENDS = ("template", "ollama")
 _SPLIT = re.compile(r"(?:(?<=[.!?])|(?<=\]))\s+(?=[A-Z0-9\"“(•-])")
 # The checker splits a model's answer after every citation group, and after .!? before a capital.
 _ANSWER_SPLIT = re.compile(r"(?<=\])\s+|(?<=[.!?])\s+(?=[A-Z0-9\"“(•-])")
@@ -152,23 +149,13 @@ def _post(url: str, body: dict, headers: dict, timeout: float = 60) -> dict:
         return json.loads(r.read())
 
 
-def call_gemini(prompt: str, cfg: dict) -> str:
-    key = os.environ.get("GEMINI_API_KEY")
-    if not key:
-        raise RuntimeError("GEMINI_API_KEY is not set")
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{cfg['gemini_model']}:generateContent"
-    out = _post(url, {"contents": [{"parts": [{"text": prompt}]}], "generationConfig": {"temperature": 0}},
-                {"x-goog-api-key": key})
-    return out["candidates"][0]["content"]["parts"][0]["text"]
-
-
 def call_ollama(prompt: str, cfg: dict) -> str:
     out = _post(f"{cfg['ollama_host']}/api/generate",
                 {"model": cfg["ollama_model"], "prompt": prompt, "stream": False, "options": {"temperature": 0}}, {}, 180)
     return out["response"]
 
 
-CALLERS = {"gemini": call_gemini, "ollama": call_ollama}
+CALLERS = {"ollama": call_ollama}
 
 
 def explain(question: str, evidence: dict, backend: str = "template", cfg: dict | None = None, caller=None,

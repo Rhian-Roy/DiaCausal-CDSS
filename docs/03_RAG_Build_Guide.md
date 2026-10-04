@@ -8,7 +8,7 @@
 |---|---|
 | Sources and licences | WHO 2018 (S01) + FDA S08, S19–S23 ingested; licences confirmed by the team; RSSDI-ESI 2020 (S02) still waits for its own PMC licence line |
 | PDF → sections with pages; search index | Built (`pdf_text.py`, `ingest.py`, `retrieve.py`); 78 passages |
-| Answers with citations; refuse when unsupported | Built (`explain.py`: template / Gemini / Ollama + citation checker) |
+| Answers with citations; refuse when unsupported | Built (`explain.py`: template / Ollama + citation checker) |
 | Gold set + evaluation | Built (`eval/rag_gold.csv`, `python -m diacausal_rag.evaluate`); the doctor still has to review the 20 flagged questions |
 | Connect to engine and UI | Website: Evidence tab explanation + "Evidence for this option" on each card. Chat app: not yet |
 
@@ -17,7 +17,7 @@ Results (`results/rag_eval_summary.csv`, template back-end) against the targets 
 0.800 (target ≥ 0.95, **not met**: 2 of 10 out-of-scope questions — gestational-diabetes diet and
 statins — still get passages). The coverage threshold was tuned on this same gold set, so these
 numbers are optimistic; a held-out set written by the doctor is the honest next test. Faithfulness
-for the Gemini back-end is measured once the key is set (`--backend gemini`).
+for the Ollama back-end is measured once a local model is installed (`--backend ollama`).
 
 ## What RAG does in DiaCausal
 
@@ -85,7 +85,7 @@ flowchart LR
 | Build on a large third-party RAG framework | Ready-made | Large framework; hard to enforce our citation and dose rules; harder to explain in the viva | Not used; replaced by the native `diacausal_rag` package |
 | A lean pipeline inside our Python service (about 300 lines) | Small, testable, easy to explain; enforces our rules | Has to be written (1–2 Claude Code sessions) | Recommended |
 
-**Language model options:** the Claude API (billed separately from the Pro plan), Google's Gemini API (you have Google AI Pro — check the API's free tier), or a small local model on the MacBook with Ollama (free, slower). Only synthetic or public text goes to any model — never patient data.
+**Language model options:** the Claude API (billed separately from the Pro plan), or a small local model on the MacBook with Ollama (free, slower). Only synthetic or public text goes to any model — never patient data.
 
 ## Step 4 — Claude Code prompts (use from 1 October)
 

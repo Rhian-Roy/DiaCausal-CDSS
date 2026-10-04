@@ -162,7 +162,7 @@ section that answer them, 10 out of scope, 5 dose requests). Numbers from `resul
 
 Honest notes: the retrieval thresholds were tuned on this same set, so the numbers are optimistic;
 the doctor must review the 20 flagged questions; the quoted (template) explanation is extractive, so
-its citation precision is 1.0 by construction — the checker matters for the Gemini and Ollama back-ends.
+its citation precision is 1.0 by construction — the checker matters for the Ollama back-end.
 
 ## 9. What this does *not* show
 
