@@ -10,13 +10,6 @@ from diacausal.orchestrator.context import Context
 from diacausal.tracing import stub_notice
 
 
-def input_guards(ctx: Context) -> None:
-    """P15: scope, identifier, red-flag, injection, range, length/language and dose-request checks (plan 8.6).
-    UNTIL THEN NOTHING IS CHECKED HERE: a type 1 patient, a patient not on metformin or an identifier in the
-    question all pass straight through."""
-    stub_notice("input guards", ctx.request_id)
-
-
 def query_processing(ctx: Context, question: str) -> str:
     """P16: rewrite the question for search. Today the question is searched as typed."""
     stub_notice("query processing", ctx.request_id)

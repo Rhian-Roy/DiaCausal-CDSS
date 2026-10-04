@@ -7,7 +7,7 @@ the same when a layer fails with an exception whose message contains them."""
 import json
 import logging
 
-from conftest import body
+from pipeline_helpers import body
 
 from diacausal.orchestrator import layers
 

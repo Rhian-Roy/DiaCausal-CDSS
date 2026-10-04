@@ -17,6 +17,7 @@ from diacausal.api.schemas import (CausalOutputV1, EligibleOptionsV1, EvidenceBu
                                    ScoresV1)
 from diacausal.causal_inference.recommend import DOSE_PATTERN, OutputCheckError, check_output, write_audit
 from diacausal.guards.output_guards import _usable
+from diacausal.guards import input_guards
 from diacausal.llm.explain import DOSE_QUESTION, explain
 from diacausal.orchestrator.context import Context
 from diacausal.output.formatter import build_card
@@ -46,6 +47,20 @@ def _corpus_sha() -> str:
     for p in sorted(p for p in CORPUS.iterdir() if p.suffix in (".txt", ".csv")):
         h.update(p.name.encode() + b"\0" + p.read_bytes())
     return h.hexdigest()[:10]
+
+
+# ── layer 1: input guards ────────────────────────────────────────────────────────────────────────────────────────
+
+def input_guards_layer(ctx: Context) -> None:
+    """The seven deterministic input checks of plan 8.6. All run; if any blocks, the request stops here with the
+    plain-language reason (the one that matters most first: an emergency before everything else)."""
+    results = input_guards.evaluate(ctx.request)
+    ctx.guard = input_guards.combine(results)
+    if ctx.guard.status == "BLOCK":
+        by_id = {r.checks[0].id: r for r in results}
+        order = [cid for cid in input_guards.SHOW_FIRST if by_id[cid].status == "BLOCK"]
+        problems = [{"check": cid, "code": input_guards.CODES[cid], "message": by_id[cid].blocked_reason} for cid in order]
+        raise AbstainSignal(input_guards.CODES[order[0]], result={"message": ctx.guard.blocked_reason, "problems": problems})
 
 
 # ── layer 2: rules ───────────────────────────────────────────────────────────────────────────────────────────────

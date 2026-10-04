@@ -32,9 +32,8 @@ def ask(body: AskRequestV1, request: Request) -> JSONResponse:
         card = run_pipeline(body, request.app.state.engine)
     except RequestBlocked as blocked:
         log.warning("[%s] ask: stopped by an input check reason=%s", body.request_id, blocked.code)
-        message = f"This request was stopped by an input check ({blocked.code})."
-        return JSONResponse(status_code=422, headers=headers,
-                            content=ErrorV1(message=message, problems=[]).model_dump())
+        return JSONResponse(status_code=422, headers=headers, content=ErrorV1(
+            message=blocked.message or "This request was stopped by an input check.", problems=blocked.problems).model_dump())
     except Exception as exc:  # noqa: BLE001 - answered below; the class name is all that is logged
         log.error("[%s] ask: failed error=%s", body.request_id, type(exc).__name__)
         return JSONResponse(status_code=500, headers=headers, content={

@@ -4381,7 +4381,7 @@
  "versions": {
   "engine": "0.3.0",
   "params": "0.3.0",
-  "params_sha": "49f7cd717c",
+  "params_sha": "b2e2ff46c6",
   "rules_sha": "dd3f348885",
   "cohort": "synthetic n=5000 seed=2026"
  }

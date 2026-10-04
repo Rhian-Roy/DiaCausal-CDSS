@@ -31,7 +31,7 @@ PRICES_PATH = DATA_DIR / "prices.csv"
 
 STATUSES = ("CITED", "ASSUMED-DIRECTIONAL", "TEAM-SET")
 # Sections that may only contain sourced entries (never a bare number).
-SOURCED_SECTIONS = ("generator", "engine", "display", "context")
+SOURCED_SECTIONS = ("generator", "engine", "display", "context", "guards")
 ENTRY_KEYS = {"value", "unit", "source", "status", "note"}
 
 
