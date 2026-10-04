@@ -1,6 +1,6 @@
 """Step (i): the causal engine as a web API.
 
-    uvicorn diacausal_engine.api:app --port 8001      # docs at http://localhost:8001/docs
+    uvicorn diacausal.api.main:app --port 8001      # docs at http://localhost:8001/docs (the old diacausal_engine.api:app still works)
 
 POST /api/v1/recommend   patient details in -> structured Causal Output out
 GET  /api/v1/health      is the engine up?
@@ -22,9 +22,9 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from diacausal_engine import INTENDED_USE, __version__
-from diacausal_engine.recommend import Engine, get_engine
-from diacausal_engine.schemas import CausalOutput, ErrorOut, HealthOut, RecommendRequest
+from diacausal import INTENDED_USE, __version__
+from diacausal.causal_inference.recommend import Engine, get_engine
+from diacausal.causal_inference.schemas import CausalOutput, ErrorOut, HealthOut, RecommendRequest
 
 log = logging.getLogger("diacausal.engine")
 if not log.handlers:

@@ -29,14 +29,15 @@ from pathlib import Path
 
 import numpy as np
 
-from diacausal_engine import ARMS, CONTRASTS, INTENDED_USE, __version__
-from diacausal_engine.cohort import generate_cohort
-from diacausal_engine.config import PRICES_PATH, ROOT, Params, load_params
-from diacausal_engine.dag import load_dag
-from diacausal_engine.fitting import Fitted, fit_all
-from diacausal_engine.guardrails import RuleTable, load_rules
-from diacausal_engine.propensity import overlap_check, predict, support_check
-from diacausal_engine.schemas import (
+from diacausal import INTENDED_USE, __version__
+from diacausal.config import ARMS, CONTRASTS
+from diacausal.causal_inference.cohort import generate_cohort
+from diacausal.config import PRICES_PATH, ROOT, Params, load_params
+from diacausal.causal_inference.dag import load_dag
+from diacausal.causal_inference.fitting import Fitted, fit_all
+from diacausal.guards.rules_loader import RuleTable, load_rules
+from diacausal.causal_inference.propensity import overlap_check, predict, support_check
+from diacausal.causal_inference.schemas import (
     CausalOutput,
     Comparison,
     Confidence,

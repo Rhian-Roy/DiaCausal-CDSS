@@ -1,7 +1,7 @@
 """Step (g): run the whole causal pipeline many times on fresh synthetic cohorts and grade it.
 
-    python -m diacausal_engine.benchmark            # full: 20 repeats x 5,000 patients
-    python -m diacausal_engine.benchmark --quick    # quick check: 3 repeats x 1,500 patients
+    python -m diacausal.causal_inference.benchmark            # full: 20 repeats x 5,000 patients
+    python -m diacausal.causal_inference.benchmark --quick    # quick check: 3 repeats x 1,500 patients
 
 Writes to results/ (or --out):
     benchmark_summary.csv, results_table.tex, run_info.json, refutation.csv, evalues.csv,
@@ -21,9 +21,10 @@ from pathlib import Path
 
 import numpy as np
 
-from diacausal_engine import ARMS, CONTRASTS, INTENDED_USE, __version__
-from diacausal_engine import figures as fig
-from diacausal_engine.cohort import (
+from diacausal import INTENDED_USE, __version__
+from diacausal.config import ARMS, CONTRASTS
+from diacausal.causal_inference import figures as fig
+from diacausal.causal_inference.cohort import (
     features,
     generate_cohort,
     observed_view,
@@ -31,9 +32,9 @@ from diacausal_engine.cohort import (
     true_population_effects,
     true_secondary_population,
 )
-from diacausal_engine.config import ROOT, load_params
-from diacausal_engine.dag import load_dag
-from diacausal_engine.estimators import (
+from diacausal.config import ROOT, load_params
+from diacausal.causal_inference.dag import load_dag
+from diacausal.causal_inference.estimators import (
     aipw,
     by_target,
     ipw,
@@ -43,11 +44,11 @@ from diacausal_engine.estimators import (
     s_learner,
     t_learner,
 )
-from diacausal_engine.fitting import fit_all
-from diacausal_engine.guardrails import load_rules
-from diacausal_engine.metrics import abstention_rate, balance_table, bias, coverage, pehe, policy_regret, rmse
-from diacausal_engine.propensity import predict
-from diacausal_engine.refute import e_value, refute
+from diacausal.causal_inference.fitting import fit_all
+from diacausal.guards.rules_loader import load_rules
+from diacausal.causal_inference.metrics import abstention_rate, balance_table, bias, coverage, pehe, policy_regret, rmse
+from diacausal.causal_inference.propensity import predict
+from diacausal.causal_inference.refute import e_value, refute
 
 METHODS = ("naive", "IPW", "matching", "AIPW")
 LEARNERS = ("DR-learner", "T-learner", "S-learner", "naive")

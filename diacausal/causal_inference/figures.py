@@ -17,7 +17,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 
-from diacausal_engine import ARMS, CONTRASTS  # noqa: E402
+from diacausal.config import ARMS, CONTRASTS  # noqa: E402
 
 ARM_COLOUR = {"SGLT2i": "#2a78d6", "DPP4i": "#eb6834", "SU": "#1baf7a"}
 METHOD_COLOUR = {"naive": "#8a8984", "IPW": "#2a78d6", "matching": "#eb6834", "AIPW": "#1baf7a"}

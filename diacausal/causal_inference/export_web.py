@@ -1,6 +1,6 @@
 """Export the fitted engine to the website (web/model.json) so it runs in any browser.
 
-    python -m diacausal_engine.export_web
+    python -m diacausal.causal_inference.export_web
 
 Plain English: after training, the engine only needs a few hundred numbers to answer a
 patient. They are the propensity model's coefficients, the DR-learner's formula and its
@@ -20,11 +20,12 @@ import json
 import shutil
 from pathlib import Path
 
-from diacausal_engine import ARMS, CONTRASTS, INTENDED_USE, __version__
-from diacausal_engine.config import ROOT
-from diacausal_engine.estimators import TARGETS
-from diacausal_engine.recommend import ASSUMPTIONS, DOSE_PATTERN, Engine
-from diacausal_engine.schemas import Secondary
+from diacausal import INTENDED_USE, __version__
+from diacausal.config import ARMS, CONTRASTS
+from diacausal.config import ROOT
+from diacausal.causal_inference.estimators import TARGETS
+from diacausal.causal_inference.recommend import ASSUMPTIONS, DOSE_PATTERN, Engine
+from diacausal.causal_inference.schemas import Secondary
 
 WEB = ROOT / "web"
 FIGURES = ("overlap", "love_plot", "ate_vs_truth", "cate_recovery", "calibration")
@@ -124,7 +125,11 @@ def export(engine: Engine | None = None) -> dict:
     return model
 
 
-if __name__ == "__main__":
+def main() -> None:
     m = export()
     print(f"wrote web/model.json (engine {m['versions']['engine']}, params {m['versions']['params_sha']}, "
           f"rules {m['versions']['rules_sha']}), web/results.json, web/results/*.png, web/docs/*.md")
+
+
+if __name__ == "__main__":
+    main()
