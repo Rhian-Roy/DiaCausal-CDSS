@@ -18,5 +18,5 @@ python-dotenv==1.2.3  # reads backend/.env
 # Voice (app/voice/): speech-to-text on our own server, CPU, int8
 faster-whisper==1.2.1
 ctranslate2==4.8.2
-av==18.1.0  # decodes the browser's WebM/Opus or MP4/AAC recordings
+av==19.0.0  # decodes the browser's WebM/Opus or MP4/AAC recordings
 PyYAML==6.0.3  # reads app/clinical/guardrails.v1.yaml
