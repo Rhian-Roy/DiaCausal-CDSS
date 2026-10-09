@@ -22,7 +22,7 @@ from diacausal.llm.explain import DOSE_QUESTION, explain
 from diacausal.orchestrator.context import Context
 from diacausal.output.formatter import build_card
 from diacausal.rag.ingest.licence_gate import CORPUS, ingest, load_sources
-from diacausal.rag.retrieve import query_processing
+from diacausal.rag.retrieve import query_processing, ranking
 from diacausal.rag.retrieve.hybrid import Retriever
 from diacausal.tracing import AbstainSignal
 
@@ -114,7 +114,8 @@ def retrieval_layer(ctx: Context) -> None:
     plan = registry.part_function("query processing")(ctx, ctx.request.question)
     retriever = get_retriever()
     ctx.idf = retriever.bm25.idf if retriever.chunks else None
-    raw = retriever.search(ctx.request.question, plan)  # BM25 gets the expanded sub-queries, the vector search the question
+    # BM25 gets the expanded sub-queries, the vector search the question; the patient's conditions only matter when ranking.yaml is on
+    raw = retriever.search(ctx.request.question, plan, ranking.patient_conditions(ctx.request.patient))
     ctx.retrieval = raw
     sources = load_sources()
     chunks = []
