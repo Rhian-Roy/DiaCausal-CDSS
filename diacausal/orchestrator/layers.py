@@ -124,7 +124,7 @@ def retrieval_layer(ctx: Context) -> None:
         chunks.append(EvidenceChunkV1(
             chunk_id=p["chunk_id"], source=c["title"], version=c["version"], section=c["section"],
             page=int(c["page"]) if str(c["page"]).isdigit() else None, licence=s.get("licence_as_found", "unknown"),
-            text=p["text"], scores=ScoresV1(bm25=p["scores"]["bm25"], dense=None, rrf=p["scores"]["rrf"])))
+            text=p["text"], scores=ScoresV1(bm25=p["scores"]["bm25"], dense=p["scores"].get("dense"), rrf=p["scores"]["rrf"])))
     ok = raw["status"] == "SUCCESS"
     ctx.evidence = EvidenceBundleV1(status="OK" if ok else "INSUFFICIENT_EVIDENCE", index_version=f"kb@{_corpus_sha()}",
                                     chunks=chunks, reason=None if ok else raw.get("reason"))

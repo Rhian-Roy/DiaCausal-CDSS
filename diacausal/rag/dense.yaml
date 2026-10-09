@@ -1,0 +1,31 @@
+# Dense (sentence-embedding) search settings, read by diacausal/rag/index/dense.py.
+# A file of its own, NOT diacausal/rag/config.yaml: the website's evidence file records a fingerprint of config.yaml, so any edit
+# there would change web/evidence.json, and the website keeps BM25 + TF-IDF only.
+# Same rule as config.yaml and data/params.yaml: every entry has a source and a status.
+# The flag stays false until the evaluation (python -m diacausal.rag.evaluate --dense-ablation) has been read and a model chosen.
+enabled: {value: false, source: "Group 28 team choice: dense search is off until the held-out evaluation has been read (docs/RAG_DENSE.md)", status: TEAM-SET}
+model: {value: bge-small-en-v1.5, source: "Group 28 team choice: the key of the model in `models` that is used when enabled is true", status: TEAM-SET}
+models:
+  value:
+    bge-small-en-v1.5:
+      hf_name: "BAAI/bge-small-en-v1.5"
+      query_prefix: "Represent this sentence for searching relevant passages: "
+      licence: "MIT"
+      parameters: "33.4M"
+      dimension: 384
+      max_tokens: 512
+    pubmedbert-base-embeddings:
+      hf_name: "NeuML/pubmedbert-base-embeddings"
+      query_prefix: ""
+      licence: "Apache-2.0"
+      parameters: "0.1B"
+      dimension: 768
+      max_tokens: 512
+  source: "Model cards read in October 2026: huggingface.co/BAAI/bge-small-en-v1.5 (licence MIT, 33.4M parameters, 384 dimensions, 512 tokens, the query instruction string is quoted from the card; passages need none) and huggingface.co/NeuML/pubmedbert-base-embeddings (licence Apache-2.0, 0.1B parameters, 768 dimensions, 512 tokens; no query instruction stated, so none is used)"
+  status: CITED
+window_words: {value: 250, source: "Group 28 team choice: the chunks are up to 399 words (up to 650 tokens), above the 512-token limit of both models; a 250-word window stays under it (checked at build time)", status: TEAM-SET}
+window_overlap_words: {value: 50, source: "Group 28 team choice: a fifth of a window, so a sentence cut at a window edge is whole in the next one", status: TEAM-SET}
+batch_size: {value: 16, source: "Group 28 team choice: small enough for a laptop CPU", status: TEAM-SET}
+eval_split_seed: {value: 2026, source: "Group 28 team choice: seed of the dev / held-out split of the answerable gold questions", status: TEAM-SET}
+eval_heldout_fraction: {value: 0.34, source: "Group 28 team choice: about a third of each source's answerable questions (about 15 of 45) are held out and never used to choose a model", status: TEAM-SET}
+eval_bootstrap_resamples: {value: 2000, source: "Group 28 team choice: resamples for the paired bootstrap interval of the difference", status: TEAM-SET}

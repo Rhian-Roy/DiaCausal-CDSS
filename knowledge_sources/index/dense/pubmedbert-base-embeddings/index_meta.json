@@ -1,0 +1,16 @@
+{
+ "chunk_count": 78,
+ "date": "2026-10-09",
+ "dimension": 768,
+ "library": "sentence-transformers 6.1.0",
+ "licence": "Apache-2.0",
+ "longest_window_tokens": 409,
+ "model": "NeuML/pubmedbert-base-embeddings",
+ "model_key": "pubmedbert-base-embeddings",
+ "model_revision": "b79526d6ef3645e0df4530322e266f24c829f5ef",
+ "normalised": true,
+ "query_prefix": "",
+ "window_count": 111,
+ "window_overlap_words": 50,
+ "window_words": 250
+}

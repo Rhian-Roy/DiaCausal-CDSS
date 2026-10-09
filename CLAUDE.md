@@ -251,12 +251,24 @@ lime 0.2.0.1 are pinned there and NOT in requirements-engine.txt; `shap`, `lime`
 imports without them). **Version A is a baseline for the Analysis tab only: never import it from `web/`, the API, the pipeline or
 anything a doctor sees (a test scans for it).** SHAP and LIME explain models, not causes. CI job `xai` runs `tests/xai`.
 
+## Dense search (built, P18, OFF) — see docs/RAG_DENSE.md
+
+`diacausal/rag/index/dense.py` embeds every chunk once with a local sentence-embedding model (`bge-small-en-v1.5` or
+`pubmedbert-base-embeddings`, both chosen in `diacausal/rag/dense.yaml`; MIT and Apache-2.0) and saves `embeddings.npy`,
+`chunks.jsonl`, `index_meta.json` under `knowledge_sources/index/dense/<model>/`; `hybrid.py` adds its ranking to the reciprocal
+rank fusion **only when `dense.yaml` says `enabled: true` (it is false)**. Dense search only reorders what the keyword searches
+found and never changes abstention; it is given the original question; no dose text is embedded; a stale index is an error. The
+website and `config.yaml` are untouched (own file, so `web/evidence.json` does not change). Libraries: `requirements-dense.txt`
+(torch; not needed by CI, the engine or the website). `python -m diacausal.rag.evaluate --dense-ablation` writes
+`results/rag_dense_eval.csv` and `rag_dense_paired.csv` (recall@5, MRR, nDCG@5, dev / held-out split): no clear gain yet.
+Never copy code from DiaCausal-RAG-Core.
+
 ## Not built yet — where each piece goes
 
 | Piece | Backend | Frontend / other |
 |---|---|---|
 | Causal engine in the chat app (October) | `backend/app/pipeline/causal_engine.py` calls `diacausal.causal_inference` on `ctx.options` only | designs 17 and 19; `contract.ts` + `schemas.py` together |
-| RAG in the chat app (built standalone in `diacausal/rag/` and `diacausal/llm/`: licence gate, WHO 2018 + FDA S08/S19–S23, sentence-aware chunks, BM25 + TF-IDF, RRF, coverage abstention, `explain.py` template/Ollama + citation checker, `eval/rag_gold.csv` + `evaluate`; `tests/rag` 33; website Evidence tab). Still to do: medical embedding model, reranker, doctor review of the gold set | `backend/app/pipeline/rag_retrieval.py`, `llm_explanation.py` call `diacausal_rag` | `docs/03_RAG_Build_Guide.md`; only `cleared_ingest` sources |
+| RAG in the chat app (built standalone in `diacausal/rag/` and `diacausal/llm/`: licence gate, WHO 2018 + FDA S08/S19–S23, sentence-aware chunks, BM25 + TF-IDF, RRF, coverage abstention, `explain.py` template/Ollama + citation checker, `eval/rag_gold.csv` + `evaluate`; `tests/rag` 33; website Evidence tab). Still to do: switching dense search on (built, off), reranker, doctor review of the gold set | `backend/app/pipeline/rag_retrieval.py`, `llm_explanation.py` call `diacausal_rag` | `docs/03_RAG_Build_Guide.md`; only `cleared_ingest` sources |
 
 Each folder's README says how it connects.
 
