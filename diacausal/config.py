@@ -155,5 +155,5 @@ def load_rag_config(path: Path | str = RAG_CONFIG_PATH) -> dict:
     raw = yaml.safe_load(Path(path).read_text())
     for key, entry in raw.items():
         if not entry.get("source") or entry.get("status") not in STATUSES:
-            raise ValueError(f"diacausal/rag/config.yaml: {key} needs a source and a valid status")
+            raise ValueError(f"{Path(path).name}: {key} needs a source and a valid status")
     return {k: v["value"] for k, v in raw.items()}

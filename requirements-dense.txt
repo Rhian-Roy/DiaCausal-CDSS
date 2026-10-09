@@ -1,0 +1,10 @@
+# Dense (sentence-embedding) search for the RAG, diacausal/rag/index/dense.py. OFF by default (diacausal/rag/dense.yaml).
+# On top of the engine's exact pins. torch is large, so these are NOT in requirements-engine.txt, and the website (which keeps
+# BM25 + TF-IDF) and the engine's CI job never need them. The tests use a small stand-in embedder, so CI downloads no model.
+#
+#   .venv/bin/pip install -r requirements-dense.txt
+#   .venv/bin/python -m diacausal.rag.index.dense build --model all     # rebuild the saved indexes
+-r requirements-engine.txt
+sentence-transformers==6.1.0
+transformers==5.18.0
+torch==2.14.1

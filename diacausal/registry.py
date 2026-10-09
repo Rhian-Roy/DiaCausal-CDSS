@@ -78,6 +78,7 @@ REGISTRY: tuple[Entry, ...] = (
     Entry("diacausal.rag.ingest.licence_gate", "the licence gate and ingest() (split from ingest)"),
     Entry("diacausal.rag.index", "package: the two search indexes"),
     Entry("diacausal.rag.index.bm25", "BM25 keyword search and tokens (split from retrieve)"),
+    Entry("diacausal.rag.index.dense", "optional dense (sentence-embedding) index: build, save, check, score; off by default"),
     Entry("diacausal.rag.index.tfidf", "TF-IDF vector search (split from retrieve)"),
     Entry("diacausal.rag.retrieve", "package: hybrid retrieval"),
     Entry("diacausal.rag.retrieve.hybrid", "BM25 + TF-IDF + RRF and evidence JSON (split from retrieve)"),

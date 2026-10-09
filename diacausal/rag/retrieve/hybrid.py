@@ -4,6 +4,8 @@
     vector     TF-IDF cosine similarity (diacausal.rag.index.tfidf), a placeholder for the October embedding model
     RRF        reciprocal rank fusion: score = sum over retrievers of 1 / (k + rank)
     reranker   a slot (diacausal.rag.retrieve.rerank), identity today
+    dense      OPTIONAL (diacausal/rag/dense.yaml enabled: false by default): sentence-embedding similarity, one more ranking
+               in the fusion. It only REORDERS the passages the keyword searches found and never changes abstention.
     output     {"status": "SUCCESS" | "INSUFFICIENT_EVIDENCE", "passages": [...with citations]}
 
 Passages with dose-like text are withheld: doses come only from the drug label, never from RAG.
@@ -15,7 +17,7 @@ import re
 
 from diacausal import INTENDED_USE
 from diacausal.config import load_rag_config
-from diacausal.rag.index import tfidf
+from diacausal.rag.index import dense, tfidf
 from diacausal.rag.index.bm25 import BM25, TOKEN, tokens  # noqa: F401  (TOKEN is re-exported for export_web)
 from diacausal.rag.ingest.chunking import Chunk
 from diacausal.rag.retrieve.query_processing import QueryPlan
@@ -48,6 +50,8 @@ class Retriever:
         texts = [index_text(c.text) for c in chunks]
         self.bm25 = BM25(texts, self.cfg["bm25_k1"], self.cfg["bm25_b"])
         self.vectorizer, self.matrix = tfidf.build(texts)
+        # None while dense.yaml says enabled: false (the default); the checked dense index otherwise (a stale one is an error)
+        self.dense = dense.for_retriever([c.chunk_id for c in chunks], texts)
 
     def rerank(self, question: str, candidates: list[int]) -> list[int]:
         """Slot for a cross-encoder reranker (October). Identity today."""
@@ -70,10 +74,18 @@ class Retriever:
         # passages that match neither search (both scores 0) are never shown just to fill the top k
         ranked = [i for i in sorted(fused, key=lambda i: -fused[i]) if bm[i] > 0 or vec[i] > 0]
         best = self.rerank(question, ranked)[:k]
+        gate = best  # abstention is decided from the keyword ranking alone, so dense search can never change it
+        by_dense, dense_scores = None, None
+        if self.dense is not None:
+            dense_scores = self.dense.scores(question)  # the original question, never the expansion
+            by_dense = sorted(range(len(dense_scores)), key=lambda i: -dense_scores[i])
+            fused = rrf([*by_bm, by_vec, by_dense], int(self.cfg["rrf_k"]))
+            ranked = [i for i in sorted(fused, key=lambda i: -fused[i]) if bm[i] > 0 or vec[i] > 0]  # the same candidates
+            best = self.rerank(question, ranked)[:k]
         if max(bm) < self.cfg["min_bm25_score"]:
             return self._abstain(question, "no approved passage matches this question well enough")
         q = set(tokens(question))
-        shown = set().union(*(self.bm25.tf[i].keys() for i in best))
+        shown = set().union(*(self.bm25.tf[i].keys() for i in gate))
         equivalents = plan.equivalents if plan else {}
         # a question word is covered if it, or a word its expansion added, is in the passages ("DKA" by "ketoacidosis")
         found = {w for w in q if w in shown or any(e in shown for e in equivalents.get(w, ()))}
@@ -82,12 +94,15 @@ class Retriever:
         passages = []
         for i in best:
             c = self.chunks[i]
+            scores = {"bm25": round(bm[i], 4), "vector": round(float(vec[i]), 4), "rrf": round(fused[i], 5)}
+            if dense_scores is not None:
+                scores["dense"] = round(float(dense_scores[i]), 4)
             passages.append({
                 "chunk_id": c.chunk_id,
                 "text": WITHHELD if DOSE.search(c.text) else c.text,
                 "citation": {"source_id": c.source_id, "title": c.title, "version": c.version,
                              "section": c.section, "page": c.page, "licence_bucket": c.licence_bucket},
-                "scores": {"bm25": round(bm[i], 4), "vector": round(float(vec[i]), 4), "rrf": round(fused[i], 5)},
+                "scores": scores,
             })
         return {"status": "SUCCESS", "question": question, "passages": passages, "intended_use": INTENDED_USE}
 
