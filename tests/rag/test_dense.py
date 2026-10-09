@@ -140,7 +140,8 @@ def test_with_dense_off_no_passage_carries_a_dense_score():
 
 def test_the_retrievers_public_interface_is_unchanged():
     assert str(inspect.signature(Retriever.__init__)) == "(self, chunks: 'list[Chunk]', config: 'dict | None' = None)"
-    assert str(inspect.signature(Retriever.search)) == "(self, question: 'str', plan: 'QueryPlan | None' = None) -> 'dict'"
+    assert str(inspect.signature(Retriever.search)) == (
+        "(self, question: 'str', plan: 'QueryPlan | None' = None, conditions: 'Sequence[str] | None' = None) -> 'dict'")  # P19 added the optional `conditions`
     assert str(inspect.signature(Retriever.rerank)) == "(self, question: 'str', candidates: 'list[int]') -> 'list[int]'"
 
 

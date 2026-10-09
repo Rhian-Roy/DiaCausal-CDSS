@@ -621,7 +621,7 @@
  "cleared_bucket": "cleared_ingest",
  "versions": {
   "corpus_sha": "0cf9f4045a",
-  "sources_sha": "9c6baa7237",
+  "sources_sha": "3bc1a5ac28",
   "config_sha": "772955a264"
  },
  "chunks": [

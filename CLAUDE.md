@@ -263,6 +263,18 @@ website and `config.yaml` are untouched (own file, so `web/evidence.json` does n
 `results/rag_dense_eval.csv` and `rag_dense_paired.csv` (recall@5, MRR, nDCG@5, dev / held-out split): no clear gain yet.
 Never copy code from DiaCausal-RAG-Core.
 
+## Source-aware ranking (built, P19, OFF) — see docs/RAG_RANKING.md
+
+`diacausal/rag/retrieve/ranking.py` + `diacausal/rag/ranking.yaml` (`enabled: false`; its own file so `web/evidence.json` and the
+website do not move): BM25 top 20 (per sub-query) + dense top 20 (if `dense.yaml` is on) + TF-IDF in full -> reciprocal rank fusion
+(k = 60) -> re-sort by (fusion score rounded to `fusion_round_decimals`, `authority_tier`, `india_relevance`, section match,
+patient-condition match) -> only the latest version of a source. The tiers are new columns of `knowledge_sources/sources.csv`
+(values proposed from each row's issuer and kind of document, unknowns marked UNKNOWN / unknown; Member B and the doctor must
+confirm them; never invent one). `Retriever.search(question, plan, conditions)`; `/ask` passes the patient's yes/no conditions.
+Only order changes: candidates and abstention are the keyword ranking's. Tuned on the train split of `eval/rag_gold.csv` only
+(`python -m diacausal.rag.evaluate --ranking-tune`, `--ranking-ablation`); results in `results/rag_ranking_*.csv`: no demonstrated
+gain, so it ships off. Switching it on makes Python differ from `web/evidence.js` (P27).
+
 ## Not built yet — where each piece goes
 
 | Piece | Backend | Frontend / other |

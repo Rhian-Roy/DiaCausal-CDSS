@@ -10,7 +10,7 @@ from diacausal.rag.ingest.licence_gate import CLEARED, is_confirmed, load_source
 
 OUT = ROOT / "docs" / "SOURCES.md"
 COLS = [("id", "ID"), ("title", "Source"), ("version", "Version / year"), ("bucket", "Licence bucket"),
-        ("use_in_diacausal", "Use in DiaCausal"), ("date_checked", "Checked on"), ("checked_by", "Checked by"), ("status", "Status")]
+        ("authority_tier", "Authority tier"), ("india_relevance", "India relevance"), ("use_in_diacausal", "Use in DiaCausal"), ("date_checked", "Checked on"), ("checked_by", "Checked by"), ("status", "Status")]
 
 
 def _cell(text: str) -> str:

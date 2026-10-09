@@ -1,0 +1,25 @@
+# Source-aware ranking (P19), read by diacausal/rag/retrieve/ranking.py and used by hybrid.py when `enabled` is true.
+# A file of its own, NOT diacausal/rag/config.yaml: the website's evidence file records a hash of config.yaml and the website keeps
+# the plain BM25 + TF-IDF fusion. Same rule as config.yaml: every entry has a source and a status.
+# `enabled` stays false until the held-out evaluation (python -m diacausal.rag.evaluate --ranking-ablation) has been read.
+# The tiers themselves are columns of knowledge_sources/sources.csv (authority_tier, india_relevance), not numbers here.
+enabled: {value: false, source: "Group 28 team choice: off until the held-out evaluation has been read (docs/RAG_RANKING.md)", status: TEAM-SET}
+top_n: {value: 20, source: "Member B task of 10 Oct 2026: the dense and each BM25 ranking contribute their top 20 to the fusion (the TF-IDF ranking is used in full, as before)", status: TEAM-SET}
+fusion_round_decimals: {value: 3, source: "Chosen on the TRAIN split only by python -m diacausal.rag.evaluate --ranking-tune (results/rag_ranking_tuning.csv): fusion scores are compared after rounding to this many decimals, so passages whose fused scores are within rounding count as tied and the authority, India, section and condition keys decide. null = exact comparison (the keys only break exact ties). Chosen: 3 (train nDCG@5 0.672 against 0.665 for exact and 4; 2 collapses to 0.439)", status: TEAM-SET}
+latest_version_only: {value: true, source: "Member B task of 10 Oct 2026: when two rows of sources.csv are versions of the same document (same issuer and title, different version), only the newest version's passages can be returned. No such pair exists today", status: TEAM-SET}
+authority_tier_order: {value: ["1", "2", "3", "4", "UNKNOWN"], source: "Group 28 team choice, best first: 1 guideline or recommendation of a health or professional body; 2 regulator safety communication or label; 3 government list, survey, peer-reviewed study or reference text; 4 not clinical evidence (word list, price list); UNKNOWN. The value of each source is in sources.csv and is a proposal for Member B and the doctor to confirm", status: TEAM-SET}
+india_order: {value: ["india", "global", "other_country", "unknown"], source: "Group 28 team choice, best first: written by an Indian body or about the Indian population; an international body; another country's body; not known", status: TEAM-SET}
+condition_keywords:
+  value:
+    ckd: ["kidney", "renal", "egfr", "creatinine", "glomerular filtration"]
+    heart_failure: ["heart failure"]
+    ascvd: ["cardiovascular", "heart disease", "stroke"]
+    past_pancreatitis: ["pancreatitis"]
+    past_hypo: ["hypoglycaemia", "hypoglycemia"]
+    past_dka: ["ketoacidosis"]
+  source: "Group 28 team choice: search words for each yes/no condition of the patient form (PatientV1); a passage 'matches' a condition if it contains one of its words. Search terms only, not clinical thresholds"
+  status: TEAM-SET
+tuning_grid: {value: [null, 4, 3, 2], source: "Group 28 team choice: the values of fusion_round_decimals tried on the train split", status: TEAM-SET}
+split_seed: {value: 20261010, source: "Group 28 team choice: seed of the train / held-out split of eval/rag_gold.csv", status: TEAM-SET}
+split_heldout_fraction: {value: 0.34, source: "Group 28 team choice: about a third of each stratum (answerable questions by source; out-of-scope; dose) is held out, never used to tune anything and looked at once", status: TEAM-SET}
+bootstrap_resamples: {value: 2000, source: "Group 28 team choice: resamples for the paired bootstrap interval", status: TEAM-SET}

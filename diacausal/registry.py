@@ -82,6 +82,7 @@ REGISTRY: tuple[Entry, ...] = (
     Entry("diacausal.rag.index.tfidf", "TF-IDF vector search (split from retrieve)"),
     Entry("diacausal.rag.retrieve", "package: hybrid retrieval"),
     Entry("diacausal.rag.retrieve.hybrid", "BM25 + TF-IDF + RRF and evidence JSON (split from retrieve)"),
+    Entry("diacausal.rag.retrieve.ranking", "source-aware ranking: authority tier, India relevance, section and condition match, latest version only (off by default)"),
     Entry("diacausal.rag.retrieve.query_processing", "normalise, expand abbreviations and brands, split into at most 3 sub-queries (keyword search only)"),
     Entry("diacausal.rag.retrieve.rerank", "the reranker slot (split from retrieve)"),
     Entry("diacausal.llm", "package: the cited explanation"),
