@@ -13,12 +13,15 @@ import re
 from functools import lru_cache
 
 from diacausal import registry
+from diacausal.config import load_rag_config
 from diacausal.api.schemas import (CausalOutputV1, EligibleOptionsV1, EvidenceBundleV1, EvidenceChunkV1, RuleHitV1,
                                    ScoresV1)
 from diacausal.causal_inference.recommend import DOSE_PATTERN, OutputCheckError, check_output, write_audit
 from diacausal.guards.output_guards import _usable
 from diacausal.guards import input_guards
+from diacausal.llm import prompt_builder
 from diacausal.llm.explain import DOSE_QUESTION, explain
+from diacausal.llm.providers import ollama
 from diacausal.orchestrator.context import Context
 from diacausal.output.formatter import build_card
 from diacausal.rag.ingest.licence_gate import CORPUS, ingest, load_sources
@@ -140,11 +143,30 @@ def query_processing_part(ctx: Context, question: str):
 
 # ── layer 5: explanation ─────────────────────────────────────────────────────────────────────────────────────────
 
+def json_prompt_for(ctx: Context) -> str:
+    """The section 8.9 prompt for this request (a plain version; P22 refines it)."""
+    from diacausal.output.formatter import patient_summary
+
+    excluded = [f"{h.option} ({h.rule_id})" for h in ctx.eligible.excluded] if ctx.eligible else []
+    return prompt_builder.build_json_prompt(
+        question=ctx.request.question, patient_summary=patient_summary(ctx.request, ctx.causal.bmi_category), excluded=excluded,
+        causal=prompt_builder.compact_causal(ctx.causal), drivers=ctx.drivers or {}, passages=ctx.retrieval["passages"],
+        max_claims=int(ollama.load_llm_config()["max_claims"]))
+
+
 def explanation_layer(ctx: Context) -> None:
-    """Template wording today (or the local model, which falls back to the template on any problem)."""
+    """The template writes the answer, unless the local model is switched on in BOTH places (llm.yaml `provider: ollama` and the
+    request's `mode: ollama`); then the model answers in JSON and ANY problem falls back to the template (providers/ollama.py)."""
     registry.part_function("prompt builder")(ctx)
     question = ctx.request.question
-    ctx.explanation = explain(question, ctx.retrieval, backend=ctx.request.mode, idf=ctx.idf)
+    llm_cfg = ollama.load_llm_config()
+    usable = ctx.retrieval.get("status") == "SUCCESS" and bool(_usable(ctx.retrieval["passages"]))
+    if ollama.is_enabled(llm_cfg, ctx.request.mode) and usable and not DOSE_QUESTION.search(question):
+        ctx.explanation = ollama.explain_structured(
+            question, ctx.retrieval, json_prompt_for(ctx), load_rag_config(), llm_cfg, ctx.idf,
+            number_sources=prompt_builder.number_sources(prompt_builder.compact_causal(ctx.causal), ctx.drivers or {}))
+    else:
+        ctx.explanation = explain(question, ctx.retrieval, backend="template", idf=ctx.idf)
     if ctx.explanation["status"] != "SUCCESS":
         raise AbstainSignal("DOSE_REQUEST" if DOSE_QUESTION.search(question) else "NO_SUPPORTED_CLAIM")
 

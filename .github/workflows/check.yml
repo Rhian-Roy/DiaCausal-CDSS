@@ -54,6 +54,8 @@ jobs:
         run: python -m pytest tests/test_imports.py tests/test_no_legacy_imports.py tests/test_shims.py -q
       - name: Pipeline, /api/v1/ask and console tracing (P14)
         run: python -m pytest tests/orchestrator -q
+      - name: Local model provider, prompt and benchmark script (P21; a fake Ollama server, no model)
+        run: python -m pytest tests/llm -q
       - name: Input guards (P15)
         run: python -m pytest tests/guards -q
       - uses: actions/setup-node@v7

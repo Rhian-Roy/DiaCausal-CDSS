@@ -1,0 +1,3 @@
+model_key,tag,n,usable_questions,schema_valid_pct,number_match_pct,fallback_pct,latency_p50_s,latency_p95_s,max_prompt_tokens,warmup_s,ollama_version,date,machine
+candidate_a,qwen3:4b-instruct-2507-q4_K_M,20,20,100.0,35.0,70.0,37.75,43.69,3149,27.4,0.40.0,2026-10-10,arm64 Darwin
+candidate_b,medgemma1.5:4b-it-q4_K_M,20,20,90.0,44.4,65.0,28.42,58.45,3124,36.9,0.40.0,2026-10-10,arm64 Darwin
