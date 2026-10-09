@@ -86,6 +86,24 @@ def compact(res):
          "scores": p["scores"]} for p in res["passages"]]}
 
 
+def first_difference(a, b, path=""):
+    """Where two JSON trees differ: the same keys, lengths and strings; numbers equal to 1e-12 (relative), because the last
+    digit of a float differs between platforms (the same rule as tests/web)."""
+    import math
+
+    if isinstance(a, dict) and isinstance(b, dict):
+        if a.keys() != b.keys():
+            return f"{path}: keys differ"
+        return next((d for k in a if (d := first_difference(a[k], b[k], f"{path}.{k}"))), None)
+    if isinstance(a, list) and isinstance(b, list):
+        if len(a) != len(b):
+            return f"{path}: {len(a)} vs {len(b)} items"
+        return next((d for i, (x, y) in enumerate(zip(a, b)) if (d := first_difference(x, y, f"{path}[{i}]"))), None)
+    if isinstance(a, (int, float)) and isinstance(b, (int, float)) and not isinstance(a, bool) and not isinstance(b, bool):
+        return None if math.isclose(a, b, rel_tol=1e-12, abs_tol=1e-12) else f"{path}: {a!r} vs {b!r}"
+    return None if a == b else f"{path}: {str(a)[:50]!r} vs {str(b)[:50]!r}"
+
+
 def same(a, b, tol=5e-4):
     assert (a["status"], a["reason"]) == (b["status"], b["reason"])
     assert [(p["chunk_id"], p["text_sha"], p["citation"]) for p in a["passages"]] == [(p["chunk_id"], p["text_sha"], p["citation"]) for p in b["passages"]]
@@ -130,7 +148,7 @@ def test_the_website_and_its_evidence_file_do_not_know_about_dense_search():
     from diacausal.rag.export_web import evidence_dict
 
     committed = json.loads((ROOT / "web" / "evidence.json").read_text(encoding="utf-8"))
-    assert evidence_dict() == json.loads(json.dumps(committed)), "web/evidence.json must not change"
+    assert first_difference(json.loads(json.dumps(evidence_dict())), committed) is None, "web/evidence.json must not change"
     assert not [k for k in committed if "dense" in k.lower()] and "dense" not in json.dumps(committed["config"])
     for js in (ROOT / "web").glob("*.js"):
         assert "dense" not in js.read_text(encoding="utf-8").lower(), js.name
