@@ -1,0 +1,25 @@
+# Local language-model settings (P21), read by diacausal/llm/providers/ollama.py and scripts/bench_llm.py.
+# A file of its own, NOT diacausal/rag/config.yaml: the website's evidence file records a hash of config.yaml. (config.yaml still has
+# the older `ollama_model` / `ollama_host` used only by the legacy `explain(..., caller=...)` path; this file supersedes them.)
+# Same rule as config.yaml: every entry has a source and a status. Model tags are read from here and nowhere else.
+provider: {value: template, source: "Group 28 team choice: the template writes every answer until the benchmark (scripts/bench_llm.py, docs/LLM_BENCH.md) has been read. `ollama` also needs the request to ask for mode ollama", status: TEAM-SET}
+model: {value: candidate_a, source: "Group 28 team choice: the key in `models` that is used when provider is ollama", status: TEAM-SET}
+models:
+  value:
+    candidate_a:
+      tag: "qwen3:4b-instruct-2507-q4_K_M"
+      licence: "Apache-2.0"
+      download_gb: 2.5
+    candidate_b:
+      tag: "medgemma1.5:4b-it-q4_K_M"
+      licence: "Health AI Developer Foundations terms (not stated on the Ollama page: read them before use in the report)"
+      download_gb: 3.3
+  source: "docs/PLAN_2026-10.md section 8.8 (primary: a small permissively licensed instruct model of the Qwen3 4B class; alternative: MedGemma 1.5 4B). Exact Ollama tags read from ollama.com/library/qwen3/tags and ollama.com/library/medgemma1.5/tags in October 2026; the Qwen3 licence is the Apache-2.0 text on its Ollama model page; the MedGemma terms are NOT verified"
+  status: CITED
+ollama_url: {value: "http://localhost:11434", source: "Ollama default local address (docs.ollama.com/api)", status: TEAM-SET}
+timeout_seconds: {value: 60, source: "Member C task P21: any request longer than this falls back to the template. With stream false the reply arrives all at once, so this is in effect the whole answer", status: TEAM-SET}
+temperature: {value: 0, source: "docs/PLAN_2026-10.md section 8.8; also advised by docs.ollama.com/capabilities/structured-outputs", status: TEAM-SET}
+num_ctx: {value: 4096, source: "docs/PLAN_2026-10.md section 8.8: the prompt stays under about 1,900 tokens, leaving room in 4,096", status: TEAM-SET}
+keep_alive: {value: "10m", source: "Group 28 team choice: keep the model loaded between questions so only the first one pays the load time (a cold load can exceed the timeout)", status: TEAM-SET}
+think: {value: null, source: "docs.ollama.com/api/generate: false disables thinking, null leaves the model's default. Set after testing the pulled models (docs/LLM_BENCH.md)", status: TEAM-SET}
+max_claims: {value: 4, source: "docs/PLAN_2026-10.md section 8.9: at most 4 claims", status: TEAM-SET}

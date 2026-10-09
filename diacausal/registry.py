@@ -90,6 +90,8 @@ REGISTRY: tuple[Entry, ...] = (
     Entry("diacausal.llm.prompt_builder", "the prompt sent to the local model"),
     Entry("diacausal.llm.providers", "package: the two answer writers"),
     Entry("diacausal.llm.providers.template", "offline answer that quotes passage sentences"),
+    Entry("diacausal.llm.draft", "the model's JSON draft: claims to cited sentences, the number check"),
+    Entry("diacausal.llm.golden", "the 20 golden questions and the pipeline inputs each one needs"),
     Entry("diacausal.llm.providers.ollama", "local model through Ollama"),
     Entry("diacausal.guards.output_guards", "the citation checker: sentences() and check_answer()"),
     Entry("diacausal_engine", "the 3-arm causal engine (package)"),

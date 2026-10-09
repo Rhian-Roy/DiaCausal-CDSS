@@ -275,6 +275,19 @@ Only order changes: candidates and abstention are the keyword ranking's. Tuned o
 (`python -m diacausal.rag.evaluate --ranking-tune`, `--ranking-ablation`); results in `results/rag_ranking_*.csv`: no demonstrated
 gain, so it ships off. Switching it on makes Python differ from `web/evidence.js` (P27).
 
+## Local model via Ollama (built, P21, OFF) — see docs/LLM_BENCH.md
+
+`diacausal/llm/providers/ollama.py` asks a local Ollama server for a structured answer: `POST /api/generate` with the JSON schema of
+`AnswerDraftV1` in `format`, `options {temperature 0, num_ctx 4096}`, `stream false`, a 60 s timeout (all read from
+`diacausal/llm/llm.yaml`, where `provider` is `template` by default and the two candidate model TAGS live: **never type a tag
+anywhere else**; a test greps for it). The model is used only when BOTH `llm.yaml provider: ollama` AND the request's `mode: ollama`
+say so. **Any** error, timeout, bad HTTP status, invalid JSON, schema failure, a claim that cites a passage that was not shown or is not
+supported by it, or a number that is not in the causal output (plan 8.10 check 3) falls back to `providers/template.py`; the reply
+carries `fallback: CODE` and never the model's text. The prompt is a plain version of plan 8.9 (`prompt.v2.txt`, `build_json_prompt`;
+P22 refines it). `python scripts/bench_llm.py --model candidate_a|candidate_b|--all` runs the 20 golden questions
+(`eval/llm_golden.csv`, a draft for Members B and D to review) and writes `results/llm/`. Needs Ollama running with the tags pulled
+(`ollama pull <tag from llm.yaml>`); the tests use a fake server and need neither. The website never uses a model.
+
 ## Not built yet — where each piece goes
 
 | Piece | Backend | Frontend / other |
