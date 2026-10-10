@@ -90,6 +90,7 @@ def test_the_shap_file_has_global_importance_for_every_comparison_and_the_preset
     assert len(presets) == 5 and all(any(r["feature"] == "drug (prescribing mix)" for r in data if (r["preset"], r["comparison"]) == p) for p in presets)
 
 
+@pytest.mark.slow
 def test_a_quick_rerun_reproduces_the_committed_quick_file(tmp_path):
     """Catches any change to the code, the data or the settings that would move version A's numbers. Platform tolerance:
     1e-3 (HistGradientBoosting and LIME may differ in the last digits between macOS and Linux)."""

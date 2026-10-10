@@ -1,19 +1,53 @@
-# Runs the same one-command check a teammate runs locally (scripts/check_all.py),
-# on Linux, Windows and macOS, for every push and pull request. A red cross on
-# GitHub means something broke; click it to see which [FAIL] line.
+# One command, the same one a teammate runs locally: scripts/check_all.py.
+#   part A  the chat app (backend, frontend, live servers, vignettes, real browser)
+#   part B  the engine side (engine, RAG, guards, contract, imports, no-legacy, log privacy, web parity,
+#           XAI tests, quick benchmark, quick A-D ablation, pip-audit)
+# It runs on every pull request on Linux and macOS. Windows only proves that the one-time setup works.
+# A red cross on GitHub means something broke; click it to see which [FAIL] line.
+#
+# CI NEVER DEPLOYS THE WEBSITE. The Netlify site `diacausal` is not connected to GitHub and is deployed by hand
+# (docs/DEPLOY.md section 9; each production deploy costs credits). No job here uses Netlify, a deploy hook, a deploy
+# token or `--prod`, and tests/test_ci_workflows.py fails if one is added.
 name: check
 
 on:
-  push:
   pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   check:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+      - name: One-time setup (the chat app)
+        run: python scripts/setup.py
+      - name: Install the engine's libraries, SHAP and LIME (part B)
+        run: python -m pip install --disable-pip-version-check -q -r requirements-xai.txt
+      - name: Check everything (scripts/check_all.py)
+        run: python scripts/check_all.py
+
+  # Windows proves the one-time setup works there (backend/.venv, frontend libraries); the checks themselves run on Linux and macOS.
+  setup-windows:
+    runs-on: windows-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
@@ -25,72 +59,8 @@ jobs:
           node-version: "24"
       - name: One-time setup
         run: python scripts/setup.py
-      - name: Check everything
-        run: python scripts/check_all.py
 
-  # The 3-arm causal engine (diacausal_engine/, demo/, data/rules.csv, data/params.yaml).
-  # Its own pinned requirements, so the chat app's setup above is not needed.
-  engine:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.12"
-      - name: Install the engine's libraries
-        run: python -m pip install --disable-pip-version-check -q -r requirements-engine.txt
-      - name: Engine tests
-        run: python -m pytest tests/engine -q
-      - name: RAG skeleton tests
-        run: python -m pytest tests/rag -q
-      - name: API contract tests (every example validates; openapi.json and web/types.d.ts are fresh)
-        run: python -m pytest tests/contract -q
-      - name: Registry imports and no legacy use (restructure)
-        run: python -m pytest tests/test_imports.py tests/test_no_legacy_imports.py tests/test_shims.py -q
-      - name: Pipeline, /api/v1/ask and console tracing (P14)
-        run: python -m pytest tests/orchestrator -q
-      - name: Local model provider, prompt and benchmark script (P21; a fake Ollama server, no model)
-        run: python -m pytest tests/llm -q
-      - name: Input guards (P15)
-        run: python -m pytest tests/guards -q
-      - uses: actions/setup-node@v7
-        with:
-          node-version: "24"
-      - name: Website tests (the browser engine gives the same answers as Python)
-        run: python -m pytest tests/web -q
-      - name: Quick benchmark (writes to a temporary folder)
-        run: python -m diacausal.causal_inference.benchmark --quick --out "${{ runner.temp }}/results"
-      - name: Known security problems in the engine's libraries (pip-audit)
-        run: |
-          python -m pip install --disable-pip-version-check -q pip-audit==2.9.0
-          python -m pip_audit -r requirements-engine.txt --strict --progress-spinner off
-
-  # Version A of the XAI work (diacausal/xai/baseline.py) needs SHAP and LIME, which pull numba: its own job and its own
-  # pinned file, so the engine job above stays light (docs/XAI_PLAN.md section 5.3).
-  xai:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.12"
-      - name: Install the engine's libraries plus SHAP and LIME
-        run: python -m pip install --disable-pip-version-check -q -r requirements-xai.txt
-      - name: XAI tests (version A, ground truth, metrics, committed results)
-        run: python -m pytest tests/xai -q
-      - name: Known security problems in the XAI libraries (pip-audit)
-        run: |
-          python -m pip install --disable-pip-version-check -q pip-audit==2.9.0
-          python -m pip_audit -r requirements-xai.txt --strict --progress-spinner off
-
-  # The real-browser tests need Chrome; the Linux runner has it. The matrix job above
-  # already runs everything else on Linux, Windows and macOS.
+  # The real-browser tests with their failure report kept for a week (check_all.py runs the same tests, without the report).
   browser:
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -114,23 +84,16 @@ jobs:
           path: tests/e2e/test-results/
           retention-days: 7
 
-  # Known security problems in the libraries we depend on. Separate from `check` so a
-  # newly published advisory does not hide a real test failure (and the other way round).
+  # The page's npm libraries. (The Python libraries are audited by check_all.py, part B.) Separate from `check`, so a newly
+  # published advisory does not hide a real test failure (and the other way round).
   audit:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.12"
       - uses: actions/setup-node@v7
         with:
           node-version: "24"
-      - name: Python libraries (pip-audit)
-        run: |
-          python -m pip install --disable-pip-version-check -q pip-audit==2.9.0
-          python -m pip_audit -r backend/requirements-dev.txt --strict --progress-spinner off
       - name: Page libraries (npm audit)
         working-directory: frontend
         run: npm audit --omit=dev --audit-level=high

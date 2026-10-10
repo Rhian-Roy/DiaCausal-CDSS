@@ -112,6 +112,7 @@ def test_browser_engine_gives_the_same_answers_as_python(engine, model, tmp_path
 
 
 @pytest.mark.skipif(NODE is None, reason="Node.js is needed to run web/engine.js")
+@pytest.mark.slow
 def test_browser_evidence_levels_and_abstain_cards_are_the_same_as_python(engine, model, tmp_path):
     """P24: web/engine.js evidenceLevel / abstainCard / countCitations give exactly Python's level, reason and card text, on
     the engine's own options for many patients and on a grid around every cut-off."""
@@ -713,6 +714,7 @@ def test_five_tabs_in_order_and_old_links_still_work():
 
 @pytest.mark.skipif(NODE is None or _chromium() is None or not (ROOT / "tests/e2e/node_modules/playwright").exists(),
                     reason="needs Node, Playwright (tests/e2e/node_modules) and a Chromium binary")
+@pytest.mark.slow
 def test_every_screen_built_here_renders_at_desktop_and_phone_size(tmp_path):
     """Screens 01-03, 06-24 (P27 adds 09-12, 18, 22, 23, 24), 25 and 26 at 1280 and 390 px: a screenshot each, the design's
     content rules on the visible HTML, no sideways scrolling on a phone, and what each must show."""

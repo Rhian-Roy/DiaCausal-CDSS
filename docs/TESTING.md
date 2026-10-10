@@ -13,17 +13,24 @@ report one.
 
 (First time on a computer? Do the setup in [SETUP.md](SETUP.md) first.)
 
-It takes a few seconds and prints `[PASS]` or `[FAIL]` per line, ending with
-`ALL 43 CHECKS PASSED`. Those 43 lines are: 4 tool checks, 1 line for all 392 backend
-tests, 1 line for all 238 frontend tests, build, lint, 33 live checks, the evaluation vignettes and 1 real-browser line. It starts its
-own copy of the app on spare ports, so it does not disturb servers you already have
-running.
+It prints `[PASS]` or `[FAIL]` per line, ending with `ALL 62 CHECKS PASSED`, then where the time went.
+
+- **Part A, the chat app (43 lines, about a minute; `--part chat`):** 4 tool checks, 1 line for all 392 backend
+  tests, 1 line for all 238 frontend tests, build, lint, 33 live checks, the evaluation vignettes and 1 real-browser line.
+  It starts its own copy of the app on spare ports, so it does not disturb servers you already have running.
+- **Part B, the engine side (19 lines; `--part engine`):** 3 tool checks; one line per test group (engine, RAG, guards, contract,
+  imports, no legacy use, CI workflows, pipeline and local-model provider, log privacy, web parity, XAI); the quick benchmark and
+  the quick A–D ablation (both written to a temporary folder, never to `results/`); pip-audit on `requirements-engine.txt`,
+  `requirements-xai.txt` and `backend/requirements-dev.txt`.
+- `--fast` skips the tests marked `@pytest.mark.slow` (15 s or more each: the benchmark fixtures, the screenshot run, a real model);
+  `--no-audit` skips pip-audit, which needs the internet.
 
 It needs **Google Chrome** installed (section 8 drives it).
 
-**On GitHub, automatically:** `.github/workflows/check.yml` runs the same two commands
-(setup, then check) on Linux, Windows and macOS for every push and pull request, plus the
-real-browser tests and a security audit (`pip-audit`, `npm audit`) on Linux. See the
+**On GitHub, automatically:** `.github/workflows/check.yml` runs setup, then `scripts/check_all.py`, on Linux and macOS
+for every pull request (and every push to main); Windows runs the setup only. It also keeps the real-browser tests with their
+failure report, and `npm audit` for the page. **CI never deploys the website** (`tests/test_ci_workflows.py`: no workflow may
+mention Netlify, a deploy hook, a deploy token or `--prod`; `web/netlify.toml` skips every Git-triggered build). See the
 green tick or red cross next to each commit, or the **Actions** tab.
 
 ### Which check proves which requirement

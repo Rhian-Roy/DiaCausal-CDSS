@@ -2,6 +2,9 @@
 [build]
   publish = "."
   command = ""
+  # Skip every Git-triggered build: this site is deployed by hand (docs/DEPLOY.md section 9), so even if it were ever connected
+  # to GitHub, a push or a pull request would not cost production-deploy credits. a `netlify deploy` of the folder runs no build.
+  ignore = "exit 0"
 
 [[headers]]
   for = "/*"
