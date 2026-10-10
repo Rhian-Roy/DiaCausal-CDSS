@@ -21,7 +21,7 @@ design/screens-v2/handoff/HANDOFF.md section 7. The contract is `AnswerCardV1` i
 | 8 | Abstain card | `abstain[]`: `option`, `why`, `propensity`, `threshold` | evidence level Insufficient | Exactly the text below |
 | 9 | Cited evidence | `claims[]` (at most 4, each with `citations`: chunk ID and label) and the sources list | retrieval (licence-cleared passages, shown verbatim on request) | Quoted sentences, not advice |
 | 10 | Model record | `mode`, `question_context`, `limitations`, `fallback_used`, `failed_checks`, `fallback_reason`, `dropped_claims` | P21–P23 | The website never runs a model: always `template`, no fallback |
-| 11 | The end | `decision`, `intended_use` | fixed | "The clinician decides." and the intended-use sentence, verbatim |
+| 11 | The end | `intended_use`, `decision` | fixed | The intended-use sentence, verbatim, then "The clinician decides." as the very last line (P27) |
 
 The comparator is DPP-4 inhibitor (`comparator`). Hypoglycaemia is the engine's own secondary outcome (% with its 95% interval), not a
 category from a table.

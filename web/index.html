@@ -23,6 +23,7 @@
   <script src="./card.js" defer></script>
   <script src="./evidence.js" defer></script>
   <script src="./explain.js" defer></script>
+  <script src="./guards.js" defer></script>
   <script src="./auth.js" defer></script>
   <script src="./app.js" defer></script>
   <script src="./account.js" defer></script>
@@ -92,23 +93,26 @@
 <section id="view-evidence" class="view docmain" aria-labelledby="ev-h" hidden>
 <div class="doc">
   <div class="stack"><h1 id="ev-h">Investigate</h1>
-    <p class="lede">Search the licence-cleared sources. DiaCausal shows the passages as stored, with their citation, and
-      quotes the sentences that answer the question. It never invents an answer and never shows doses. Your question stays on this device.</p></div>
-  <form id="ask" class="searchbox" role="search">
-    <label class="sr-only" for="q">Question</label>
-    <input class="input" id="q" name="q" type="search" enterkeyhint="search" autocomplete="off" maxlength="300" placeholder="e.g. Can metformin be used with reduced kidney function?">
-    <button type="submit" class="btn btn--primary">Search the evidence</button>
+    <p class="lede">Search the licence-cleared sources directly. Every passage is shown as stored, with its source, version, section, page
+      and licence. Nothing here is generated, and your search stays on this device.</p></div>
+  <form id="ask" class="card card--flat" role="search">
+    <label class="field__label" for="q">Search the evidence</label>
+    <div class="searchbox"><input class="input" id="q" name="q" type="search" enterkeyhint="search" autocomplete="off" maxlength="500" placeholder="e.g. Metformin and reduced kidney function">
+      <button type="submit" class="btn btn--primary"><svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg> Search</button></div>
+    <div class="chips" role="group" aria-label="Example searches">
+      <button type="button" class="chip" data-ask="Can metformin be used with reduced kidney function (eGFR)?">Metformin and kidney function</button>
+      <button type="button" class="chip" data-ask="Is ketoacidosis a risk with SGLT2 inhibitors?">SGLT2 inhibitors and ketoacidosis</button>
+      <button type="button" class="chip" data-ask="Do saxagliptin and alogliptin increase the risk of heart failure?">DPP-4 inhibitors and heart failure</button>
+      <button type="button" class="chip" data-ask="Sulfonylureas and hypoglycaemia risk">Sulfonylureas and hypoglycaemia</button>
+    </div>
   </form>
-  <div class="chips" role="group" aria-label="Example questions">
-    <button type="button" class="chip" data-ask="Can metformin be used with reduced kidney function (eGFR)?">Metformin and kidney function</button>
-    <button type="button" class="chip" data-ask="When should metformin be stopped before contrast imaging?">Contrast imaging</button>
-    <button type="button" class="chip" data-ask="lactic acidosis risk">Lactic acidosis</button>
-    <button type="button" class="chip" data-ask="What is the WHO second-line treatment after metformin?">WHO second-line</button>
-    <button type="button" class="chip" data-ask="Is ketoacidosis a risk with SGLT2 inhibitors?">SGLT2i and ketoacidosis</button>
-    <button type="button" class="chip" data-ask="Do saxagliptin and alogliptin increase the risk of heart failure?">Gliptins and heart failure</button>
-    <button type="button" class="chip" data-ask="How much does glimepiride cost in India?">Not in the sources</button>
+  <div class="invgrid">
+    <details class="card card--flat sidebox" id="ev-side" open data-phone-closed>
+      <summary><h3>Sources in the search</h3><svg class="icon chev" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <div id="ev-sources"></div>
+    </details>
+    <section id="ev-out" class="stack" aria-label="Results" aria-live="polite"></section>
   </div>
-  <div id="ev-out" class="stack" aria-live="polite"></div>
   <details class="card card--flat">
     <summary>How the evidence search works</summary>
     <ol class="steps">
@@ -116,31 +120,35 @@
       <li><strong>Passages.</strong> Each document is cut into passages of about 400 words that never cross a section, each labelled with source, version, section and page.</li>
       <li><strong>Two searches.</strong> BM25 finds exact words (“eGFR”); a vector search finds similar wording (TF-IDF today).</li>
       <li><strong>Fusion.</strong> Reciprocal rank fusion merges the two rankings; the best 5 passages are kept.</li>
-      <li><strong>Abstain or cite.</strong> If nothing matches well enough the answer is “insufficient evidence”; passages with dosing text are withheld.</li>
-      <li><strong>Explain.</strong> The best-matching sentences are quoted with their passage numbers.</li>
+      <li><strong>Abstain or cite.</strong> If nothing matches well enough the result is “insufficient evidence”; passages with dosing text are withheld.</li>
+      <li><strong>Checked first.</strong> The same seven input checks as the server run on your search before anything is searched; a blocked search is not kept.</li>
     </ol>
   </details>
-  <section class="card card--flat"><h2>Sources in the search</h2>
-    <div class="scroll" id="ev-sources"></div></section>
 </div>
 <footer class="footer"><p>Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.</p></footer>
 </section>
 
-<!-- ───────────── Analysis (today's benchmark until P27 builds 24) ───────────── -->
+<!-- ───────────── Analysis (screen 24: versions A-D, then the causal engine's own benchmark) ───────────── -->
 <section id="view-results" class="view docmain" aria-labelledby="res-h" hidden>
 <div class="doc">
-  <div class="stack"><h1 id="res-h">Analysis</h1>
-    <p class="lede">Does the method work? Synthetic benchmark: the true effects are planted, so the estimates can be checked.</p>
+  <div class="stack"><div class="row"><h1 id="res-h">Analysis</h1><span class="badge badge--example"><svg class="icon c-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><path d="M12 7.6h.01"/></svg> Synthetic benchmark</span></div>
+    <p class="lede">How four versions of DiaCausal compare on a synthetic India-calibrated benchmark where the true effects are known. This tests
+      whether the methods recover a planted truth. It says nothing about real-world drug effects.</p></div>
+  <section class="card card--flat"><h2>Versions A–D compared</h2>
+    <div class="tablewrap" id="xai-table"></div>
+    <p class="legend" id="xai-legend">A: a predictor explained with SHAP and LIME, no causal adjustment (never shown to a doctor). B: the causal engine.
+      C: B with exact SHAP drivers of its own estimate. D: C with the drivers steering the evidence search and the answer checks.
+      Each value is the mean over the benchmark's synthetic cohorts with its 95% interval. B's numbers repeat under C and D because they explain the
+      same estimate. No version is marked “best”: the table is for comparison, not ranking.</p></section>
+  <div class="charts" id="xai-charts"></div>
+  <section class="card card--flat chart" id="xai-lime"></section>
+  <div class="stack"><h2>The causal engine on its own</h2>
     <p class="lede" id="res-lead"></p></div>
   <div class="tiles" id="tiles"></div>
   <section class="card card--flat"><h2>Average effects: bias and 95% coverage</h2><div class="scroll" id="res-table"></div></section>
   <section class="card card--flat"><h2>Refutation tests</h2><div class="scroll" id="ref-table"></div></section>
   <section class="card card--flat"><h2>95% interval coverage by evidence level</h2><div class="scroll" id="lvl-table"></div>
     <p class="field__hint">Every test patient and every option the safety rules leave, with the level its estimate gets (interval width and propensity; no search runs here). Insufficient estimates are never shown to a doctor; they are scored to show what was withheld.</p></section>
-  <section class="card card--flat"><h2>Versions A to D: what each layer adds</h2>
-    <p class="field__hint">A: a predictor explained with SHAP and LIME, no causal adjustment (never shown to a doctor). B: the causal engine. C: B with exact SHAP drivers of its own estimate. D: C with the drivers steering the evidence search and the answer checks. 20 synthetic cohorts; mean with its 95% interval. B's numbers repeat under C and D because they explain the same estimate.</p>
-    <div class="scroll" id="xai-table"></div>
-    <div id="xai-figures" class="stack"></div></section>
   <div id="figures" class="stack"></div>
 </div>
 <footer class="footer"><p>Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.</p></footer>

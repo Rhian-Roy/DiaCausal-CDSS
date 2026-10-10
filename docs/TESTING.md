@@ -182,7 +182,7 @@ benchmark and `pip-audit` on Linux and macOS. `scripts/check_all.py` is unchange
 Regenerate after changing a model: `.venv/bin/python scripts/export_openapi.py && bash scripts/make_types.sh`
 (the second needs Node and internet the first time: `npx` fetches `openapi-typescript@7.13.0`).
 
-**Website** (`python -m pytest tests/web -q`, 26 tests, about 90 s; needs Node, and Chromium or Google Chrome for the two browser tests):
+**Website** (`python -m pytest tests/web -q`, 30 tests, about 90 s; needs Node, and Chromium or Google Chrome for the two browser tests):
 
 | Requirement | Proved by (`tests/web/test_web.py`) |
 |---|---|
@@ -200,12 +200,14 @@ Regenerate after changing a model: `.venv/bin/python scripts/export_openapi.py &
 | No account key in git (`config.json` says accounts off; the deploy script refuses to write into `web/`) | *no_account_key_is_committed* |
 | The account code touches only the `profiles` table and two functions, never patient fields | *account_code_never_sends_patient_details* |
 | Account database: row-level security, no direct writes, admin actions need the authenticator code, no clinical columns | *accounts_database_is_locked_down* |
-| Works on an iPhone-sized screen: red, amber and grey cards, team details, Investigate answers with FDA citations and abstains when it should, local copy says sign-in is off, no sideways scrolling | *the_site_works_on_an_iphone_sized_screen* (skips without Chromium or Google Chrome; get it with `npx playwright install chromium` in `e2e/`, [SETUP.md step 3](SETUP.md#3-one-time-setup)) |
+| Works on an iPhone-sized screen: red, amber and grey cards, team details, Investigate answers with FDA citations and abstains when it should, local copy says sign-in is off, no sideways scrolling; P27: a cite number opens the drawer as a bottom sheet and Esc closes it, an emergency question shows notice 11, the Analysis charts are drawn, the sources list starts folded | *the_site_works_on_an_iphone_sized_screen* (skips without Chromium or Google Chrome; get it with `npx playwright install chromium` in `e2e/`, [SETUP.md step 3](SETUP.md#3-one-time-setup)) |
 | The design package passes its own checker (`design/screens-v2/handoff/check_screens.py`) | *the_design_package_passes_its_own_checker* |
 | The site's text keeps the design's content rules: no single-drug instruction, GLP-1, ADA, dose prompt, microphone or header badge; intended-use sentence twice; no placeholders; no online-model button | *web_text_keeps_the_screens_content_rules* |
 | Colours, fonts and spacing only from `tokens.css`; fonts self-hosted with their OFL licences | *tokens_and_self_hosted_fonts_are_the_only_style_source* |
 | Five tabs in order; old links (`#try`, `#evidence`, `#results`, `#learn`) still work | *five_tabs_in_order_and_old_links_still_work* |
-| Screens 01–03, 06–08, 13–16, 20, 25, 26 and today's answer render at 1280 and 390 px: a screenshot each, the content rules on what is visible, no sideways scrolling, and the right message on each (sign-in uses a fake account service) | *every_screen_built_here_renders_at_desktop_and_phone_size* (needs Chromium or Google Chrome, like the row above) |
+| Screens 01–03, 06–24 (P27 adds 09–12, 18, 22, 23 and 24), 25 and 26 render at 1280 and 390 px: a screenshot each, the content rules on what is visible, no sideways scrolling, and the right message on each (sign-in uses a fake account service). Notices 09–12: the right notice, and after a blocked question the page made no request, stored nothing and left the message box empty; 09 never shows the identifier. 18: a dialog with focus inside, source, version, section, page, licence and date checked. 22/23: passages as stored with the five labels, no answer card, a link to Patient Details; the insufficient state with why and what to do. 24: the A–D table, three SVG charts with a table view each, no images. Answer cards end with the intended-use line, then "The clinician decides." | *every_screen_built_here_renders_at_desktop_and_phone_size* (needs Chromium or Google Chrome, like the row above) |
+| `web/guards.json` matches a fresh export; `web/guards.js` gives Python's seven results, shown message and code on 184 questions (the 47 shared examples, the 60 RAG gold questions and 77 edge cases), with the patient form, without it (Investigate), and with 10 patient-form variants; every guard blocks at least once | *guards_json_is_fresh*, *browser_guards_give_the_same_results_as_python* |
+| The page runs the guards before anything else and never puts a question in storage, the URL or a request | *a_blocked_question_is_never_sent_or_kept* |
 
 ## Part 2 — check by eye in a real browser (about 10 minutes)
 

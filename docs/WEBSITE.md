@@ -19,9 +19,9 @@ send the link, show the QR code (About tab), or press **Share this website**.
 
 | Tab | Sign-in? | What it shows |
 |---|---|---|
-| Patient Details | approved account | Screens 13–16 and 20 of `design/screens-v2/`: the patient panel (units, Asian-Indian BMI category, out-of-range messages, 3 example patients), a summary strip, the six loading stages, then the answer card (P24, docs/ANSWER_FORMAT.md): screens 17 (a leader), 21 (no clear difference) and 19 (insufficient evidence), with the effects table, evidence levels and the abstain card; a message box that answers from the licence-cleared passages on this device |
-| Investigate | approved account | **The RAG part.** Ask a question; it shows the best passages of licence-cleared sources with citations and scores, or "insufficient evidence"; the sources in the search |
-| Analysis | open | Benchmark numbers (bias, 95% coverage, refutation) and the five figures, until P27 builds screen 24 |
+| Patient Details | approved account | Screens 09–21 of `design/screens-v2/`: the patient panel (units, Asian-Indian BMI category, out-of-range messages, 3 example patients), a summary strip, the six loading stages, then the answer card (P24, docs/ANSWER_FORMAT.md): screens 17 (a leader), 21 (no clear difference) and 19 (insufficient evidence), with the effects table, evidence levels, drivers and the abstain card; each cite number opens the evidence drawer (18). A message box that answers from the licence-cleared passages on this device; the seven input guards run first and a blocked question shows notice 09 (identifier), 10 (out of scope), 11 (emergency) or 12 (cannot answer as written) |
+| Investigate | approved account | **The RAG part** (screens 22 and 23). Search the licence-cleared sources; each passage is shown exactly as stored with source, version, section, page and licence, with "Copy citation" and "Open source"; or "Insufficient evidence" with why and what to do. Passages only: the three options are in Patient Details. The input guards run on the search too |
+| Analysis | open | Screen 24: versions A–D on the synthetic benchmark (table with 95% intervals), SHAP of A beside SHAP of C, and LIME stability, drawn as SVG with "Show values as a table"; then the causal engine's own benchmark (bias, 95% coverage, refutation, evidence-level coverage, five figures) |
 | Guide | open | Screen 25: intro, problem, solution, workflow, cautions, limitations, advantages; "Methods (for reviewers)" holds "Every idea, explained simply" and "Results in plain English" |
 | About | open | Screen 26: team and guide, what it is and is not, privacy, accounts, Add to Home Screen steps, QR code, versions |
 
@@ -97,7 +97,13 @@ fails if a key is ever committed.
 - **Explanation:** `web/explain.js` (mirror of `diacausal_rag/explain.py`) quotes the sentences that
   best answer the question, each with its passage number. Nothing leaves the device: the website has no online model.
 - **Evidence fusion:** the answer card's "Cited evidence" and each option's evidence level use the licence-cleared
-  passages about that drug class (`web/card.js` counts them; Investigate shows the same card when a patient is filled in).
+  passages about that drug class (`web/card.js` counts them). Investigate shows the passages alone (P27).
+- **Input guards:** `web/guards.js` (mirror of `diacausal/guards/input_guards.py`, data in `web/guards.json` from
+  `python -m diacausal.guards.export_web`) runs the same seven checks as `/api/v1/ask` before any search. A blocked question is not
+  searched, sent or stored; a question holding an identifier is not even shown back. Tests compare both on 184 questions.
+- **Evidence drawer:** a cite number opens the passage as stored, with source, version, section, page, licence and the date the licence
+  was checked (`knowledge_sources/sources.csv` `date_checked`; the index has no per-passage retrieval date). "Report a mismatch" copies a
+  short report (passage ID, source, versions; no patient details) for the team: the website has no server to send it to.
 - **Viva sentence:** "The website runs the exact same fitted causal model and the exact same
   evidence search in the browser; tests check them against Python on 155 patients and 40
   questions, so the phone and the server always agree."
@@ -107,7 +113,8 @@ fails if a key is ever committed.
 ```bash
 .venv/bin/python -m diacausal_engine.export_web   # after an engine change: model.json, results, figures, docs
 .venv/bin/python -m diacausal_rag.export_web      # after a corpus or RAG change: evidence.json
-.venv/bin/python -m pytest tests/web -q            # 26 tests; fails if either file is stale
+.venv/bin/python -m diacausal.guards.export_web   # after a guard, word-list or params.yaml guards change: guards.json
+.venv/bin/python -m pytest tests/web -q            # 30 tests; fails if any of these files is stale
 ```
 
 Then deploy a copy of `web/` with the account settings written in:

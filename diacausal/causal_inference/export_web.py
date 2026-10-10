@@ -30,7 +30,6 @@ from diacausal.causal_inference.schemas import Secondary
 
 WEB = ROOT / "web"
 FIGURES = ("overlap", "love_plot", "ate_vs_truth", "cate_recovery", "calibration")
-XAI_FIGURES = ("ablation_chart", "shap_A_vs_C")  # P26: the A-D chart and the side-by-side SHAP charts (results/xai/)
 DOCS = {"causal-engine.md": ROOT / "docs/explain/07-causal-engine.md",
         "results-summary.md": ROOT / "docs/RESULTS_SUMMARY.md"}
 
@@ -110,8 +109,21 @@ def results_dict() -> dict:
     ablation_csv = ROOT / "results/xai_ablation.csv"
     ablation = list(csv.DictReader(ablation_csv.open())) if ablation_csv.exists() else []
     return {"summary": rows, "refutation": ref, "evalues": ev, "evidence_levels": levels, "xai_ablation": ablation,
+            "xai_charts": xai_charts(),
             "run": {k: info[k] for k in ("reps", "n_patients", "n_test_patients", "seconds",
                                          "refutation_checks_passed", "true_population_effects")}}
+
+
+def xai_charts() -> dict:
+    """The numbers behind the Analysis tab's SVG charts (screen 24, P27), as the benchmark wrote them: mean |SHAP| per feature
+    for version A and version C (results/xai_ablation_run_info.json, SGLT2i vs DPP-4i) and LIME's top-3 stability across seeds
+    (results/xai/lime_stability.csv). The website draws them; it computes nothing."""
+    info_file = ROOT / "results/xai_ablation_run_info.json"
+    lime_file = ROOT / "results/xai/lime_stability.csv"
+    info = json.loads(info_file.read_text()) if info_file.exists() else {}
+    lime = list(csv.DictReader(lime_file.open())) if lime_file.exists() else []
+    return {"shap_A_vs_C": info.get("shap_A_vs_C", []), "shap_comparison": "SGLT2i-DPP4i",
+            "reps": info.get("reps"), "lime_stability": lime}
 
 
 def copy_figures(width: int = 1100) -> None:
@@ -120,7 +132,6 @@ def copy_figures(width: int = 1100) -> None:
     out = WEB / "results"
     out.mkdir(parents=True, exist_ok=True)
     sources = [ROOT / "results/figures" / f"{name}.png" for name in FIGURES]
-    sources += [ROOT / "results/xai" / f"{name}.png" for name in XAI_FIGURES if (ROOT / "results/xai" / f"{name}.png").exists()]
     for src in sources:
         name = src.stem
         img = Image.open(src).convert("RGB")
