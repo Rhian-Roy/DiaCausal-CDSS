@@ -168,6 +168,11 @@ class Engine:
         d["female"] = 1 if d.pop("sex") == "female" else 0
         return {k: float(v) for k, v in d.items()}
 
+    def feature_vector(self, patient: PatientIn) -> list[float]:
+        """The patient's 12 model features, in the order of the DAG's adjustment set (what the DR-learner reads)."""
+        row = self._row(patient)
+        return [row[c] for c in self.adjustment]
+
     def rule_verdicts(self, patient: PatientIn):
         """What data/rules.csv says about each option for this patient (the same call recommend() makes first)."""
         return self.rules.apply(self._row(patient))

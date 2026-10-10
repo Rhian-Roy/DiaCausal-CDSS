@@ -389,3 +389,6 @@ body.auth{min-height:100dvh;display:flex;flex-direction:column}
 .basis .srcentry summary{cursor:pointer;min-height:44px;display:flex;align-items:center}
 .basis .srcentry .passage__text{margin:0 0 var(--s2)}
 .intended-line{margin:0}
+/* "What drives this estimate" as an expander (P25) */
+.drivers > summary{cursor:pointer;list-style:revert;min-height:44px;display:flex;align-items:center}
+.drivers > summary h3{display:inline;margin:0}

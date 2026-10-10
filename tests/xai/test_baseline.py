@@ -195,9 +195,22 @@ def test_version_a_is_not_used_by_the_website_the_api_or_the_pipeline():
         for path in folder.rglob("*"):
             if path.suffix in {".py", ".js", ".html", ".json", ".ts", ".tsx", ".toml", ".yaml"} and "node_modules" not in path.parts and ".venv" not in path.parts and path.is_file():
                 scanned += 1
-                text = path.read_text(encoding="utf-8", errors="ignore")
+                # version C (diacausal/xai/cate_shap.py: exact SHAP of the causal estimate, P25) is the one part of diacausal.xai the
+                # pipeline may use; any other reference to diacausal.xai (version A, the benchmarks) still fails
+                text = path.read_text(encoding="utf-8", errors="ignore").replace("diacausal.xai.cate_shap_benchmark", "BANNED-diacausal.xai")
+                text = text.replace("from diacausal.xai import cate_shap", "").replace("diacausal.xai.cate_shap", "")
                 assert not [w for w in banned if w in text], f"{path.relative_to(ROOT)} refers to version A"
     assert scanned > 100, f"the scan looked at only {scanned} files"
+
+
+def test_version_c_which_the_pipeline_uses_never_loads_version_a_or_shap():
+    import subprocess
+    import sys
+
+    code = ("import sys, diacausal.xai.cate_shap, diacausal.orchestrator.layers; "
+            "bad=[m for m in ('diacausal.xai.baseline', 'diacausal.xai.cate_shap_benchmark', 'shap', 'lime') if m in sys.modules]; assert not bad, bad")
+    r = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, cwd=ROOT)
+    assert r.returncode == 0, r.stderr[-500:]
 
 
 def test_importing_version_a_does_not_load_shap_lime_or_matplotlib():

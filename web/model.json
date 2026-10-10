@@ -4391,11 +4391,76 @@
   "DPP4i": "DPP-4i",
   "SU": "Sulfonylurea"
  },
+ "xai": {
+  "method": "exact SHAP of the final linear stage: coefficient x (value - cohort mean); base value = cohort average effect",
+  "max_drivers": 3,
+  "driver_rule": "95% interval of the contribution excludes zero, ranked by absolute contribution",
+  "explained_targets": [
+   "SGLT2i-DPP4i",
+   "SU-DPP4i",
+   "SGLT2i-SU"
+  ],
+  "labels": {
+   "age": {
+    "text": "age",
+    "unit": " years",
+    "kind": "continuous"
+   },
+   "female": {
+    "text": "female sex",
+    "kind": "yes_no"
+   },
+   "duration_years": {
+    "text": "diabetes duration",
+    "unit": " years",
+    "kind": "continuous"
+   },
+   "hba1c": {
+    "text": "starting HbA1c",
+    "unit": "%",
+    "kind": "continuous"
+   },
+   "egfr": {
+    "text": "kidney function (eGFR)",
+    "unit": " mL/min/1.73m\u00b2",
+    "kind": "continuous"
+   },
+   "bmi": {
+    "text": "BMI",
+    "unit": " kg/m\u00b2",
+    "kind": "continuous"
+   },
+   "ascvd": {
+    "text": "established heart disease",
+    "kind": "yes_no"
+   },
+   "hf": {
+    "text": "heart failure",
+    "kind": "yes_no"
+   },
+   "hypo_history": {
+    "text": "past hypoglycaemia",
+    "kind": "yes_no"
+   },
+   "dka_history": {
+    "text": "past diabetic ketoacidosis",
+    "kind": "yes_no"
+   },
+   "pancreatitis_history": {
+    "text": "past pancreatitis",
+    "kind": "yes_no"
+   },
+   "low_income": {
+    "text": "cost is a major concern",
+    "kind": "yes_no"
+   }
+  }
+ },
  "still_see": "What you can still see: cited guideline passages (Investigate tab).",
  "versions": {
   "engine": "0.3.0",
   "params": "0.3.0",
-  "params_sha": "cd05c9cab6",
+  "params_sha": "6d9b4de98d",
   "rules_sha": "dd3f348885",
   "cohort": "synthetic n=5000 seed=2026"
  }

@@ -43,6 +43,10 @@ def _effects(causal: CausalOutputV1, insufficient: set[str]) -> list[EffectRowV1
     return rows
 
 
+def _estimated(causal: CausalOutputV1, option: str) -> bool:
+    return any(o.arm == option and o.status == "estimate" for o in causal.options)
+
+
 def retrieval_abstained(evidence: EvidenceBundleV1 | None) -> bool:
     return evidence is None or evidence.status != "OK"
 
@@ -93,7 +97,8 @@ def build_card(*, request: AskRequestV1, causal: CausalOutputV1, eligible: Eligi
     return AnswerCardV1(
         request_id=request.request_id, mode=reply.get("backend", request.mode), question=request.question,
         patient_summary=patient_summary(request, causal.bmi_category), comparator=COMPARATOR,
-        claims=_claims(reply, evidence, labels), effects=_effects(causal, insufficient), drivers=drivers, evidence_levels=levels,
+        claims=_claims(reply, evidence, labels), effects=_effects(causal, insufficient),
+        drivers={o: d for o, d in (drivers or {}).items() if d and o not in insufficient and _estimated(causal, o)}, evidence_levels=levels,
         question_context=reply.get("question_context"), limitations=reply.get("limitations"),
         fallback_used=reply.get("fallback") is not None, failed_checks=reply.get("failed_checks", []),
         fallback_reason=reply.get("fallback"), dropped_claims=reply.get("dropped_claims", 0),

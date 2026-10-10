@@ -14,7 +14,7 @@ from functools import lru_cache
 
 from diacausal import registry
 from diacausal.config import load_rag_config
-from diacausal.api.schemas import (CausalOutputV1, EligibleOptionsV1, EvidenceBundleV1, EvidenceChunkV1, RuleHitV1,
+from diacausal.api.schemas import (CausalOutputV1, DriverV1, EligibleOptionsV1, EvidenceBundleV1, EvidenceChunkV1, RuleHitV1,
                                    ScoresV1)
 from diacausal.causal_inference.recommend import DOSE_PATTERN, OutputCheckError, check_output, write_audit
 from diacausal.guards.output_guards import _usable
@@ -30,6 +30,7 @@ from diacausal.rag.ingest.licence_gate import CORPUS, ingest, load_sources
 from diacausal.rag.retrieve import query_processing, ranking
 from diacausal.rag.retrieve.hybrid import Retriever
 from diacausal.tracing import AbstainSignal, guard_notice
+from diacausal.xai import cate_shap
 
 
 class RuleOrderViolation(RuntimeError):
@@ -104,6 +105,16 @@ def causal_layer(ctx: Context) -> None:
     ctx.drivers = registry.part_function("shap drivers")(ctx)
     if result.applicable == "NOT_APPLICABLE":
         raise AbstainSignal("NOT_APPLICABLE")
+
+
+def shap_drivers_part(ctx: Context) -> dict[str, list[DriverV1]]:
+    """Part of the causal layer (P25): exact SHAP drivers of each option's estimate against DPP-4i (diacausal/xai/cate_shap.py),
+    only for options with an estimate (and only when DPP-4i has one). Up to `xai.max_drivers` CLEAR drivers each, with their 95%
+    interval. They also go onto the causal output's options. Drivers describe the estimate, never a cause."""
+    raw = cate_shap.explain_option_drivers(ctx.engine, ctx.patient, ctx.causal)
+    drivers = {option: [DriverV1(**d) for d in rows] for option, rows in raw.items()}
+    ctx.causal = ctx.causal.model_copy(update={"options": [o.model_copy(update={"drivers": drivers.get(o.arm, [])}) for o in ctx.causal.options]})
+    return drivers
 
 
 # ── layer 4: retrieval ───────────────────────────────────────────────────────────────────────────────────────────

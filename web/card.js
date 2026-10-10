@@ -76,6 +76,19 @@
         propensity: byOverlap ? o.confidence.propensity : null,
         threshold: byOverlap ? model.evidence_level.insufficient_propensity_below : null };
     });
+    // Drivers (P25): for each option shown with an estimate, its comparison against DPP-4i (only when DPP-4i has one too): up to
+    // model.xai.max_drivers CLEAR drivers (95% interval of the contribution excludes zero). Drivers of the estimate, never causes.
+    const drivers = {};
+    const shownRow = Object.fromEntries(effects.map((e) => [e.option, e.status === "ESTIMATED"]));
+    if (shownRow[COMPARATOR] && Engine.explainEffect && model.xai) {
+      for (const o of result.options) {
+        if (o.arm === COMPARATOR || !shownRow[o.arm]) continue;
+        const rows = Engine.effectDrivers(model, Engine.explainEffect(model, patient, `${o.arm}-${COMPARATOR}`)).map((c) => ({
+          schema_version: "1.0", feature: c.feature, value: c.value, contribution: Engine._internals.round3(c.phi),
+          ci95: [Engine._internals.round3(c.ci_low), Engine._internals.round3(c.ci_high)] }));
+        if (rows.length) drivers[o.arm] = rows;
+      }
+    }
     const claims = (opts.sentences || []).slice(0, 4).map((s) => ({
       schema_version: "1.0", text: s.text,
       citations: s.cites.map((n) => ({ schema_version: "1.0", chunk_id: passages[n - 1].chunk_id, label: label(passages[n - 1].citation) })),
@@ -84,7 +97,7 @@
       schema_version: "1.0", request_id: result.request_id, mode: "template",
       question: opts.question || "Compare the three options for this patient.",
       patient_summary: patientSummary(patient, result.bmi_category), comparator: COMPARATOR,
-      claims, question_context: null, limitations: null, effects, drivers: {}, evidence_levels: levels,
+      claims, question_context: null, limitations: null, effects, drivers, evidence_levels: levels,
       excluded: result.options.flatMap((o) => ruleHits(o, "EXCLUDE")),
       cautions: result.options.filter((o) => o.status !== "excluded").flatMap((o) => ruleHits(o, "CAUTION")),
       abstain, fallback_used: false, failed_checks: [], fallback_reason: null, dropped_claims: 0,

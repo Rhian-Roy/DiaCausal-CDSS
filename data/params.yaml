@@ -37,6 +37,7 @@ sources:
   IHSG_2017: "International Hypoglycaemia Study Group. Glucose concentrations of less than 3.0 mmol/L (54 mg/dL) should be reported in clinical trials. Diabetes Care 2017;40(1):155-157 (level 2 hypoglycaemia); the team's trigger is this value, not the paper's advice for a clinic"
   TEAM_WORKSHEET: "Group 28 team choice; the value to replace it is an outstanding row of docs/research/DiaCausal_parameter_extraction_worksheet.xlsx"
   PLAUSIBILITY: "Group 28 plausibility limits (typing-slip catcher, not clinical thresholds), identical to backend/app/patient_ranges.py"
+  XAI_PLAN: "docs/XAI_PLAN.md sections 3.5 and 3.7 (P25): the answer card shows up to this many CLEAR drivers per comparison (95% interval of the contribution excludes zero), largest first; the plain-words labels are for Member D and the collaborating doctor to read through (wording only)"
   PLAN_8_11: "docs/PLAN_2026-10.md section 8.11 (evidence levels: Insufficient / Low / Moderate; High never on synthetic data). The cut-offs are the team's, for Members A and D and the collaborating doctor to review"
 
 # ── The three options (all added to metformin) ───────────────────────────────
@@ -234,6 +235,29 @@ engine:
     evalue_smd_to_log_rr: {value: 0.91, unit: "-", source: VANDERWEELE_DING_2017, status: CITED, note: "approximate conversion of a standardised mean difference to a log risk ratio"}
   max_interval_width: {value: 1.5, unit: percentage points, source: TEAM, status: TEAM-SET, note: "if this patient's 95% range for an option is wider than this, show 'insufficient evidence (too uncertain)' instead; to confirm with the collaborating doctor"}
   second_stage: {value: "linear", unit: "-", source: KENNEDY_2023, status: TEAM-SET, note: "DR-learner second stage: OLS with HC3 robust errors"}
+
+# ── Drivers of the estimate (version C, P25; diacausal/xai/cate_shap.py, web/engine.js explainEffect) ──────────────
+# A driver describes the ESTIMATE (it is larger or smaller for patients with that detail), never a cause.
+xai:
+  max_drivers: {value: 3, unit: drivers per comparison, source: XAI_PLAN, status: TEAM-SET, note: "never padded with drivers whose interval includes zero; none clear -> the card says so"}
+  labels:
+    value:
+      age: {text: "age", unit: " years", kind: continuous}
+      female: {text: "female sex", kind: yes_no}
+      duration_years: {text: "diabetes duration", unit: " years", kind: continuous}
+      hba1c: {text: "starting HbA1c", unit: "%", kind: continuous}
+      egfr: {text: "kidney function (eGFR)", unit: " mL/min/1.73m²", kind: continuous}
+      bmi: {text: "BMI", unit: " kg/m²", kind: continuous}
+      ascvd: {text: "established heart disease", kind: yes_no}
+      hf: {text: "heart failure", kind: yes_no}
+      hypo_history: {text: "past hypoglycaemia", kind: yes_no}
+      dka_history: {text: "past diabetic ketoacidosis", kind: yes_no}
+      pancreatitis_history: {text: "past pancreatitis", kind: yes_no}
+      low_income: {text: "cost is a major concern", kind: yes_no}
+    unit: "-"
+    source: XAI_PLAN
+    status: TEAM-SET
+    note: "the same words as the patient panel; wording only, no number"
 
 # ── Evidence level of each estimate (docs/PLAN_2026-10.md section 8.11; diacausal/causal_inference/evidence_level.py) ──
 # Insufficient: propensity below `insufficient_propensity_below`, or the 95% interval wider than `insufficient_width_above`, or the
