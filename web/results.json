@@ -2449,6 +2449,141 @@
    "n_reps": "0"
   }
  ],
+ "xai_charts": {
+  "shap_A_vs_C": [
+   {
+    "feature": "egfr",
+    "A": 0.0156257,
+    "C": 0.09923065295076423,
+    "true_modifier": true
+   },
+   {
+    "feature": "hba1c",
+    "A": 0.0307105,
+    "C": 0.05906009064043124,
+    "true_modifier": true
+   },
+   {
+    "feature": "female",
+    "A": 0.0,
+    "C": 0.03506233709829672,
+    "true_modifier": false
+   },
+   {
+    "feature": "age",
+    "A": 0.00247884,
+    "C": 0.030432484700488153,
+    "true_modifier": false
+   },
+   {
+    "feature": "low_income",
+    "A": 0.00320091,
+    "C": 0.025574348369520068,
+    "true_modifier": false
+   },
+   {
+    "feature": "duration_years",
+    "A": 0.00291317,
+    "C": 0.011946861834967046,
+    "true_modifier": false
+   },
+   {
+    "feature": "dka_history",
+    "A": 0.0,
+    "C": 0.008692190567559578,
+    "true_modifier": false
+   },
+   {
+    "feature": "ascvd",
+    "A": 4.62821e-05,
+    "C": 0.007990686872210277,
+    "true_modifier": false
+   },
+   {
+    "feature": "bmi",
+    "A": 0.000733689,
+    "C": 0.0078250744461949,
+    "true_modifier": false
+   },
+   {
+    "feature": "pancreatitis_history",
+    "A": 0.0,
+    "C": 0.005925443843663169,
+    "true_modifier": false
+   },
+   {
+    "feature": "hypo_history",
+    "A": 0.0,
+    "C": 0.0038652786853753214,
+    "true_modifier": false
+   },
+   {
+    "feature": "hf",
+    "A": 0.0,
+    "C": 0.0001434752360967591,
+    "true_modifier": false
+   }
+  ],
+  "shap_comparison": "SGLT2i-DPP4i",
+  "reps": 20,
+  "lime_stability": [
+   {
+    "preset": "typical",
+    "comparison": "SGLT2i-DPP4i",
+    "option_a": "SGLT2i",
+    "option_b": "DPP4i",
+    "n_seeds": "10",
+    "lime_top3_jaccard": "1",
+    "lime_top_weight_cv": "0.012361",
+    "top_feature": "hba1c",
+    "mean_abs_weight_top": "0.0561092"
+   },
+   {
+    "preset": "typical",
+    "comparison": "SU-DPP4i",
+    "option_a": "SU",
+    "option_b": "DPP4i",
+    "n_seeds": "10",
+    "lime_top3_jaccard": "1",
+    "lime_top_weight_cv": "0.00700553",
+    "top_feature": "hba1c",
+    "mean_abs_weight_top": "0.0887968"
+   },
+   {
+    "preset": "typical",
+    "comparison": "SGLT2i-SU",
+    "option_a": "SGLT2i",
+    "option_b": "SU",
+    "n_seeds": "10",
+    "lime_top3_jaccard": "1",
+    "lime_top_weight_cv": "0.0140097",
+    "top_feature": "hba1c",
+    "mean_abs_weight_top": "0.0326876"
+   },
+   {
+    "preset": "egfr40_pancreatitis",
+    "comparison": "SU-DPP4i",
+    "option_a": "SU",
+    "option_b": "DPP4i",
+    "n_seeds": "10",
+    "lime_top3_jaccard": "0.9",
+    "lime_top_weight_cv": "0.00624799",
+    "top_feature": "hba1c",
+    "mean_abs_weight_top": "0.0888246"
+   },
+   {
+    "preset": "older_hypo",
+    "comparison": "SU-DPP4i",
+    "option_a": "SU",
+    "option_b": "DPP4i",
+    "n_seeds": "10",
+    "lime_top3_jaccard": "1",
+    "lime_top_weight_cv": "0.00793134",
+    "top_feature": "hba1c",
+    "mean_abs_weight_top": "0.0860275"
+   }
+  ]
+ },
  "run": {
   "reps": 20,
   "n_patients": 5000,

@@ -1,6 +1,8 @@
 /*
  * DiaCausal website — page logic. The maths is in engine.js; every number it uses is in
- * model.json. Screens follow design/screens-v2 (Patient Details 13–16 and 20, Guide 25, About 26).
+ * model.json. Screens follow design/screens-v2 (Patient Details 09–21, Investigate 22–23, Analysis 24, Guide 25, About 26).
+ * Every question is checked by guards.js (the seven input guards) before anything else; a blocked one is never searched,
+ * sent or kept.
  * Research prototype for clinician evaluation; not a marketed medical device;
  * not for unsupervised clinical use. The clinician decides.
  */
@@ -29,6 +31,7 @@ const YES_NO = ["ascvd", "hf", "dka_history", "pancreatitis_history", "t1d", "lo
 let MODEL = null;
 let RESULTS = null;
 let EVIDENCE = null; // web/evidence.json, loaded the first time it is needed
+let GUARD = null; // the seven input guards (guards.js + guards.json); null until loaded, and then nothing is searched
 let AUTH = null; // accounts controller (auth.js); null on a local copy without web/config.json
 let fromExample = false; // the panel holds example data (badge "Example data")
 const $ = (sel) => document.querySelector(sel);
@@ -69,11 +72,18 @@ const ICON_PATHS = {
   safe: ["M7.5 12.5l3 3 6-6.5"],
   warn: ["M12 3.5l9.5 16.5h-19z", "M12 10v4.5", "M12 17.4h.01"],
   lead: ["M5 19V9", "M12 19V5", "M19 19v-7"],
+  hidden: ["M3 3l18 18", "M10.6 6.3A9.7 9.7 0 0 1 12 6.2c5 0 8.5 3.6 9.5 5.8a12 12 0 0 1-3.1 3.9",
+    "M6.4 8.1A12.3 12.3 0 0 0 2.5 12c1 2.2 4.5 5.8 9.5 5.8 1.4 0 2.7-.3 3.8-.8", "M9.9 10.2a3 3 0 0 0 4.2 4.2"],
+  unclear: ["M20.5 12.6c0 3.6-3.8 6.5-8.5 6.5-1 0-2-.1-2.9-.4L3.5 20.5l1.6-4A6.6 6.6 0 0 1 3.5 12c0-3.6 3.8-6.5 8.5-6.5 2 0 3.9.5 5.3 1.5",
+    "M14.5 9.5l-5 5", "M9.5 9.5l5 5"],
+  search: ["M20 20l-4.2-4.2"],
+  external: ["M14 4h6v6", "M20 4l-9 9", "M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"],
 };
 function icon(name, size = 22, cls = "") {
   const el = svg("svg", { class: `icon ${cls}`.trim(), width: size, height: size, viewBox: "0 0 24 24", fill: "none",
     stroke: "currentColor", "stroke-width": "2.3", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" });
   if (["waiting", "clock", "info", "cross", "safe"].includes(name)) el.append(svg("circle", { cx: 12, cy: 12, r: name === "waiting" ? 8.5 : 9 }));
+  if (name === "search") el.append(svg("circle", { cx: 11, cy: 11, r: 6.5 }));
   if (name === "lock") el.append(svg("rect", { x: 4, y: 10, width: 16, height: 10.5, rx: 2 }));
   if (name === "copy") el.append(svg("rect", { x: 9, y: 9, width: 11, height: 11, rx: 2 }));
   for (const d of ICON_PATHS[name] || []) el.append(svg("path", name === "running" ? { d, class: "spin" } : { d }));
@@ -299,6 +309,40 @@ function compare() {
   setTimeout(next, STAGE_MS);
 }
 
+// ── Input guards and their notices (screens 09–12; diacausal/guards/input_guards.py, mirrored in guards.js) ─────
+/** The panel's patient in the API's names, for the guards. The panel is for patients on metformin and has no glucose field. */
+function guardPatient(p) {
+  return p ? { age: p.age, type1: Boolean(p.t1d), on_metformin: true, duration_years: p.duration_years, hba1c_pct: p.hba1c, egfr: p.egfr, bmi: p.bmi } : null;
+}
+
+/** The seven checks on a question (patient null: Investigate, the question alone). If the checks could not load, nothing runs. */
+function checkQuestion(q, patient) {
+  if (!GUARD) return { status: "BLOCK", shown: "unavailable", blocked_reason: "The input checks could not load, so nothing was searched. Reload the page and try again." };
+  return GUARD.run(q, patient);
+}
+
+/** Notice 09 (identifier), 10 (out of scope), 11 (emergency) or 12 (cannot answer as written), from the guard's fixed message.
+ *  The message never repeats what was typed. */
+function guardNotice(check) {
+  const parts = check.blocked_reason.replace(/^Cannot answer as written\.\s*/, "").split(/(?<=\.)\s+(?=[A-Z])/);
+  if (check.shown === "red_flag") {
+    return h("div", { class: "emergency", role: "alert" }, h("div", { class: "emergency__bar" }, icon("stop", 26), " Emergency"),
+      h("div", { class: "emergency__body" }, h("p", { class: "emergency__lead" }, parts.slice(0, -1).join(" ") || parts[0]),
+        parts.length > 1 ? h("p", {}, parts[parts.length - 1]) : null));
+  }
+  const [kind, glyph, word, lines] = check.shown === "identifier" ? ["check", icon("hidden", 28, "c-check"), "Identifier removed — not sent", parts]
+    : check.shown === "scope" ? ["info", icon("info", 28, "c-pine"), "Out of scope", [parts.slice(0, -1).join(" "), parts[parts.length - 1]]]
+      : ["plain", icon("unclear", 28), "Cannot answer as written", parts];
+  return h("div", { class: `msgnotice msgnotice--${kind}`, role: "status", "data-guard": check.shown },
+    glyph, h("div", { class: "stack" }, h("span", { class: "msgnotice__word" }, word), ...lines.filter(Boolean).map((t) => h("p", {}, t))));
+}
+
+/** What the thread shows for a blocked question: the question (never one holding an identifier) and the notice. */
+function blockedTurn(thread, q, check) {
+  const said = check.shown === "identifier" ? "[Not shown: it contained a patient identifier, so it was removed and not sent.]" : q;
+  thread.append(h("section", { class: "turn" }, h("span", { class: "who" }, "You asked"), h("p", {}, said)), guardNotice(check));
+}
+
 // ── The answer card (AnswerCardV1, screens 17, 19 and 21; docs/ANSWER_FORMAT.md) ───────────────
 const armName = (arm) => MODEL.arms.find((a) => a.arm === arm).name;
 const pct = (x) => `${signed(x, 2)} %`;
@@ -487,22 +531,91 @@ function abstainCards(card) {
     h("p", {}, `Why: ${n.why}.`), h("p", {}, MODEL.still_see), h("p", {}, `The clinician decides. ${card.intended_use}`)));
 }
 
-/** Cited evidence: the quoted sentences with their citation markers, then every cited passage, verbatim on request. */
+/** Cited evidence: the quoted sentences with their citation markers, then every cited passage. Each number opens the
+ *  evidence drawer (screen 18), where the passage is shown exactly as stored. */
 function citedEvidence(card, passages) {
-  const sources = h("div", { class: "basis" }, h("strong", {}, "Sources cited"));
-  const entries = passages.map((p, i) => {
-    const d = h("details", { class: "srcentry", id: `src-${card.request_id}-${i + 1}` },
-      h("summary", {}, `${i + 1}. ${window.DiaCausalCard.label(p.citation)} — “${p.citation.section}”`),
-      h("p", { class: "passage__text" }, p.text));
-    return d;
-  });
-  const open = (n) => { const d = entries[n - 1]; if (d) { d.open = true; d.scrollIntoView({ block: "nearest" }); d.querySelector("summary").focus(); } };
-  sources.append(...entries, h("p", { class: "small" }, `Estimates: DiaCausal causal engine ${card.versions.engine}, synthetic India-calibrated cohort, params ${card.versions.params_sha}, rules ${card.versions.rules_sha}.`));
+  const open = (n) => openEvidence(n, passages[n - 1]);
+  const sources = h("div", { class: "basis" }, h("strong", {}, "Sources cited"),
+    passages.map((p, i) => h("p", { class: "srcline" }, citeButton(i + 1, open), ` ${window.DiaCausalCard.label(p.citation)} — “${p.citation.section}”`)),
+    h("p", { class: "small" }, `Estimates: DiaCausal causal engine ${card.versions.engine}, synthetic India-calibrated cohort, params ${card.versions.params_sha}, rules ${card.versions.rules_sha}.`));
   const number = Object.fromEntries(passages.map((p, i) => [p.chunk_id, i + 1]));
   const list = card.claims.length
     ? h("ul", { class: "trade" }, card.claims.map((c) => h("li", {}, `“${c.text}”`, ...c.citations.map((x) => citeButton(number[x.chunk_id], open)))))
     : h("p", { class: "sub" }, "No passage sentence is quoted for this answer.");
-  return [h("h3", {}, "Cited evidence"), list, h("p", { class: "small muted" }, "Sentences quoted from licence-cleared sources, not advice."), sources];
+  return [h("h3", {}, "Cited evidence"), list, h("p", { class: "small muted" }, "Sentences quoted from licence-cleared sources, not advice. Tap a number to read the passage."), sources];
+}
+
+// ── The evidence drawer (screen 18): one passage exactly as stored, with where it came from ─────────────────────
+let drawerReturn = null;
+const sourceOf = (id) => (EVIDENCE && EVIDENCE.sources.find((x) => x.id === id)) || {};
+const pageText = (page) => (page && page !== "?" ? String(page) : "Web page (no page numbers)");
+
+/** Source, version, section, page and licence of a passage, as recorded in the index and the licence register. */
+function citationMeta(c, withChecked) {
+  const src = sourceOf(c.source_id);
+  const rows = [["Source", `${c.source_id} · ${src.issuer ? `${src.issuer}, ` : ""}${c.title}`], ["Version", c.version || "not recorded"],
+    ["Section", `§ ${c.section}`], ["Page", pageText(c.page)], ["Licence", src.licence_as_found || "not recorded"]];
+  if (withChecked) rows.push(["Checked", `Licence checked ${src.date_checked || "(date not recorded)"} · index ${EVIDENCE.versions.corpus_sha}`]);
+  return h("dl", { class: "meta" }, rows.flatMap(([k, v]) => [h("dt", {}, k), h("dd", {}, v)]));
+}
+
+/** A short report for the team: passage ID, source and versions. No patient detail and no question is included. */
+function mismatchReport(passage) {
+  const c = passage.citation, v = EVIDENCE.versions, m = MODEL.versions;
+  return ["DiaCausal evidence mismatch report", `Passage: ${passage.chunk_id}`,
+    `Source: ${c.source_id}, ${c.title}, ${c.version}, § ${c.section}, page ${c.page}`,
+    `Index: corpus ${v.corpus_sha}, sources ${v.sources_sha}, settings ${v.config_sha}`,
+    `Engine: ${m.engine}, params ${m.params_sha}, rules ${m.rules_sha}`,
+    "What does not match (write it here; do not add patient details):"].join("\n");
+}
+
+function openEvidence(n, passage) {
+  if (!passage) return;
+  const opener = document.activeElement;
+  closeEvidence();
+  drawerReturn = opener;
+  const c = passage.citation;
+  const close = h("button", { class: "iconbtn", type: "button", "aria-label": "Close evidence" }, icon("cross", 22));
+  const inv = h("button", { class: "btn btn--ghost", type: "button" }, icon("search", 20), " Open in Investigate");
+  const report = h("button", { class: "btn btn--ghost", type: "button" }, "Report a mismatch");
+  const status = h("div", { class: "stack", role: "status" });
+  const drawer = h("aside", { class: "drawer noprint", id: "drawer", role: "dialog", "aria-modal": "true", "aria-labelledby": "ev-title" },
+    h("div", { class: "drawer__head" }, h("div", { class: "stack" }, h("span", { class: "who" }, `Evidence ${n}`), h("h2", { id: "ev-title" }, c.title)), close),
+    citationMeta(c, true), h("h3", {}, "Retrieved passage"), h("blockquote", { class: "passage" }, passage.text),
+    h("p", { class: "field__hint" }, "Shown exactly as stored. If it does not support the claim it is attached to, report it."),
+    h("div", { class: "row" }, inv, report), status);
+  const scrim = h("div", { class: "scrim noprint", id: "scrim" });
+  document.body.append(scrim, drawer);
+  close.addEventListener("click", closeEvidence);
+  scrim.addEventListener("click", closeEvidence);
+  inv.addEventListener("click", () => { closeEvidence(); showInInvestigate(passage); });
+  report.addEventListener("click", async () => {
+    const text = mismatchReport(passage);
+    try {
+      await navigator.clipboard.writeText(text);
+      status.replaceChildren(h("p", { class: "field__hint" }, "Report copied: passage ID, source and versions, no patient details. Paste it into a message to the team."));
+    } catch {
+      status.replaceChildren(h("p", { class: "field__hint" }, "Copy this report and send it to the team:"), h("pre", {}, text));
+    }
+  });
+  drawer.addEventListener("keydown", (e) => { // Esc closes; Tab stays inside the drawer
+    if (e.key === "Escape") { e.preventDefault(); closeEvidence(); return; }
+    if (e.key !== "Tab") return;
+    const items = [...drawer.querySelectorAll("button, a[href], pre")].filter((el) => !el.hidden);
+    const first = items[0], last = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
+  close.focus();
+}
+
+function closeEvidence() {
+  const d = $("#drawer");
+  if (!d) return;
+  d.remove();
+  $("#scrim")?.remove();
+  if (drawerReturn && drawerReturn.isConnected) drawerReturn.focus();
+  drawerReturn = null;
 }
 
 /** Draws one AnswerCardV1. `result` is the engine's output (for the rule messages); `passages` are the cited passages. */
@@ -545,8 +658,8 @@ function renderCard(card, into, { result, passages = [], patient = null }) {
   printBtn.addEventListener("click", () => window.print());
   out.append(h("div", { class: "row" }, printBtn),
     h("details", { class: "noprint" }, h("summary", {}, "Answer card (AnswerCardV1, JSON)"), h("pre", {}, JSON.stringify(card, null, 1))),
-    h("div", { class: "decides" }, icon("check", 24, "c-pine"), h("p", {}, "The clinician decides.")),
-    h("p", { class: "field__hint intended-line" }, card.intended_use));
+    h("p", { class: "field__hint intended-line" }, card.intended_use),
+    h("div", { class: "decides" }, icon("check", 24, "c-pine"), h("p", {}, "The clinician decides.")));
   return out;
 }
 
@@ -625,6 +738,13 @@ async function askInThread(question) {
   if (!q) return;
   const thread = $("#thread");
   if (thread.querySelector(".thread-intro")) thread.replaceChildren();
+  const check = checkQuestion(q, guardPatient(readyPatient()));
+  if (window.matchMedia("(max-width: 900px)").matches) $("#pd").open = false; // on a phone, fold the panel so the reply is in view
+  if (check.status === "BLOCK") { // never searched, sent or kept; the message box is already empty
+    blockedTurn(thread, q, check);
+    thread.lastElementChild.previousElementSibling.scrollIntoView({ block: "start" });
+    return;
+  }
   thread.append(h("section", { class: "turn" }, h("span", { class: "who" }, "You asked"), h("p", {}, q)));
   const box = h("section", { class: "answer" });
   thread.append(box);
@@ -704,36 +824,86 @@ function renderResults() {
     h("h2", {}, title), h("img", { src: `./results/${file}.png`, alt: `${title} figure`, loading: "lazy" }), h("figcaption", {}, text))));
 }
 
-/** The A-D table (results/xai_ablation.csv, P26): the metrics that tell the versions apart, then the two charts. */
-const ABLATION_ROWS = [
-  ["pehe", "SGLT2i-DPP4i", "Error of the patient-level effect, SGLT2i vs DPP-4i (PEHE, HbA1c points; lower is better)"],
-  ["coverage", "SGLT2i-DPP4i", "95% intervals that contain the true effect, SGLT2i vs DPP-4i"],
-  ["regret", "all", "Regret: extra HbA1c vs the truly best allowed drug (lower is better)"],
-  ["answered_when_thin_pairs", "all", "Numbers given for options this patient almost never gets (lower is safer)"],
-  ["modifier_precision_at_k", "SGLT2i-DPP4i", "Top features are the true effect modifiers, SGLT2i vs DPP-4i"],
-  ["false_driver_rate", "SGLT2i-DPP4i", "Shown drivers that are not true modifiers, SGLT2i vs DPP-4i (lower is better)"],
-  ["citation_precision", "all", "Quoted sentences supported by their passage (60 gold questions)"],
-  ["number_match_pass", "all", "Local-model drafts whose every number is the engine's (20 golden questions)"],
+/** Screen 24 (P26 numbers, drawn in P27): the A-D table (results/xai_ablation.csv) and three charts drawn as SVG here, with no chart
+ *  library (results.json xai_charts: mean |SHAP| for A and C, LIME stability for A). Synthetic benchmark only. */
+const VERSIONS = [["A", "XAI only", "SHAP + LIME on a model that predicts HbA1c"], ["B", "Causal only", "Safety rules + causal engine"],
+  ["C", "Causal + XAI", "B + exact SHAP on the causal estimate"], ["D", "Causal + XAI + RAG", "C + drivers steer the cited passages and checks"]];
+const ABLATION_COLS = [ // metric, comparison, column title, a share?, what an empty cell means
+  ["regret", "all", "Policy regret (HbA1c points, lower is better)", false, "Not measured"],
+  ["pehe", "SGLT2i-DPP4i", "Error of the patient-level effect, SGLT2i vs DPP-4i (PEHE, lower is better)", false, "Not measured"],
+  ["coverage", "SGLT2i-DPP4i", "95% interval coverage, SGLT2i vs DPP-4i", true, "No interval"],
+  ["answered_when_thin_pairs", "all", "Numbers given for options this patient almost never gets (lower is safer)", true, "Not measured"],
+  ["modifier_precision_at_k", "SGLT2i-DPP4i", "Top features are the true effect modifiers", true, "No explanation"],
+  ["false_driver_rate", "SGLT2i-DPP4i", "Shown drivers that are not true modifiers (lower is better)", true, "No drivers with intervals"],
+  ["citation_precision", "all", "Quoted sentences supported by their passage (60 gold questions)", true, "No citations"],
+  ["number_match_pass", "all", "Local-model drafts whose every number is the engine's (20 golden questions)", true, "No model draft"],
+  ["abstention_rate", "all", "Answers withheld", true, "Not measured"],
 ];
+const fmtShare = (x) => `${(Number(x) * 100).toFixed(0)}%`;
+
 function renderAblation() {
   const rows = RESULTS.xai_ablation || [];
   if (!rows.length) { $("#xai-table").replaceChildren(h("p", { class: "sub" }, "The A-D table has not been run yet.")); return; }
-  const cell = (v, metric, comparison) => {
+  const cell = (v, [metric, comparison, title, share, empty]) => {
     const r = rows.find((x) => x.version === v && x.metric === metric && x.comparison === comparison);
-    if (!r || r.mean === "") return "—";
-    const share = ["coverage", "answered_when_thin_pairs", "modifier_precision_at_k", "false_driver_rate", "citation_precision", "number_match_pass"].includes(metric);
-    const n = (x) => (share ? `${(Number(x) * 100).toFixed(0)}%` : Number(x).toFixed(3));
-    return r.ci_low === "" ? n(r.mean) : `${n(r.mean)} (${n(r.ci_low)} to ${n(r.ci_high)})`;
+    const td = h("td", { "data-label": title });
+    if (!r || r.mean === "") { td.append(empty); return td; }
+    const n = (x) => (share ? fmtShare(x) : Number(x).toFixed(3));
+    td.append(n(r.mean));
+    if (r.ci_low !== "") td.append(h("span", { class: "ci" }, `95% CI ${n(r.ci_low)} to ${n(r.ci_high)}`));
+    return td;
   };
-  $("#xai-table").replaceChildren(h("table", {},
-    h("thead", {}, h("tr", {}, ["Metric", "A", "B", "C", "D"].map((t) => h("th", {}, t)))),
-    h("tbody", {}, ABLATION_ROWS.map(([metric, comparison, label]) => h("tr", {}, h("td", {}, label),
-      ...["A", "B", "C", "D"].map((v) => h("td", {}, cell(v, metric, comparison))))))));
-  $("#xai-figures").replaceChildren(
-    h("figure", { class: "fig" }, h("img", { src: "./results/ablation_chart.png", alt: "Versions A to D on four metrics", loading: "lazy" }),
-      h("figcaption", {}, "Four metrics, versions A to D, each with its 95% interval. Synthetic benchmark.")),
-    h("figure", { class: "fig" }, h("img", { src: "./results/shap_A_vs_C.png", alt: "Mean SHAP per feature, version A beside version C", loading: "lazy" }),
-      h("figcaption", {}, "Which patient details each version credits for SGLT2i vs DPP-4i (* = a true effect modifier of the synthetic cohort). SHAP explains a model, not a cause.")));
+  $("#xai-table").replaceChildren(h("table", { class: "rtable" }, h("caption", { class: "sr-only" }, "Versions A to D, synthetic benchmark"),
+    h("thead", {}, h("tr", {}, h("th", { scope: "col" }, "Version"), h("th", { scope: "col" }, "Uses"), ABLATION_COLS.map((c) => h("th", { scope: "col" }, c[2])))),
+    h("tbody", {}, VERSIONS.map(([v, name, uses]) => h("tr", {}, h("th", { scope: "row" }, v, h("span", { class: "ci" }, name)),
+      h("td", { "data-label": "Uses" }, uses), ABLATION_COLS.map((c) => cell(v, c)))))));
+  renderXaiCharts();
+}
+
+/** One horizontal-bar chart: label, an SVG bar on a 0..max axis, the value; then "Show values as a table" (screen 24's .crow rows). */
+function barChart(title, sub, items, { max, axisEnd, valueText, header, note }) {
+  const crow = (it) => {
+    const text = `${it.label}: ${valueText(it.value)}`;
+    const graph = svg("svg", { class: "cbar", viewBox: "0 0 100 24", preserveAspectRatio: "none", role: "img", "aria-label": text },
+      svg("rect", { class: "cbar__track", x: 0, y: 11, width: 100, height: 2 }),
+      svg("rect", { class: it.mark ? "cbar__bar cbar__bar--mark" : "cbar__bar", x: 0, y: 5, width: Math.max(0.5, Math.min(100, (it.value / max) * 100)).toFixed(2), height: 14 }));
+    graph.append(svg("title", {}, text));
+    return h("div", { class: "crow" }, h("span", { class: "crow__label" }, it.label + (it.mark ? " *" : "")), graph, h("span", { class: "crow__val" }, valueText(it.value)));
+  };
+  return [h("h3", {}, title), h("p", { class: "chart__sub" }, sub), ...items.map(crow),
+    h("div", { class: "caxis" }, h("span", {}), h("span", {}, h("span", {}, "0"), h("span", {}, axisEnd)), h("span", {})),
+    note ? h("p", { class: "chart__sub" }, note) : null,
+    h("details", { class: "tview" }, h("summary", {}, "Show values as a table"),
+      h("table", {}, h("thead", {}, h("tr", {}, header.map((t) => h("th", {}, t)))),
+        h("tbody", {}, items.map((it) => h("tr", {}, h("td", {}, it.label + (it.mark ? " *" : "")), h("td", {}, valueText(it.value)), ...(it.extra || []).map((x) => h("td", {}, x)))))))].filter(Boolean);
+}
+
+function renderXaiCharts() {
+  const x = RESULTS.xai_charts;
+  if (!x || !x.shap_A_vs_C.length) { $("#xai-charts").replaceChildren(); $("#xai-lime").replaceChildren(); return; }
+  const label = (f) => { const t = (MODEL.xai.labels[f] || { text: f.replace(/_/g, " ") }).text; return t[0].toUpperCase() + t.slice(1); };
+  const top = (v) => [...x.shap_A_vs_C].sort((a, b) => b[v] - a[v]).slice(0, 6).map((r) => ({ label: label(r.feature), value: r[v], mark: r.true_modifier }));
+  const nice = (v) => { const step = 10 ** Math.floor(Math.log10(v)); return Number((Math.ceil(v / step) * step).toPrecision(2)); };
+  const [a, b] = x.shap_comparison.split("-");
+  const pair = `${LABEL[a]} vs ${LABEL[b]}`;
+  const chart = (v, title, sub, note) => {
+    const items = top(v);
+    const max = nice(Math.max(...items.map((i) => i.value)));
+    return h("section", { class: "card card--flat chart" }, ...barChart(title, sub, items, { max, axisEnd: `${max} HbA1c points`,
+      valueText: (z) => z.toFixed(3), header: ["Feature", "Mean |SHAP| (HbA1c points)"], note }));
+  };
+  $("#xai-charts").replaceChildren(
+    chart("A", "A · SHAP on the HbA1c prediction model", `${pair}. Explains what the prediction model uses to predict HbA1c. It does not explain treatment effects.`,
+      "Scales differ between A and C: compare the order, not the bar lengths."),
+    chart("C", "C · SHAP on the causal estimate", `${pair}. The estimate is larger or smaller for patients with these features. These are not causes.`,
+      `Mean absolute SHAP value over the test patients of the synthetic cohorts (${x.reps} cohorts). * = a true effect modifier of the synthetic cohort.`));
+  const PRESET = { typical: "Typical patient", egfr40_pancreatitis: "eGFR 40, past pancreatitis", older_hypo: "Older, past hypoglycaemia" };
+  const lime = x.lime_stability.map((r) => { const [o1, o2] = r.comparison.split("-");
+    return { label: `${PRESET[r.preset] || r.preset} · ${LABEL[o1]} vs ${LABEL[o2]}`, value: Number(r.lime_top3_jaccard), extra: [r.n_seeds] }; });
+  $("#xai-lime").replaceChildren(...barChart("LIME stability across reruns (version A)",
+    `Share of the top-3 features that stay the same when LIME is rerun with ${lime.length ? x.lime_stability[0].n_seeds : ""} different random seeds (0 = none, 1 = all). One value per example patient and comparison, so no interval.`,
+    lime, { max: 1, axisEnd: "1", valueText: (z) => z.toFixed(2), header: ["Example patient · comparison", "Stability (0 to 1)", "Seeds"],
+      note: "Only version A uses LIME. Version C's SHAP values are computed exactly, so a rerun gives the same values." }));
 }
 
 // ── Guide: Methods (for reviewers) ────────────────────────────────────────
@@ -756,16 +926,6 @@ async function loadEvidence() {
   if (!$("#ev-sources").childNodes.length) renderSources();
   $("#guide-passages").textContent = String(EVIDENCE.chunks.length);
   return EVIDENCE;
-}
-
-/** Only the sources that are in the search (licence-cleared and confirmed); the full register is RAG/sources.csv. */
-function renderSources() {
-  const inSearch = EVIDENCE.sources.filter((s) => s.bucket === EVIDENCE.cleared_bucket && s.confirmed);
-  $("#ev-sources").replaceChildren(h("table", {},
-    h("thead", {}, h("tr", {}, ["ID", "Source", "Licence status"].map((t) => h("th", {}, t)))),
-    h("tbody", {}, inSearch.map((s) => h("tr", { class: "src-ok" },
-      h("td", {}, s.id), h("td", {}, `${s.title} — ${s.issuer}, ${s.version}`), h("td", {}, "In the search"))))),
-  h("p", { class: "field__hint" }, `${EVIDENCE.sources.length - inSearch.length} other sources are tracked in the licence register and are not searched.`));
 }
 
 /** The ~50 words around the question's first matching word, with the whole passage one tap away. */
@@ -794,45 +954,83 @@ function explanationView(r) {
   return wrap;
 }
 
+/** The licence-cleared sources: in the search (confirmed by a team member), or cleared and not yet added. */
+function renderSources() {
+  const cleared = EVIDENCE.sources.filter((x) => x.bucket === EVIDENCE.cleared_bucket);
+  const year = (v) => (String(v || "").match(/\d{4}/) || [""])[0];
+  $("#ev-sources").replaceChildren(h("ul", { class: "srclist" }, cleared.map((x) => h("li", { class: x.confirmed ? "src-ok" : "src-later" },
+    h("strong", {}, `${x.id} · ${x.issuer}${year(x.version) ? `, ${year(x.version)}` : ""}`), h("span", {}, x.title),
+    x.confirmed ? h("span", { class: "state c-safe" }, icon("safe", 16), " In the search") : h("span", { class: "state c-check" }, icon("clock", 16), " Cleared, not yet added")))),
+  h("p", { class: "field__hint" }, `Only licence-cleared sources are searched. ${EVIDENCE.chunks.length} passages in the index. ${EVIDENCE.sources.length - cleared.length} other sources are tracked in the licence register and are not searched.`));
+}
+
+/** One passage as stored (screen 22): number, title, source, version, section, page, licence, the text, and two actions. */
+function resultCard(p, i) {
+  const c = p.citation, src = sourceOf(c.source_id);
+  const copy = h("button", { class: "btn btn--ghost", type: "button" }, icon("copy", 20), " Copy citation");
+  copy.addEventListener("click", async () => {
+    const text = `${c.source_id}: ${c.title}, ${c.version}, § ${c.section}, ${c.page && c.page !== "?" ? `page ${c.page}` : "web page"}.`;
+    try { await navigator.clipboard.writeText(text); copy.lastChild.textContent = " Citation copied"; } catch { copy.lastChild.textContent = " Could not copy"; }
+  });
+  const actions = h("div", { class: "row" }, copy);
+  if (/^https:\/\//.test(src.url || "")) {
+    actions.append(h("a", { class: "btn btn--ghost", href: src.url, target: "_blank", rel: "noopener noreferrer" }, icon("external", 20), " Open source"));
+  }
+  return h("article", { class: "card card--flat result" },
+    h("div", { class: "row" }, h("span", { class: "result__num" }, String(i + 1)), h("h3", {}, c.title)),
+    citationMeta(c, false), h("blockquote", { class: "passage" }, p.text), actions);
+}
+
+/** Screen 23: no passage answers the search. */
+function insufficientView() {
+  const li = (t) => h("li", {}, t);
+  return h("section", { class: "card card--flat", role: "status", "aria-labelledby": "none-h" },
+    h("div", { class: "finding finding--check" }, icon("info", 24, "c-check"),
+      h("p", {}, h("strong", { id: "none-h" }, "Insufficient evidence."), " No passage in the licence-cleared sources answers this search.")),
+    h("h3", {}, "Why this can happen"),
+    h("ul", { class: "trade" }, li("The topic is not covered by the sources currently in the search."), li("The search words differ from the wording the source uses.")),
+    h("h3", {}, "What you can do"),
+    h("ul", { class: "trade" }, li("Try different words, or one of the example searches above."), li("Check the list of sources to see what is covered."),
+      li("Use your usual guideline. DiaCausal does not write an answer when it has no source.")));
+}
+
+const toPatientDetails = () => h("p", {}, h("a", { class: "btn btn--ghost", href: "#patient-details" }, "See the three options for this patient in Patient Details"));
+const passagesEnd = () => h("div", { class: "decides" }, icon("check", 24, "c-pine"), h("p", {}, "These are source passages, not advice. The clinician decides."));
+
+/** Investigate (screens 22 and 23): the seven checks, then the passages as stored. Nothing is generated here. */
 async function ask(question) {
   const out = $("#ev-out");
   const q = question.trim();
-  if (!q) { out.replaceChildren(h("p", { class: "errors" }, "Please type a question.")); return; }
+  if (!q) { out.replaceChildren(h("p", { class: "errors" }, "Please type a search.")); return; }
+  await searchAndShow(out, q);
+  if (window.matchMedia("(max-width: 900px)").matches) out.scrollIntoView({ block: "start" }); // on a phone the results are below the box
+}
+
+async function searchAndShow(out, q) {
+  const check = checkQuestion(q, null);
+  if (check.status === "BLOCK") { // never searched or kept
+    if (check.shown === "identifier") $("#q").value = "";
+    out.replaceChildren(guardNotice(check));
+    return;
+  }
   const index = await loadEvidence();
   const raw = window.DiaCausalEvidence.search(index, q, { raw: true });
-  const res = JSON.parse(JSON.stringify({ ...raw, passages: raw.passages.map(({ _raw, ...p }) => p) }));
-  out.replaceChildren();
-  const note = window.DiaCausalExplain.explain(index, q, res);
-  if (note.note === index.no_dose_note) {
-    out.append(h("div", { class: "notice" }, h("strong", {}, "No doses: "), index.no_dose_note,
-      h("p", { class: "sub" }, "Ask about safety, kidney function or side effects instead; the approved sources cover those.")));
+  if (window.DiaCausalExplain.explain(index, q, { ...raw, passages: [] }).note === index.no_dose_note) {
+    out.replaceChildren(guardNotice({ shown: "dose_request", blocked_reason: index.no_dose_note }));
     return;
   }
-  if (res.status === "INSUFFICIENT_EVIDENCE") {
-    out.append(h("div", { class: "notice" }, h("strong", {}, "Insufficient evidence: "), res.reason,
-      h("p", { class: "sub" }, "DiaCausal does not guess. Ask about something the approved sources cover, or check the sources below.")));
-    return;
-  }
-  const patient = readyPatient();
-  if (patient) {
-    const result = window.DiaCausal.recommend(MODEL, patient);
-    const built = questionCard(index, result, patient, q, window.DiaCausalEvidence.search(index, q, { raw: true }));
-    renderCard(built.card, out, { result, passages: built.passages, patient });
-  } else {
-    out.append(h("p", { class: "field__hint" }, "Fill in Patient Details to see the three options compared for that patient, with these passages as its evidence."));
-  }
-  out.append(h("div", { class: "card card--flat explain" }, explanationView(note)));
-  out.append(h("h2", {}, `${res.passages.length} passages, best match first`));
-  res.passages.forEach((p, i) => {
-    const c = p.citation;
-    out.append(h("article", { class: "card card--flat passage" },
-      h("p", { class: "passage__cite" }, `${i + 1}. “${c.section}”, ${c.page === "?" ? "web page" : `page ${c.page}`}`),
-      h("p", { class: "src" }, `Source ${c.source_id}: ${c.title}`),
-      excerpt(p.text, q),
-      h("p", { class: "muted" }, `Scores: keyword (BM25) ${p.scores.bm25} · vector ${p.scores.vector} · fused ${p.scores.rrf}`)));
-  });
-  out.append(h("div", { class: "decides" }, icon("check", 24, "c-pine"), h("p", {}, "These are source passages, not advice. The clinician decides.")));
-  out.append(h("details", { class: "card card--flat" }, h("summary", {}, "Structured evidence (JSON)"), h("pre", {}, JSON.stringify(res, null, 1))));
+  if (raw.status !== "SUCCESS") { out.replaceChildren(insufficientView()); return; }
+  const passages = raw.passages.map((x) => ({ chunk_id: x._raw.chunk_id, text: x.text, citation: x.citation }));
+  out.replaceChildren(h("p", { class: "muted" }, `${passages.length} passage${passages.length === 1 ? "" : "s"} found · ranked by keyword and TF-IDF search, fused`),
+    ...passages.map(resultCard), toPatientDetails(), passagesEnd());
+}
+
+/** "Open in Investigate" from the drawer: that one passage, as stored. */
+async function showInInvestigate(passage) {
+  location.hash = "#investigate";
+  await loadEvidence();
+  $("#ev-out").replaceChildren(h("p", { class: "muted" }, "The passage you opened from the answer"), resultCard(passage, 0), toPatientDetails(), passagesEnd());
+  $("#ev-out").scrollIntoView({ block: "start" });
 }
 
 // ── Routing and start-up ──────────────────────────────────────────────────
@@ -918,12 +1116,15 @@ async function share() {
 }
 
 async function start() {
-  let config;
-  [MODEL, RESULTS, config] = await Promise.all([
+  let config, guards;
+  [MODEL, RESULTS, config, guards] = await Promise.all([
     fetch("./model.json").then((r) => r.json()),
     fetch("./results.json").then((r) => r.json()).catch(() => null),
     fetch("./config.json").then((r) => (r.ok ? r.json() : null)).catch(() => null),
+    fetch("./guards.json").then((r) => r.json()).catch(() => null), // without it, nothing typed is searched
   ]);
+  if (guards && window.DiaCausalGuards) GUARD = window.DiaCausalGuards.make(guards);
+  if (window.matchMedia("(max-width: 900px)").matches) document.querySelectorAll("details[data-phone-closed]").forEach((d) => { d.open = false; });
   if (config && config.supabaseUrl && config.supabaseKey && window.supabase) {
     AUTH = window.DiaCausalAuth.createController(window.supabase, config, window.localStorage);
     AUTH.onChange(afterAuthChange);

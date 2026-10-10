@@ -182,10 +182,17 @@ the Supabase key**: `web/config.json` stays `"accounts": "off"`; `scripts/web_co
 deploy copy only. Patient values and questions never leave the device (the website has no online model: P07 removed
 the button, P08 removed the Edge Function).
 `web/explain.js` mirrors `diacausal/llm/providers/template.py` and `diacausal/guards/output_guards.py` (template + citation checker).
+`web/guards.js` mirrors the seven input guards of `diacausal/guards/input_guards.py` using `web/guards.json` from
+`python -m diacausal.guards.export_web` (rerun after any change to the guards, `shared/guard_rules/rules.v1.json` or params.yaml `guards`;
+`tests/web` fails if stale, and compares both on 184 questions with and without a patient). Every question in Patient Details and every
+Investigate search runs them first; a blocked one shows notice 09-12 and is never searched, sent or kept (P27).
+Screens built in P27: notices 09-12, the evidence drawer 18 (cite numbers; passage as stored with source, version, section, page,
+licence and the date the licence was checked), Investigate 22-23 (passages only, never the card), Analysis 24 (A-D table and SVG charts
+from `results.json` `xai_charts`; no chart library). An answer card ends with the intended-use line, then "The clinician decides.".
 Look: `design/screens-v2/` is the only design source (`handoff/HANDOFF.md`); colours, fonts and spacing come
 only from `web/styles/tokens.css` (copied from the handoff); fonts are self-hosted in `web/fonts/` (SIL OFL).
 Tabs: Patient Details, Investigate, Analysis, Guide, About (`#patient-details` …); `#try`, `#evidence`,
-`#results`, `#learn` still work. `.venv/bin/python -m pytest tests/web -q` (26 tests; the two browser tests
+`#results`, `#learn` still work. `.venv/bin/python -m pytest tests/web -q` (30 tests; the two browser tests
 need Node, `tests/e2e/node_modules` and Chromium or Google Chrome). Full chat app hosting: docs/HOSTING_CHAT_APP.md.
 
 ## API contract v1 (built) — see docs/INPUT_RANGES.md and docs/PLAN_2026-10.md §8.4
@@ -359,7 +366,8 @@ prompt and the number check. **Drivers describe the estimate, never a cause.** V
   and D (C + retrieval and writing) on the 20 benchmark cohorts and writes `results/xai_ablation.csv` (version, metric, comparison, mean, 95% t-interval,
   n_reps), `results/xai/ablation_chart.png` and `shap_A_vs_C.png`. B's numbers repeat under C and D. D's retrieval and writing rows come from
   fixed question sets (`n_reps` 0). `driver_passage_hit_rate` stays EMPTY until Members B and D write `eval/xai_driver_evidence.csv`.
-  The Analysis tab shows the table and both charts; Guide → Cautions has the SHAP sentence. Rerun after any change to params.yaml.
+  The Analysis tab shows the table and draws the charts as SVG (P27; the two PNGs are for the report); Guide → Cautions has the SHAP
+  sentence. Rerun after any change to params.yaml, then `python -m diacausal.causal_inference.export_web`.
 
 ## Licences of the Indian sources (P19, DONE except two open items) — see docs/LICENCE_REGISTER.md
 

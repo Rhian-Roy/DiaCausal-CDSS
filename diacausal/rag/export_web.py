@@ -58,7 +58,9 @@ def evidence_dict() -> dict:
         "dose_question_pattern": DOSE_QUESTION.pattern,
         "no_dose_note": NO_DOSE_NOTE,
         "sources": [{"id": r["id"], "title": r["title"], "issuer": r["issuer"], "version": r["version"],
-                     "bucket": r["bucket"], "confirmed": is_confirmed(r), "use": r["use_in_diacausal"]}
+                     "bucket": r["bucket"], "confirmed": is_confirmed(r), "use": r["use_in_diacausal"],
+                     # the evidence drawer (18) and Investigate (22) show these as recorded in the licence register
+                     "licence_as_found": r["licence_as_found"], "date_checked": r["date_checked"], "url": r["url"]}
                     for r in sources.values()],
         "cleared_bucket": CLEARED,
         "versions": {"corpus_sha": _sha(corpus_files) if corpus_files else "empty",

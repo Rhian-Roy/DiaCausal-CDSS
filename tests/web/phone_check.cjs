@@ -25,6 +25,16 @@ const { chromium, devices } = require(require('path').join(__dirname, '..', 'e2e
   await p.screenshot({ path: out + '/p0.png', fullPage: true });
   const checks = {};
   checks.intended = await p.getByText('Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.').first().isVisible();
+  // P27: a cited passage opens as a bottom sheet (18) and Esc closes it; a blocked question shows its notice (09-12)
+  await p.locator('#out .cite').first().click();
+  await p.locator('#drawer').waitFor();
+  checks.drawerBottom = await p.evaluate(() => Math.round(document.querySelector('#drawer').getBoundingClientRect().bottom) === window.innerHeight);
+  await p.screenshot({ path: out + '/p0b.png' });
+  await p.keyboard.press('Escape');
+  checks.drawerClosed = (await p.locator('#drawer').count()) === 0;
+  await p.fill('#message', 'Patient unconscious in OPD, which add-on?');
+  await p.press('#message', 'Enter');
+  checks.emergency = await p.locator('#thread .emergency').last().isVisible();
   await newPatient();
   await compareWith(/eGFR 40/);
   await p.locator('#out tr.row--excluded').first().waitFor();
@@ -39,6 +49,7 @@ const { chromium, devices } = require(require('path').join(__dirname, '..', 'e2e
   await p.click('a[data-route="analysis"]');
   await p.locator('.tile').first().waitFor();
   checks.tiles = await p.locator('.tile').count();
+  checks.charts = await p.locator('#view-results svg.cbar').count();
   await p.waitForTimeout(800);
   await p.screenshot({ path: out + '/p3.png', fullPage: false });
   await p.click('a[data-route="guide"]');
@@ -52,13 +63,15 @@ const { chromium, devices } = require(require('path').join(__dirname, '..', 'e2e
   await p.screenshot({ path: out + '/p5.png', fullPage: true });
   await p.click('a[data-route="investigate"]');
   await p.getByRole('button', { name: 'Metformin and kidney function' }).click();
-  await p.locator('.passage').first().waitFor();
-  checks.passages = await p.locator('.passage').count();
-  checks.citesFda = (await p.locator('.passage .src').first().textContent()).startsWith('Source S08: FDA');
-  checks.sourcesInSearch = await p.locator('tr.src-ok').count();
+  await p.locator('#ev-out .result').first().waitFor();
+  checks.passages = await p.locator('#ev-out .result .passage').count();
+  checks.citesFda = (await p.locator('#ev-out .result dd').first().textContent()).startsWith('S08 · US FDA');
+  checks.sourcesInSearch = await p.locator('#ev-sources li.src-ok').count();
+  checks.sourcesFolded = !(await p.locator('#ev-side').evaluate((d) => d.open));  // a phone starts with the sources list folded
   await p.screenshot({ path: out + '/p6.png', fullPage: true });
-  await p.getByRole('button', { name: 'Not in the sources' }).click();
-  checks.abstains = (await p.locator('#ev-out .notice').textContent()).startsWith('Insufficient evidence');
+  await p.fill('#q', 'How much does glimepiride cost in India?');
+  await p.press('#q', 'Enter');
+  checks.abstains = (await p.locator('#ev-out .finding').textContent()).startsWith('Insufficient evidence');
   checks.demoBanner = await p.locator('#demo').isVisible();
   await p.click('#acct');
   checks.accountDemo = await p.getByText('Sign-in is off on this copy').waitFor().then(() => true, () => false);

@@ -345,7 +345,10 @@
    "version": "2018 (ISBN 978-92-4-155028-4)",
    "bucket": "cleared_ingest",
    "confirmed": true,
-   "use": "Core comparative evidence: SU / DPP-4i / SGLT2i as add-on"
+   "use": "Core comparative evidence: SU / DPP-4i / SGLT2i as add-on",
+   "licence_as_found": "CC BY-NC-SA 3.0 IGO",
+   "date_checked": "2026-09-26",
+   "url": "https://www.who.int/publications/i/item/9789241550284"
   },
   {
    "id": "S02",
@@ -354,7 +357,10 @@
    "version": "2020; Indian J Endocrinol Metab 24(1):1-122; doi 10.4103/ijem.IJEM_225_20; PMID 32699774",
    "bucket": "cleared_ingest",
    "confirmed": false,
-   "use": "Best India-specific T2D guideline in an open version"
+   "use": "Best India-specific T2D guideline in an open version",
+   "licence_as_found": "CC BY-NC-SA 4.0 (this article's own licence line, read on PMC on 9 Oct 2026)",
+   "date_checked": "2026-10-09",
+   "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC7328526/"
   },
   {
    "id": "S03",
@@ -363,7 +369,10 @@
    "version": "2022; Int J Diabetes Dev Ctries 42(Suppl 1):1-143; doi 10.1007/s13410-022-01129-5; PMC9534592",
    "bucket": "cite_only",
    "confirmed": false,
-   "use": "Newest RSSDI version — cite, do not ingest"
+   "use": "Newest RSSDI version — cite, do not ingest",
+   "licence_as_found": "(c) exclusive licence to RSSDI; PMC permission limited to the WHO COVID-19 pandemic declaration",
+   "date_checked": "2026-09-19",
+   "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9534592"
   },
   {
    "id": "S04",
@@ -372,7 +381,10 @@
    "version": "July 2022 (no version number)",
    "bucket": "verbatim_only",
    "confirmed": false,
-   "use": "India-specific second-line workflow; metabolic targets"
+   "use": "India-specific second-line workflow; metabolic targets",
+   "licence_as_found": "(c) Department of Health Research, Ministry of Health & Family Welfare, Government of India; no separate reuse licence in the PDF",
+   "date_checked": "2026-10-09",
+   "url": "https://icmr.gov.in/icmrobject/uploads/STWs/1726567245_diabetes_mellitus_type_2.pdf"
   },
   {
    "id": "S05",
@@ -381,7 +393,10 @@
    "version": "2018 (cover); workshop 10 Jan 2018",
    "bucket": "verbatim_only",
    "confirmed": false,
-   "use": "Indian targets and drug classes"
+   "use": "Indian targets and drug classes",
+   "licence_as_found": "No copyright or licence text found in the PDF; the ICMR website Copyright Policy is applied by inference",
+   "date_checked": "2026-10-09",
+   "url": "https://main.icmr.nic.in/sites/default/files/guidelines/ICMR_GuidelinesType2diabetes2018_0.pdf"
   },
   {
    "id": "S06",
@@ -390,7 +405,10 @@
    "version": "2022 (no exact date)",
    "bucket": "unknown",
    "confirmed": false,
-   "use": "Nothing is used until the licence is known: no NLEM fact appears in the knowledge base, the card or the paper"
+   "use": "Nothing is used until the licence is known: no NLEM fact appears in the knowledge base, the card or the paper",
+   "licence_as_found": "no licence found (9 Oct 2026); the issuing ministry is not named in the text that was read",
+   "date_checked": "2026-10-09",
+   "url": "https://qps.nhsrcindia.org/sites/default/files/2022-09/nlem2022.pdf"
   },
   {
    "id": "S07",
@@ -399,7 +417,10 @@
    "version": "current labels",
    "bucket": "cite_only_structured",
    "confirmed": false,
-   "use": "eGFR limits and contraindications in guardrails.v1.yaml"
+   "use": "eGFR limits and contraindications in guardrails.v1.yaml",
+   "licence_as_found": "UNVERIFIED for reuse (manufacturer-written labels distributed by FDA)",
+   "date_checked": "2026-09-19",
+   "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2026/202293s035lbl.pdf"
   },
   {
    "id": "S08",
@@ -408,7 +429,10 @@
    "version": "2016",
    "bucket": "cleared_ingest",
    "confirmed": true,
-   "use": "Guardrails G00, G07"
+   "use": "Guardrails G00, G07",
+   "licence_as_found": "US federal government work",
+   "date_checked": "2026-09-26",
+   "url": "https://www.fda.gov/drugs/drug-safety-and-availability/fda-drug-safety-communication-fda-revises-warnings-regarding-use-diabetes-medicine-metformin-certain"
   },
   {
    "id": "S09",
@@ -417,7 +441,10 @@
    "version": "2022",
    "bucket": "cite_only",
    "confirmed": false,
-   "use": "SGLT2i organ-protection note (G15)"
+   "use": "SGLT2i organ-protection note (G15)",
+   "licence_as_found": "No open licence found",
+   "date_checked": "2026-09-19",
+   "url": "https://kdigo.org/wp-content/uploads/2023/12/KDIGO-2022-Diabetes-Guideline.pdf"
   },
   {
    "id": "S10",
@@ -426,7 +453,10 @@
    "version": "current",
    "bucket": "exclude",
    "confirmed": false,
-   "use": "—"
+   "use": "—",
+   "licence_as_found": "UK-only open licence; international use needs a paid licence; AI use needs written permission",
+   "date_checked": "2026-09-19",
+   "url": "https://www.nice.org.uk/guidance/ng28"
   },
   {
    "id": "S11",
@@ -435,7 +465,10 @@
    "version": "2025 (ISBN 978-2-930229-97-3)",
    "bucket": "cite_only_permission_requested",
    "confirmed": false,
-   "use": "—"
+   "use": "—",
+   "licence_as_found": "All rights reserved — no reproduction without written IDF permission",
+   "date_checked": "2026-09-19",
+   "url": "https://idf.org/t2d-cpr-2025"
   },
   {
    "id": "S12",
@@ -444,7 +477,10 @@
    "version": "2026",
    "bucket": "cite_only",
    "confirmed": false,
-   "use": "Team study only"
+   "use": "Team study only",
+   "licence_as_found": "Copyrighted; project policy = never ingest",
+   "date_checked": "2026-09-19",
+   "url": "(add official URL — not verified in this pass)"
   },
   {
    "id": "S13",
@@ -453,7 +489,10 @@
    "version": "2020",
    "bucket": "cite_only",
    "confirmed": false,
-   "use": "Numbers in params.yaml"
+   "use": "Numbers in params.yaml",
+   "licence_as_found": "Reproduction in part or full not permitted (per team worksheet)",
+   "date_checked": "2026-09-19",
+   "url": "(add official URL — not verified in this pass)"
   },
   {
    "id": "S14",
@@ -462,7 +501,10 @@
    "version": "2023",
    "bucket": "cite_only",
    "confirmed": false,
-   "use": "Numbers in params.yaml"
+   "use": "Numbers in params.yaml",
+   "licence_as_found": "Journal copyright",
+   "date_checked": "2026-09-19",
+   "url": "(add official URL — not verified in this pass)"
   },
   {
    "id": "S15",
@@ -471,7 +513,10 @@
    "version": "living",
    "bucket": "verbatim_only",
    "confirmed": false,
-   "use": "Background definitions"
+   "use": "Background definitions",
+   "licence_as_found": "CC BY-NC-ND 4.0 (project policy; not re-checked today)",
+   "date_checked": "2026-09-19",
+   "url": "(add official URL — not verified in this pass)"
   },
   {
    "id": "S16",
@@ -480,7 +525,10 @@
    "version": "current",
    "bucket": "verbatim_only",
    "confirmed": false,
-   "use": "Codes and titles"
+   "use": "Codes and titles",
+   "licence_as_found": "CC BY-ND 3.0 IGO (project policy; not re-checked today)",
+   "date_checked": "2026-09-19",
+   "url": "(add official URL — not verified in this pass)"
   },
   {
    "id": "S17",
@@ -489,7 +537,10 @@
    "version": "master, fetched 2026-09-19",
    "bucket": "cleared_ingest",
    "confirmed": false,
-   "use": "shared/guard_rules/rules.v1.json"
+   "use": "shared/guard_rules/rules.v1.json",
+   "licence_as_found": "CC BY 4.0",
+   "date_checked": "2026-09-19",
+   "url": "https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words"
   },
   {
    "id": "S18",
@@ -498,7 +549,10 @@
    "version": "No date on the page; read on 2026-10-09; 2,439 products",
    "bucket": "not_allowed",
    "confirmed": false,
-   "use": "Nothing until PMBI gives permission: the UI keeps 'price unavailable' and data/prices.csv stays empty (plan, design decisions: prices show 'price unavailable' until verified)"
+   "use": "Nothing until PMBI gives permission: the UI keeps 'price unavailable' and data/prices.csv stays empty (plan, design decisions: prices show 'price unavailable' until verified)",
+   "licence_as_found": "Copyright page: reproduction only 'after taking proper permission by sending a mail to us'",
+   "date_checked": "2026-10-09",
+   "url": "https://janaushadhi.gov.in/product-portfolio/product-mrp-list"
   },
   {
    "id": "S19",
@@ -507,7 +561,10 @@
    "version": "2015-08-28",
    "bucket": "cleared_ingest",
    "confirmed": true,
-   "use": "DPP-4i safety (arthralgia) on the evidence tab"
+   "use": "DPP-4i safety (arthralgia) on the evidence tab",
+   "licence_as_found": "US federal government work",
+   "date_checked": "2026-09-26",
+   "url": "https://www.fda.gov/drugs/drug-safety-and-availability/fda-drug-safety-communication-fda-warns-dpp-4-inhibitors-type-2-diabetes-may-cause-severe-joint-pain"
   },
   {
    "id": "S20",
@@ -516,7 +573,10 @@
    "version": "2015-12-04",
    "bucket": "cleared_ingest",
    "confirmed": true,
-   "use": "SGLT2i ketoacidosis / DKA history rule context"
+   "use": "SGLT2i ketoacidosis / DKA history rule context",
+   "licence_as_found": "US federal government work",
+   "date_checked": "2026-09-26",
+   "url": "https://www.fda.gov/drugs/drug-safety-and-availability/fda-revises-labels-sglt2-inhibitors-diabetes-include-warnings-about-too-much-acid-blood-and-serious"
   },
   {
    "id": "S21",
@@ -525,7 +585,10 @@
    "version": "2016-06-14",
    "bucket": "cleared_ingest",
    "confirmed": true,
-   "use": "SGLT2i kidney context for eGFR rules"
+   "use": "SGLT2i kidney context for eGFR rules",
+   "licence_as_found": "US federal government work",
+   "date_checked": "2026-09-26",
+   "url": "https://www.fda.gov/drugs/drug-safety-and-availability/fda-drug-safety-communication-fda-strengthens-kidney-warnings-diabetes-medicines-canagliflozin"
   },
   {
    "id": "S22",
@@ -534,7 +597,10 @@
    "version": "2018-08-29",
    "bucket": "cleared_ingest",
    "confirmed": true,
-   "use": "SGLT2i safety on the evidence tab"
+   "use": "SGLT2i safety on the evidence tab",
+   "licence_as_found": "US federal government work",
+   "date_checked": "2026-09-26",
+   "url": "https://www.fda.gov/drugs/drug-safety-and-availability/fda-warns-about-rare-occurrences-serious-infection-genital-area-sglt2-inhibitors-diabetes"
   },
   {
    "id": "S23",
@@ -543,7 +609,10 @@
    "version": "2020-08-26",
    "bucket": "cleared_ingest",
    "confirmed": true,
-   "use": "SGLT2i safety history on the evidence tab"
+   "use": "SGLT2i safety history on the evidence tab",
+   "licence_as_found": "US federal government work",
+   "date_checked": "2026-09-26",
+   "url": "https://www.fda.gov/drugs/drug-safety-and-availability/fda-removes-boxed-warning-about-risk-leg-and-foot-amputations-diabetes-medicine-canagliflozin"
   },
   {
    "id": "X01",
@@ -552,7 +621,10 @@
    "version": "August 2007",
    "bucket": "exclude",
    "confirmed": false,
-   "use": "—"
+   "use": "—",
+   "licence_as_found": "—",
+   "date_checked": "2026-09-19",
+   "url": "—"
   },
   {
    "id": "X02",
@@ -561,7 +633,10 @@
    "version": "2026",
    "bucket": "exclude",
    "confirmed": false,
-   "use": "—"
+   "use": "—",
+   "licence_as_found": "(c) ADA; educational non-commercial use if cited and unaltered",
+   "date_checked": "2026-09-19",
+   "url": "https://doi.org/10.2337/dc25-2383"
   },
   {
    "id": "X03",
@@ -570,7 +645,10 @@
    "version": "—",
    "bucket": "exclude",
    "confirmed": false,
-   "use": "—"
+   "use": "—",
+   "licence_as_found": "—",
+   "date_checked": "2026-09-19",
+   "url": "—"
   },
   {
    "id": "RP01",
@@ -579,7 +657,10 @@
    "version": "—",
    "bucket": "exclude",
    "confirmed": false,
-   "use": "—"
+   "use": "—",
+   "licence_as_found": "UNVERIFIED",
+   "date_checked": "2026-10-03",
+   "url": "—"
   },
   {
    "id": "RP02",
@@ -588,7 +669,10 @@
    "version": "—",
    "bucket": "exclude",
    "confirmed": false,
-   "use": "—"
+   "use": "—",
+   "licence_as_found": "UNVERIFIED",
+   "date_checked": "2026-10-03",
+   "url": "—"
   },
   {
    "id": "RP03",
@@ -597,7 +681,10 @@
    "version": "—",
    "bucket": "exclude",
    "confirmed": false,
-   "use": "—"
+   "use": "—",
+   "licence_as_found": "UNVERIFIED",
+   "date_checked": "2026-10-03",
+   "url": "—"
   },
   {
    "id": "RP04",
@@ -606,7 +693,10 @@
    "version": "—",
    "bucket": "exclude",
    "confirmed": false,
-   "use": "—"
+   "use": "—",
+   "licence_as_found": "UNVERIFIED",
+   "date_checked": "2026-10-03",
+   "url": "—"
   },
   {
    "id": "RP05",
@@ -615,7 +705,10 @@
    "version": "—",
    "bucket": "exclude",
    "confirmed": false,
-   "use": "—"
+   "use": "—",
+   "licence_as_found": "UNVERIFIED",
+   "date_checked": "2026-10-03",
+   "url": "—"
   }
  ],
  "cleared_bucket": "cleared_ingest",

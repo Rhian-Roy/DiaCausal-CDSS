@@ -386,8 +386,16 @@ body.auth{min-height:100dvh;display:flex;flex-direction:column}
 .stage__name--plain{font-weight:400}
 .abstaincard{display:flex;flex-direction:column;gap:var(--s1);background:var(--check-fill);border:var(--border-w) solid var(--check-line);border-radius:var(--r-status);padding:var(--s3) var(--s4)}
 .abstaincard p{margin:0}
-.basis .srcentry summary{cursor:pointer;min-height:44px;display:flex;align-items:center}
-.basis .srcentry .passage__text{margin:0 0 var(--s2)}
+.basis .srcline{margin:6px 0}
+/* P27: the evidence drawer (18), Investigate (22, 23) and the Analysis charts (24), drawn as SVG without a library */
+.drawer .passage,.result .passage{white-space:pre-line}
+.drawer pre{white-space:pre-wrap;font-size:14px;background:var(--ground);padding:var(--s3);border-radius:var(--r-status)}
+.sidebox summary h3{margin:0}
+.cbar{display:block;width:100%;height:24px}
+.cbar__track{fill:var(--track)}
+.cbar__bar{fill:var(--ink-muted)}
+.cbar__bar--mark{fill:var(--pine)}
+.rtable td[data-label="Uses"]{min-width:160px}
 .intended-line{margin:0}
 /* "What drives this estimate" as an expander (P25) */
 .drivers > summary{cursor:pointer;list-style:revert;min-height:44px;display:flex;align-items:center}
