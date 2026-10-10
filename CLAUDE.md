@@ -333,6 +333,14 @@ and 19 (no estimate) in `web/app.js` `renderCard`, in Patient Details (Compare, 
 No inline style: glyph positions are set through the CSSOM. The benchmark writes `results/evidence_level_coverage.csv` (interval coverage by
 level; shown on the Analysis tab).
 
+## Licences of the Indian sources (P19, DONE except two open items) — see docs/LICENCE_REGISTER.md
+
+`knowledge_sources/sources.csv` rows S02, S04, S05, S06, S18 carry the 9 Oct 2026 audit: S02 `cleared_ingest` (conditional CC BY-NC-SA, not yet
+confirmed by a member, nothing ingested), S04 and S05 `verbatim_only`, S06 `unknown`, S18 `not_allowed` until PMBI replies. **Never ingest or
+display anything whose bucket is not `cleared_ingest` and confirmed** (a test checks the manifest and `web/evidence.json`). **Open:** NPPA prices
+not retrieved; PMBI permission for Jan Aushadhi prices. Until both are cleared `data/prices.csv` stays empty and the UI says "price
+unavailable". Never copy a price, a dose or a licence term from memory; the audit files live outside the repo in `Docs/licence_audit_2026-10-09/`.
+
 ## Not built yet — where each piece goes
 
 | Piece | Backend | Frontend / other |

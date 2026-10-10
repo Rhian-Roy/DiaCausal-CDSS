@@ -352,7 +352,7 @@
    "title": "RSSDI-ESI Clinical Practice Recommendations for the Management of Type 2 Diabetes Mellitus 2020",
    "issuer": "RSSDI & Endocrine Society of India",
    "version": "2020; Indian J Endocrinol Metab 24(1):1-122; doi 10.4103/ijem.IJEM_225_20; PMID 32699774",
-   "bucket": "cleared_ingest_PENDING",
+   "bucket": "cleared_ingest",
    "confirmed": false,
    "use": "Best India-specific T2D guideline in an open version"
   },
@@ -369,8 +369,8 @@
    "id": "S04",
    "title": "Standard Treatment Workflow: Diabetes Mellitus Type 2 (ICD-10 E11)",
    "issuer": "ICMR / Dept of Health Research, MoHFW",
-   "version": "Undated STW PDF (2024 upload)",
-   "bucket": "cite_only_permission_requested",
+   "version": "July 2022 (no version number)",
+   "bucket": "verbatim_only",
    "confirmed": false,
    "use": "India-specific second-line workflow; metabolic targets"
   },
@@ -378,8 +378,8 @@
    "id": "S05",
    "title": "Guidelines for Management of Type 2 Diabetes",
    "issuer": "ICMR",
-   "version": "2018",
-   "bucket": "cite_only_permission_requested",
+   "version": "2018 (cover); workshop 10 Jan 2018",
+   "bucket": "verbatim_only",
    "confirmed": false,
    "use": "Indian targets and drug classes"
   },
@@ -387,10 +387,10 @@
    "id": "S06",
    "title": "National List of Essential Medicines 2022",
    "issuer": "MoHFW, GoI",
-   "version": "2022",
-   "bucket": "cite_only_structured",
+   "version": "2022 (no exact date)",
+   "bucket": "unknown",
    "confirmed": false,
-   "use": "Which of the three classes are on NLEM (structured table)"
+   "use": "Nothing is used until the licence is known: no NLEM fact appears in the knowledge base, the card or the paper"
   },
   {
    "id": "S07",
@@ -495,10 +495,10 @@
    "id": "S18",
    "title": "PMBJP / Jan Aushadhi product and MRP list",
    "issuer": "PMBI, Dept of Pharmaceuticals, GoI",
-   "version": "download current list",
-   "bucket": "cite_only_structured",
+   "version": "No date on the page; read on 2026-10-09; 2,439 products",
+   "bucket": "not_allowed",
    "confirmed": false,
-   "use": "monthly_cost_inr in params.yaml"
+   "use": "Nothing until PMBI gives permission: the UI keeps 'price unavailable' and data/prices.csv stays empty (plan, design decisions: prices show 'price unavailable' until verified)"
   },
   {
    "id": "S19",
@@ -621,7 +621,7 @@
  "cleared_bucket": "cleared_ingest",
  "versions": {
   "corpus_sha": "0cf9f4045a",
-  "sources_sha": "3bc1a5ac28",
+  "sources_sha": "a05a2d66d8",
   "config_sha": "772955a264"
  },
  "chunks": [
