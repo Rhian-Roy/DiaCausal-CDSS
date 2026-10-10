@@ -324,6 +324,52 @@
     return texts.filter((t) => keys.some((k) => t.toLowerCase().includes(k))).length;
   }
 
-  return { recommend, validate, bmiCategory, evidenceLevel, abstainWhy, abstainCard, countCitations, FIELDS, FLAGS,
+  // ── Drivers of the estimate (version C, P25): a line-by-line mirror of diacausal/xai/cate_shap.py ──
+  // Exact SHAP of the linear final stage: phi_j = beta_j * (x_j - mean_j) / scale_j; base = beta_0; base + sum(phi) = estimate.
+  // 95% interval of phi_j: phi_j +/- z * |(x_j - mean_j) / scale_j| * sqrt(cov[j+1][j+1]). Drivers describe the estimate, never a cause.
+  function explainEffect(model, patient, target) {
+    const d = model.dr;
+    const k = model.targets.indexOf(target);
+    const r = row(patient);
+    const x = model.features.map((f) => r[f]);
+    const z = model.thresholds.ci_z;
+    const c = x.map((v, j) => (v - d.mean[j]) / d.scale[j]);
+    const beta = d.beta.map((rowB) => rowB[k]);
+    let estimate = beta[0];
+    for (let j = 0; j < c.length; j++) estimate += c[j] * beta[j + 1];
+    const contributions = model.features.map((f, j) => {
+      const seCoef = Math.sqrt(Math.max(0, d.cov[k][j + 1][j + 1]));
+      const phi = c[j] * beta[j + 1];
+      const se = Math.abs(c[j]) * seCoef;
+      return { feature: f, value: x[j], mean: d.mean[j], slope_per_unit: beta[j + 1] / d.scale[j], phi, se,
+        ci_low: phi - z * se, ci_high: phi + z * se, clear: Math.abs(beta[j + 1]) > z * seCoef };
+    });
+    return { target, base: beta[0], estimate, contributions };
+  }
+
+  /** Every contribution NOT in `shown`, added up, with its 95% interval from the same HC3 covariance (joint over those features):
+   *  the card's "all other details together" row, so the rows add up to the estimate. */
+  function otherDetails(model, patient, target, shown) {
+    const d = model.dr;
+    const k = model.targets.indexOf(target);
+    const r = row(patient);
+    const idx = model.features.map((f, j) => j).filter((j) => !shown.includes(model.features[j]));
+    const c = model.features.map((f, j) => (r[f] - d.mean[j]) / d.scale[j]);
+    let phi = 0, q = 0;
+    for (const i of idx) {
+      phi += c[i] * d.beta[i + 1][k];
+      for (const j of idx) q += c[i] * c[j] * d.cov[k][i + 1][j + 1];
+    }
+    const se = Math.sqrt(Math.max(0, q)), z = model.thresholds.ci_z;
+    return { phi, ci_low: phi - z * se, ci_high: phi + z * se };
+  }
+
+  /** The clear contributions (interval excludes zero), largest |phi| first, at most model.xai.max_drivers; never padded. */
+  function effectDrivers(model, explanation) {
+    return explanation.contributions.map((c, i) => [i, c]).filter(([, c]) => c.clear && c.phi !== 0)
+      .sort((a, b) => Math.abs(b[1].phi) - Math.abs(a[1].phi) || a[0] - b[0]).slice(0, model.xai.max_drivers).map(([, c]) => c);
+  }
+
+  return { recommend, validate, bmiCategory, evidenceLevel, explainEffect, effectDrivers, otherDetails, abstainWhy, abstainCard, countCitations, FIELDS, FLAGS,
     _internals: { g, round3, roundN, round2, propensity, drPredict, secondaryPredict, supportCheck, applyRules, classifyLevel } };
 });

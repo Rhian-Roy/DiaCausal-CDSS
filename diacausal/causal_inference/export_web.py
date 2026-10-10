@@ -89,6 +89,11 @@ def model_dict(engine: Engine) -> dict:
         "no_estimate": NO_ESTIMATE,
         "evidence_level": vars(load_rule(p)),  # load_rule refuses High on synthetic data
         "short_names": SHORT_NAME,
+        "xai": {"method": "exact SHAP of the final linear stage: coefficient x (value - cohort mean); base value = cohort average effect",
+                "max_drivers": int(p.get("xai.max_drivers")),
+                "driver_rule": "95% interval of the contribution excludes zero, ranked by absolute contribution",
+                "explained_targets": [f"{a}-{b}" for a, b in CONTRASTS],
+                "labels": p.get("xai.labels")},
         "still_see": STILL_SEE,
         "versions": {"engine": __version__, "params": p.version, "params_sha": p.fingerprint,
                      "rules_sha": engine.rules.version, "cohort": f"synthetic n={engine.n} seed={engine.seed}"},

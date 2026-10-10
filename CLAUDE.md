@@ -206,8 +206,8 @@ app's `backend/app/schemas.py` and the engine API's own models are unchanged; P1
 `diacausal/orchestrator/pipeline.py`, which calls the layers **only through `diacausal/registry.py`** (`LAYERS`, in order:
 input guards, rules, causal engine, retrieval, explanation, output guards, formatter) and returns `AnswerCardV1`.
 Layers are `fn(context) -> None` in `orchestrator/layers.py`; stubs are in `orchestrator/stubs.py`. To replace a stub, build
-the real function and change its one line in the registry (`stubs()` lists what is still a pass-through: SHAP drivers P25;
-the input guards (P15), the prompt builder (P22), the full output checks (P23) and the evidence levels (P24) are real).
+the real function and change its one line in the registry (`stubs()` lists what is still a pass-through: nothing since P25;
+the input guards (P15), the prompt builder (P22), the full output checks (P23), the evidence levels (P24) and the SHAP drivers (P25) are real).
 Every layer runs inside `diacausal/tracing.py` (`layer(name, request_id)` or `@traced`): `[rid] entered X layer`,
 `executing`, then `passed (N ms)`, `abstained ... reason=CODE` or `failed ... error=ExceptionClass`. A layer that correctly
 cannot go on raises `AbstainSignal(CODE)` (a code, never free text). **Never log patient values, the question, prompts,
@@ -332,6 +332,19 @@ AnswerCardV1 in tests/web) and draws screens 17 (leader: interval vs DPP-4i excl
 and 19 (no estimate) in `web/app.js` `renderCard`, in Patient Details (Compare, and a question with the patient filled in) and Investigate.
 No inline style: glyph positions are set through the CSSOM. The benchmark writes `results/evidence_level_coverage.csv` (interval coverage by
 level; shown on the Analysis tab).
+
+## Drivers of the estimate, version C (built, P25) — see docs/XAI_PLAN.md sections 3 and 4
+
+`diacausal/xai/cate_shap.py`: exact SHAP of the DR-learner's LINEAR final stage, per comparison: `phi_j = beta_j (x_j - mean_j) / scale_j`,
+base = `beta_0` (the cohort's average effect), `base + sum(phi) = estimate` (raises above 1e-9; `shap.LinearExplainer` with
+`shap.maskers.Independent(X, max_samples=len(X))` agrees to 1e-9 in tests/xai). 95% interval of each contribution from the final stage's HC3
+covariance (`phi ± z |(x - mean)/scale| sqrt(V_jj)`), same assumptions as the engine's interval, no bootstrap. A driver is CLEAR when that interval
+excludes zero; the card shows up to `xai.max_drivers` (params.yaml, TEAM-SET, 3) clear drivers per option against DPP-4i, largest first, never
+padded, only for options shown with an estimate, plus "all other details together" (joint interval). `web/engine.js` `explainEffect`,
+`effectDrivers`, `otherDetails` mirror it (tests/web: 155 patients, 1e-9). The pipeline's `shap drivers` part is real; drivers also go to the
+prompt and the number check. **Drivers describe the estimate, never a cause.** Version C's metrics: `python -m diacausal.xai.cate_shap_benchmark
+[--quick]` -> `results/xai/causal_shap_metrics.csv` (incl. `modifier_top3_overlap`), `causal_shap_presets.csv`. The pipeline must never import
+`cate_shap_benchmark` or version A (it borrows A's metric helpers; a test checks).
 
 ## Licences of the Indian sources (P19, DONE except two open items) — see docs/LICENCE_REGISTER.md
 

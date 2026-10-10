@@ -292,7 +292,7 @@ function compare() {
           h("p", {}, "The output check withheld this answer: " + withheld), h("p", {}, "The clinician decides."))));
     } else {
       const built = compareCard(await evidence, result, p);
-      renderCard(built.card, answer, { result, passages: built.passages });
+      renderCard(built.card, answer, { result, passages: built.passages, patient: p });
     }
     answer.scrollIntoView({ block: "start" });
   };
@@ -429,6 +429,57 @@ function tradeOffs(card) {
     h("p", { class: "small muted" }, "Weight and hypoglycaemia come from the same synthetic cohort and method as HbA1c; they are for discussion, not a ranking.")];
 }
 
+/** "What drives this estimate" (screen 17; P25): for each option with an estimate, its comparison against DPP-4i, up to 3 CLEAR
+ *  drivers (95% interval excludes zero) in HbA1c points and plain words, with their 95% intervals and the dot-and-interval glyph.
+ *  Drivers describe the estimate: it is larger or smaller for patients with these details. They are never causes. */
+function driversSection(card, patient) {
+  const comp = card.effects.find((e) => e.option === card.comparator);
+  const rows = card.effects.filter((e) => e.hba1c_change && e.option !== card.comparator && e.vs_comparator);
+  if (!comp || !comp.hba1c_change || !rows.length || !patient) return [];
+  const labels = MODEL.xai.labels;
+  const amount = (v) => Math.abs(v).toFixed(3);
+  const words = (phi) => (phi < 0 ? "more lowering" : "less lowering");
+  const glyph = (text, phi, lo, hi, axis) => {
+    const at = (v) => `${Math.max(0, Math.min(100, 50 + (-v / axis) * 50)).toFixed(2)}%`; // right of 0 = more lowering
+    const zero = h("span", { class: "dzero" }), bar = h("span", { class: "dci" }), dot = h("span", { class: "dpt" });
+    zero.style.left = "50%";
+    bar.style.left = at(hi);
+    bar.style.width = `${(parseFloat(at(lo)) - parseFloat(at(hi))).toFixed(2)}%`;
+    dot.style.left = at(phi);
+    return h("span", { class: "dtrack", role: "img", "aria-label": text, title: text }, zero, bar, dot);
+  };
+  const blocks = rows.map((e) => {
+    const target = `${e.option}-${card.comparator}`;
+    const ex = window.DiaCausal.explainEffect(MODEL, patient, target);
+    const shown = (card.drivers[e.option] || []).map((d) => ex.contributions.find((c) => c.feature === d.feature));
+    const d = e.vs_comparator;
+    const head = h("p", { class: "small muted" }, h("strong", {}, `${armName(e.option)} vs ${armName(card.comparator)}`),
+      `: ${pct(d.value)} for this patient (${ci(d)}); ${pct(ex.base)} for the average patient. Up to ${MODEL.xai.max_drivers} clear drivers, in HbA1c points.`);
+    if (!shown.length) return [head, h("p", {}, "No single patient detail clearly drives this estimate.")];
+    const axis = Math.max(0.1, Math.ceil(Math.max(...shown.map((c) => Math.max(Math.abs(c.ci_low), Math.abs(c.ci_high)))) / 0.05) * 0.05);
+    const lines = shown.map((c) => {
+      const l = labels[c.feature] || { text: c.feature.replace(/_/g, " "), kind: "continuous", unit: "" };
+      const who = l.kind === "yes_no" ? `${l.text[0].toUpperCase()}${l.text.slice(1)}: ${c.value ? "yes" : "no"}`
+        : `${c.value > c.mean ? "Higher" : "Lower"} ${l.text} — this patient ${g3(c.value)}${l.unit || ""}`;
+      const [lo, hi] = c.phi < 0 ? [-c.ci_high, -c.ci_low] : [c.ci_low, c.ci_high];
+      const text = `${who}: ${amount(c.phi)} ${words(c.phi)} (95% CI ${f3(lo)} to ${f3(hi)})`;
+      return h("div", { class: "drow" }, h("p", {}, h("strong", {}, `${who}:`), ` ${amount(c.phi)} ${words(c.phi)} `,
+        h("span", { class: "muted" }, `(95% CI ${f3(lo)} to ${f3(hi)})`)), h("div", {}, glyph(text, c.phi, c.ci_low, c.ci_high, axis)));
+    });
+    const rest = window.DiaCausal.otherDetails(MODEL, patient, target, shown.map((c) => c.feature));
+    const [rlo, rhi] = rest.phi < 0 ? [-rest.ci_high, -rest.ci_low] : [rest.ci_low, rest.ci_high];
+    lines.push(h("div", { class: "drow" }, h("p", {}, h("strong", {}, "All other details together:"), ` ${amount(rest.phi)} ${words(rest.phi)} `,
+      h("span", { class: "muted" }, `(95% CI ${f3(rlo)} to ${f3(rhi)})`)), h("span", {})));
+    lines.push(h("div", { class: "drow" }, h("span", {}), h("div", { class: "daxis" }, h("span", {}, "← less lowering"), h("span", {}, "0"), h("span", {}, "more lowering →"))));
+    return [head, ...lines];
+  });
+  return [h("details", { class: "drivers", open: true }, h("summary", {}, h("h3", {}, "What drives this estimate")),
+    ...blocks.flat(),
+    h("p", { class: "small muted" }, "The estimate is larger or smaller for patients with these details. These show how the estimate changes across patients like this one. They are not causes."))];
+}
+const g3 = (v) => String(Number(v.toFixed(3)));
+const f3 = (v) => (v < 0 ? "−" : "") + Math.abs(v).toFixed(3); // a true minus sign, as everywhere else on the card
+
 /** The abstain card of plan 8.11, exactly: one per option whose level is Insufficient. */
 function abstainCards(card) {
   return card.abstain.map((n) => h("div", { class: "abstaincard", role: "note" },
@@ -455,7 +506,7 @@ function citedEvidence(card, passages) {
 }
 
 /** Draws one AnswerCardV1. `result` is the engine's output (for the rule messages); `passages` are the cited passages. */
-function renderCard(card, into, { result, passages = [] }) {
+function renderCard(card, into, { result, passages = [], patient = null }) {
   const prev = $("#out");
   if (prev) prev.removeAttribute("id");
   const out = h("section", { class: "card", id: "out", "aria-labelledby": `ans-${card.request_id}` });
@@ -488,7 +539,7 @@ function renderCard(card, into, { result, passages = [] }) {
     else out.append(h("h3", {}, "HbA1c at 6 months"), finding(card), optionsTable(card));
     out.append(h("p", { class: "legend" }, h("strong", {}, "Evidence level"), " — Moderate: a narrow interval, enough similar patients and at least two cited passages. Low: a wide interval, few similar patients or fewer than two cited passages. Insufficient: no estimate is shown. It is never “High”, because every estimate comes from a synthetic cohort."));
     if (leader) out.append(...tradeOffs(card));
-    out.append(...abstainCards(card), ...citedEvidence(card, passages));
+    out.append(...driversSection(card, patient), ...abstainCards(card), ...citedEvidence(card, passages));
   }
   const printBtn = h("button", { type: "button", class: "btn btn--ghost noprint" }, "Print or save as PDF (consultation summary)");
   printBtn.addEventListener("click", () => window.print());
@@ -588,7 +639,7 @@ async function askInThread(question) {
   } else if (patient) {
     const result = window.DiaCausal.recommend(MODEL, patient);
     const built = questionCard(index, result, patient, q, raw);
-    renderCard(built.card, box, { result, passages: built.passages });
+    renderCard(built.card, box, { result, passages: built.passages, patient });
   } else {
     box.append(h("span", { class: "who" }, "DiaCausal answered"));
     const card = h("div", { class: "card" });
@@ -733,7 +784,7 @@ async function ask(question) {
   if (patient) {
     const result = window.DiaCausal.recommend(MODEL, patient);
     const built = questionCard(index, result, patient, q, window.DiaCausalEvidence.search(index, q, { raw: true }));
-    renderCard(built.card, out, { result, passages: built.passages });
+    renderCard(built.card, out, { result, passages: built.passages, patient });
   } else {
     out.append(h("p", { class: "field__hint" }, "Fill in Patient Details to see the three options compared for that patient, with these passages as its evidence."));
   }

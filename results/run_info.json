@@ -8,7 +8,7 @@
   "base_seed": 7,
   "psm_bootstrap": 100,
   "params_version": "0.3.0",
-  "params_sha": "cd05c9cab6",
+  "params_sha": "6d9b4de98d",
   "rules_sha": "dd3f348885",
   "true_population_effects": {
     "SGLT2i": -0.96146283,
@@ -34,5 +34,5 @@
   },
   "refutation_checks_passed": "9 of 9",
   "python": "3.12.14",
-  "seconds": 201.1
+  "seconds": 772.4
 }

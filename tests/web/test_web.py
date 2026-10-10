@@ -63,7 +63,7 @@ def test_model_json_is_fresh(engine, model):
     fresh = json.loads(json.dumps(model_dict(engine)))
     assert model["versions"] == fresh["versions"], "run: python -m diacausal.causal_inference.export_web"
     for key in ("features", "rules", "thresholds", "support", "prices", "assumptions", "arms", "secondary_note", "evidence_level", "short_names",
-                "still_see", "no_estimate"):
+                "still_see", "no_estimate", "xai"):
         assert model[key] == fresh[key], key
     for part in ("propensity", "dr"):
         for k, v in fresh[part].items():
@@ -179,6 +179,37 @@ def test_every_card_the_website_builds_is_a_valid_answer_card_with_pythons_level
         assert card.claims[0].citations[0].chunk_id == "S20-00-00" and card.intended_use == INTENDED_USE
         assert set(out["leaders"]) <= {r.option for r in card.effects if r.vs_comparator and (r.vs_comparator.ci_high < 0 or r.vs_comparator.ci_low > 0)}
     assert kinds == {"ESTIMATED", "EXCLUDED", "INSUFFICIENT_EVIDENCE"}
+
+
+@pytest.mark.skipif(NODE is None, reason="Node.js is needed to run web/engine.js")
+def test_browser_shap_matches_python(engine, model, tmp_path):
+    """P25: explainEffect() in web/engine.js gives Python's exact SHAP (diacausal/xai/cate_shap.py) for the same 155 patients as the
+    engine parity test, all three comparisons and all 12 features, to 1e-9: base, estimate, every contribution and its 95% interval,
+    the clear flags and the order of the drivers the card shows; and in both, the contributions add up to the estimate."""
+    from diacausal.xai.cate_shap import drivers, explain_effect, max_drivers, other_details
+
+    patients = PRESETS + list(random_patients(150))
+    (tmp_path / "p.json").write_text(json.dumps(patients))
+    js = json.loads(subprocess.run([NODE, str(ROOT / "tests/web/run_explain_effect.cjs"), str(WEB / "model.json"), str(tmp_path / "p.json")],
+                                   capture_output=True, text=True, check=True).stdout)
+    limit = max_drivers()
+    shown_any = 0
+    for p, j in zip(patients, js):
+        x = engine.feature_vector(PatientIn(**p))
+        for target in model["xai"]["explained_targets"]:
+            py, jt = explain_effect(engine.fitted.dr, x, target, engine.z, engine.adjustment), j[target]
+            assert abs(jt["base"] - py.base) < 1e-9 and abs(jt["estimate"] - py.estimate) < 1e-9
+            assert abs(jt["base"] + sum(c["phi"] for c in jt["contributions"]) - jt["estimate"]) < 1e-9  # adds up in JavaScript too
+            for jc, pc in zip(jt["contributions"], py.contributions):
+                assert jc["feature"] == pc.feature and jc["clear"] == pc.clear, (target, pc.feature)
+                for key in ("phi", "ci_low", "ci_high", "slope_per_unit", "mean"):
+                    assert abs(jc[key] - getattr(pc, key)) < 1e-9, (target, pc.feature, key)
+            assert jt["shown"] == [c.feature for c in drivers(py, limit)]
+            rest = other_details(engine.fitted.dr, x, target, engine.z, engine.adjustment, jt["shown"])
+            assert all(abs(jt["other"][k] - v) < 1e-9 for k, v in zip(("phi", "ci_low", "ci_high"), rest))
+            assert abs(py.base + sum(c.phi for c in drivers(py, limit)) + rest[0] - py.estimate) < 1e-9  # the card's rows add up
+            shown_any += bool(jt["shown"])
+    assert shown_any > 100
 
 
 @pytest.mark.skipif(NODE is None, reason="Node.js is needed to run web/engine.js")
@@ -628,7 +659,9 @@ def test_every_screen_built_here_renders_at_desktop_and_phone_size(tmp_path):
         elif name.startswith(("17-", "19-", "21-")):  # P24: the answer card (AnswerCardV1) in the design's three states
             assert f["decides"] == "The clinician decides." and f["last"] == INTENDED_USE and f["scards"] == 3
             assert all(lv.strip() in ("Moderate", "Low", "Insufficient", "Not assessed") for lv in f["levels"])
-            if name.startswith("17-"):  # a leader: its interval vs DPP-4i excludes 0, on HbA1c only
+            if name.startswith("17-"):  # a leader: its interval vs DPP-4i excludes 0, on HbA1c only; P25: its drivers, never causes
+                assert f["driversTitle"] == "What drives this estimate" and f["driverRows"] >= 2 and "They are not causes." in f["driversNote"]
+                assert all("95% CI" in r for r in f["driverTexts"])
                 assert f["h2"] == "Three options compared for this patient" and f["leaders"] >= 1 and f["excluded"] == 0
                 assert "shows more HbA1c lowering than DPP-4 inhibitor" in f["finding"] and f["finding"].endswith("This is a difference on HbA1c only.")
             elif name.startswith("21-"):  # no leader; SGLT2i removed by rule R01 shows "Not estimated"

@@ -106,3 +106,41 @@ def test_a_quick_rerun_reproduces_the_committed_quick_file(tmp_path):
             f"{key} moved: regenerate with run(3, 1500, 1000, 20, <folder>, samples=2000) and copy baseline_metrics.csv to "
             "results/xai/baseline_metrics_quick.csv")
     shutil.rmtree(tmp_path, ignore_errors=True)
+
+
+# ── version C (P25): results/xai/causal_shap_metrics.csv ────────────────────────────────────────────────────────────
+C_METRICS = ["additivity_max_error", "modifier_precision_at_k", "modifier_spearman", "modifier_top3_overlap", "false_driver_rate",
+             "driver_recall", "slope_interval_coverage", "clear_set_equals_true_modifiers", "patients_with_no_clear_driver"]
+
+
+def test_version_c_metrics_are_complete_sane_and_not_stale():
+    from diacausal.config import load_params
+    from diacausal.guards.rules_loader import load_rules
+
+    data = rows("causal_shap_metrics.csv")
+    assert list(data[0]) == ["version", "metric", "comparison", "mean", "ci_low", "ci_high", "n_reps"] and {r["version"] for r in data} == {"C"}
+    got = {(r["metric"], r["comparison"]): r for r in data}
+    assert {(m, c) for m in C_METRICS for c in COMPARISONS} <= set(got)
+    for (metric, comparison), r in got.items():
+        mean = number(r["mean"])
+        if metric == "additivity_max_error":
+            assert mean < 1e-9, r  # exact by construction
+        elif metric != "modifier_spearman" and metric != "explanation_is_deterministic":
+            assert 0 <= mean <= 1, r
+        if metric in C_METRICS:  # a replicate in which no patient had a clear driver has no false-driver rate (nothing was shown)
+            assert int(r["n_reps"]) >= 19 if metric == "false_driver_rate" else r["n_reps"] == "20", r
+    info = json.loads((XAI / "causal_shap_run_info.json").read_text())
+    assert info["reps"] == 20 and info["params_sha"] == load_params().fingerprint and info["rules_sha"] == load_rules().version, \
+        "params.yaml or rules.csv changed after version C's results were made: rerun python -m diacausal.xai.cate_shap_benchmark"
+
+
+def test_version_c_presets_add_up_and_show_only_clear_drivers():
+    data = rows("causal_shap_presets.csv")
+    groups = {}
+    for r in data:
+        groups.setdefault((r["preset"], r["comparison"]), []).append(r)
+    assert len(groups) == 9
+    for key, g in groups.items():
+        assert len(g) == 12 and abs(number(g[0]["base"]) + sum(number(r["phi"]) for r in g) - number(g[0]["estimate"])) < 1e-4, key
+        shown = [r for r in g if r["shown"] == "1"]
+        assert len(shown) <= 3 and all(r["clear"] == "1" for r in shown), key
