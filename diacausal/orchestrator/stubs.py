@@ -14,9 +14,3 @@ def shap_drivers(ctx: Context) -> dict:
     """P25: SHAP drivers of each option's estimate. Today: none."""
     stub_notice("shap drivers", ctx.request_id)
     return {}
-
-
-def evidence_levels(ctx: Context) -> list:
-    """P24: the Moderate / Low / Insufficient label per option. Today: none (an empty list, not a guess)."""
-    stub_notice("evidence levels", ctx.request_id)
-    return []

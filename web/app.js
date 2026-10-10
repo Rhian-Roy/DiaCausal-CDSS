@@ -66,11 +66,14 @@ const ICON_PATHS = {
   clock: ["M12 7v5.3l3.3 2"],
   info: ["M12 11v5.5", "M12 7.6h.01"],
   stop: ["M8.3 2.6h7.4l5.7 5.7v7.4l-5.7 5.7H8.3l-5.7-5.7V8.3z", "M15 9l-6 6", "M9 9l6 6"],
+  safe: ["M7.5 12.5l3 3 6-6.5"],
+  warn: ["M12 3.5l9.5 16.5h-19z", "M12 10v4.5", "M12 17.4h.01"],
+  lead: ["M5 19V9", "M12 19V5", "M19 19v-7"],
 };
 function icon(name, size = 22, cls = "") {
   const el = svg("svg", { class: `icon ${cls}`.trim(), width: size, height: size, viewBox: "0 0 24 24", fill: "none",
     stroke: "currentColor", "stroke-width": "2.3", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" });
-  if (name === "waiting" || name === "clock" || name === "info" || name === "cross") el.append(svg("circle", { cx: 12, cy: 12, r: name === "waiting" ? 8.5 : 9 }));
+  if (["waiting", "clock", "info", "cross", "safe"].includes(name)) el.append(svg("circle", { cx: 12, cy: 12, r: name === "waiting" ? 8.5 : 9 }));
   if (name === "lock") el.append(svg("rect", { x: 4, y: 10, width: 16, height: 10.5, rx: 2 }));
   if (name === "copy") el.append(svg("rect", { x: 9, y: 9, width: 11, height: 11, rx: 2 }));
   for (const d of ICON_PATHS[name] || []) el.append(svg("path", name === "running" ? { d, class: "spin" } : { d }));
@@ -226,8 +229,8 @@ const STAGES = [
   ["Checking the question and patient details", "run"],
   ["Applying safety rules", "run"],
   ["Estimating each option's HbA1c change with a 95% interval", "run"],
-  ["Retrieving cited passages", "skip"],
-  ["Writing the answer (local model, or template if it is unavailable)", "skip"],
+  ["Retrieving cited passages", "run"],
+  ["Writing the answer (sentences quoted from the passages; this page runs no model)", "run"],
   ["Checking the answer before it is shown", "run"],
 ];
 const STATE_WORD = { done: "Done", now: "Running", wait: "Waiting", skip: "Not run on this page yet" };
@@ -240,7 +243,7 @@ function stageItem(name, state) {
     h("span", { class: "stage__state" }, icon(STATE_ICON[state], 16), " ", STATE_WORD[state]));
 }
 
-/** Six steps in pipeline order; the website runs 1–3 and 6 itself, and says so for 4 and 5. */
+/** Six steps in pipeline order, all run on this device (step 5 quotes passage sentences; the website runs no model). */
 function stagesCard() {
   const list = h("ul", { class: "stages", "aria-live": "polite" });
   const note = h("p", { class: "field__hint" });
@@ -249,7 +252,7 @@ function stagesCard() {
   const draw = (step) => {
     list.replaceChildren(...STAGES.map(([name, kind], i) =>
       stageItem(name, kind === "skip" && i < step ? "skip" : i < step ? "done" : i === step ? (kind === "skip" ? "skip" : "now") : "wait")));
-    note.textContent = step < STAGES.length ? `Step ${step + 1} of ${STAGES.length}.` : "All steps finished. Retrieval and writing run in the full app; this page shows the engine's own wording.";
+    note.textContent = step < STAGES.length ? `Step ${step + 1} of ${STAGES.length}.` : "All steps finished, on this device.";
     if (step >= STAGES.length) card.removeAttribute("aria-busy");
   };
   return { card, draw };
@@ -276,7 +279,8 @@ function compare() {
   if (window.matchMedia("(max-width: 900px)").matches) $("#pd").open = false;
   let step = 0;
   draw(step);
-  const next = () => {
+  const evidence = loadEvidence();
+  const next = async () => {
     step += 1;
     draw(step);
     if (step < STAGES.length) { setTimeout(next, STAGE_MS); return; }
@@ -287,104 +291,209 @@ function compare() {
         h("div", { class: "stack" }, h("span", { class: "msgnotice__word" }, "Answer withheld"),
           h("p", {}, "The output check withheld this answer: " + withheld), h("p", {}, "The clinician decides."))));
     } else {
-      render(result, answer);
+      const built = compareCard(await evidence, result, p);
+      renderCard(built.card, answer, { result, passages: built.passages });
     }
     answer.scrollIntoView({ block: "start" });
   };
   setTimeout(next, STAGE_MS);
 }
 
-function ruleLines(o) {
-  return o.safety.map((s) => h("p", { class: `rule rule--${s.action}` },
-    h("strong", {}, `Rule ${s.rule_id} · ${s.action === "EXCLUDE" ? "Do not use" : "Check first"}`),
-    ` (${s.condition}; rule ${s.rule_status.toLowerCase()}): ${s.message}`,
-    h("span", { class: "src" }, `Source: ${s.source} — § ${s.section}`)));
-}
+// ── The answer card (AnswerCardV1, screens 17, 19 and 21; docs/ANSWER_FORMAT.md) ───────────────
+const armName = (arm) => MODEL.arms.find((a) => a.arm === arm).name;
+const pct = (x) => `${signed(x, 2)} %`;
+const ci = (x, d = 2, sign = true) => `95% CI ${sign ? signed(x.ci_low, d) : x.ci_low.toFixed(d)} to ${sign ? signed(x.ci_high, d) : x.ci_high.toFixed(d)}`;
+const WORDS = ["No", "One", "Two", "Three"];
 
-function card(o) {
-  const caution = o.status === "estimate" && o.safety.length > 0;
-  const kind = o.status === "excluded" ? "excluded" : o.status === "insufficient_evidence" ? "insufficient" : caution ? "caution" : "estimate";
-  const badge = { excluded: "EXCLUDED", insufficient: "INSUFFICIENT EVIDENCE", caution: "ESTIMATE · CHECK FIRST", estimate: "ESTIMATE" }[kind];
-  const body = [];
-  if (o.status === "excluded") body.push(h("p", { class: "sub" }, "Not estimated — removed by a safety rule before estimation."));
-  if (o.status === "insufficient_evidence") body.push(h("p", { class: "sub" }, o.insufficient_reason));
-  if (o.status === "estimate") {
-    const e = o.effect;
-    body.push(h("p", { class: "est" }, signed(e.value), " ", h("small", {}, `(95% CI ${signed(e.ci_low)} to ${signed(e.ci_high)})`)));
-    body.push(h("p", { class: "sub" }, `percentage points of HbA1c at 6 months · propensity ${o.confidence.propensity.toFixed(2)}`));
-    if (o.secondary) {
-      const w = o.secondary.weight_change_kg, r = o.secondary.hypo_risk_pct;
-      body.push(h("dl", { class: "sec" },
-        h("dt", {}, "Weight at 6 months"),
-        h("dd", {}, h("strong", {}, `${signed(w.value, 1)} kg`), ` (95% CI ${signed(w.ci_low, 1)} to ${signed(w.ci_high, 1)})`),
-        h("dt", {}, "Any low sugar by 6 months"),
-        h("dd", {}, h("strong", {}, `${r.value.toFixed(1)}%`), ` (95% CI ${r.ci_low.toFixed(1)} to ${r.ci_high.toFixed(1)})`)));
-    }
-  }
-  body.push(...ruleLines(o));
-  body.push(h("p", { class: "sub" }, `Cost: ${o.cost.label}`));
-  body.push(optionEvidence(o));
-  return h("div", { class: `opt opt--${kind}` },
-    h("div", { class: "opt__head" },
-      h("div", {}, h("div", { class: "opt__name" }, o.name), h("div", { class: "opt__example" }, `e.g. ${o.example_molecule}`)),
-      h("span", { class: "opt__badge" }, badge)),
-    ...body);
-}
-
-/** Evidence fusion: the licence-cleared passages about this option (and its fired rules), loaded on tap. */
-function optionEvidence(o) {
-  const d = h("details", { class: "opt__ev noprint" }, h("summary", {}, "Evidence for this option"));
-  d.addEventListener("toggle", async () => {
-    if (!d.open || d.dataset.done) return;
-    d.dataset.done = "1";
-    const index = await loadEvidence();
-    const conds = o.safety.map((s) => s.condition).join(" ");
-    const keys = [o.name.split(" ")[0].toLowerCase(), o.example_molecule.toLowerCase()];
-    const about = (p) => p.text !== index.withheld_text && keys.some((k) => p.text.toLowerCase().includes(k));
-    const seen = new Set();
-    const shown = [];
-    for (const q of [`${o.name} ${conds}`, `${o.name} safety`, o.name]) {
-      const res = window.DiaCausalEvidence.search(index, q);
-      for (const p of res.passages.filter(about)) {
-        const key = `${p.citation.source_id}|${p.citation.section}|${p.text.slice(0, 40)}`;
-        if (!seen.has(key) && shown.length < 2) { seen.add(key); shown.push(p); }
-      }
-      if (shown.length >= 2) break;
-    }
-    if (!shown.length) { d.append(h("p", { class: "sub" }, "No licence-cleared passage about this option yet.")); return; }
-    for (const p of shown) {
-      const c = p.citation;
-      d.append(h("blockquote", { class: "ev-quote" }, p.text.split(/\s+/).slice(0, 60).join(" ") + (p.text.split(/\s+/).length > 60 ? " …" : ""),
-        h("span", { class: "src" }, `Source ${c.source_id}: ${c.title} — “${c.section}”`)));
-    }
-    d.append(h("p", { class: "muted" }, "Source passages, not advice. More in Investigate."));
+/** The evidence level as the design's 3-bar meter and its word (never "High"). */
+function levelMeter(level) {
+  const filled = { Moderate: 2, Low: 1 }[level] || 0;
+  const g = svg("svg", { class: "icon", width: 22, height: 18, viewBox: "0 0 23 18", "aria-hidden": "true" });
+  [[2, 11, 6], [9, 7, 10], [16, 3, 14]].forEach(([x, y, hh], i) => {
+    g.append(i < filled ? svg("rect", { x, y, width: 5, height: hh, rx: 1, fill: "currentColor" })
+      : svg("rect", { x: x + 0.8, y: y + 0.8, width: 3.4, height: hh - 1.6, rx: 1, fill: "none", stroke: "currentColor", "stroke-width": 1.6 }));
   });
-  return d;
+  return h("span", { class: "level" }, g, " ", level || "Not assessed");
 }
 
-function forest(options) {
-  const est = options.filter((o) => o.status === "estimate");
-  const W = 360, rowH = 50, top = 12, left = 96, right = 18, H = top + rowH * est.length + 36;
-  const lo = Math.min(0, ...est.map((o) => o.effect.ci_low)) - 0.1;
-  const hi = Math.max(0, ...est.map((o) => o.effect.ci_high)) + 0.1;
-  const x = (v) => left + ((v - lo) / (hi - lo)) * (W - left - right);
-  const g = svg("svg", { viewBox: `0 0 ${W} ${H}`, class: "forest", role: "img",
-    "aria-label": "Expected 6-month HbA1c change for each option with its 95% interval" });
-  g.append(svg("line", { class: "zero", x1: x(0), x2: x(0), y1: top - 4, y2: H - 30 }));
-  est.forEach((o, i) => {
-    const y = top + rowH * i + rowH / 2;
-    g.append(svg("text", { x: 0, y: y + 4 }, document.createTextNode(LABEL[o.arm])));
-    g.append(svg("line", { class: "ci", x1: x(o.effect.ci_low), x2: x(o.effect.ci_high), y1: y, y2: y }));
-    g.append(svg("circle", { class: "dot", cx: x(o.effect.value), cy: y, r: 7 }));
-  });
-  const axisY = H - 26;
-  g.append(svg("line", { class: "axis", x1: left, x2: W - right, y1: axisY, y2: axisY }));
-  const step = hi - lo > 1.2 ? 0.5 : 0.25;
-  for (let t = Math.ceil(lo / step) * step; t <= hi + 1e-9; t += step) {
-    g.append(svg("line", { class: "axis", x1: x(t), x2: x(t), y1: axisY, y2: axisY + 4 }));
-    g.append(svg("text", { x: x(t), y: axisY + 18, "text-anchor": "middle" }, document.createTextNode(Math.abs(t) < 1e-9 ? "0" : signed(t, 2))));
+/** Dot-and-interval glyph on the design's -1.6 to 0 % axis (positions set through the CSSOM, never a style attribute). */
+function dtrack(text, x) {
+  const at = (v) => `${Math.max(0, Math.min(100, ((v + 1.6) / 1.6) * 100)).toFixed(2)}%`;
+  const bar = h("span", { class: "dci" }), dot = h("span", { class: "dpt" });
+  bar.style.left = at(x.ci_low);
+  bar.style.width = `${(parseFloat(at(x.ci_high)) - parseFloat(at(x.ci_low))).toFixed(2)}%`;
+  dot.style.left = at(x.value);
+  return h("span", { class: "dtrack", role: "img", "aria-label": text, title: text }, bar, dot);
+}
+
+function citeButton(n, onOpen) {
+  const b = h("button", { class: "cite", type: "button", "aria-label": `Evidence ${n} — open source` }, String(n));
+  b.addEventListener("click", () => onOpen(n));
+  return b;
+}
+
+/** Safety checks: one card per option, with the rule ID and source of every rule that fired. */
+function safetyCards(card, result) {
+  return h("div", { class: "scards" }, result.options.map((o) => {
+    const stop = card.excluded.filter((r) => r.option === o.arm), check = card.cautions.filter((r) => r.option === o.arm);
+    const kind = stop.length ? "stop" : check.length ? "check" : "safe";
+    const word = { stop: "Do not use", check: "Check first", safe: "Safe to consider" }[kind];
+    const fired = [...stop, ...check];
+    const why = kind === "stop" ? "Removed before estimation. It is not compared with the others."
+      : kind === "check" ? o.safety.filter((s) => s.action === "CAUTION").map((s) => s.message).join(" ")
+        : "No exclusion or check-first rule matched for this record.";
+    return h("article", { class: `scard scard--${kind}` }, h("h4", {}, armName(o.arm)),
+      h("span", { class: "scard__word" }, icon({ stop: "stop", check: "warn", safe: "safe" }[kind], 20), ` ${word}`),
+      h("p", {}, why),
+      fired.length ? fired.map((r) => h("p", { class: "scard__rule" }, h("span", {}, h("strong", {}, "Rule"), ` ${r.rule_id}`),
+        h("span", {}, h("strong", {}, "Source"), ` ${r.source}`)))
+        : h("p", { class: "scard__rule" }, h("span", {}, h("strong", {}, "Rule"), " none fired"),
+          h("span", {}, h("strong", {}, "Source"), ` the rules table, version ${card.versions.rules_sha}`)));
+  }));
+}
+
+/** The finding box: a leader only when its interval vs DPP-4i excludes 0, and only on HbA1c (pine, never green). */
+function finding(card) {
+  const comp = card.effects.find((e) => e.option === card.comparator);
+  const leads = window.DiaCausalCard.leaders(card);
+  if (!comp || !comp.hba1c_change) {
+    return h("div", { class: "finding finding--even" }, icon("info", 24, "c-muted"),
+      h("p", {}, h("strong", {}, "No comparison against DPP-4 inhibitor for this patient."), " It has no estimate, so no option is set against it."));
   }
-  return g;
+  if (!leads.length) {
+    return h("div", { class: "finding finding--even" }, icon("info", 24, "c-muted"),
+      h("p", {}, h("strong", {}, "No clear difference in HbA1c for this patient."), " Every difference against DPP-4 inhibitor has a 95% interval that includes zero."));
+  }
+  return h("div", { class: "finding" }, icon("lead", 24, "c-pine"), h("p", {}, ...leads.flatMap((e) => {
+    const d = e.vs_comparator, more = d.ci_high < 0;
+    const [a, b] = more ? [armName(e.option), armName(card.comparator)] : [armName(card.comparator), armName(e.option)];
+    return [h("strong", {}, `${a} shows more HbA1c lowering than ${b} for this patient:`),
+      ` difference ${pct(d.value)} (${ci(d)}). The interval excludes zero. `];
+  }), "This is a difference on HbA1c only."));
+}
+
+function optionsTable(card) {
+  const leads = new Set(window.DiaCausalCard.leaders(card).filter((e) => e.vs_comparator.ci_high < 0).map((e) => e.option));
+  const levels = Object.fromEntries(card.evidence_levels.map((l) => [l.option, l]));
+  const removed = new Set(card.excluded.map((r) => r.option));
+  const rows = card.effects.map((e) => {
+    const name = armName(e.option);
+    const mini = removed.has(e.option) ? ["stop", "Do not use"] : e.caution ? ["check", "Check first"] : ["safe", "Safe to consider"];
+    const head = h("th", { scope: "row" }, name, h("span", { class: "sub" }, "added to metformin"),
+      h("span", { class: `mini mini--${mini[0]}` }, icon({ stop: "stop", check: "warn", safe: "safe" }[mini[0]], 16), ` ${mini[1]}`),
+      leads.has(e.option) ? h("span", { class: "badge badge--pine leadtag" }, icon("lead", 16), " More HbA1c lowering than DPP-4i") : null);
+    const lv = levels[e.option];
+    const levelCell = h("td", { "data-label": "Evidence level" }, levelMeter(lv ? lv.level : null),
+      h("span", { class: "ci" }, lv ? lv.reason : `Removed by rule ${card.excluded.filter((r) => r.option === e.option).map((r) => r.rule_id).join(", ")} before estimation.`));
+    const cost = h("td", { "data-label": "Cost" }, e.cost_label, h("span", { class: "ci" }, "per month"));
+    if (!e.hba1c_change) {
+      const rule = card.excluded.filter((r) => r.option === e.option).map((r) => r.rule_id).join(", ");
+      return h("tr", { class: removed.has(e.option) ? "row--excluded" : null }, head,
+        h("td", { "data-label": "HbA1c change at 6 months" }, h("span", { class: "num" }, removed.has(e.option) ? "Not estimated" : "No estimate"),
+          h("span", { class: "ci" }, removed.has(e.option) ? `Removed by rule ${rule} before estimation` : "Insufficient evidence (see below)")),
+        h("td", { "data-label": "vs DPP-4i" }, "—"), h("td", { "data-label": "Any hypoglycaemia" }, "—"),
+        h("td", { "data-label": "Weight change at 6 months" }, "—"), cost, levelCell);
+    }
+    const x = e.hba1c_change, d = e.vs_comparator;
+    const glyph = `${name}: ${pct(x.value)} (${ci(x)})`;
+    const versus = e.option === card.comparator
+      ? [h("span", { class: "num" }, "Comparator"), h("span", { class: "ci" }, "DPP-4 inhibitor is the reference")]
+      : d ? [h("span", { class: "num" }, pct(d.value)), h("span", { class: "ci" }, ci(d)),
+        h("span", { class: "zero" }, icon(d.ci_high < 0 || d.ci_low > 0 ? "check" : "info", 16), d.ci_high < 0 || d.ci_low > 0 ? " Interval excludes 0" : " Interval includes 0")]
+        : ["—"];
+    return h("tr", {}, head,
+      h("td", { "data-label": "HbA1c change at 6 months" }, h("span", { class: "num" }, pct(x.value)), h("span", { class: "ci" }, ci(x)), dtrack(glyph, x)),
+      h("td", { "data-label": "vs DPP-4i" }, ...versus),
+      h("td", { "data-label": "Any hypoglycaemia" }, e.hypo_risk_pct ? [h("span", { class: "num" }, `${e.hypo_risk_pct.value.toFixed(1)} %`), h("span", { class: "ci" }, ci(e.hypo_risk_pct, 1, false))] : "—"),
+      h("td", { "data-label": "Weight change at 6 months" }, e.weight_change_kg ? [h("span", { class: "num" }, `${signed(e.weight_change_kg.value, 1)} kg`), h("span", { class: "ci" }, ci(e.weight_change_kg, 1))] : "—"),
+      cost, levelCell);
+  });
+  return h("div", { class: "tablewrap" }, h("table", { class: "options" },
+    h("caption", { class: "sr-only" }, "Three options compared for this patient"),
+    h("thead", {}, h("tr", {}, h("th", { scope: "col" }, "Option"),
+      h("th", { scope: "col" }, "HbA1c change, 6 months", h("br"), h("span", { class: "th-note" }, "dot = estimate · bar = 95% CI · axis −1.6 to 0 %")),
+      h("th", { scope: "col" }, "Difference vs DPP-4i"), h("th", { scope: "col" }, "Any hypo­glycaemia"),
+      h("th", { scope: "col" }, "Weight, 6 months"), h("th", { scope: "col" }, "Cost, ₹/month"), h("th", { scope: "col" }, "Evidence level"))),
+    h("tbody", {}, rows)));
+}
+
+function tradeOffs(card) {
+  const shown = card.effects.filter((e) => e.hba1c_change);
+  const items = [];
+  const w = shown.filter((e) => e.weight_change_kg);
+  if (w.length) items.push(h("li", {}, h("strong", {}, "Weight:"), " " + w.map((e) => `${armName(e.option)} ${signed(e.weight_change_kg.value, 1)} kg (${ci(e.weight_change_kg, 1)})`).join("; ") + "."));
+  const y = shown.filter((e) => e.hypo_risk_pct);
+  if (y.length) items.push(h("li", {}, h("strong", {}, "Any hypoglycaemia by 6 months:"), " " + y.map((e) => `${armName(e.option)} ${e.hypo_risk_pct.value.toFixed(1)} % (${ci(e.hypo_risk_pct, 1, false)})`).join("; ") + "."));
+  items.push(h("li", {}, h("strong", {}, "Cost:"), " " + card.effects.map((e) => `${armName(e.option)}: ${e.cost_label}`).join("; ") + "."));
+  return [h("h3", {}, "Trade-offs"), h("ul", { class: "trade" }, items),
+    h("p", { class: "small muted" }, "Weight and hypoglycaemia come from the same synthetic cohort and method as HbA1c; they are for discussion, not a ranking.")];
+}
+
+/** The abstain card of plan 8.11, exactly: one per option whose level is Insufficient. */
+function abstainCards(card) {
+  return card.abstain.map((n) => h("div", { class: "abstaincard", role: "note" },
+    h("p", {}, h("strong", {}, `Insufficient evidence for: ${MODEL.short_names[n.option]}`)),
+    h("p", {}, `Why: ${n.why}.`), h("p", {}, MODEL.still_see), h("p", {}, `The clinician decides. ${card.intended_use}`)));
+}
+
+/** Cited evidence: the quoted sentences with their citation markers, then every cited passage, verbatim on request. */
+function citedEvidence(card, passages) {
+  const sources = h("div", { class: "basis" }, h("strong", {}, "Sources cited"));
+  const entries = passages.map((p, i) => {
+    const d = h("details", { class: "srcentry", id: `src-${card.request_id}-${i + 1}` },
+      h("summary", {}, `${i + 1}. ${window.DiaCausalCard.label(p.citation)} — “${p.citation.section}”`),
+      h("p", { class: "passage__text" }, p.text));
+    return d;
+  });
+  const open = (n) => { const d = entries[n - 1]; if (d) { d.open = true; d.scrollIntoView({ block: "nearest" }); d.querySelector("summary").focus(); } };
+  sources.append(...entries, h("p", { class: "small" }, `Estimates: DiaCausal causal engine ${card.versions.engine}, synthetic India-calibrated cohort, params ${card.versions.params_sha}, rules ${card.versions.rules_sha}.`));
+  const number = Object.fromEntries(passages.map((p, i) => [p.chunk_id, i + 1]));
+  const list = card.claims.length
+    ? h("ul", { class: "trade" }, card.claims.map((c) => h("li", {}, `“${c.text}”`, ...c.citations.map((x) => citeButton(number[x.chunk_id], open)))))
+    : h("p", { class: "sub" }, "No passage sentence is quoted for this answer.");
+  return [h("h3", {}, "Cited evidence"), list, h("p", { class: "small muted" }, "Sentences quoted from licence-cleared sources, not advice."), sources];
+}
+
+/** Draws one AnswerCardV1. `result` is the engine's output (for the rule messages); `passages` are the cited passages. */
+function renderCard(card, into, { result, passages = [] }) {
+  const prev = $("#out");
+  if (prev) prev.removeAttribute("id");
+  const out = h("section", { class: "card", id: "out", "aria-labelledby": `ans-${card.request_id}` });
+  into.append(out);
+  out.append(printHeader(result), h("div", { class: "card__head" }, h("span", { class: "who" }, "DiaCausal answered")));
+  const anyEstimate = card.effects.some((e) => e.hba1c_change);
+  const removed = card.excluded.map((r) => r.option).filter((v, i, a) => a.indexOf(v) === i).length;
+  const checks = card.cautions.map((r) => r.option).filter((v, i, a) => a.indexOf(v) === i).length;
+  const facts = h("p", { class: "sub" }, h("strong", {}, "Question: "), card.question, h("br"), h("strong", {}, "Patient: "), card.patient_summary);
+  if (!anyEstimate) { // screen 19
+    out.append(h("h2", { id: `ans-${card.request_id}` }, "Insufficient evidence — no comparison shown"), facts,
+      h("div", { class: "finding finding--check" }, icon("info", 24, "c-check"), h("p", {}, "DiaCausal will not show estimates for this patient.")),
+      h("h3", {}, "Why"), h("ul", { class: "stages" }, [...new Set(card.abstain.map((n) => n.why))].map((why) =>
+        h("li", { class: "stage" }, h("span", { class: "stage__name stage__name--plain" }, why[0].toUpperCase() + why.slice(1) + ".")))),
+      h("p", { class: "field__hint" }, "Only the reasons that applied are listed."),
+      h("h3", {}, "What you can do instead"), h("ul", { class: "stages" },
+        ["Check the patient details for a typing error, then compare again.",
+          "Look up the question in Investigate, which shows cited passages without estimates.",
+          "Use your usual guideline, as you would without this tool."].map((t) => h("li", { class: "stage" }, icon("check", 20, "c-pine"), h("span", { class: "stage__name stage__name--plain" }, t)))),
+      ...abstainCards(card), h("h3", {}, "Safety checks"), safetyCards(card, result), ...citedEvidence(card, passages));
+  } else { // screens 17 (a leader) and 21 (no clear difference)
+    const leader = window.DiaCausalCard.leaders(card).length > 0;
+    out.append(h("h2", { id: `ans-${card.request_id}` }, "Three options compared for this patient"), facts,
+      h("div", { class: "guardrail" }, icon("shield", 24, "c-pine"), h("p", {}, `Safety rules ran first. ${removed ? `${WORDS[removed]} of the three options ${removed === 1 ? "was" : "were"} removed before any estimate was made` : "No option was removed"}${checks ? `; ${WORDS[checks].toLowerCase()} ${checks === 1 ? "needs" : "need"} checking` : ""}.`)),
+      h("h3", {}, "Safety checks"), safetyCards(card, result));
+    if (!leader) out.append(finding(card), ...tradeOffs(card), h("h3", {}, "HbA1c at 6 months"), optionsTable(card));
+    else out.append(h("h3", {}, "HbA1c at 6 months"), finding(card), optionsTable(card));
+    out.append(h("p", { class: "legend" }, h("strong", {}, "Evidence level"), " — Moderate: a narrow interval, enough similar patients and at least two cited passages. Low: a wide interval, few similar patients or fewer than two cited passages. Insufficient: no estimate is shown. It is never “High”, because every estimate comes from a synthetic cohort."));
+    if (leader) out.append(...tradeOffs(card));
+    out.append(...abstainCards(card), ...citedEvidence(card, passages));
+  }
+  const printBtn = h("button", { type: "button", class: "btn btn--ghost noprint" }, "Print or save as PDF (consultation summary)");
+  printBtn.addEventListener("click", () => window.print());
+  out.append(h("div", { class: "row" }, printBtn),
+    h("details", { class: "noprint" }, h("summary", {}, "Answer card (AnswerCardV1, JSON)"), h("pre", {}, JSON.stringify(card, null, 1))),
+    h("div", { class: "decides" }, icon("check", 24, "c-pine"), h("p", {}, "The clinician decides.")),
+    h("p", { class: "field__hint intended-line" }, card.intended_use));
+  return out;
 }
 
 /** Only on paper: what was entered, when, and under which versions (the page itself is never sent anywhere). */
@@ -400,52 +509,63 @@ function printHeader(result) {
     h("p", { class: "intended" }, result.intended_use));
 }
 
-/** Today's answer (engine.js output, until P24 builds screens 17/19/21). Ends "The clinician decides." */
-function render(result, into) {
-  const prev = $("#out");
-  if (prev) prev.removeAttribute("id");
-  const out = h("div", { class: "card", id: "out" });
-  into.append(h("span", { class: "who" }, "DiaCausal answered"), out);
-  out.append(printHeader(result));
-  out.append(h("h2", {}, "Three options compared for this patient"));
-  out.append(h("p", { class: "sub" }, `Safety rules ran first · BMI category: ${result.bmi_category} · Request ID ${result.request_id} · computed on this device`));
-  if (result.applicable === "NOT_APPLICABLE") {
-    out.append(h("div", { class: "notice" }, h("strong", {}, "Not applicable for this patient: "), result.not_applicable_reasons.join("; ")));
+/** Passages that name one option (its class word or example molecule), from three searches: at most two. */
+function optionPassages(index, o) {
+  const conds = o.safety.map((s) => s.condition).join(" ");
+  const keys = [o.name.split(" ")[0].toLowerCase(), o.example_molecule.toLowerCase()];
+  const about = (p) => p.text !== index.withheld_text && keys.some((k) => p.text.toLowerCase().includes(k));
+  const seen = new Set();
+  const shown = [];
+  for (const q of [`${o.name} ${conds}`, `${o.name} safety`, o.name]) {
+    const res = window.DiaCausalEvidence.search(index, q, { raw: true });
+    for (const p of res.passages.filter(about)) {
+      if (!seen.has(p._raw.chunk_id) && shown.length < 2) { seen.add(p._raw.chunk_id); shown.push({ chunk_id: p._raw.chunk_id, text: p.text, citation: p.citation }); }
+    }
+    if (shown.length >= 2) break;
   }
-  out.append(h("div", { class: "cards" }, result.options.map(card)));
-  if (result.options.some((o) => o.status === "estimate")) {
-    out.append(h("div", { class: "stack" }, h("h3", {}, "Estimates with their 95% intervals"), forest(result.options),
-      h("p", { class: "sub" }, "Change in HbA1c at 6 months, percentage points. Further left = larger fall. Dashed line = no change.")));
+  return shown;
+}
+
+/** The card for "Compare the three options": each option's own passages are its citations; one quoted sentence each. */
+function compareCard(index, result, p) {
+  const passages = [];
+  const textsByOption = {};
+  const sentences = [];
+  for (const o of result.options) {
+    const mine = optionPassages(index, o);
+    textsByOption[o.arm] = mine.map((x) => x.text);
+    for (const x of mine) if (!passages.some((y) => y.chunk_id === x.chunk_id)) passages.push(x);
+    if (o.status === "excluded" || !mine.length) continue;
+    const note = window.DiaCausalExplain.template(index, `${o.name} ${o.safety.map((s) => s.condition).join(" ")}`, { status: "SUCCESS", passages: mine });
+    const s = note.sentences && note.sentences[0];
+    if (s) sentences.push({ text: s.text, cites: [passages.findIndex((y) => y.chunk_id === mine[s.cites[0] - 1].chunk_id) + 1] });
   }
-  if (result.comparisons.length) {
-    out.append(h("div", { class: "stack" }, h("h3", {}, "Fair comparisons"),
-      h("div", { class: "scroll" }, h("table", {},
-        h("thead", {}, h("tr", {}, h("th", {}, "Comparison"), h("th", {}, "Difference"), h("th", {}, "95% CI"))),
-        h("tbody", {}, result.comparisons.map((c) => h("tr", {},
-          h("td", {}, `${LABEL[c.first]} minus ${LABEL[c.second]}`),
-          h("td", {}, signed(c.difference.value)),
-          h("td", {}, `${signed(c.difference.ci_low)} to ${signed(c.difference.ci_high)}`)))))),
-      h("p", { class: "sub" }, "Negative = the first option lowers HbA1c more. An interval that crosses 0 means no clear difference.")));
-  }
-  if (result.options.some((o) => o.secondary)) {
-    out.append(h("p", { class: "sub" }, "Weight and low-sugar figures come from the same synthetic cohort and method as HbA1c; they are secondary outcomes for discussion, not a ranking."));
-  }
-  const printBtn = h("button", { type: "button", class: "btn btn--ghost noprint" }, "Print or save as PDF (consultation summary)");
-  printBtn.addEventListener("click", () => window.print());
-  out.append(h("div", { class: "row" }, printBtn));
-  out.append(h("details", {}, h("summary", {}, "Assumptions behind these numbers"),
-    h("ul", {}, result.assumptions.map((a) => h("li", {}, a))),
-    h("p", { class: "muted" }, `Engine ${result.versions.engine} · params ${result.versions.params_sha} · rules ${result.versions.rules_sha} · cohort ${result.versions.cohort}`)));
-  out.append(h("details", {}, h("summary", {}, "Structured Causal Output (JSON)"),
-    h("pre", {}, JSON.stringify(result, null, 1))));
-  out.append(h("div", { class: "decides" }, icon("check", 24, "c-pine"), h("p", {}, result.decision)));
+  return { card: window.DiaCausalCard.build(MODEL, result, p, { passages, sentences, textsByOption, withheldText: index.withheld_text }), passages };
+}
+
+/** The card for a question about this patient: the question's passages and quoted sentences (Patient Details and Investigate). */
+function questionCard(index, result, p, q, raw) {
+  const passages = raw.passages.map((x) => ({ chunk_id: x._raw.chunk_id, text: x.text, citation: x.citation }));
+  const res = JSON.parse(JSON.stringify({ ...raw, passages: raw.passages.map(({ _raw, ...x }) => x) }));
+  const note = window.DiaCausalExplain.explain(index, q, res);
+  const sentences = note.status === "SUCCESS" ? note.sentences : [];
+  return { card: window.DiaCausalCard.build(MODEL, result, p, { question: q, passages, sentences, withheldText: index.withheld_text,
+    retrievalAbstained: raw.status !== "SUCCESS" }), passages };
+}
+
+/** The panel's patient when it is complete and plausible (else null). */
+function readyPatient() {
+  if (!MODEL || Object.keys(panelProblems()).length) return null;
+  const p = readForm();
+  return window.DiaCausal.validate(MODEL, p).length ? null : p;
 }
 
 function pressPreset(i) {
   document.querySelectorAll("[data-preset]").forEach((b) => b.setAttribute("aria-pressed", String(Number(b.dataset.preset) === i)));
 }
 
-/** The message box: a question about the three options, answered from the licence-cleared passages on this device. */
+/** The message box: a question about the three options. With the patient filled in, the answer is the card for that patient
+ *  (the question's passages are its cited evidence); without, the quoted passages alone. Nothing leaves the device. */
 async function askInThread(question) {
   const q = question.trim();
   if (!q) return;
@@ -454,26 +574,35 @@ async function askInThread(question) {
   thread.append(h("section", { class: "turn" }, h("span", { class: "who" }, "You asked"), h("p", {}, q)));
   const box = h("section", { class: "answer" });
   thread.append(box);
-  box.append(h("span", { class: "who" }, "DiaCausal answered"));
   const index = await loadEvidence();
   const raw = window.DiaCausalEvidence.search(index, q, { raw: true });
   const res = JSON.parse(JSON.stringify({ ...raw, passages: raw.passages.map(({ _raw, ...p }) => p) }));
   const note = window.DiaCausalExplain.explain(index, q, res);
-  const card = h("div", { class: "card" });
-  box.append(card);
+  const patient = readyPatient();
   if (note.note === index.no_dose_note) {
-    card.append(h("p", {}, h("strong", {}, "No doses. "), index.no_dose_note));
-  } else if (res.status === "INSUFFICIENT_EVIDENCE") {
-    card.append(h("h3", {}, "Insufficient evidence"), h("p", {}, res.reason),
-      h("p", {}, "DiaCausal does not guess. Try Investigate, or ask about something the approved sources cover."));
+    box.append(h("span", { class: "who" }, "DiaCausal answered"), h("div", { class: "card" }, h("p", {}, h("strong", {}, "No doses. "), index.no_dose_note),
+      h("div", { class: "decides" }, icon("check", 24, "c-pine"), h("p", {}, "The clinician decides."))));
+  } else if (patient) {
+    const result = window.DiaCausal.recommend(MODEL, patient);
+    const built = questionCard(index, result, patient, q, raw);
+    renderCard(built.card, box, { result, passages: built.passages });
   } else {
-    card.append(explanationView(note));
-    res.passages.slice(0, 3).forEach((p, i) => {
-      const c = p.citation;
-      card.append(h("blockquote", { class: "passage" }, h("p", { class: "passage__cite" }, `${i + 1}. Source ${c.source_id}: ${c.title} — “${c.section}”`), excerpt(p.text, q)));
-    });
+    box.append(h("span", { class: "who" }, "DiaCausal answered"));
+    const card = h("div", { class: "card" });
+    box.append(card);
+    if (res.status === "INSUFFICIENT_EVIDENCE") {
+      card.append(h("h3", {}, "Insufficient evidence"), h("p", {}, res.reason),
+        h("p", {}, "DiaCausal does not guess. Try Investigate, or ask about something the approved sources cover."));
+    } else {
+      card.append(explanationView(note));
+      res.passages.slice(0, 3).forEach((p, i) => {
+        const c = p.citation;
+        card.append(h("blockquote", { class: "passage" }, h("p", { class: "passage__cite" }, `${i + 1}. Source ${c.source_id}: ${c.title} — “${c.section}”`), excerpt(p.text, q)));
+      });
+    }
+    card.append(h("p", { class: "field__hint" }, "Fill in the patient details to see the three options compared for that patient."),
+      h("div", { class: "decides" }, icon("check", 24, "c-pine"), h("p", {}, "These are source passages, not advice. The clinician decides.")));
   }
-  card.append(h("div", { class: "decides" }, icon("check", 24, "c-pine"), h("p", {}, "These are source passages, not advice. The clinician decides.")));
   box.scrollIntoView({ block: "start" });
 }
 
@@ -510,6 +639,12 @@ function renderResults() {
     h("tbody", {}, RESULTS.refutation.map((r) => { const [a, b] = r.contrast.split("-"); return h("tr", {},
       h("td", {}, r.check), h("td", {}, `${LABEL[a]} vs ${LABEL[b]}`),
       h("td", {}, `${signed(Number(r.new_estimate), 3)} (${r.criterion})`), h("td", {}, r.passed)); }))));
+  $("#lvl-table").replaceChildren(h("table", {},
+    h("thead", {}, h("tr", {}, ["Evidence level", "Patient-option pairs", "Share", "Interval contains the truth", "Mean interval width"].map((t) => h("th", {}, t)))),
+    h("tbody", {}, (RESULTS.evidence_levels || []).filter((r) => r.option === "all").map((r) => h("tr", {},
+      h("td", {}, r.level), h("td", {}, Number(r.n).toLocaleString("en-IN")), h("td", {}, `${(Number(r.share) * 100).toFixed(1)}%`),
+      h("td", {}, r.coverage_95 === "" ? "—" : `${(Number(r.coverage_95) * 100).toFixed(1)}%`),
+      h("td", {}, r.mean_ci_width === "" ? "—" : `${Number(r.mean_ci_width).toFixed(2)} points`))))));
   $("#figures").replaceChildren(...FIGURES.map(([file, title, text]) => h("figure", { class: "card card--flat fig" },
     h("h2", {}, title), h("img", { src: `./results/${file}.png`, alt: `${title} figure`, loading: "lazy" }), h("figcaption", {}, text))));
 }
@@ -590,6 +725,14 @@ async function ask(question) {
     out.append(h("div", { class: "notice" }, h("strong", {}, "Insufficient evidence: "), res.reason,
       h("p", { class: "sub" }, "DiaCausal does not guess. Ask about something the approved sources cover, or check the sources below.")));
     return;
+  }
+  const patient = readyPatient();
+  if (patient) {
+    const result = window.DiaCausal.recommend(MODEL, patient);
+    const built = questionCard(index, result, patient, q, window.DiaCausalEvidence.search(index, q, { raw: true }));
+    renderCard(built.card, out, { result, passages: built.passages });
+  } else {
+    out.append(h("p", { class: "field__hint" }, "Fill in Patient Details to see the three options compared for that patient, with these passages as its evidence."));
   }
   out.append(h("div", { class: "card card--flat explain" }, explanationView(note)));
   out.append(h("h2", {}, `${res.passages.length} passages, best match first`));

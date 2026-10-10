@@ -5,6 +5,7 @@
 
 Writes to results/ (or --out):
     benchmark_summary.csv, results_table.tex, run_info.json, refutation.csv, evalues.csv,
+    evidence_level_coverage.csv (P24: per-patient 95% interval coverage by evidence level, plan 8.11),
     figures/overlap.png, love_plot.png, ate_vs_truth.png, cate_recovery.png, calibration.png
 
 SYNTHETIC DATA ONLY: the numbers show whether the METHODS recover a known truth.
@@ -24,6 +25,7 @@ import numpy as np
 from diacausal import INTENDED_USE, __version__
 from diacausal.config import ARMS, CONTRASTS
 from diacausal.causal_inference import figures as fig
+from diacausal.causal_inference import evidence_level as ev
 from diacausal.causal_inference.cohort import (
     features,
     generate_cohort,
@@ -58,14 +60,56 @@ SUMMARY_COLUMNS = [
 ]
 
 
+def safe_matrix(rules, test) -> np.ndarray:
+    """(n, 3): option not excluded by data/rules.csv."""
+    fields = ["age", "egfr", "t1d", "dka_history", "pancreatitis_history", "hf", "hypo_history"]
+    return np.array([[not v.excluded for v in rules.apply(row).values()] for row in test[fields].to_dict("records")])
+
+
 def allowed_matrix(params, rules, test, propensity_model) -> np.ndarray:
     """(n, 3): option not excluded by data/rules.csv AND propensity >= overlap threshold."""
-    fields = ["age", "egfr", "t1d", "dka_history", "pancreatitis_history", "hf", "hypo_history"]
-    safe = np.array(
-        [[not v.excluded for v in rules.apply(row).values()] for row in test[fields].to_dict("records")]
-    )
     p = predict(propensity_model, features(params, test))
-    return safe & (p >= params.get("engine.overlap_min_propensity"))
+    return safe_matrix(rules, test) & (p >= params.get("engine.overlap_min_propensity"))
+
+
+COVERAGE_COLUMNS = ["level", "option", "n", "share", "coverage_95", "mean_ci_width"]
+
+
+def coverage_by_level(runs: list[dict], rule: ev.Rule) -> list[dict]:
+    """Plan 8.11's check that the levels mean something: for every test patient and every option the rules leave, the level of the
+    DR-learner's estimate (from its interval width and propensity; no search runs here, so the citation part of the rule is not
+    used) and whether its 95% interval contains the TRUE 6-month change. Insufficient estimates are never shown to a doctor; they are
+    scored here to show what was withheld. Coverage should be higher for Moderate than for Low."""
+    cells: dict[tuple[str, str], list[tuple[bool, float]]] = {}
+    total = 0
+    for r in runs:
+        for j, arm in enumerate(ARMS):
+            pred, truth = r["dr"][arm], r["true_levels"][:, j]
+            for i in np.flatnonzero(r["safe"][:, j]):
+                est, lo, hi = pred[i]
+                width = round(float(hi - lo), 3)
+                level, _ = ev.classify(width, float(r["p_test"][i, j]), None, False, rule)
+                hit = bool(lo <= truth[i] <= hi)
+                for key in ((level, arm), (level, "all")):
+                    cells.setdefault(key, []).append((hit, width))
+                total += 1
+    rows = []
+    for level in ev.LEVELS:
+        for option in (*ARMS, "all"):
+            got = cells.get((level, option), [])
+            rows.append({"level": level, "option": option, "n": len(got),
+                         "share": len(got) / total if total else 0.0,
+                         "coverage_95": float(np.mean([h for h, _ in got])) if got else float("nan"),
+                         "mean_ci_width": float(np.mean([w for _, w in got])) if got else float("nan")})
+    return rows
+
+
+def write_coverage(rows: list[dict], path: Path) -> None:
+    with path.open("w", newline="") as fh:
+        w = csv.DictWriter(fh, fieldnames=COVERAGE_COLUMNS)
+        w.writeheader()
+        for r in rows:
+            w.writerow({k: _fmt(v) for k, v in r.items()})
 
 
 def run_once(params, rules, n: int, n_test: int, seed: int, n_boot: int) -> dict:
@@ -90,7 +134,9 @@ def run_once(params, rules, n: int, n_test: int, seed: int, n_boot: int) -> dict
         "S-learner": s_learner(f.X, f.T, f.Y, Xt, settings, seed),
         "naive": np.tile(naive_means, (len(test), 1)),
     }
-    allowed = allowed_matrix(params, rules, test, f.propensity)
+    p_test = predict(f.propensity, features(params, test))
+    safe = safe_matrix(rules, test)
+    allowed = safe & (p_test >= params.get("engine.overlap_min_propensity"))
     # Secondary outcomes (FR7): weight change (kg) and hypoglycaemia (probability), same method.
     secondary = {}
     for name, truth_col in (("weight", "wmu_true_"), ("hypo", "hp_true_")):
@@ -107,6 +153,8 @@ def run_once(params, rules, n: int, n_test: int, seed: int, n_boot: int) -> dict
         "dr": dr,
         "true_levels": true_levels,
         "allowed": allowed,
+        "safe": safe,
+        "p_test": p_test,
         "balance": balance_table(f.X, load_dag(params).adjustment_set, f.T, f.e),
         "e": f.e,
         "T": f.T,
@@ -270,6 +318,8 @@ def run(reps: int, n: int, n_test: int, out: Path, n_boot: int | None = None, se
     (out / "figures").mkdir(exist_ok=True)
     write_csv(rows, out / "benchmark_summary.csv")
     write_tex(rows, reps, n, out / "results_table.tex")
+    level_rows = coverage_by_level(runs, ev.load_rule(params))
+    write_coverage(level_rows, out / "evidence_level_coverage.csv")
 
     first = runs[0]
     fig.overlap(first["e"], first["T"], params.get("engine.overlap_min_propensity"), out / "figures/overlap.png")
@@ -330,6 +380,10 @@ def main(argv: list[str] | None = None) -> None:
     for r in rows:
         if r["section"] == "average_effect":
             print(f"  {r['method']:9s} {r['target']:13s} bias {r['bias']:+.3f}  RMSE {r['rmse']:.3f}  coverage {r['coverage_95']:.2f}")
+    cov = list(csv.DictReader((a.out / "evidence_level_coverage.csv").open()))
+    for r in cov:
+        if r["option"] == "all":
+            print(f"  evidence level {r['level']:12s} n {r['n']:>6s}  95% interval coverage {r['coverage_95']}  mean width {r['mean_ci_width']}")
     print(f"Saved results to {a.out}")
 
 

@@ -21,20 +21,20 @@ const { chromium, devices } = require(require('path').join(__dirname, '..', 'e2e
     await p.locator('#thread .compare-btn').last().click();
   };
   await compareWith(/Typical patient/);
-  await p.locator('#out .opt').first().waitFor({ timeout: 20000 });
+  await p.locator('#out table.options').first().waitFor({ timeout: 20000 });  // the answer card (screens 17/21, P24)
   await p.screenshot({ path: out + '/p0.png', fullPage: true });
   const checks = {};
   checks.intended = await p.getByText('Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.').first().isVisible();
   await newPatient();
   await compareWith(/eGFR 40/);
-  await p.locator('#out').getByText('EXCLUDED').first().waitFor();
-  checks.excluded = await p.locator('#out .opt--excluded').count();
-  checks.caution = await p.locator('#out .opt--caution').count();
+  await p.locator('#out tr.row--excluded').first().waitFor();
+  checks.excluded = await p.locator('#out tr.row--excluded').count();
+  checks.caution = await p.locator('#out .scard--check').count();
   await p.screenshot({ path: out + '/p1.png', fullPage: true });
   await newPatient();
   await compareWith(/Older/);
-  await p.locator('#out').getByText('INSUFFICIENT EVIDENCE').first().waitFor();
-  checks.insufficient = await p.locator('#out .opt--insufficient').count();
+  await p.locator('#out .abstaincard').first().waitFor();
+  checks.insufficient = await p.locator('#out .abstaincard').count();
   await p.screenshot({ path: out + '/p2.png', fullPage: true });
   await p.click('a[data-route="analysis"]');
   await p.locator('.tile').first().waitFor();

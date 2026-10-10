@@ -66,6 +66,7 @@ DOSE_PATTERN = re.compile(
     r"\bmg\s*/\s*day\b|\b\d+\s*(tablet|tab)s?\b",
     re.I,
 )
+NO_ESTIMATE = "propensity only: below the overlap threshold, so no estimate is made"
 AUDIT_PATH = Path(os.environ.get("DIACAUSAL_AUDIT_LOG", ROOT / "logs" / "audit.jsonl"))
 
 
@@ -220,6 +221,8 @@ class Engine:
                     status="insufficient_evidence",
                     insufficient_reason=(f"Too few similar patients received this option (propensity {p[j]:.3f}, "
                                          f"below {self.threshold:g}). A fair comparison is not possible."),
+                    # the propensity itself (no estimate): the abstain card quotes it (plan 8.11, evidence_level.py)
+                    confidence=Confidence(propensity=round(float(p[j]), 3), overlap_threshold=self.threshold, method=NO_ESTIMATE),
                     **base))
             elif arm not in estimable:
                 options.append(OptionOut(

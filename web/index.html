@@ -20,6 +20,7 @@
   <script src="./vendor/marked.min.js" defer></script>
   <script src="./vendor/supabase.min.js" defer></script>
   <script src="./engine.js" defer></script>
+  <script src="./card.js" defer></script>
   <script src="./evidence.js" defer></script>
   <script src="./explain.js" defer></script>
   <script src="./auth.js" defer></script>
@@ -134,6 +135,8 @@
   <div class="tiles" id="tiles"></div>
   <section class="card card--flat"><h2>Average effects: bias and 95% coverage</h2><div class="scroll" id="res-table"></div></section>
   <section class="card card--flat"><h2>Refutation tests</h2><div class="scroll" id="ref-table"></div></section>
+  <section class="card card--flat"><h2>95% interval coverage by evidence level</h2><div class="scroll" id="lvl-table"></div>
+    <p class="field__hint">Every test patient and every option the safety rules leave, with the level its estimate gets (interval width and propensity; no search runs here). Insufficient estimates are never shown to a doctor; they are scored to show what was withheld.</p></section>
   <div id="figures" class="stack"></div>
 </div>
 <footer class="footer"><p>Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.</p></footer>

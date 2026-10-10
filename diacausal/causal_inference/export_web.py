@@ -24,7 +24,8 @@ from diacausal import INTENDED_USE, __version__
 from diacausal.config import ARMS, CONTRASTS
 from diacausal.config import ROOT
 from diacausal.causal_inference.estimators import TARGETS
-from diacausal.causal_inference.recommend import ASSUMPTIONS, DOSE_PATTERN, Engine
+from diacausal.causal_inference.evidence_level import SHORT_NAME, STILL_SEE, load_rule
+from diacausal.causal_inference.recommend import ASSUMPTIONS, DOSE_PATTERN, NO_ESTIMATE, Engine
 from diacausal.causal_inference.schemas import Secondary
 
 WEB = ROOT / "web"
@@ -85,6 +86,10 @@ def model_dict(engine: Engine) -> dict:
         "assumptions": ASSUMPTIONS,
         "dose_pattern": DOSE_PATTERN.pattern,
         "method": "DR-learner on cross-fitted AIPW scores, HC3 95% interval",
+        "no_estimate": NO_ESTIMATE,
+        "evidence_level": vars(load_rule(p)),  # load_rule refuses High on synthetic data
+        "short_names": SHORT_NAME,
+        "still_see": STILL_SEE,
         "versions": {"engine": __version__, "params": p.version, "params_sha": p.fingerprint,
                      "rules_sha": engine.rules.version, "cohort": f"synthetic n={engine.n} seed={engine.seed}"},
     }
@@ -95,7 +100,8 @@ def results_dict() -> dict:
     ref = list(csv.DictReader((ROOT / "results/refutation.csv").open()))
     ev = list(csv.DictReader((ROOT / "results/evalues.csv").open()))
     info = json.loads((ROOT / "results/run_info.json").read_text())
-    return {"summary": rows, "refutation": ref, "evalues": ev,
+    levels = list(csv.DictReader((ROOT / "results/evidence_level_coverage.csv").open()))
+    return {"summary": rows, "refutation": ref, "evalues": ev, "evidence_levels": levels,
             "run": {k: info[k] for k in ("reps", "n_patients", "n_test_patients", "seconds",
                                          "refutation_checks_passed", "true_population_effects")}}
 

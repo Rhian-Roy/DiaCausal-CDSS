@@ -115,11 +115,23 @@ const SCREENS = [
     await p.clock.runFor(300);
     await p.getByText('Working through it').waitFor();
   }, async (p) => ({ states: await p.locator('.stage__state').allInnerTexts(), current: await p.locator('.stage[aria-current="step"] .stage__name').count() })],
-  ['answer-today', { accounts: false }, '#patient-details', async (p) => {
-    await openPanel(p); await p.getByRole('button', { name: /eGFR 40/ }).click();
-    await p.locator('#thread .compare-btn').click();
-    await p.locator('#out .decides').waitFor();
-  }, async (p) => ({ h2: await text(p, '#out > h2'), last: (await p.locator('#out > *').last().innerText()).trim(), excluded: await p.locator('#out .opt--excluded').count() })],
+  ...[['17-answer-options-compared', /Typical/, null], ['21-answer-no-clear-difference', /eGFR 40/, null], ['19-insufficient-evidence', /Typical/, '88']]
+    .map(([name, preset, age]) => [name, { accounts: false }, '#patient-details', async (p) => {
+      await openPanel(p); await p.getByRole('button', { name: preset }).click();
+      if (age) { await p.locator('#f-age').fill(age); await p.locator('#f-age').blur(); }
+      await p.locator('#thread .compare-btn').click();
+      await p.locator('#out .decides').waitFor();
+    }, async (p) => ({
+      h2: (await p.locator('#out > h2').innerText()).trim(),
+      last: (await p.locator('#out > *').last().innerText()).trim(),
+      decides: (await p.locator('#out .decides').innerText()).trim(),
+      excluded: await p.locator('#out tr.row--excluded').count(),
+      leaders: await p.locator('#out .leadtag').count(),
+      finding: (await p.locator('#out .finding').first().innerText()).trim(),
+      levels: await p.locator('#out td[data-label="Evidence level"] .level').allInnerTexts(),
+      abstain: await p.locator('#out .abstaincard').allInnerTexts(),
+      scards: await p.locator('#out .scard').count(),
+    })]),
   ['25-guide', { accounts: false }, '#guide', async (p) => { await p.locator('#g-advantages').waitFor(); },
     async (p) => ({ sections: await p.locator('#view-guide section.card').count(), methods: await text(p, '#g-methods > summary') })],
   ['26-about', { accounts: false }, '#about', async (p) => { await p.getByText('Pratham Pawar').waitFor(); },

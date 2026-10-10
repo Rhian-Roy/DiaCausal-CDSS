@@ -25,7 +25,7 @@ from diacausal.llm.answer import resolve as resolve_answer
 from diacausal.llm.explain import DOSE_QUESTION, explain
 from diacausal.llm.providers import ollama
 from diacausal.orchestrator.context import Context
-from diacausal.output.formatter import build_card
+from diacausal.output.formatter import build_card, evidence_levels
 from diacausal.rag.ingest.licence_gate import CORPUS, ingest, load_sources
 from diacausal.rag.retrieve import query_processing, ranking
 from diacausal.rag.retrieve.hybrid import Retriever
@@ -102,7 +102,6 @@ def causal_layer(ctx: Context) -> None:
     ctx.causal = CausalOutputV1.model_validate({
         **result.model_dump(), "options": [{**o.model_dump(), "drivers": []} for o in result.options]})
     ctx.drivers = registry.part_function("shap drivers")(ctx)
-    ctx.evidence_levels = registry.part_function("evidence levels")(ctx)
     if result.applicable == "NOT_APPLICABLE":
         raise AbstainSignal("NOT_APPLICABLE")
 
@@ -219,6 +218,13 @@ def output_guards_layer(ctx: Context) -> None:
 
 # ── layer 7: formatter ───────────────────────────────────────────────────────────────────────────────────────────
 
+def evidence_levels_part(ctx: Context) -> list:
+    """Part of the formatter layer (P24): the evidence level of each option the rules left (plan 8.11), now that the retrieval has
+    run (its citations count, and an abstained retrieval makes every level Insufficient)."""
+    return evidence_levels(ctx.causal, ctx.evidence) if ctx.causal is not None else []
+
+
 def formatter_layer(ctx: Context) -> None:
+    ctx.evidence_levels = registry.part_function("evidence levels")(ctx)
     ctx.card = build_card(request=ctx.request, causal=ctx.causal, eligible=ctx.eligible, evidence=ctx.evidence,
                           reply=ctx.explanation, labels=ctx.labels, drivers=ctx.drivers, levels=ctx.evidence_levels)

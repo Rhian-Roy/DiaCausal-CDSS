@@ -50,3 +50,17 @@ def test_run_info_records_versions_and_says_synthetic(out):
     assert info["reps"] == 2 and info["params_sha"] and info["rules_sha"]
     assert "synthetic" in info["data"]
     assert info["intended_use"].startswith("Research prototype")
+
+
+def test_interval_coverage_is_reported_by_evidence_level(out):
+    """P24 (plan 8.11): per-patient 95% interval coverage of the true 6-month change, for each evidence level; never High."""
+    import csv
+
+    rows = list(csv.DictReader((out / "evidence_level_coverage.csv").open()))
+    assert [(r["level"], r["option"]) for r in rows] == [(lv, o) for lv in ("Moderate", "Low", "Insufficient") for o in ("SGLT2i", "DPP4i", "SU", "all")]
+    every = [r for r in rows if r["option"] == "all"]
+    assert abs(sum(float(r["share"]) for r in every) - 1) < 1e-3 and sum(int(r["n"]) for r in every) > 0
+    for r in rows:
+        if int(r["n"]):
+            assert 0 <= float(r["coverage_95"]) <= 1 and float(r["mean_ci_width"]) > 0
+        assert sum(int(x["n"]) for x in rows if x["level"] == r["level"] and x["option"] != "all") == int(next(x for x in every if x["level"] == r["level"])["n"])

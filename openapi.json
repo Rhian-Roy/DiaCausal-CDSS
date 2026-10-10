@@ -64,6 +64,15 @@
             "title": "Abstain",
             "type": "array"
           },
+          "cautions": {
+            "default": [],
+            "description": "'check first' rules that fired for an option the rules left, with rule ID and source (P24)",
+            "items": {
+              "$ref": "#/components/schemas/RuleHitV1"
+            },
+            "title": "Cautions",
+            "type": "array"
+          },
           "claims": {
             "items": {
               "$ref": "#/components/schemas/CardClaimV1"

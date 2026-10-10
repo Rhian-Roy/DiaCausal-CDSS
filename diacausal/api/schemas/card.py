@@ -74,6 +74,7 @@ class AnswerCardV1(V1):
     drivers: dict[OptionName, list[DriverV1]] = {}
     evidence_levels: list[EvidenceLevelV1]
     excluded: list[RuleHitV1]
+    cautions: list[RuleHitV1] = Field(default=[], description="'check first' rules that fired for an option the rules left, with rule ID and source (P24)")
     abstain: list[AbstainNoticeV1] = []
     fallback_used: bool = Field(default=False, description="true when the local model was asked and the template answered instead")
     failed_checks: list[OutputCheckId] = Field(default=[], description="the output checks (plan 8.10) the model's draft failed; empty on a timeout or when the model was not used")
