@@ -11,6 +11,7 @@ from pydantic import Field, field_validator, model_validator
 from diacausal.api.schemas.base import OptionName, V1
 from diacausal.api.schemas.causal import DriverV1
 from diacausal.api.schemas.guards import RuleHitV1
+from diacausal.api.schemas.llm import OutputCheckId
 from diacausal import INTENDED_USE
 from diacausal.causal_inference.schemas import Interval, Versions
 
@@ -67,11 +68,17 @@ class AnswerCardV1(V1):
     patient_summary: str
     comparator: OptionName
     claims: list[CardClaimV1] = Field(max_length=4)
+    question_context: str | None = Field(default=None, description="one sentence from the local model, only when it passed the output guards")
+    limitations: str | None = Field(default=None, description="one or two sentences from the local model, only when it passed the output guards")
     effects: list[EffectRowV1] = Field(min_length=1, max_length=3)
     drivers: dict[OptionName, list[DriverV1]] = {}
     evidence_levels: list[EvidenceLevelV1]
     excluded: list[RuleHitV1]
     abstain: list[AbstainNoticeV1] = []
+    fallback_used: bool = Field(default=False, description="true when the local model was asked and the template answered instead")
+    failed_checks: list[OutputCheckId] = Field(default=[], description="the output checks (plan 8.10) the model's draft failed; empty on a timeout or when the model was not used")
+    fallback_reason: str | None = Field(default=None, description="a CODE (TIMEOUT, UNREACHABLE, INVALID_JSON, GUARD_NUMBERS, ...), never text from the model")
+    dropped_claims: int = Field(default=0, ge=0, description="claims of the model's draft the citation check dropped (the rest were kept)")
     versions: Versions
     decision: str = "Decision support only. The clinician decides."
     intended_use: str = INTENDED_USE
@@ -92,6 +99,8 @@ class AnswerCardV1(V1):
 
     @model_validator(mode="after")
     def _consistent(self):
+        if (self.failed_checks or self.fallback_reason) and not self.fallback_used:
+            raise ValueError("failed checks or a fallback reason mean fallback_used is true")
         removed = {h.option for h in self.excluded}
         for row in self.effects:
             if row.option in removed and row.status != "EXCLUDED":

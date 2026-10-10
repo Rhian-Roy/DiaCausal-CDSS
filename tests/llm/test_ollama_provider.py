@@ -1,13 +1,14 @@
-"""providers/ollama.py (P21): the exact request, and a fallback to the template on EVERY kind of failure."""
+"""providers/ollama.py (P21) and llm/answer.py (P23): the exact request, and a fallback to the template on EVERY kind of failure."""
 
 import json
 import logging
 import time
 
 import pytest
-from llm_helpers import evidence_lines, good_draft
+from llm_helpers import evidence_lines, example, good_draft
 
 from diacausal.api.schemas import AnswerDraftV1
+from diacausal.llm.answer import GuardInputs, resolve
 from diacausal.llm.prompt_builder import number_sources
 from diacausal.llm.providers import ollama
 from diacausal.llm.providers.template import template
@@ -34,8 +35,11 @@ def with_url(cfg, server, **over):
     return {**cfg, "ollama_url": server.url, "provider": "ollama", **over}
 
 
-def run(evidence, cfg, rag_cfg, number_sources=None):
-    return ollama.explain_structured(QUESTION, evidence, prompt_for(evidence), rag_cfg, cfg, number_sources=number_sources)
+def run(evidence, cfg, rag_cfg, sources=()):
+    """What the pipeline does with a model: ask (layer 5), then check the reply and use the template if it fails (layer 6)."""
+    reply = ollama.request_draft(prompt_for(evidence), cfg)
+    inputs = GuardInputs(eligible=example("EligibleOptionsV1"), causal=example("CausalOutputV1"), number_sources=tuple(sources))
+    return resolve(QUESTION, reply, evidence=evidence, rag_cfg=rag_cfg, llm_cfg=cfg, idf=None, inputs=inputs)[0]
 
 
 def assert_template_fallback(reply, evidence, rag_cfg, code):
@@ -105,9 +109,10 @@ def test_a_good_draft_becomes_cited_sentences_written_by_the_model(fake, llm_cfg
 
 
 def test_a_model_that_says_there_is_not_enough_evidence_is_respected_without_echoing_it(fake, llm_cfg, evidence, rag_cfg):
-    text = json.dumps({"question_context": "x", "evidence_summary": [], "limitations": CANARY, "insufficient": True, "insufficient_reason": CANARY})
+    canary = "ZEBRA-CANARY-LETTERS"  # no digits: a number in a draft is checked (plan 8.10 check 3) even when it says it has no answer
+    text = json.dumps({"question_context": "x", "evidence_summary": [], "limitations": canary, "insufficient": True, "insufficient_reason": canary})
     reply = run(evidence, with_url(llm_cfg, fake(lambda p: text)), rag_cfg)
-    assert reply["status"] == "INSUFFICIENT_EVIDENCE" and reply["sentences"] == [] and CANARY not in json.dumps(reply)
+    assert reply["status"] == "INSUFFICIENT_EVIDENCE" and reply["sentences"] == [] and canary not in json.dumps(reply)
 
 
 def test_at_most_max_claims_are_kept(fake, llm_cfg, evidence, rag_cfg):
@@ -149,26 +154,41 @@ def test_every_kind_of_bad_reply_falls_back_with_its_own_code(fake, llm_cfg, evi
     assert_template_fallback(reply, evidence, rag_cfg, code)
 
 
-def test_a_claim_citing_a_passage_that_was_never_retrieved_falls_back(fake, llm_cfg, evidence, rag_cfg):
+def test_a_claim_citing_a_passage_that_was_never_retrieved_is_dropped_and_with_no_claim_left_the_template_answers(fake, llm_cfg, evidence, rag_cfg):
     bad = json.dumps({"question_context": "x", "evidence_summary": [{"claim": "SGLT2 inhibitors can cause ketoacidosis.", "chunk_ids": ["S99-00-00"]}], "limitations": "y"})
-    assert_template_fallback(run(evidence, with_url(llm_cfg, fake(lambda p: bad)), rag_cfg), evidence, rag_cfg, "CITATION_CHECK")
+    reply = run(evidence, with_url(llm_cfg, fake(lambda p: bad)), rag_cfg)
+    assert_template_fallback(reply, evidence, rag_cfg, "GUARD_CITATIONS")
+    assert reply["failed_checks"] == ["citations"] and reply["dropped_claims"] == 1
 
 
-def test_a_claim_without_a_citation_falls_back(fake, llm_cfg, evidence, rag_cfg):
+def test_a_claim_without_a_citation_is_dropped(fake, llm_cfg, evidence, rag_cfg):
     bad = json.dumps({"question_context": "x", "evidence_summary": [{"claim": "SGLT2 inhibitors can cause ketoacidosis.", "chunk_ids": []}], "limitations": "y"})
-    assert_template_fallback(run(evidence, with_url(llm_cfg, fake(lambda p: bad)), rag_cfg), evidence, rag_cfg, "CITATION_CHECK")
+    assert_template_fallback(run(evidence, with_url(llm_cfg, fake(lambda p: bad)), rag_cfg), evidence, rag_cfg, "GUARD_CITATIONS")
 
 
-def test_a_claim_the_cited_passage_does_not_support_falls_back(fake, llm_cfg, evidence, rag_cfg):
+def test_a_claim_the_cited_passage_does_not_support_is_dropped(fake, llm_cfg, evidence, rag_cfg):
     cid = evidence["passages"][0]["chunk_id"]
     bad = json.dumps({"question_context": "x", "evidence_summary": [{"claim": "Oranges cure everything in a dark quiet room tonight.", "chunk_ids": [cid]}], "limitations": "y"})
-    assert_template_fallback(run(evidence, with_url(llm_cfg, fake(lambda p: bad)), rag_cfg), evidence, rag_cfg, "CITATION_CHECK")
+    assert_template_fallback(run(evidence, with_url(llm_cfg, fake(lambda p: bad)), rag_cfg), evidence, rag_cfg, "GUARD_CITATIONS")
 
 
-def test_a_claim_with_a_dose_falls_back(fake, llm_cfg, evidence, rag_cfg):
+def test_one_bad_claim_is_dropped_and_the_good_one_is_kept(fake, llm_cfg, evidence, rag_cfg):
+    """Plan 8.10 check 2: drop the claim, not the whole draft."""
     cid, text = evidence_lines(prompt_for(evidence))[0]
-    bad = json.dumps({"question_context": "x", "evidence_summary": [{"claim": " ".join(text.split()[:10]) + " Take 10 mg once daily.", "chunk_ids": [cid]}], "limitations": "y"})
-    assert_template_fallback(run(evidence, with_url(llm_cfg, fake(lambda p: bad)), rag_cfg), evidence, rag_cfg, "CITATION_CHECK")
+    words = " ".join(w for w in text.split() if not any(c.isdigit() for c in w))
+    draft = json.dumps({"question_context": "x", "limitations": "y", "evidence_summary": [
+        {"claim": " ".join(words.split()[:12]), "chunk_ids": [cid]}, {"claim": "Oranges cure everything in a dark quiet room tonight.", "chunk_ids": [cid]}]})
+    reply = run(evidence, with_url(llm_cfg, fake(lambda p: draft)), rag_cfg)
+    assert reply["status"] == "SUCCESS" and reply["backend"] == "ollama" and reply["fallback"] is None
+    assert len(reply["sentences"]) == 1 and reply["dropped_claims"] == 1 and reply["failed_checks"] == []
+
+
+def test_a_claim_with_a_dose_falls_back_with_its_check(fake, llm_cfg, evidence, rag_cfg):
+    cid, text = evidence_lines(prompt_for(evidence))[0]
+    bad = json.dumps({"question_context": "x", "evidence_summary": [{"claim": " ".join(text.split()[:10]), "chunk_ids": [cid]}], "limitations": "Take it twice daily."})
+    reply = run(evidence, with_url(llm_cfg, fake(lambda p: bad)), rag_cfg)
+    assert_template_fallback(reply, evidence, rag_cfg, "GUARD_DOSE_THRESHOLD")
+    assert "dose_threshold" in reply["failed_checks"]
 
 
 def test_a_number_that_is_not_in_the_causal_output_falls_back(fake, llm_cfg, evidence, rag_cfg):
@@ -177,14 +197,17 @@ def test_a_number_that_is_not_in_the_causal_output_falls_back(fake, llm_cfg, evi
     draft = json.dumps({"question_context": "x", "evidence_summary": [{"claim": " ".join(words.split()[:12]), "chunk_ids": [cid]}],
                         "limitations": "The estimate is -0.9 points."})  # -0.9 is not in the causal output below
     sources = number_sources({"options": [{"value": -0.5}]}, {})
-    assert_template_fallback(run(evidence, with_url(llm_cfg, fake(lambda p: draft)), rag_cfg, sources), evidence, rag_cfg, "NUMBER_MISMATCH")
+    reply = run(evidence, with_url(llm_cfg, fake(lambda p: draft)), rag_cfg, sources)
+    assert_template_fallback(reply, evidence, rag_cfg, "GUARD_NUMBERS")
+    assert reply["failed_checks"] == ["numbers"]
     ok = run(evidence, with_url(llm_cfg, fake(lambda p: draft)), rag_cfg, number_sources({"options": [{"value": -0.9}]}, {}))
     assert ok["status"] == "SUCCESS" and ok["fallback"] is None  # the same draft passes when the number IS in the causal output
 
 
 def test_an_unexpected_error_inside_the_provider_still_falls_back(monkeypatch, llm_cfg, evidence, rag_cfg):
-    monkeypatch.setattr(ollama, "generate_draft", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom")))
-    assert_template_fallback(run(evidence, llm_cfg, rag_cfg), evidence, rag_cfg, "UNEXPECTED_RUNTIMEERROR")
+    monkeypatch.setattr(ollama, "post_generate", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom")))
+    reply = run(evidence, llm_cfg, rag_cfg)
+    assert_template_fallback(reply, evidence, rag_cfg, "UNEXPECTED_RUNTIMEERROR") and reply["failed_checks"] == []
 
 
 def test_a_fallback_never_contains_what_the_model_wrote_or_the_question(fake, llm_cfg, evidence, rag_cfg, caplog):

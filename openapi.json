@@ -104,6 +104,13 @@
             "title": "Drivers",
             "type": "object"
           },
+          "dropped_claims": {
+            "default": 0,
+            "description": "claims of the model's draft the citation check dropped (the rest were kept)",
+            "minimum": 0.0,
+            "title": "Dropped Claims",
+            "type": "integer"
+          },
           "effects": {
             "items": {
               "$ref": "#/components/schemas/EffectRowV1"
@@ -127,10 +134,58 @@
             "title": "Excluded",
             "type": "array"
           },
+          "failed_checks": {
+            "default": [],
+            "description": "the output checks (plan 8.10) the model's draft failed; empty on a timeout or when the model was not used",
+            "items": {
+              "enum": [
+                "parse",
+                "citations",
+                "numbers",
+                "dose_threshold",
+                "excluded_option",
+                "insufficient_wording",
+                "identifier_causal"
+              ],
+              "type": "string"
+            },
+            "title": "Failed Checks",
+            "type": "array"
+          },
+          "fallback_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "a CODE (TIMEOUT, UNREACHABLE, INVALID_JSON, GUARD_NUMBERS, ...), never text from the model",
+            "title": "Fallback Reason"
+          },
+          "fallback_used": {
+            "default": false,
+            "description": "true when the local model was asked and the template answered instead",
+            "title": "Fallback Used",
+            "type": "boolean"
+          },
           "intended_use": {
             "default": "Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.",
             "title": "Intended Use",
             "type": "string"
+          },
+          "limitations": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "one or two sentences from the local model, only when it passed the output guards",
+            "title": "Limitations"
           },
           "mode": {
             "enum": [
@@ -147,6 +202,18 @@
           "question": {
             "title": "Question",
             "type": "string"
+          },
+          "question_context": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "one sentence from the local model, only when it passed the output guards",
+            "title": "Question Context"
           },
           "request_id": {
             "title": "Request Id",

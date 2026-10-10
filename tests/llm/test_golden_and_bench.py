@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 from llm_helpers import good_draft
 
+from diacausal.guards.output_guards import CHECK_IDS
 from diacausal.llm import golden
 from diacausal.llm.providers import ollama
 
@@ -66,7 +67,7 @@ def test_the_benchmark_counts_invalid_json_as_not_schema_valid_and_as_a_fallback
 def test_the_benchmark_separates_valid_json_that_fails_the_checks_from_invalid_json(fake):
     bad = '{"question_context": "x", "evidence_summary": [{"claim": "A claim.", "chunk_ids": ["S99-00-00"]}], "limitations": "y"}'
     rows, summary = run_bench(fake, lambda p: bad)
-    assert summary["schema_valid_pct"] == 100.0 and summary["fallback_pct"] == 100.0 and {r["fallback_code"] for r in rows} == {"CITATION_CHECK"}
+    assert summary["schema_valid_pct"] == 100.0 and summary["fallback_pct"] == 100.0 and {r["fallback_code"] for r in rows} == {"GUARD_CITATIONS"}
 
 
 def test_a_draft_with_a_foreign_number_lowers_number_match(fake):
@@ -78,7 +79,7 @@ def test_a_draft_with_a_foreign_number_lowers_number_match(fake):
         return json.dumps(draft)
 
     rows, summary = run_bench(fake, reply)
-    assert summary["schema_valid_pct"] == 100.0 and summary["number_match_pct"] == 0.0 and {r["fallback_code"] for r in rows} == {"NUMBER_MISMATCH"}
+    assert summary["schema_valid_pct"] == 100.0 and summary["number_match_pct"] == 0.0 and {r["fallback_code"] for r in rows} == {"GUARD_NUMBERS"}
 
 
 def test_the_benchmark_latency_percentiles_are_over_the_model_calls():
@@ -123,9 +124,13 @@ def test_the_real_model_returns_a_valid_draft_for_a_golden_question():
     from diacausal.orchestrator.layers import json_prompt_for
 
     ctx = golden.prepare(golden.load_golden()[0])
+    from diacausal.guards.output_guards import parse_draft
+
     built = json_prompt_for(ctx)
-    tried = ollama.attempt(ctx.retrieval, built.text, ollama.load_rag_config(), ollama.load_llm_config(), None, list(built.number_sources))
-    assert tried.schema_valid and tried.draft.evidence_summary and tried.prompt_tokens < 4096
+    reply = ollama.request_draft(built.text, ollama.load_llm_config())
+    assert reply.code is None and reply.prompt_tokens < 4096
+    draft, code = parse_draft(reply.text)
+    assert code is None and draft.evidence_summary
 
 
 # ── the committed results ────────────────────────────────────────────────────────────────────────────────────────
@@ -141,4 +146,6 @@ def test_the_committed_benchmark_results_have_the_right_shape():
         assert [x["id"] for x in rows] == [f"L{i:02d}" for i in range(1, 21)] and list(rows[0]) == bench_llm.ROW_COLUMNS
         assert round(100 * sum(x["schema_valid"] == "1" for x in rows) / 20, 1) == float(r["schema_valid_pct"])
         assert round(100 * sum(bool(x["fallback_code"]) for x in rows) / 20, 1) == float(r["fallback_pct"])
-        assert all(x["fallback_code"] in {"", "TIMEOUT", "INVALID_JSON", "SCHEMA_INVALID", "CITATION_CHECK", "NUMBER_MISMATCH", "UNREACHABLE", "HTTP_ERROR", "BAD_REPLY"} for x in rows)
+        assert all(x["fallback_code"] in {"", "TIMEOUT", "INVALID_JSON", "SCHEMA_INVALID", "UNREACHABLE", "HTTP_ERROR", "BAD_REPLY", "PROMPT_TOO_LONG"} or x["fallback_code"].startswith("GUARD_")
+               for x in rows)
+        assert all(set(x["failed_checks"].split()) <= set(CHECK_IDS) for x in rows)

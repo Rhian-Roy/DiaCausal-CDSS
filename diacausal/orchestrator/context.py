@@ -42,6 +42,8 @@ class Context:
     idf: dict[str, float] | None = None
     prompt: Any = None  # prompt_builder.BuiltPrompt, built only when the local model will be asked (never logged)
     prompt_problem: str | None = None  # the PromptError code when it could not be built
+    model_reply: Any = None  # llm.providers.ollama.ModelReply: the model's text, NOT yet checked (the output guards layer checks it)
+    guarded: Any = None  # the output guards' verdict on the model's draft (GuardedDraftV1)
     explanation: dict[str, Any] | None = None
     drivers: dict[str, list[DriverV1]] = field(default_factory=dict)
     evidence_levels: list[EvidenceLevelV1] = field(default_factory=list)

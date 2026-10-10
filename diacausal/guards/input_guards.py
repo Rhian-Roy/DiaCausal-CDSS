@@ -193,18 +193,21 @@ def _honorific_name() -> re.Pattern:
     return re.compile(rf"(?i:\b(?:{titles})\b)\.?\s+[A-Z\u0900-\u097F][^\W\d_]+")
 
 
-def identifier(request: AskRequestV1) -> GuardResultV1:
-    """Aadhaar, ABHA, Indian mobile, PAN, email, and an honorific followed by a name. Cues are ignored here."""
-    text = request.question
+def has_identifier(text: str) -> bool:
+    """True if the text holds an Aadhaar, ABHA, Indian mobile, PAN, email, or an honorific followed by a name. Cues are ignored here.
+    Also used by the output guards (P23) on a model's draft."""
     need_checksum = bool(_p("aadhaar_checksum_required"))
     for pattern, is_aadhaar in _IDENTIFIERS:
         for m in pattern.finditer(text):
             if is_aadhaar and need_checksum and not verhoeff_ok(re.sub(r"\D", "", m.group())):
                 continue
-            return _result("identifier", MESSAGES["identifier"])
-    if _honorific_name().search(text):
-        return _result("identifier", MESSAGES["identifier"])
-    return _result("identifier", None)
+            return True
+    return bool(_honorific_name().search(text))
+
+
+def identifier(request: AskRequestV1) -> GuardResultV1:
+    """Aadhaar, ABHA, Indian mobile, PAN, email, and an honorific followed by a name. Cues are ignored here."""
+    return _result("identifier", MESSAGES["identifier"] if has_identifier(request.question) else None)
 
 
 # ── 3. red flag ──────────────────────────────────────────────────────────────────────────────────────────────────

@@ -20,6 +20,8 @@ from diacausal.causal_inference.recommend import DOSE_PATTERN, OutputCheckError,
 from diacausal.guards.output_guards import _usable
 from diacausal.guards import input_guards
 from diacausal.llm import prompt_builder
+from diacausal.llm.answer import GuardInputs, template_instead
+from diacausal.llm.answer import resolve as resolve_answer
 from diacausal.llm.explain import DOSE_QUESTION, explain
 from diacausal.llm.providers import ollama
 from diacausal.orchestrator.context import Context
@@ -27,7 +29,7 @@ from diacausal.output.formatter import build_card
 from diacausal.rag.ingest.licence_gate import CORPUS, ingest, load_sources
 from diacausal.rag.retrieve import query_processing, ranking
 from diacausal.rag.retrieve.hybrid import Retriever
-from diacausal.tracing import AbstainSignal
+from diacausal.tracing import AbstainSignal, guard_notice
 
 
 class RuleOrderViolation(RuntimeError):
@@ -159,7 +161,7 @@ def model_will_answer(ctx: Context, llm_cfg: dict | None = None) -> bool:
 def prompt_builder_part(ctx: Context) -> None:
     """Part of the explanation layer (P22): build the model's prompt, only when the model will be asked. A prompt that cannot be
     built safely leaves `ctx.prompt_problem` (a CODE) and the template writes the answer."""
-    ctx.prompt = ctx.prompt_problem = None
+    ctx.prompt = ctx.prompt_problem = ctx.model_reply = ctx.guarded = None
     if not model_will_answer(ctx):
         return
     try:
@@ -170,15 +172,15 @@ def prompt_builder_part(ctx: Context) -> None:
 
 def explanation_layer(ctx: Context) -> None:
     """The template writes the answer, unless the local model is switched on in BOTH places (llm.yaml `provider: ollama` and the
-    request's `mode: ollama`); then the model answers in JSON and ANY problem falls back to the template (providers/ollama.py)."""
+    request's `mode: ollama`). Then the model is asked here, but what it returns is NOT used yet: the output guards layer checks it
+    (plan 8.10) and uses the template instead of anything that fails."""
     registry.part_function("prompt builder")(ctx)
     question = ctx.request.question
     if ctx.prompt is not None:
-        ctx.explanation = ollama.explain_structured(
-            question, ctx.retrieval, ctx.prompt.text, load_rag_config(), ollama.load_llm_config(), ctx.idf,
-            number_sources=list(ctx.prompt.number_sources))
-    elif ctx.prompt_problem is not None:
-        ctx.explanation = ollama.fall_back(question, ctx.retrieval, load_rag_config(), ctx.idf, ctx.prompt_problem)
+        ctx.model_reply = ollama.request_draft(ctx.prompt.text, ollama.load_llm_config())
+        return
+    if ctx.prompt_problem is not None:
+        ctx.explanation = template_instead(question, ctx.retrieval, load_rag_config(), ctx.idf, ctx.prompt_problem)
     else:
         ctx.explanation = explain(question, ctx.retrieval, backend="template", idf=ctx.idf)
     if ctx.explanation["status"] != "SUCCESS":
@@ -187,18 +189,32 @@ def explanation_layer(ctx: Context) -> None:
 
 # ── layer 6: output guards ───────────────────────────────────────────────────────────────────────────────────────
 
+def full_output_checks_part(ctx: Context) -> None:
+    """Part of the output guards layer (P23): the seven checks of plan 8.10 on the model's draft. Anything but a PASS means the template
+    answers; the card then says `fallback_used` with the failed check IDs. Nothing to do when the model was not asked."""
+    if ctx.model_reply is None:
+        return
+    inputs = GuardInputs(eligible=ctx.eligible, causal=ctx.causal, drivers=ctx.drivers or {}, number_sources=tuple(ctx.prompt.number_sources))
+    ctx.explanation, ctx.guarded = resolve_answer(ctx.request.question, ctx.model_reply, evidence=ctx.retrieval, rag_cfg=load_rag_config(),
+                                                  llm_cfg=ollama.load_llm_config(), idf=ctx.idf, inputs=inputs)
+    reply = ctx.explanation
+    if ctx.guarded is not None:
+        guard_notice(ctx.request_id, ctx.guarded.status, reply.get("failed_checks", []), reply.get("fallback"), reply.get("dropped_claims", 0))
+    if reply["status"] != "SUCCESS":
+        raise AbstainSignal("NO_SUPPORTED_CLAIM")
+
+
 def output_guards_layer(ctx: Context) -> None:
-    """Checks that already exist: the engine's reply never carries a dose, a bare number or an estimated exclusion;
-    every sentence of the explanation cites a passage that was shown and holds no dose text. The remaining checks of
-    plan 8.10 are the stub `full output checks` (P23)."""
+    """The engine's reply never carries a dose, a bare number or an estimated exclusion; a model's draft passes the seven checks of
+    plan 8.10 (or the template is used); and every sentence of the explanation cites a passage that was shown and holds no dose text."""
     check_output(ctx.causal)
+    registry.part_function("full output checks")(ctx)
     shown = {n for n, _ in _usable(ctx.retrieval["passages"])} if ctx.retrieval else set()
     for item in (ctx.explanation or {}).get("sentences", []):
         if DOSE_PATTERN.search(item["text"]):
             raise OutputCheckError("an explanation sentence contains dose-like text")
         if not item["cites"] or not set(item["cites"]) <= shown:
             raise OutputCheckError("an explanation sentence cites a passage that was not shown")
-    registry.part_function("full output checks")(ctx)
 
 
 # ── layer 7: formatter ───────────────────────────────────────────────────────────────────────────────────────────

@@ -41,6 +41,7 @@ REGISTRY: tuple[Entry, ...] = (
     Entry("diacausal.guards.input_guards", "the seven input guards of plan 8.6 (scope, identifier, red flag, injection, range, length and language, dose request)"),
     Entry("diacausal.output", "package: assembling what the screen shows"),
     Entry("diacausal.output.formatter", "assemble AnswerCardV1 from the layers' results"),
+    Entry("diacausal.output.parser", "what is kept of a draft that passed the output guards (P23)"),
     Entry("diacausal.api", "package"),
     Entry("diacausal.api.contract_app", "the v1 contract app"),
     Entry("diacausal.api.schemas", "v1 models (package)"),
@@ -90,10 +91,10 @@ REGISTRY: tuple[Entry, ...] = (
     Entry("diacausal.llm.prompt_builder", "the prompt sent to the local model"),
     Entry("diacausal.llm.providers", "package: the two answer writers"),
     Entry("diacausal.llm.providers.template", "offline answer that quotes passage sentences"),
-    Entry("diacausal.llm.draft", "the model's JSON draft: claims to cited sentences, the number check"),
+    Entry("diacausal.llm.answer", "the model's reply -> the seven output checks -> the explanation, or the template (P23)"),
     Entry("diacausal.llm.golden", "the 20 golden questions and the pipeline inputs each one needs"),
     Entry("diacausal.llm.providers.ollama", "local model through Ollama"),
-    Entry("diacausal.guards.output_guards", "the citation checker: sentences() and check_answer()"),
+    Entry("diacausal.guards.output_guards", "the citation checker (sentences, check_answer) and the seven output checks of plan 8.10"),
     Entry("diacausal_engine", "the 3-arm causal engine (package)"),
     Entry("diacausal_engine.api", "old path of diacausal.api.main", shim_for="diacausal.api.main"),
     Entry("diacausal_engine.benchmark", "old path of diacausal.causal_inference.benchmark", shim_for="diacausal.causal_inference.benchmark"),
@@ -155,7 +156,7 @@ PARTS: tuple[Layer, ...] = (
     Layer("shap drivers", f"{_O}.stubs:shap_drivers", stub=True, replaced_by="P25"),
     Layer("evidence levels", f"{_O}.stubs:evidence_levels", stub=True, replaced_by="P24"),
     Layer("prompt builder", f"{_O}.layers:prompt_builder_part"),
-    Layer("full output checks", f"{_O}.stubs:full_output_checks", stub=True, replaced_by="P23"),
+    Layer("full output checks", f"{_O}.layers:full_output_checks_part"),
 )
 
 

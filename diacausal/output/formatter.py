@@ -1,5 +1,6 @@
-"""Assemble AnswerCardV1 from the layers' results (plan 8.11). Every number on the card is copied from the causal
-output, never from the explanation. P23 extends this file (parser for model answers, wording rules).
+"""Assemble AnswerCardV1 from the layers' results (plan 8.11). Every number in the effects table is copied from the causal
+output, never from the explanation; the model's words (question context, claims, limitations) are shown only after they passed
+the output guards, which allow a number there only if it is exactly one the causal output or the drivers contain (P23).
 
 The comparator is the DPP-4 inhibitor: the engine states each other option's difference against it.
 """
@@ -45,10 +46,14 @@ def _claims(reply: dict, evidence: EvidenceBundleV1, labels: dict[str, str], lim
 def build_card(*, request: AskRequestV1, causal: CausalOutputV1, eligible: EligibleOptionsV1,
                evidence: EvidenceBundleV1, reply: dict | None, labels: dict[str, str], drivers: dict,
                levels: list) -> AnswerCardV1:
+    reply = reply or {}
     return AnswerCardV1(
-        request_id=request.request_id, mode=(reply or {}).get("backend", request.mode), question=request.question,
+        request_id=request.request_id, mode=reply.get("backend", request.mode), question=request.question,
         patient_summary=patient_summary(request, causal.bmi_category), comparator=COMPARATOR,
         claims=_claims(reply, evidence, labels), effects=_effects(causal), drivers=drivers, evidence_levels=levels,
+        question_context=reply.get("question_context"), limitations=reply.get("limitations"),
+        fallback_used=reply.get("fallback") is not None, failed_checks=reply.get("failed_checks", []),
+        fallback_reason=reply.get("fallback"), dropped_claims=reply.get("dropped_claims", 0),
         excluded=eligible.excluded,
         abstain=[AbstainNoticeV1(option=o.arm, why=o.insufficient_reason or "insufficient evidence")
                  for o in causal.options if o.status == "insufficient_evidence"],

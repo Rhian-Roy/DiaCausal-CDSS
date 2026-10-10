@@ -207,7 +207,7 @@ app's `backend/app/schemas.py` and the engine API's own models are unchanged; P1
 input guards, rules, causal engine, retrieval, explanation, output guards, formatter) and returns `AnswerCardV1`.
 Layers are `fn(context) -> None` in `orchestrator/layers.py`; stubs are in `orchestrator/stubs.py`. To replace a stub, build
 the real function and change its one line in the registry (`stubs()` lists what is still a pass-through: SHAP drivers P25,
-evidence levels P24, full output checks P23; the input guards (P15) and the prompt builder (P22) are real).
+evidence levels P24; the input guards (P15), the prompt builder (P22) and the full output checks (P23) are real).
 Every layer runs inside `diacausal/tracing.py` (`layer(name, request_id)` or `@traced`): `[rid] entered X layer`,
 `executing`, then `passed (N ms)`, `abstained ... reason=CODE` or `failed ... error=ExceptionClass`. A layer that correctly
 cannot go on raises `AbstainSignal(CODE)` (a code, never free text). **Never log patient values, the question, prompts,
@@ -277,16 +277,33 @@ gain, so it ships off. Switching it on makes Python differ from `web/evidence.js
 
 ## Local model via Ollama (built, P21, OFF) — see docs/LLM_BENCH.md
 
-`diacausal/llm/providers/ollama.py` asks a local Ollama server for a structured answer: `POST /api/generate` with the JSON schema of
+`diacausal/llm/providers/ollama.py` only TALKS to a local Ollama server (`request_draft`): `POST /api/generate` with the JSON schema of
 `AnswerDraftV1` in `format`, `options {temperature 0, num_ctx 4096}`, `stream false`, a 60 s timeout (all read from
 `diacausal/llm/llm.yaml`, where `provider` is `template` by default and the two candidate model TAGS live: **never type a tag
 anywhere else**; a test greps for it). The model is used only when BOTH `llm.yaml provider: ollama` AND the request's `mode: ollama`
-say so. **Any** error, timeout, bad HTTP status, invalid JSON, schema failure, a claim that cites a passage that was not shown or is not
-supported by it, or a number that is not in the causal output (plan 8.10 check 3) falls back to `providers/template.py`; the reply
-carries `fallback: CODE` and never the model's text. The prompt is plan 8.9 (`prompt.v2.txt`, saved verbatim in docs/PROMPT_TEMPLATE.md), built by
-`prompt_builder.build_llm_prompt(request, eligible, causal, drivers, evidence)` (P22; see "Prompt builder" below). `python scripts/bench_llm.py --model candidate_a|candidate_b|--all` runs the 20 golden questions
+say so. What comes back is NOT trusted: the output guards layer runs the seven checks of plan 8.10 on it (next section) and the template
+answers instead of anything that fails. The prompt is plan 8.9 (`prompt.v2.txt`, saved verbatim in docs/PROMPT_TEMPLATE.md), built by
+`prompt_builder.build_llm_prompt(request, eligible, causal, drivers, evidence)` (P22; see "Prompt builder" below).
+`python scripts/bench_llm.py --model candidate_a|candidate_b|--all` runs the 20 golden questions
 (`eval/llm_golden.csv`, a draft for Members B and D to review) and writes `results/llm/`. Needs Ollama running with the tags pulled
 (`ollama pull <tag from llm.yaml>`); the tests use a fake server and need neither. The website never uses a model.
+
+## Output guards (built, P23) — see docs/TESTING.md "Output guards"
+
+`diacausal/guards/output_guards.py` `run_output_guards(text, passages=, number_sources=, eligible=, causal=, drivers=, min_support=)` runs the
+seven checks of docs/PLAN_2026-10.md 8.10 on a model's draft and returns a `GuardedDraftV1`: 1 parse (AnswerDraftV1), 2 citations (each claim
+cites retrieved chunk IDs it is supported by: a bad claim is DROPPED, none left = ABSTAIN), 3 numbers (every number is in the causal output
+or the drivers, or is a cited page or version; fails the whole draft), 4 dose_threshold, 5 excluded_option (an excluded option described
+positively), 6 insufficient_wording (effect wording for an option marked insufficient), 7 identifier_causal (an identifier = BLOCK; causal
+wording about a driver = fallback). All of 2 to 7 always run, so every failed ID is recorded. Word lists and patterns are in
+`diacausal/guards/output_guards.yaml` (own file: `data/params.yaml`'s hash feeds `web/model.json`); 5, 6 and the causal half of 7 are WORD
+LISTS that catch the obvious wordings, not every paraphrase. This module never imports `diacausal.llm` (a test enforces it) and `sentences` /
+`check_answer` in it are mirrored by `web/explain.js`: change those two together with it, the rest is Python only.
+The explanation layer asks the model (`ctx.model_reply`); the output guards layer's `full output checks` part calls `diacausal/llm/answer.py`
+`resolve`: PASS -> `diacausal/output/parser.py` keeps only the question context, at most 4 claims and the limitations; anything else ->
+`template_instead(...)`. `AnswerCardV1` carries `fallback_used`, `failed_checks`, `fallback_reason` (a CODE) and `dropped_claims`; the
+effects table always comes from `CausalOutputV1`. The trace has `[rid] output guards: model draft FALLBACK checks=numbers reason=GUARD_NUMBERS`
+(codes only). **Never log or keep the model's text.**
 
 ## Prompt builder (built, P22) — see docs/PROMPT_TEMPLATE.md
 

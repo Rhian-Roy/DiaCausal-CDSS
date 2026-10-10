@@ -20,9 +20,3 @@ def evidence_levels(ctx: Context) -> list:
     """P24: the Moderate / Low / Insufficient label per option. Today: none (an empty list, not a guess)."""
     stub_notice("evidence levels", ctx.request_id)
     return []
-
-
-def full_output_checks(ctx: Context) -> None:
-    """P23: the seven output checks of plan 8.10 (parse, citations, numbers, dose threshold, excluded option,
-    insufficient wording, identifier/causal wording). The real layer already runs the dose and citation checks."""
-    stub_notice("full output checks", ctx.request_id)

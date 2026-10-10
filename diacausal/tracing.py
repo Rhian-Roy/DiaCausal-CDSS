@@ -34,6 +34,7 @@ log = logging.getLogger("diacausal.trace")
 _CODE = re.compile(r"[A-Z][A-Z0-9_]{1,40}")
 _SAFE_NAME = re.compile(r"[a-z][a-z ]{1,40}")
 _SAFE_ID = re.compile(r"[A-Za-z0-9_-]{1,64}")
+_SAFE_CHECK = re.compile(r"[a-z][a-z_]{1,30}")
 
 
 class AbstainSignal(Exception):
@@ -80,6 +81,15 @@ def layer(name: str, request_id: str) -> Iterator[None]:
 def stub_notice(name: str, request_id: str) -> None:
     """A layer that is not built yet says so, so a pass-through is never mistaken for a check that ran."""
     log.info("[%s] %s layer is a STUB: nothing was checked, passing through", _clean_id(request_id), name)
+
+
+def guard_notice(request_id: str, status: str, failed: list[str] | tuple[str, ...] = (), reason: str | None = None, dropped: int = 0) -> None:
+    """What the output guards decided about a model's draft, as codes only: `[rid] output guards: model draft FALLBACK checks=numbers
+    reason=GUARD_NUMBERS dropped=0`. Never the draft."""
+    if not re.fullmatch(r"[A-Z]{3,10}", status) or not all(_SAFE_CHECK.fullmatch(c) for c in failed) or (reason and not _CODE.fullmatch(reason)):
+        raise ValueError("status, check IDs and reason are codes, never free text")
+    log.info("[%s] output guards: model draft %s checks=%s reason=%s dropped=%d", _clean_id(request_id), status, ",".join(failed) or "-",
+             reason or "-", dropped)
 
 
 def _find_request_id(args: tuple, kwargs: dict) -> str:
