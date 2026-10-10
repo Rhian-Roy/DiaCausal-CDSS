@@ -85,6 +85,11 @@ class Retriever:
         bm = [max(column) for column in zip(*per_query)]  # a passage's keyword score: its best sub-query
         vec = tfidf.similarities(self.vectorizer, self.matrix, question)  # the original question, never the expansion
         by_bm = [sorted(range(len(scores)), key=lambda i: -scores[i]) for scores in per_query]
+        # P26: the drivers' keyword queries, added together, are ONE more ranking in the fusion (one vote, against the question's
+        # keyword and vector votes); `bm` (abstention, candidates) stays the question's alone, so drivers only reorder
+        if plan and plan.driver_queries:
+            driver = [sum(col) for col in zip(*(self.bm25.scores(q) for q in plan.driver_queries))]
+            by_bm.append(sorted(range(len(driver)), key=lambda i: -driver[i]))
         by_vec = sorted(range(len(vec)), key=lambda i: -vec[i])
         fused = rrf([*by_bm, by_vec], int(self.cfg["rrf_k"]))
         # passages that match neither search (both scores 0) are never shown just to fill the top k

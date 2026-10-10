@@ -1,0 +1,11 @@
+{
+ "reps": 3,
+ "n_patients": 1500,
+ "n_test_patients": 1000,
+ "shap_lime_patients": 20,
+ "seed": 7,
+ "params_sha": "6d9b4de98d",
+ "rules_sha": "dd3f348885",
+ "seconds": 37.7,
+ "note": "synthetic benchmark; B's numbers repeat under C and D; D's retrieval and writing rows have n_reps 0 (fixed question sets)"
+}

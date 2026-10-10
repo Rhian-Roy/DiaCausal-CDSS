@@ -66,6 +66,7 @@ REGISTRY: tuple[Entry, ...] = (
     Entry("diacausal.causal_inference.dr_learner", "DR-learner: per-patient estimates with 95% intervals (split from estimators)"),
     Entry("diacausal.causal_inference.recommend", "Engine: the three-option recommendation"),
     Entry("diacausal.xai.cate_shap", "version C: exact SHAP drivers of the causal estimate, with 95% intervals (P25)"),
+    Entry("diacausal.xai.ablation", "the A-D ablation over the 20 synthetic cohorts: results/xai_ablation.csv and its charts (P26)"),
     Entry("diacausal.xai.cate_shap_benchmark", "version C's metrics against the true modifiers: results/xai/causal_shap_metrics.csv (P25)"),
     Entry("diacausal.causal_inference.evidence_level", "evidence level of each estimate (plan 8.11) and the abstain card (P24)"),
     Entry("diacausal.causal_inference.figures", "benchmark figures"),

@@ -24,7 +24,8 @@ from __future__ import annotations
 import csv
 import re
 import unicodedata
-from dataclasses import dataclass, field
+from collections.abc import Sequence
+from dataclasses import dataclass, field, replace
 from functools import lru_cache
 from pathlib import Path
 
@@ -33,6 +34,7 @@ from diacausal.rag.index.bm25 import TOKEN, tokens
 
 SYNONYMS_CSV = KNOWLEDGE_DIR / "query_synonyms.csv"
 BRAND_CSV = KNOWLEDGE_DIR / "brand_generic.csv"
+DRIVER_TERMS_CSV = KNOWLEDGE_DIR / "driver_terms.csv"  # P26: a driver feature -> words the corpus uses for it
 MAX_SUB_QUERIES = 3  # plan P16
 MIN_WORDS_EACH_SIDE = 3  # a question is split at "and" only if both halves are at least this long
 MAX_PHRASE_WORDS = 3  # an abbreviation or brand may be up to three words ("type 2 diabetes")
@@ -152,6 +154,7 @@ class QueryPlan:
     sub_queries: tuple[str, ...]  # expanded; the keyword search (BM25) uses these
     added: tuple[str, ...] = ()  # the terms the tables added (for tests; never logged)
     equivalents: dict[str, tuple[str, ...]] = field(default_factory=dict)  # question word -> words of its expansions
+    driver_queries: tuple[str, ...] = ()  # P26: one keyword query per comparison's top driver; they only REORDER (hybrid.py)
 
 
 def process(question: str, synonyms: dict[str, tuple[str, ...]] | None = None,
@@ -167,3 +170,20 @@ def process(question: str, synonyms: dict[str, tuple[str, ...]] | None = None,
         for word, words in eq.items():
             equivalents[word] = tuple(sorted(set(equivalents.get(word, ())) | set(words)))
     return QueryPlan(original=question, normalised=normalised, sub_queries=tuple(subs), added=tuple(added), equivalents=equivalents)
+
+
+# ── drivers of the estimate (P26) ────────────────────────────────────────────────────────────────────────────────────
+
+def load_driver_terms(path: Path = DRIVER_TERMS_CSV) -> dict[str, tuple[str, ...]]:
+    """{feature: the words the licence-cleared corpus uses for it} ("egfr" -> kidney function, renal impairment, egfr). Every word of a
+    row marked IN-CORPUS is in the corpus (a test checks), so a term can always match something."""
+    return {r["feature"]: tuple(t.strip() for t in r["terms"].split(";") if t.strip()) for r in _rows(path)}
+
+
+def add_drivers(plan: QueryPlan, features: Sequence[str], terms: dict[str, tuple[str, ...]] | None = None) -> QueryPlan:
+    """The plan plus one keyword query per top driver (one per comparison, duplicates once): "egfr" -> "kidney function renal
+    impairment egfr". These queries never decide whether to abstain and never bring in a passage the question did not find: in
+    hybrid.py they only add a ranking to the fusion, so passages about the driver move up among the question's own candidates."""
+    terms = load_driver_terms() if terms is None else terms
+    queries = tuple(dict.fromkeys(normalise(" ".join(terms[f])) for f in features if f in terms))
+    return replace(plan, driver_queries=queries)

@@ -2,7 +2,7 @@
    The cache name changes whenever the site changes, so a new version replaces the old.
    Only this website's own files are cached; sign-in requests to the account service are never cached.
    config.json (made at deploy time, not in git) is cached the first time it loads. */
-const VERSION = "diacausal-v7";
+const VERSION = "diacausal-v8";
 const ASSETS = [
   "./",
   "./index.html",
@@ -41,6 +41,8 @@ const ASSETS = [
   "./results/ate_vs_truth.png",
   "./results/cate_recovery.png",
   "./results/calibration.png",
+  "./results/ablation_chart.png",
+  "./results/shap_A_vs_C.png",
 ];
 
 self.addEventListener("install", (event) => {

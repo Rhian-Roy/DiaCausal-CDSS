@@ -1025,6 +1025,1430 @@
    "mean_ci_width": "0.6893"
   }
  ],
+ "xai_ablation": [
+  {
+   "version": "A",
+   "metric": "abstention_rate",
+   "comparison": "all",
+   "mean": "0",
+   "ci_low": "0",
+   "ci_high": "0",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "answered_when_thin",
+   "comparison": "all",
+   "mean": "1",
+   "ci_low": "1",
+   "ci_high": "1",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "answered_when_thin_pairs",
+   "comparison": "all",
+   "mean": "1",
+   "ci_low": "1",
+   "ci_high": "1",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "best_pick_rate",
+   "comparison": "all",
+   "mean": "0.8112",
+   "ci_low": "0.776914",
+   "ci_high": "0.845486",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "drug_columns_share",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.762223",
+   "ci_low": "0.748487",
+   "ci_high": "0.775958",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "drug_columns_share",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.530399",
+   "ci_low": "0.509691",
+   "ci_high": "0.551108",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "drug_columns_share",
+   "comparison": "SU-DPP4i",
+   "mean": "0.759424",
+   "ci_low": "0.749209",
+   "ci_high": "0.769639",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "effect_bias",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.0137486",
+   "ci_low": "0.00523053",
+   "ci_high": "0.0222666",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "effect_bias",
+   "comparison": "SGLT2i-SU",
+   "mean": "-0.0100796",
+   "ci_low": "-0.0208819",
+   "ci_high": "0.000722792",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "effect_bias",
+   "comparison": "SU-DPP4i",
+   "mean": "0.0238281",
+   "ci_low": "0.0131406",
+   "ci_high": "0.0345157",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "excluded_by_rules_rate",
+   "comparison": "all",
+   "mean": "0.013175",
+   "ci_low": "0.0125396",
+   "ci_high": "0.0138104",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "modifier_precision_at_k",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.95",
+   "ci_low": "0.877974",
+   "ci_high": "1.02203",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "modifier_precision_at_k",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.983333",
+   "ci_low": "0.94845",
+   "ci_high": "1.01822",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "modifier_precision_at_k",
+   "comparison": "SU-DPP4i",
+   "mean": "0.925",
+   "ci_low": "0.839272",
+   "ci_high": "1.01073",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "modifier_spearman",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.660052",
+   "ci_low": "0.646255",
+   "ci_high": "0.67385",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "modifier_spearman",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.774739",
+   "ci_low": "0.760377",
+   "ci_high": "0.789101",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "modifier_spearman",
+   "comparison": "SU-DPP4i",
+   "mean": "0.667795",
+   "ci_low": "0.653571",
+   "ci_high": "0.682019",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "pehe",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.103316",
+   "ci_low": "0.0965404",
+   "ci_high": "0.110092",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "pehe",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.110409",
+   "ci_low": "0.103356",
+   "ci_high": "0.117461",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "pehe",
+   "comparison": "SU-DPP4i",
+   "mean": "0.103514",
+   "ci_low": "0.0956738",
+   "ci_high": "0.111355",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "pehe_not_thin",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.0985971",
+   "ci_low": "0.0925141",
+   "ci_high": "0.10468",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "pehe_not_thin",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.109817",
+   "ci_low": "0.102725",
+   "ci_high": "0.11691",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "pehe_not_thin",
+   "comparison": "SU-DPP4i",
+   "mean": "0.0989869",
+   "ci_low": "0.091506",
+   "ci_high": "0.106468",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "pehe_thin",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.176194",
+   "ci_low": "0.156174",
+   "ci_high": "0.196214",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "pehe_thin",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.122679",
+   "ci_low": "0.113373",
+   "ci_high": "0.131985",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "pehe_thin",
+   "comparison": "SU-DPP4i",
+   "mean": "0.173286",
+   "ci_low": "0.154721",
+   "ci_high": "0.191851",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "pred_rmse",
+   "comparison": "all",
+   "mean": "0.0931088",
+   "ci_low": "0.0896216",
+   "ci_high": "0.096596",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "pred_rmse_all_options",
+   "comparison": "all",
+   "mean": "0.0988369",
+   "ci_low": "0.0952995",
+   "ci_high": "0.102374",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "regret",
+   "comparison": "all",
+   "mean": "0.0126418",
+   "ci_low": "0.00835571",
+   "ci_high": "0.0169279",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "shap_lime_spearman",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.668336",
+   "ci_low": "0.61162",
+   "ci_high": "0.725053",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "shap_lime_spearman",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.692932",
+   "ci_low": "0.654855",
+   "ci_high": "0.731009",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "shap_lime_spearman",
+   "comparison": "SU-DPP4i",
+   "mean": "0.632416",
+   "ci_low": "0.577371",
+   "ci_high": "0.68746",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "shap_lime_top3_jaccard",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.62805",
+   "ci_low": "0.568599",
+   "ci_high": "0.687501",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "shap_lime_top3_jaccard",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.7161",
+   "ci_low": "0.634741",
+   "ci_high": "0.797459",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "shap_lime_top3_jaccard",
+   "comparison": "SU-DPP4i",
+   "mean": "0.58145",
+   "ci_low": "0.51032",
+   "ci_high": "0.65258",
+   "n_reps": "20"
+  },
+  {
+   "version": "A",
+   "metric": "thin_share",
+   "comparison": "all",
+   "mean": "0.04325",
+   "ci_low": "0.040547",
+   "ci_high": "0.045953",
+   "n_reps": "20"
+  },
+  {
+   "version": "B",
+   "metric": "abstention_rate",
+   "comparison": "all",
+   "mean": "0.0156381",
+   "ci_low": "0.0139409",
+   "ci_high": "0.0173352",
+   "n_reps": "20"
+  },
+  {
+   "version": "B",
+   "metric": "answered_when_thin",
+   "comparison": "all",
+   "mean": "1",
+   "ci_low": "1",
+   "ci_high": "1",
+   "n_reps": "20"
+  },
+  {
+   "version": "B",
+   "metric": "answered_when_thin_pairs",
+   "comparison": "all",
+   "mean": "0.127891",
+   "ci_low": "0.0932814",
+   "ci_high": "0.1625",
+   "n_reps": "20"
+  },
+  {
+   "version": "B",
+   "metric": "best_pick_rate",
+   "comparison": "all",
+   "mean": "0.827224",
+   "ci_low": "0.807843",
+   "ci_high": "0.846605",
+   "n_reps": "20"
+  },
+  {
+   "version": "B",
+   "metric": "coverage",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.944075",
+   "ci_low": "0.917786",
+   "ci_high": "0.970364",
+   "n_reps": "20"
+  },
+  {
+   "version": "B",
+   "metric": "coverage",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.9271",
+   "ci_low": "0.903236",
+   "ci_high": "0.950964",
+   "n_reps": "20"
+  },
+  {
+   "version": "B",
+   "metric": "coverage",
+   "comparison": "SU-DPP4i",
+   "mean": "0.9472",
+   "ci_low": "0.928062",
+   "ci_high": "0.966338",
+   "n_reps": "20"
+  },
+  {
+   "version": "B",
+   "metric": "effect_bias",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.00160509",
+   "ci_low": "-0.00958205",
+   "ci_high": "0.0127922",
+   "n_reps": "20"
+  },
+  {
+   "version": "B",
+   "metric": "effect_bias",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.00564492",
+   "ci_low": "-0.00837514",
+   "ci_high": "0.019665",
+   "n_reps": "20"
+  },
+  {
+   "version": "B",
+   "metric": "effect_bias",
+   "comparison": "SU-DPP4i",
+   "mean": "-0.00403983",
+   "ci_low": "-0.0163781",
+   "ci_high": "0.00829842",
+   "n_reps": "20"
+  },
+  {
+   "version": "B",
+   "metric": "pehe",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.104791",
+   "ci_low": "0.0933624",
+   "ci_high": "0.11622",
+   "n_reps": "20"
+  },
+  {
+   "version": "B",
+   "metric": "pehe",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.10778",
+   "ci_low": "0.0958089",
+   "ci_high": "0.119751",
+   "n_reps": "20"
+  },
+  {
+   "version": "B",
+   "metric": "pehe",
+   "comparison": "SU-DPP4i",
+   "mean": "0.117111",
+   "ci_low": "0.104878",
+   "ci_high": "0.129345",
+   "n_reps": "20"
+  },
+  {
+   "version": "B",
+   "metric": "pehe_not_thin",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.101565",
+   "ci_low": "0.0908703",
+   "ci_high": "0.11226",
+   "n_reps": "20"
+  },
+  {
+   "version": "B",
+   "metric": "pehe_not_thin",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.103875",
+   "ci_low": "0.092545",
+   "ci_high": "0.115205",
+   "n_reps": "20"
+  },
+  {
+   "version": "B",
+   "metric": "pehe_not_thin",
+   "comparison": "SU-DPP4i",
+   "mean": "0.112677",
+   "ci_low": "0.101171",
+   "ci_high": "0.124184",
+   "n_reps": "20"
+  },
+  {
+   "version": "B",
+   "metric": "pehe_thin",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.159143",
+   "ci_low": "0.130276",
+   "ci_high": "0.18801",
+   "n_reps": "20"
+  },
+  {
+   "version": "B",
+   "metric": "pehe_thin",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.172379",
+   "ci_low": "0.145953",
+   "ci_high": "0.198806",
+   "n_reps": "20"
+  },
+  {
+   "version": "B",
+   "metric": "pehe_thin",
+   "comparison": "SU-DPP4i",
+   "mean": "0.188439",
+   "ci_low": "0.15903",
+   "ci_high": "0.217848",
+   "n_reps": "20"
+  },
+  {
+   "version": "B",
+   "metric": "pred_rmse",
+   "comparison": "all",
+   "mean": "0.0722929",
+   "ci_low": "0.0671729",
+   "ci_high": "0.0774129",
+   "n_reps": "20"
+  },
+  {
+   "version": "B",
+   "metric": "regret",
+   "comparison": "all",
+   "mean": "0.0106256",
+   "ci_low": "0.00829738",
+   "ci_high": "0.0129539",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "abstention_rate",
+   "comparison": "all",
+   "mean": "0.0156381",
+   "ci_low": "0.0139409",
+   "ci_high": "0.0173352",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "additivity_max_error",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "2.80331e-16",
+   "ci_low": "2.4127e-16",
+   "ci_high": "3.19392e-16",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "additivity_max_error",
+   "comparison": "SGLT2i-SU",
+   "mean": "1.8735e-16",
+   "ci_low": "1.5613e-16",
+   "ci_high": "2.1857e-16",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "additivity_max_error",
+   "comparison": "SU-DPP4i",
+   "mean": "3.16414e-16",
+   "ci_low": "2.78624e-16",
+   "ci_high": "3.54203e-16",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "answered_when_thin",
+   "comparison": "all",
+   "mean": "1",
+   "ci_low": "1",
+   "ci_high": "1",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "answered_when_thin_pairs",
+   "comparison": "all",
+   "mean": "0.127891",
+   "ci_low": "0.0932814",
+   "ci_high": "0.1625",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "best_pick_rate",
+   "comparison": "all",
+   "mean": "0.827224",
+   "ci_low": "0.807843",
+   "ci_high": "0.846605",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "clear_set_equals_true_modifiers",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.55",
+   "ci_low": "0.311117",
+   "ci_high": "0.788883",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "clear_set_equals_true_modifiers",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.25",
+   "ci_low": "0.0420791",
+   "ci_high": "0.457921",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "clear_set_equals_true_modifiers",
+   "comparison": "SU-DPP4i",
+   "mean": "0.6",
+   "ci_low": "0.364764",
+   "ci_high": "0.835236",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "coverage",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.944075",
+   "ci_low": "0.917786",
+   "ci_high": "0.970364",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "coverage",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.9271",
+   "ci_low": "0.903236",
+   "ci_high": "0.950964",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "coverage",
+   "comparison": "SU-DPP4i",
+   "mean": "0.9472",
+   "ci_low": "0.928062",
+   "ci_high": "0.966338",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "driver_recall",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.817769",
+   "ci_low": "0.680367",
+   "ci_high": "0.955171",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "driver_recall",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.773392",
+   "ci_low": "0.691276",
+   "ci_high": "0.855509",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "driver_recall",
+   "comparison": "SU-DPP4i",
+   "mean": "0.936487",
+   "ci_low": "0.862644",
+   "ci_high": "1.01033",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "effect_bias",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.00160509",
+   "ci_low": "-0.00958205",
+   "ci_high": "0.0127922",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "effect_bias",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.00564492",
+   "ci_low": "-0.00837514",
+   "ci_high": "0.019665",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "effect_bias",
+   "comparison": "SU-DPP4i",
+   "mean": "-0.00403983",
+   "ci_low": "-0.0163781",
+   "ci_high": "0.00829842",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "false_driver_rate",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.180513",
+   "ci_low": "0.0565631",
+   "ci_high": "0.304462",
+   "n_reps": "19"
+  },
+  {
+   "version": "C",
+   "metric": "false_driver_rate",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.168275",
+   "ci_low": "0.0910102",
+   "ci_high": "0.245539",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "false_driver_rate",
+   "comparison": "SU-DPP4i",
+   "mean": "0.109008",
+   "ci_low": "0.0277344",
+   "ci_high": "0.190282",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "modifier_precision_at_k",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.875",
+   "ci_low": "0.77104",
+   "ci_high": "0.97896",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "modifier_precision_at_k",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.783333",
+   "ci_low": "0.691736",
+   "ci_high": "0.87493",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "modifier_precision_at_k",
+   "comparison": "SU-DPP4i",
+   "mean": "0.975",
+   "ci_low": "0.922674",
+   "ci_high": "1.02733",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "modifier_spearman",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.624103",
+   "ci_low": "0.601003",
+   "ci_high": "0.647203",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "modifier_spearman",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.654",
+   "ci_low": "0.59033",
+   "ci_high": "0.717671",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "modifier_spearman",
+   "comparison": "SU-DPP4i",
+   "mean": "0.635392",
+   "ci_low": "0.610883",
+   "ci_high": "0.659901",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "modifier_top3_overlap",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.975",
+   "ci_low": "0.922674",
+   "ci_high": "1.02733",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "modifier_top3_overlap",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.783333",
+   "ci_low": "0.691736",
+   "ci_high": "0.87493",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "modifier_top3_overlap",
+   "comparison": "SU-DPP4i",
+   "mean": "0.975",
+   "ci_low": "0.922674",
+   "ci_high": "1.02733",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "patients_with_no_clear_driver",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.05",
+   "ci_low": "-0.0546512",
+   "ci_high": "0.154651",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "patients_with_no_clear_driver",
+   "comparison": "SGLT2i-SU",
+   "mean": "0",
+   "ci_low": "0",
+   "ci_high": "0",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "patients_with_no_clear_driver",
+   "comparison": "SU-DPP4i",
+   "mean": "0",
+   "ci_low": "0",
+   "ci_high": "0",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "pehe",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.104791",
+   "ci_low": "0.0933624",
+   "ci_high": "0.11622",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "pehe",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.10778",
+   "ci_low": "0.0958089",
+   "ci_high": "0.119751",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "pehe",
+   "comparison": "SU-DPP4i",
+   "mean": "0.117111",
+   "ci_low": "0.104878",
+   "ci_high": "0.129345",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "pehe_not_thin",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.101565",
+   "ci_low": "0.0908703",
+   "ci_high": "0.11226",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "pehe_not_thin",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.103875",
+   "ci_low": "0.092545",
+   "ci_high": "0.115205",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "pehe_not_thin",
+   "comparison": "SU-DPP4i",
+   "mean": "0.112677",
+   "ci_low": "0.101171",
+   "ci_high": "0.124184",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "pehe_thin",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.159143",
+   "ci_low": "0.130276",
+   "ci_high": "0.18801",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "pehe_thin",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.172379",
+   "ci_low": "0.145953",
+   "ci_high": "0.198806",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "pehe_thin",
+   "comparison": "SU-DPP4i",
+   "mean": "0.188439",
+   "ci_low": "0.15903",
+   "ci_high": "0.217848",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "pred_rmse",
+   "comparison": "all",
+   "mean": "0.0722929",
+   "ci_low": "0.0671729",
+   "ci_high": "0.0774129",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "regret",
+   "comparison": "all",
+   "mean": "0.0106256",
+   "ci_low": "0.00829738",
+   "ci_high": "0.0129539",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "slope_interval_coverage",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.95",
+   "ci_low": "0.915578",
+   "ci_high": "0.984422",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "slope_interval_coverage",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.9375",
+   "ci_low": "0.912591",
+   "ci_high": "0.962409",
+   "n_reps": "20"
+  },
+  {
+   "version": "C",
+   "metric": "slope_interval_coverage",
+   "comparison": "SU-DPP4i",
+   "mean": "0.9625",
+   "ci_low": "0.935732",
+   "ci_high": "0.989268",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "abstention_rate",
+   "comparison": "all",
+   "mean": "0.0156381",
+   "ci_low": "0.0139409",
+   "ci_high": "0.0173352",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "additivity_max_error",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "2.80331e-16",
+   "ci_low": "2.4127e-16",
+   "ci_high": "3.19392e-16",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "additivity_max_error",
+   "comparison": "SGLT2i-SU",
+   "mean": "1.8735e-16",
+   "ci_low": "1.5613e-16",
+   "ci_high": "2.1857e-16",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "additivity_max_error",
+   "comparison": "SU-DPP4i",
+   "mean": "3.16414e-16",
+   "ci_low": "2.78624e-16",
+   "ci_high": "3.54203e-16",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "answered_when_thin",
+   "comparison": "all",
+   "mean": "1",
+   "ci_low": "1",
+   "ci_high": "1",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "answered_when_thin_pairs",
+   "comparison": "all",
+   "mean": "0.127891",
+   "ci_low": "0.0932814",
+   "ci_high": "0.1625",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "best_pick_rate",
+   "comparison": "all",
+   "mean": "0.827224",
+   "ci_low": "0.807843",
+   "ci_high": "0.846605",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "clear_set_equals_true_modifiers",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.55",
+   "ci_low": "0.311117",
+   "ci_high": "0.788883",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "clear_set_equals_true_modifiers",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.25",
+   "ci_low": "0.0420791",
+   "ci_high": "0.457921",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "clear_set_equals_true_modifiers",
+   "comparison": "SU-DPP4i",
+   "mean": "0.6",
+   "ci_low": "0.364764",
+   "ci_high": "0.835236",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "coverage",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.944075",
+   "ci_low": "0.917786",
+   "ci_high": "0.970364",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "coverage",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.9271",
+   "ci_low": "0.903236",
+   "ci_high": "0.950964",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "coverage",
+   "comparison": "SU-DPP4i",
+   "mean": "0.9472",
+   "ci_low": "0.928062",
+   "ci_high": "0.966338",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "driver_recall",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.817769",
+   "ci_low": "0.680367",
+   "ci_high": "0.955171",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "driver_recall",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.773392",
+   "ci_low": "0.691276",
+   "ci_high": "0.855509",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "driver_recall",
+   "comparison": "SU-DPP4i",
+   "mean": "0.936487",
+   "ci_low": "0.862644",
+   "ci_high": "1.01033",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "effect_bias",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.00160509",
+   "ci_low": "-0.00958205",
+   "ci_high": "0.0127922",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "effect_bias",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.00564492",
+   "ci_low": "-0.00837514",
+   "ci_high": "0.019665",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "effect_bias",
+   "comparison": "SU-DPP4i",
+   "mean": "-0.00403983",
+   "ci_low": "-0.0163781",
+   "ci_high": "0.00829842",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "false_driver_rate",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.180513",
+   "ci_low": "0.0565631",
+   "ci_high": "0.304462",
+   "n_reps": "19"
+  },
+  {
+   "version": "D",
+   "metric": "false_driver_rate",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.168275",
+   "ci_low": "0.0910102",
+   "ci_high": "0.245539",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "false_driver_rate",
+   "comparison": "SU-DPP4i",
+   "mean": "0.109008",
+   "ci_low": "0.0277344",
+   "ci_high": "0.190282",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "modifier_precision_at_k",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.875",
+   "ci_low": "0.77104",
+   "ci_high": "0.97896",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "modifier_precision_at_k",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.783333",
+   "ci_low": "0.691736",
+   "ci_high": "0.87493",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "modifier_precision_at_k",
+   "comparison": "SU-DPP4i",
+   "mean": "0.975",
+   "ci_low": "0.922674",
+   "ci_high": "1.02733",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "modifier_spearman",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.624103",
+   "ci_low": "0.601003",
+   "ci_high": "0.647203",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "modifier_spearman",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.654",
+   "ci_low": "0.59033",
+   "ci_high": "0.717671",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "modifier_spearman",
+   "comparison": "SU-DPP4i",
+   "mean": "0.635392",
+   "ci_low": "0.610883",
+   "ci_high": "0.659901",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "modifier_top3_overlap",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.975",
+   "ci_low": "0.922674",
+   "ci_high": "1.02733",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "modifier_top3_overlap",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.783333",
+   "ci_low": "0.691736",
+   "ci_high": "0.87493",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "modifier_top3_overlap",
+   "comparison": "SU-DPP4i",
+   "mean": "0.975",
+   "ci_low": "0.922674",
+   "ci_high": "1.02733",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "patients_with_no_clear_driver",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.05",
+   "ci_low": "-0.0546512",
+   "ci_high": "0.154651",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "patients_with_no_clear_driver",
+   "comparison": "SGLT2i-SU",
+   "mean": "0",
+   "ci_low": "0",
+   "ci_high": "0",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "patients_with_no_clear_driver",
+   "comparison": "SU-DPP4i",
+   "mean": "0",
+   "ci_low": "0",
+   "ci_high": "0",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "pehe",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.104791",
+   "ci_low": "0.0933624",
+   "ci_high": "0.11622",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "pehe",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.10778",
+   "ci_low": "0.0958089",
+   "ci_high": "0.119751",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "pehe",
+   "comparison": "SU-DPP4i",
+   "mean": "0.117111",
+   "ci_low": "0.104878",
+   "ci_high": "0.129345",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "pehe_not_thin",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.101565",
+   "ci_low": "0.0908703",
+   "ci_high": "0.11226",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "pehe_not_thin",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.103875",
+   "ci_low": "0.092545",
+   "ci_high": "0.115205",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "pehe_not_thin",
+   "comparison": "SU-DPP4i",
+   "mean": "0.112677",
+   "ci_low": "0.101171",
+   "ci_high": "0.124184",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "pehe_thin",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.159143",
+   "ci_low": "0.130276",
+   "ci_high": "0.18801",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "pehe_thin",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.172379",
+   "ci_low": "0.145953",
+   "ci_high": "0.198806",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "pehe_thin",
+   "comparison": "SU-DPP4i",
+   "mean": "0.188439",
+   "ci_low": "0.15903",
+   "ci_high": "0.217848",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "pred_rmse",
+   "comparison": "all",
+   "mean": "0.0722929",
+   "ci_low": "0.0671729",
+   "ci_high": "0.0774129",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "regret",
+   "comparison": "all",
+   "mean": "0.0106256",
+   "ci_low": "0.00829738",
+   "ci_high": "0.0129539",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "slope_interval_coverage",
+   "comparison": "SGLT2i-DPP4i",
+   "mean": "0.95",
+   "ci_low": "0.915578",
+   "ci_high": "0.984422",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "slope_interval_coverage",
+   "comparison": "SGLT2i-SU",
+   "mean": "0.9375",
+   "ci_low": "0.912591",
+   "ci_high": "0.962409",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "slope_interval_coverage",
+   "comparison": "SU-DPP4i",
+   "mean": "0.9625",
+   "ci_low": "0.935732",
+   "ci_high": "0.989268",
+   "n_reps": "20"
+  },
+  {
+   "version": "D",
+   "metric": "citation_precision",
+   "comparison": "all",
+   "mean": "1",
+   "ci_low": "",
+   "ci_high": "",
+   "n_reps": "0"
+  },
+  {
+   "version": "D",
+   "metric": "retrieval_recall_at_5",
+   "comparison": "all",
+   "mean": "0.956",
+   "ci_low": "",
+   "ci_high": "",
+   "n_reps": "0"
+  },
+  {
+   "version": "D",
+   "metric": "number_match_pass",
+   "comparison": "all",
+   "mean": "0.35",
+   "ci_low": "",
+   "ci_high": "",
+   "n_reps": "0"
+  },
+  {
+   "version": "D",
+   "metric": "fallback_rate",
+   "comparison": "all",
+   "mean": "0.7",
+   "ci_low": "",
+   "ci_high": "",
+   "n_reps": "0"
+  },
+  {
+   "version": "D",
+   "metric": "driver_passage_hit_rate",
+   "comparison": "all",
+   "mean": "",
+   "ci_low": "",
+   "ci_high": "",
+   "n_reps": "0"
+  }
+ ],
  "run": {
   "reps": 20,
   "n_patients": 5000,
