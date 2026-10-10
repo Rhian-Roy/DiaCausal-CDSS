@@ -592,7 +592,7 @@ def test_every_screen_built_here_renders_at_desktop_and_phone_size(tmp_path):
     cs = _check_screens()
     names = ["01-signin", "02-signin-error", "03-signin-locked", "06-mfa-setup", "07-intended-use", "08-session-ending",
              "13-panel-empty", "14-panel-filled", "15-panel-out-of-range", "16-panel-example-data", "20-loading-stages",
-             "17-answer-options-compared", "21-answer-no-clear-difference", "19-insufficient-evidence", "25-guide", "26-about"]
+             "17-answer-options-compared", "21-answer-no-clear-difference", "19-insufficient-evidence", "19b-every-option-removed", "25-guide", "26-about"]
     assert sorted(report["screens"]) == sorted(f"{n}/{s}" for n in names for s in ("desktop", "phone"))
     for key, shot in report["screens"].items():
         assert Path(shot["png"]).stat().st_size > 5000, key
@@ -622,6 +622,9 @@ def test_every_screen_built_here_renders_at_desktop_and_phone_size(tmp_path):
             assert f["badge"] == "Example data" and f["pressed"] == 1
         elif name == "20-loading-stages":
             assert f["states"] == ["Done", "Done", "Running", "Waiting", "Waiting", "Waiting"] and f["current"] == 1
+        elif name.startswith("19b-"):  # every option removed by a rule: no estimate, no abstain card, the rules are the reasons
+            assert f["h2"] == "No comparison shown — the safety rules removed every option" and f["levels"] == [] and f["abstain"] == [] and f["stop"] == 3
+            assert f["decides"] == "The clinician decides." and f["last"] == INTENDED_USE and f["scards"] == 3
         elif name.startswith(("17-", "19-", "21-")):  # P24: the answer card (AnswerCardV1) in the design's three states
             assert f["decides"] == "The clinician decides." and f["last"] == INTENDED_USE and f["scards"] == 3
             assert all(lv.strip() in ("Moderate", "Low", "Insufficient", "Not assessed") for lv in f["levels"])

@@ -466,10 +466,13 @@ function renderCard(card, into, { result, passages = [] }) {
   const checks = card.cautions.map((r) => r.option).filter((v, i, a) => a.indexOf(v) === i).length;
   const facts = h("p", { class: "sub" }, h("strong", {}, "Question: "), card.question, h("br"), h("strong", {}, "Patient: "), card.patient_summary);
   if (!anyEstimate) { // screen 19
-    out.append(h("h2", { id: `ans-${card.request_id}` }, "Insufficient evidence — no comparison shown"), facts,
+    // every option removed by a rule (no abstain notice): the reasons are the rules themselves
+    const reasons = card.abstain.length ? [...new Set(card.abstain.map((n) => n.why))].map((why) => why[0].toUpperCase() + why.slice(1) + ".")
+      : card.excluded.map((r) => `${armName(r.option)} was removed by rule ${r.rule_id} before any estimate was made (${r.source}).`);
+    out.append(h("h2", { id: `ans-${card.request_id}` }, card.abstain.length ? "Insufficient evidence — no comparison shown" : "No comparison shown — the safety rules removed every option"), facts,
       h("div", { class: "finding finding--check" }, icon("info", 24, "c-check"), h("p", {}, "DiaCausal will not show estimates for this patient.")),
-      h("h3", {}, "Why"), h("ul", { class: "stages" }, [...new Set(card.abstain.map((n) => n.why))].map((why) =>
-        h("li", { class: "stage" }, h("span", { class: "stage__name stage__name--plain" }, why[0].toUpperCase() + why.slice(1) + ".")))),
+      h("h3", {}, "Why"), h("ul", { class: "stages" }, reasons.map((text) =>
+        h("li", { class: "stage" }, h("span", { class: "stage__name stage__name--plain" }, text)))),
       h("p", { class: "field__hint" }, "Only the reasons that applied are listed."),
       h("h3", {}, "What you can do instead"), h("ul", { class: "stages" },
         ["Check the patient details for a typing error, then compare again.",

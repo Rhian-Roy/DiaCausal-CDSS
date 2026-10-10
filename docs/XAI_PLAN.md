@@ -300,4 +300,4 @@ Extend the existing pattern, not a new mechanism: `tests/web/run_engine.cjs` (or
 | 6 | **`numba` pulled in by SHAP** | kept out of the engine's core requirements (5.3) |
 | 7 | **Secondary outcomes** (weight, hypoglycaemia) have the same linear structure, so the same function could explain them | out of scope for 30 Oct; list as FUTURE WORK |
 | 8 | **Timing:** P17 is due by Sun 11 Oct (gate G1) and the restructure moves files the same week | write `diacausal/xai/` at its final path, as the restructure plan's rule 1 says |
-| 9 | **UNVERIFIED:** run times, licences of `shap` and `lime`, the driver-to-passage gold table | measure or check when built |
+| 9 | **UNVERIFIED:** the driver-to-passage gold table. (Run time measured: about 2.5 minutes for version A. Licences read from the installed packages on 10 Oct 2026: `shap` 0.52.0 is MIT, `lime` 0.2.0.1 is BSD, as their package metadata says; the licence text files were not read) | measure or check when built |

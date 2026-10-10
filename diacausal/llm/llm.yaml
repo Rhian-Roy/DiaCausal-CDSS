@@ -12,7 +12,7 @@ models:
       download_gb: 2.5
     candidate_b:
       tag: "medgemma1.5:4b-it-q4_K_M"
-      licence: "Health AI Developer Foundations terms (not stated on the Ollama page: read them before use in the report)"
+      licence: "Google Health AI Developer Foundations (HAI-DEF) Terms of Use, read on 10 Oct 2026 (summary in docs/LLM_BENCH.md); not an open-source licence"
       download_gb: 3.3
   source: "docs/PLAN_2026-10.md section 8.8 (primary: a small permissively licensed instruct model of the Qwen3 4B class; alternative: MedGemma 1.5 4B). Exact Ollama tags read from ollama.com/library/qwen3/tags and ollama.com/library/medgemma1.5/tags in October 2026; the Qwen3 licence is the Apache-2.0 text on its Ollama model page; the MedGemma terms are NOT verified"
   status: CITED
