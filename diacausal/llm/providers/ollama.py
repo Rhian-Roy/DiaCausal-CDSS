@@ -166,9 +166,14 @@ def explain_structured(question: str, evidence: dict, prompt: str, cfg: dict, ll
         return _reply(question, "ollama", "INSUFFICIENT_EVIDENCE", [], "the model found no answer in the passages") | {"fallback": None}
     if tried.code is None:
         return _reply(question, "ollama", "SUCCESS", tried.items) | {"fallback": None}
+    return fall_back(question, evidence, cfg, idf, tried.code)
+
+
+def fall_back(question: str, evidence: dict, cfg: dict, idf: dict[str, float] | None, code: str) -> dict:
+    """The template's explanation, marked with the CODE that sent us here (also used when the prompt could not be built)."""
     fallback = template(question, evidence, cfg, idf)
-    fallback["note"] = f"the local model could not be used ({tried.code}); showing quoted sentences instead"
-    return fallback | {"fallback": tried.code}
+    fallback["note"] = f"the local model could not be used ({code}); showing quoted sentences instead"
+    return fallback | {"fallback": code}
 
 
 def _post(url: str, body: dict, headers: dict, timeout: float = 60) -> dict:

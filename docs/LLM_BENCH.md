@@ -26,29 +26,29 @@ The plan says "MedGemma 1.5 4B": Ollama has it as its own library entry `medgemm
 - **On when:** the model is called only if **both** `llm.yaml provider: ollama` **and** the request says `mode: ollama`. A dose question, or one with no evidence, never reaches it.
 - **Falls back to the template on anything:** server not running (`UNREACHABLE`), too slow (`TIMEOUT`), bad HTTP status (`HTTP_ERROR`), a reply that is not Ollama's (`BAD_REPLY`), invalid JSON (`INVALID_JSON`), JSON that is not an `AnswerDraftV1` (`SCHEMA_INVALID`), a claim that cites no passage, a passage that was not shown or one that does not support it, or a dose (`CITATION_CHECK`), a number that is not in the causal output (`NUMBER_MISMATCH`), or any unexpected error. The reply carries `fallback: CODE`; **the model's text is never kept, logged or returned**.
 - **Numbers on the card never come from the model:** the effects table is built from the causal output; the model supplies only the cited claims. Plan 8.10 check 3 is enforced here already (P23 will own the full set of guards).
-- The prompt is a plain version of plan 8.9 (`prompt.v2.txt`); P22 refines it.
+- The prompt is plan 8.9 (`prompt.v2.txt`), built within a 1,900-token budget by `prompt_builder.build_llm_prompt` (P22; docs/PROMPT_TEMPLATE.md). A prompt that cannot be built (`PromptError`: `PROMPT_TOO_LONG`, `PROMPT_NO_EVIDENCE`, `PROMPT_IDENTIFIER`) sends the request to the template without calling the model.
 
 ## The benchmark (`python scripts/bench_llm.py --all`, `results/llm/`)
-20 golden questions (`eval/llm_golden.csv`): 20 answerable gold questions from all seven sources, each with one of the three demo patients; the causal output and the evidence are produced by the real pipeline layers. **A draft written by Claude: Members B and D must review the questions and their pairing.** One warm-up call is excluded. Ollama 0.40.0, MacBook M5 (16 GB), 10 Oct 2026.
+20 golden questions (`eval/llm_golden.csv`): 20 answerable gold questions from all seven sources, each with one of the three demo patients; the causal output and the evidence are produced by the real pipeline layers. **A draft written by Claude: Members B and D must review the questions and their pairing.** One warm-up call is excluded. Ollama 0.40.0, MacBook M5 (16 GB), 10 Oct 2026. **The numbers belong to the prompt that produced them: this table was re-run after P22 replaced the plain P21 prompt with the budgeted one (docs/PROMPT_TEMPLATE.md).** The committed files are the second of two runs on the new prompt (the first ran while I was also running tests, so the second is the quieter one; both are shown).
 
 | | `candidate_a` Qwen3 4B | `candidate_b` MedGemma 1.5 4B |
 |---|---:|---:|
-| Schema-valid (of 20) | **100%** | 90% (1 invalid JSON, 1 timeout) |
-| Number-match (of the valid drafts) | 35% | 44% |
-| Fallback to the template (of 20) | 70% | 65% |
-| of which: number not in the causal output | 9 | 8 |
-| of which: citation check failed | 5 | 3 |
-| of which: timeout / invalid JSON | 0 | 1 / 1 |
-| Latency p50 / p95 (seconds) | 37.8 / 43.7 | 28.4 / 58.5 |
-| Longest prompt (tokens) | 3,149 | 3,124 |
-| Warm-up (cold load) | 27 s | 37 s |
+| Schema-valid (of 20), P22 run 1 / run 2 | 100% / **90%** | 75% / **85%** |
+| Number-match (of the valid drafts), run 1 / run 2 | 35% / **39%** | 27% / **24%** |
+| Fallback to the template (of 20), run 1 / run 2 | 80% / **80%** | 80% / **80%** |
+| of which in run 2: number not in the causal output | 7 | 9 |
+| of which in run 2: citation check failed | 7 | 4 |
+| of which in run 2: timeout | 2 | 3 |
+| Latency p50 / p95 (seconds), run 2 | 40.3 / 60.0 | 29.7 / 60.0 |
+| Longest prompt: the estimate / Ollama's own count | 1,881 / 2,612 | 1,881 / 2,728 |
+| *Before P22 (plain prompt, one run)*: valid / fallback / longest prompt | *100% / 70% / 3,149* | *90% / 65% / 3,124* |
 
 **How to read it**
-1. **Both models follow the schema** (100% and 90%), so the structured-output route works. The two models differ by two questions, which is not a difference at n = 20.
-2. **Most answers are still rejected, mainly for numbers.** The plan's rule is that every number must come from the causal output (or be a page or version of a cited passage). The models keep writing numbers from the evidence text ("60 years", "30") and the rule sends those to the template. That is the rule working, not a model fault; but it means **a model-written answer reaches the card in only about one question in three (6 of 20 and 7 of 20)**. P23 may prefer to drop such a claim instead of the whole draft; that would raise the usable share.
-3. **The prompt is too long.** Plan 8.9 budgets about 1,900 tokens; real prompts reach 3,100, with five passages up to 650 tokens each, only about 1,000 under the 4,096 limit. P22 (budget, cutting at sentence ends) matters before any model goes live.
-4. **Latency is not a clean number.** The laptop was busy (a browser using a full core, the display sharing the GPU): the same 3 questions took about 10 s in a lighter try and 22 to 41 s in this run. Treat 28 to 38 s as an upper bound on an M5 under load, not as a hardware figure. **The RTX 2050 laptop (4 GB) has not been measured.** One MedGemma call hit the 60 s timeout; the first call after loading takes 27 to 37 s, so a cold server will usually fall back once.
-5. **Not a recommendation of a winner.** I would keep `provider: template` for the 30 October demo; the local model is an optional extra whose answers are all checked and which cannot show a number the engine did not produce.
+1. **The prompt is now inside its budget.** The estimate never passes 1,881 (budget 1,900), and Ollama's own count of the longest prompt fell from 3,149 to about 2,700 tokens, which leaves about 1,300 of the 4,096 for the reply (a draft is about 350). The estimate under-counts: Ollama's count is 1.2 to 1.6 times it (mean 1.35; measured with the prompt cache bypassed, docs/PROMPT_TEMPLATE.md).
+2. **Answers the pipeline can use did not improve: 4 of 20 for both models (was 6 and 7).** Both models fall back on 80% of the questions in both runs. With n = 20 the difference from before is 2 or 3 questions, and the timeouts (2 and 3 in run 2, each a question lost) come from a busy laptop, so I cannot tell a prompt effect from noise. What is clear is the mechanism: **the number rule (plan 8.10 check 3) and the citation check reject most drafts**: models copy numbers from the evidence ("60 years", "30"), which the rule sends to the template. That is the rule working; it means a model-written answer reaches the card in about one question in five. P23 may drop only the offending claim instead of the whole draft; that, not the prompt, is what would raise the usable share.
+3. **No winner.** Qwen3 is more reliably valid (90 to 100% against 75 to 85%) and MedGemma is no better on any measure here; the gap is a few questions. MedGemma's licence is still UNVERIFIED.
+4. **Latency is not a clean number.** The laptop was busy in both runs (load average 3 to 4 with the benchmark idle), and the same model's p50 moved from 26.5 s to 40.3 s between two runs of the same prompt. Treat 27 to 40 s as an upper bound on an M5 under load, not a hardware figure. **The RTX 2050 laptop (4 GB) has not been measured.** The first call after loading takes 13 to 38 s, so a cold server will usually fall back once.
+5. **I would still keep `provider: template` for the 30 October demo**; the local model is an optional extra whose answers are all checked and which cannot show a number the engine did not produce.
 
 ## Run it yourself
 ```bash

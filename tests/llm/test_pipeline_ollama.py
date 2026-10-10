@@ -10,6 +10,7 @@ from llm_helpers import evidence_lines, good_draft
 from diacausal.api.main import create_app
 from diacausal.api.schemas import AnswerCardV1
 from diacausal.causal_inference.recommend import get_engine
+from diacausal.llm.prompt_builder import estimate_tokens
 from diacausal.llm.providers import ollama
 
 PATIENT = dict(age=52, sex="M", duration_years=5.0, hba1c_pct=8.4, egfr=88.0, bmi=27.0, ascvd=False, heart_failure=False, ckd=False, past_hypo=False,
@@ -110,3 +111,37 @@ def test_the_evidence_lines_of_the_prompt_are_exactly_the_passages_the_card_can_
     card = AnswerCardV1.model_validate(ask(client, "ollama").json())
     shown = {cid for cid, _ in evidence_lines(server.requests[0]["prompt"])}
     assert {c.chunk_id for claim in card.claims for c in claim.citations} <= shown
+
+
+def test_the_prompt_is_built_only_when_the_model_will_be_asked(client, fake, monkeypatch):
+    """P22: the prompt builder is a real part of the explanation layer, and it does no work for the template."""
+    from diacausal.llm import prompt_builder
+
+    def boom(*a, **k):
+        raise AssertionError("a prompt was built although the template writes this answer")
+
+    monkeypatch.setattr(prompt_builder, "build_llm_prompt", boom)
+    configure(monkeypatch, fake(lambda p: good_draft(p)), "template")
+    assert ask(client, "ollama").status_code == 200  # llm.yaml says template
+    configure(monkeypatch, fake(lambda p: good_draft(p)), "ollama")
+    assert ask(client, "template").status_code == 200  # the request says template
+    assert ask(client, "ollama", question="What dose of sitagliptin should I use?").status_code == 422  # a dose question never reaches it
+
+
+def test_the_prompt_sent_stays_inside_the_budget_with_at_most_five_passages(client, fake, monkeypatch):
+    server = fake(lambda p: good_draft(p))
+    configure(monkeypatch, server, "ollama")
+    assert ask(client, "ollama").status_code == 200
+    prompt = server.requests[0]["prompt"]
+    assert estimate_tokens(prompt) <= 1900 and 1 <= len(evidence_lines(prompt)) <= 5
+
+
+def test_a_prompt_that_cannot_be_built_means_no_call_and_the_template_answers(client, fake, monkeypatch):
+    from diacausal.llm import prompt_builder
+
+    server = fake(lambda p: good_draft(p))
+    configure(monkeypatch, server, "ollama")
+    real = prompt_builder.prompt_settings()
+    monkeypatch.setattr(prompt_builder, "prompt_settings", lambda *a, **k: {**real, "prompt_budget_tokens": 100})
+    r = ask(client, "ollama")
+    assert r.status_code == 200 and AnswerCardV1.model_validate(r.json()).mode == "template" and server.requests == []

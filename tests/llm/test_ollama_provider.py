@@ -8,7 +8,7 @@ import pytest
 from llm_helpers import evidence_lines, good_draft
 
 from diacausal.api.schemas import AnswerDraftV1
-from diacausal.llm.prompt_builder import build_json_prompt, compact_causal, number_sources
+from diacausal.llm.prompt_builder import number_sources
 from diacausal.llm.providers import ollama
 from diacausal.llm.providers.template import template
 from diacausal.rag.ingest.licence_gate import ingest
@@ -24,8 +24,10 @@ def evidence():
 
 
 def prompt_for(evidence, question=QUESTION):
-    return build_json_prompt(question=question, patient_summary="52 y, M", excluded=[], causal={"applicable": "APPLICABLE", "options": []},
-                             drivers={}, passages=evidence["passages"])
+    """A stand-in for the real prompt (tests/llm/test_prompt_budget.py covers that one): the provider only sends text."""
+    lines = [f'[{p["chunk_id"]}] {p["citation"]["title"]}, {p["citation"]["version"]}, {p["citation"]["section"]}, p.{p["citation"]["page"]}: "{p["text"]}"'
+             for p in evidence["passages"]]
+    return "\n".join([f"QUESTION: {question}", "<evidence>", *lines, "</evidence>"])
 
 
 def with_url(cfg, server, **over):
@@ -200,12 +202,3 @@ def test_the_fallback_is_the_same_template_that_the_tests_of_the_template_use(ev
     from diacausal.llm.explain import explain
 
     assert template(QUESTION, evidence, rag_cfg)["sentences"] == explain(QUESTION, evidence, "template", rag_cfg)["sentences"]
-
-
-def test_the_prompt_sent_holds_the_evidence_with_chunk_ids_and_nothing_else_identifying(evidence):
-    prompt = prompt_for(evidence)
-    from diacausal.rag.retrieve.hybrid import WITHHELD
-
-    shown = [p for p in evidence["passages"] if p["text"] != WITHHELD]  # a passage with dose-like text is withheld and so left out
-    assert shown and all(f"[{p['chunk_id']}]" in prompt for p in shown) and prompt.splitlines().count("<evidence>") == 1
-    assert "Output JSON matching the schema" in prompt

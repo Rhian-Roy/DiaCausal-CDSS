@@ -23,3 +23,6 @@ num_ctx: {value: 4096, source: "docs/PLAN_2026-10.md section 8.8: the prompt sta
 keep_alive: {value: "10m", source: "Group 28 team choice: keep the model loaded between questions so only the first one pays the load time (a cold load can exceed the timeout)", status: TEAM-SET}
 think: {value: null, source: "docs.ollama.com/api/generate: false disables thinking, null leaves the model's default. Set after testing the pulled models (docs/LLM_BENCH.md)", status: TEAM-SET}
 max_claims: {value: 4, source: "docs/PLAN_2026-10.md section 8.9: at most 4 claims", status: TEAM-SET}
+prompt_budget_tokens: {value: 1900, source: "docs/PLAN_2026-10.md section 8.9: the whole prompt stays under about 1,900 tokens (system 350, causal output 250, five passages of 220, question 120), leaving room in the 4,096-token context. Member C task P22", status: CITED}
+tokens_per_word: {value: 1.4, source: "Member C task P22: the token estimate is words x 1.4 (words = whitespace-separated pieces). Measured against Ollama's own count on the 20 golden prompts the real count was about 1.3 times this estimate (docs/PROMPT_TEMPLATE.md)", status: TEAM-SET}
+max_passages: {value: 5, source: "docs/PLAN_2026-10.md section 8.9 / Member C task P22: at most 5 passages go into the prompt", status: CITED}
