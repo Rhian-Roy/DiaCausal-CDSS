@@ -380,3 +380,12 @@ body.auth{min-height:100dvh;display:flex;flex-direction:column}
 .qrimg{width:220px;height:220px;max-width:100%;background:var(--surface);border:var(--border-w) solid var(--border-soft);border-radius:var(--r-control)}
 .methods summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center;color:var(--pine)}
 @media (max-width:900px){.demo{padding:5px var(--s4);font-size:13px}}
+/* the answer card (screens 17, 19, 21) built from AnswerCardV1: what the design set with inline style="" */
+.th-note{text-transform:none;letter-spacing:0;font-weight:400}
+.finding--check{background:var(--check-fill);border-color:var(--check-line)}
+.stage__name--plain{font-weight:400}
+.abstaincard{display:flex;flex-direction:column;gap:var(--s1);background:var(--check-fill);border:var(--border-w) solid var(--check-line);border-radius:var(--r-status);padding:var(--s3) var(--s4)}
+.abstaincard p{margin:0}
+.basis .srcentry summary{cursor:pointer;min-height:44px;display:flex;align-items:center}
+.basis .srcentry .passage__text{margin:0 0 var(--s2)}
+.intended-line{margin:0}

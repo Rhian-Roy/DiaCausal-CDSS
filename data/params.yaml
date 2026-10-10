@@ -37,6 +37,7 @@ sources:
   IHSG_2017: "International Hypoglycaemia Study Group. Glucose concentrations of less than 3.0 mmol/L (54 mg/dL) should be reported in clinical trials. Diabetes Care 2017;40(1):155-157 (level 2 hypoglycaemia); the team's trigger is this value, not the paper's advice for a clinic"
   TEAM_WORKSHEET: "Group 28 team choice; the value to replace it is an outstanding row of docs/research/DiaCausal_parameter_extraction_worksheet.xlsx"
   PLAUSIBILITY: "Group 28 plausibility limits (typing-slip catcher, not clinical thresholds), identical to backend/app/patient_ranges.py"
+  PLAN_8_11: "docs/PLAN_2026-10.md section 8.11 (evidence levels: Insufficient / Low / Moderate; High never on synthetic data). The cut-offs are the team's, for Members A and D and the collaborating doctor to review"
 
 # ── The three options (all added to metformin) ───────────────────────────────
 arms:
@@ -233,6 +234,18 @@ engine:
     evalue_smd_to_log_rr: {value: 0.91, unit: "-", source: VANDERWEELE_DING_2017, status: CITED, note: "approximate conversion of a standardised mean difference to a log risk ratio"}
   max_interval_width: {value: 1.5, unit: percentage points, source: TEAM, status: TEAM-SET, note: "if this patient's 95% range for an option is wider than this, show 'insufficient evidence (too uncertain)' instead; to confirm with the collaborating doctor"}
   second_stage: {value: "linear", unit: "-", source: KENNEDY_2023, status: TEAM-SET, note: "DR-learner second stage: OLS with HC3 robust errors"}
+
+# ── Evidence level of each estimate (docs/PLAN_2026-10.md section 8.11; diacausal/causal_inference/evidence_level.py) ──
+# Insufficient: propensity below `insufficient_propensity_below`, or the 95% interval wider than `insufficient_width_above`, or the
+# retrieval abstained. Low: interval wider than `low_width_above`, or propensity below `low_propensity_below`, or fewer than
+# `low_citations_below` cited passages. Moderate: everything else. High: never on synthetic data (it needs real-world validation).
+evidence_level:
+  insufficient_propensity_below: {value: 0.05, unit: probability, source: PLAN_8_11, status: TEAM-SET, note: "the same number as engine.overlap_min_propensity (a test keeps them equal): below it the engine shows no estimate"}
+  insufficient_width_above: {value: 1.5, unit: percentage points, source: PLAN_8_11, status: TEAM-SET, note: "the same number as engine.max_interval_width (a test keeps them equal): above it the engine shows no estimate"}
+  low_width_above: {value: 1.0, unit: percentage points, source: PLAN_8_11, status: TEAM-SET, note: "width of the 95% interval of the 6-month HbA1c change (ci_high - ci_low)"}
+  low_propensity_below: {value: 0.10, unit: probability, source: PLAN_8_11, status: TEAM-SET, note: "propensity 0.05 to 0.10 = Low"}
+  low_citations_below: {value: 2, unit: cited passages, source: PLAN_8_11, status: TEAM-SET, note: "licence-cleared passages that name the option among those cited for the answer; not used when no search ran (the benchmark)"}
+  high_enabled: {value: false, unit: "-", source: PLAN_8_11, status: TEAM-SET, note: "High is never shown on synthetic data; the code refuses to run if this is switched on"}
 
 display:
   bmi_underweight_below: {value: 18.5, unit: kg/m2, source: MISRA_2009, status: CITED}

@@ -138,7 +138,7 @@ assumptions) for the Evidence Fusion layer. Separate venv at the repo root:
 
 ```bash
 python3.12 -m venv .venv && .venv/bin/pip install -r requirements-engine.txt   # once
-.venv/bin/python -m pytest tests/engine -q                                      # 149 tests
+.venv/bin/python -m pytest tests/engine -q                                      # 190 tests
 .venv/bin/python -m diacausal.causal_inference.benchmark --quick                          # full: drop --quick
 .venv/bin/streamlit run demo/streamlit_app.py                                   # the demo
 .venv/bin/uvicorn diacausal.api.main:app --port 8001                          # POST /api/v1/recommend
@@ -185,7 +185,7 @@ the button, P08 removed the Edge Function).
 Look: `design/screens-v2/` is the only design source (`handoff/HANDOFF.md`); colours, fonts and spacing come
 only from `web/styles/tokens.css` (copied from the handoff); fonts are self-hosted in `web/fonts/` (SIL OFL).
 Tabs: Patient Details, Investigate, Analysis, Guide, About (`#patient-details` …); `#try`, `#evidence`,
-`#results`, `#learn` still work. `.venv/bin/python -m pytest tests/web -q` (24 tests; the two browser tests
+`#results`, `#learn` still work. `.venv/bin/python -m pytest tests/web -q` (26 tests; the two browser tests
 need Node, `tests/e2e/node_modules` and Chromium or Google Chrome). Full chat app hosting: docs/HOSTING_CHAT_APP.md.
 
 ## API contract v1 (built) — see docs/INPUT_RANGES.md and docs/PLAN_2026-10.md §8.4
@@ -206,8 +206,8 @@ app's `backend/app/schemas.py` and the engine API's own models are unchanged; P1
 `diacausal/orchestrator/pipeline.py`, which calls the layers **only through `diacausal/registry.py`** (`LAYERS`, in order:
 input guards, rules, causal engine, retrieval, explanation, output guards, formatter) and returns `AnswerCardV1`.
 Layers are `fn(context) -> None` in `orchestrator/layers.py`; stubs are in `orchestrator/stubs.py`. To replace a stub, build
-the real function and change its one line in the registry (`stubs()` lists what is still a pass-through: SHAP drivers P25,
-evidence levels P24; the input guards (P15), the prompt builder (P22) and the full output checks (P23) are real).
+the real function and change its one line in the registry (`stubs()` lists what is still a pass-through: SHAP drivers P25;
+the input guards (P15), the prompt builder (P22), the full output checks (P23) and the evidence levels (P24) are real).
 Every layer runs inside `diacausal/tracing.py` (`layer(name, request_id)` or `@traced`): `[rid] entered X layer`,
 `executing`, then `passed (N ms)`, `abstained ... reason=CODE` or `failed ... error=ExceptionClass`. A layer that correctly
 cannot go on raises `AbstainSignal(CODE)` (a code, never free text). **Never log patient values, the question, prompts,
@@ -317,6 +317,21 @@ become spaces, the template is filled in one pass (a `{...}` in the question is 
 the identifier guard blocks raises `PromptError`). A `PromptError` (a CODE) sends the request to the template. The words x 1.4 estimate
 under-counts the real token count (see the calibration in docs/PROMPT_TEMPLATE.md). Edit the template in `prompt.v2.txt` and plan 8.9 together;
 `tests/llm/test_prompt_budget.py` compares them and a snapshot (`UPDATE_SNAPSHOTS=1` to accept a deliberate change).
+
+## Evidence levels and the answer card (built, P24) — see docs/ANSWER_FORMAT.md
+
+`diacausal/causal_inference/evidence_level.py`: plan 8.11's rule (Insufficient: propensity below 0.05, interval wider than 1.5, or the
+retrieval abstained; Low: wider than 1.0, propensity below 0.10, or fewer than 2 cited passages; Moderate otherwise; **High never on synthetic
+data**, `load_rule` refuses `high_enabled: true`). The cut-offs are `data/params.yaml` group `evidence_level` (TEAM-SET; the two Insufficient
+ones must equal `engine.overlap_min_propensity` and `engine.max_interval_width`, a test checks). `assess` gives the level and its one-line reason,
+`abstain_card` the four lines of the 8.11 abstain card exactly; `web/engine.js` mirrors them word for word (`evidenceLevel`, `abstainCard`;
+tests/web compares them). An option the engine abstained on for overlap now carries `confidence.propensity` (never an estimate) so the card can
+quote it. The `evidence levels` part runs in the formatter layer (after retrieval); an Insufficient option shows NO estimate on the card.
+`AnswerCardV1` gained `cautions` (check-first rules with ID and source). The website builds the same card (`web/card.js`, validated against
+AnswerCardV1 in tests/web) and draws screens 17 (leader: interval vs DPP-4i excludes 0, HbA1c only), 21 (no clear difference, trade-offs first)
+and 19 (no estimate) in `web/app.js` `renderCard`, in Patient Details (Compare, and a question with the patient filled in) and Investigate.
+No inline style: glyph positions are set through the CSSOM. The benchmark writes `results/evidence_level_coverage.csv` (interval coverage by
+level; shown on the Analysis tab).
 
 ## Not built yet — where each piece goes
 

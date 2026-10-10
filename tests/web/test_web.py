@@ -62,7 +62,8 @@ def test_model_json_is_fresh(engine, model):
     """web/model.json must be the export of the current params, rules and code."""
     fresh = json.loads(json.dumps(model_dict(engine)))
     assert model["versions"] == fresh["versions"], "run: python -m diacausal.causal_inference.export_web"
-    for key in ("features", "rules", "thresholds", "support", "prices", "assumptions", "arms", "secondary_note"):
+    for key in ("features", "rules", "thresholds", "support", "prices", "assumptions", "arms", "secondary_note", "evidence_level", "short_names",
+                "still_see", "no_estimate"):
         assert model[key] == fresh[key], key
     for part in ("propensity", "dr"):
         for k, v in fresh[part].items():
@@ -90,6 +91,9 @@ def test_browser_engine_gives_the_same_answers_as_python(engine, model, tmp_path
             assert (jo["arm"], jo["status"]) == (po.arm, po.status), p
             assert [s["rule_id"] for s in jo["safety"]] == [s.rule_id for s in po.safety]
             assert jo["insufficient_reason"] == po.insufficient_reason
+            assert (jo["confidence"] is None) == (po.confidence is None)  # P24: an option without overlap carries its propensity too
+            if po.confidence is not None:
+                assert abs(jo["confidence"]["propensity"] - po.confidence.propensity) <= 0.0011 and jo["confidence"]["method"] == po.confidence.method
             if po.status == "estimate":
                 x = np.array([[float({**p, "female": int(p["sex"] == "female")}.get(c, 0)) for c in engine.adjustment]])
                 raw = engine.fitted.dr.predict(x, engine.z)[po.arm][0]
@@ -105,6 +109,76 @@ def test_browser_engine_gives_the_same_answers_as_python(engine, model, tmp_path
         assert j["intended_use"] == INTENDED_USE
     assert {"estimate", "excluded", "insufficient_evidence"} <= seen
 
+
+
+@pytest.mark.skipif(NODE is None, reason="Node.js is needed to run web/engine.js")
+def test_browser_evidence_levels_and_abstain_cards_are_the_same_as_python(engine, model, tmp_path):
+    """P24: web/engine.js evidenceLevel / abstainCard / countCitations give exactly Python's level, reason and card text, on
+    the engine's own options for many patients and on a grid around every cut-off."""
+    from diacausal.causal_inference import evidence_level as ev
+
+    texts = ["SGLT2 inhibitors can cause ketoacidosis.", "Sitagliptin and pancreatitis.", "Metformin first.", "A sulfonylurea such as glimepiride."]
+    options = []
+    for p in PRESETS + list(random_patients(120, seed=11)):
+        options += [o.model_dump(mode="json") for o in engine.recommend(PatientIn(**p), audit=False).options]
+    names = {o["arm"]: (o["name"], o["example_molecule"]) for o in options}
+    for lo in (-2.2, -2.101, -2.1, -1.9, -1.601, -1.6, -1.2):
+        for prop in (0.01, 0.0499, 0.05, 0.0749, 0.0999, 0.1, 0.31, 0.135, 0.125):
+            for arm in ("SGLT2i", "DPP4i", "SU"):
+                options.append({"arm": arm, "name": names[arm][0], "example_molecule": names[arm][1], "status": "estimate", "safety": [],
+                                "insufficient_reason": None, "effect": {"value": lo / 2, "ci_low": lo, "ci_high": -0.6},
+                                "confidence": {"propensity": prop, "overlap_threshold": 0.05}})
+    cases = [{"option": o, "citations": c, "retrieval_abstained": r, "texts": texts}
+             for i, o in enumerate(options) for c, r in [((None, 0, 1, 2, 3)[i % 5], i % 17 == 0)]]
+    (tmp_path / "c.json").write_text(json.dumps(cases))
+    js = json.loads(subprocess.run([NODE, str(ROOT / "tests/web/run_levels.cjs"), str(WEB / "model.json"), str(tmp_path / "c.json")],
+                                   capture_output=True, text=True, check=True).stdout)
+    seen = set()
+    for c, j in zip(cases, js):
+        a = ev.assess(c["option"], citations=c["citations"], retrieval_abstained=c["retrieval_abstained"])
+        assert (j["level"], j["reason"]) == (a.level, a.reason), c
+        assert j["card"] == ev.abstain_card(c["option"], retrieval_abstained=c["retrieval_abstained"]), c
+        assert j["count"] == ev.count_citations(texts, c["option"])
+        seen.add(a.level)
+    assert seen == {None, "Moderate", "Low", "Insufficient"}
+
+
+@pytest.mark.skipif(NODE is None, reason="Node.js is needed to run web/engine.js")
+def test_every_card_the_website_builds_is_a_valid_answer_card_with_pythons_levels(model, tmp_path):
+    """P24: web/card.js builds AnswerCardV1 (the API's own model validates it); every number of the effects table is the engine's;
+    the levels, reasons and abstain notices are evidence_level.py's; an option the rules removed shows nothing."""
+    from diacausal.api.schemas import AnswerCardV1
+    from diacausal.causal_inference import evidence_level as ev
+
+    passages = [{"chunk_id": f"S2{i}-00-0{i}", "text": t, "citation": {"source_id": f"S2{i}", "title": "FDA", "version": "2015-12-04", "section": "Facts", "page": "2"}}
+                for i, t in enumerate(["SGLT2 inhibitors can cause ketoacidosis.", "Sitagliptin and pancreatitis.", "Dapagliflozin and the kidneys."])]
+    flags = {f: False for f in FLAGS}
+    cases = [{"patient": {**flags, **p}, "question": "Can SGLT2 inhibitors cause ketoacidosis?", "passages": passages,
+              "sentences": [{"text": "SGLT2 inhibitors can cause ketoacidosis.", "cites": [1]}, {"text": "Dapagliflozin and the kidneys.", "cites": [3]}],
+              "retrieval_abstained": i % 13 == 5} for i, p in enumerate(PRESETS + list(random_patients(80, seed=21)))]
+    (tmp_path / "c.json").write_text(json.dumps(cases))
+    js = json.loads(subprocess.run([NODE, str(ROOT / "tests/web/run_card.cjs"), str(WEB / "model.json"), str(tmp_path / "c.json")],
+                                   capture_output=True, text=True, check=True).stdout)
+    kinds = set()
+    for c, out in zip(cases, js):
+        card = AnswerCardV1.model_validate(out["card"])  # the contract: the website's card is the API's card
+        result, rows = out["result"], {r.option: r for r in card.effects}
+        texts = [p["text"] for p in passages]
+        for o in result["options"]:
+            a = ev.assess(o, citations=ev.count_citations(texts, o), retrieval_abstained=c["retrieval_abstained"])
+            lv = next((x for x in card.evidence_levels if x.option == o["arm"]), None)
+            assert (lv.level, lv.reason) == (a.level, a.reason) if lv else a.level is None
+            row = rows[o["arm"]]
+            if row.hba1c_change:
+                assert o["status"] == "estimate" and row.hba1c_change.model_dump(exclude={"level"}) == {k: o["effect"][k] for k in ("value", "ci_low", "ci_high")}
+            if o["status"] == "excluded":
+                assert row.status == "EXCLUDED" and row.hba1c_change is None and o["arm"] in {h.option for h in card.excluded}
+            if a.level == "Insufficient":
+                assert row.hba1c_change is None and o["arm"] in {n.option for n in card.abstain}
+            kinds.add(row.status)
+        assert card.claims[0].citations[0].chunk_id == "S20-00-00" and card.intended_use == INTENDED_USE
+        assert set(out["leaders"]) <= {r.option for r in card.effects if r.vs_comparator and (r.vs_comparator.ci_high < 0 or r.vs_comparator.ci_low > 0)}
+    assert kinds == {"ESTIMATED", "EXCLUDED", "INSUFFICIENT_EVIDENCE"}
 
 
 @pytest.mark.skipif(NODE is None, reason="Node.js is needed to run web/engine.js")
@@ -419,7 +493,8 @@ def test_consultation_summary_prints_the_answer_not_the_form():
     app = (WEB / "app.js").read_text(encoding="utf-8")
     css = (WEB / "styles.css").read_text(encoding="utf-8")
     assert "window.print()" in app and "DiaCausal consultation summary" in app
-    assert "result.intended_use" in app[app.index("function printHeader"):app.index("function render")]
+    start = app.index("function printHeader")
+    assert "result.intended_use" in app[start:app.index("\nfunction ", start + 1)]
     block = css[css.index("@media print"):]
     for hidden in (".tabs", "#patient", ".noprint", ".view:not(#view-try)"):
         assert hidden in block.split("}")[0], hidden
@@ -517,7 +592,7 @@ def test_every_screen_built_here_renders_at_desktop_and_phone_size(tmp_path):
     cs = _check_screens()
     names = ["01-signin", "02-signin-error", "03-signin-locked", "06-mfa-setup", "07-intended-use", "08-session-ending",
              "13-panel-empty", "14-panel-filled", "15-panel-out-of-range", "16-panel-example-data", "20-loading-stages",
-             "answer-today", "25-guide", "26-about"]
+             "17-answer-options-compared", "21-answer-no-clear-difference", "19-insufficient-evidence", "25-guide", "26-about"]
     assert sorted(report["screens"]) == sorted(f"{n}/{s}" for n in names for s in ("desktop", "phone"))
     for key, shot in report["screens"].items():
         assert Path(shot["png"]).stat().st_size > 5000, key
@@ -547,9 +622,21 @@ def test_every_screen_built_here_renders_at_desktop_and_phone_size(tmp_path):
             assert f["badge"] == "Example data" and f["pressed"] == 1
         elif name == "20-loading-stages":
             assert f["states"] == ["Done", "Done", "Running", "Waiting", "Waiting", "Waiting"] and f["current"] == 1
-        elif name == "answer-today":
-            assert f["h2"] == "Three options compared for this patient" and f["excluded"] == 1
-            assert f["last"].endswith("The clinician decides.")
+        elif name.startswith(("17-", "19-", "21-")):  # P24: the answer card (AnswerCardV1) in the design's three states
+            assert f["decides"] == "The clinician decides." and f["last"] == INTENDED_USE and f["scards"] == 3
+            assert all(lv.strip() in ("Moderate", "Low", "Insufficient", "Not assessed") for lv in f["levels"])
+            if name.startswith("17-"):  # a leader: its interval vs DPP-4i excludes 0, on HbA1c only
+                assert f["h2"] == "Three options compared for this patient" and f["leaders"] >= 1 and f["excluded"] == 0
+                assert "shows more HbA1c lowering than DPP-4 inhibitor" in f["finding"] and f["finding"].endswith("This is a difference on HbA1c only.")
+            elif name.startswith("21-"):  # no leader; SGLT2i removed by rule R01 shows "Not estimated"
+                assert f["h2"] == "Three options compared for this patient" and f["leaders"] == 0 and f["excluded"] == 1
+                assert f["finding"].startswith("No clear difference in HbA1c for this patient.")
+            else:  # 19: no estimate at all; the abstain card of plan 8.11, exactly, for each option
+                assert f["h2"] == "Insufficient evidence — no comparison shown" and f["levels"] == [] and len(f["abstain"]) == 3
+                for text in f["abstain"]:
+                    lines = [x.strip() for x in text.split("\n") if x.strip()]
+                    assert lines[0].startswith("Insufficient evidence for: ") and lines[1].startswith("Why: this patient is outside the range")
+                    assert lines[2:] == ["What you can still see: cited guideline passages (Investigate tab).", f"The clinician decides. {INTENDED_USE}"]
         elif name == "25-guide":
             assert f["sections"] == 7 and f["methods"] == "Methods (for reviewers)"
         elif name == "26-about":

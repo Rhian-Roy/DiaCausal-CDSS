@@ -4378,10 +4378,24 @@
  ],
  "dose_pattern": "\\b\\d+(\\.\\d+)?\\s*(mg|mcg|\u00b5g|microgram|milligram)s?\\b|\\b(once|twice|thrice)\\s+(a\\s+)?daily\\b|\\bmg\\s*/\\s*day\\b|\\b\\d+\\s*(tablet|tab)s?\\b",
  "method": "DR-learner on cross-fitted AIPW scores, HC3 95% interval",
+ "no_estimate": "propensity only: below the overlap threshold, so no estimate is made",
+ "evidence_level": {
+  "insufficient_propensity_below": 0.05,
+  "insufficient_width_above": 1.5,
+  "low_width_above": 1.0,
+  "low_propensity_below": 0.1,
+  "low_citations_below": 2
+ },
+ "short_names": {
+  "SGLT2i": "SGLT2i",
+  "DPP4i": "DPP-4i",
+  "SU": "Sulfonylurea"
+ },
+ "still_see": "What you can still see: cited guideline passages (Investigate tab).",
  "versions": {
   "engine": "0.3.0",
   "params": "0.3.0",
-  "params_sha": "b2e2ff46c6",
+  "params_sha": "cd05c9cab6",
   "rules_sha": "dd3f348885",
   "cohort": "synthetic n=5000 seed=2026"
  }

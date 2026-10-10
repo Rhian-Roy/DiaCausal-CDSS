@@ -65,6 +65,7 @@ REGISTRY: tuple[Entry, ...] = (
     Entry("diacausal.causal_inference.metrics", "benchmark metrics"),
     Entry("diacausal.causal_inference.dr_learner", "DR-learner: per-patient estimates with 95% intervals (split from estimators)"),
     Entry("diacausal.causal_inference.recommend", "Engine: the three-option recommendation"),
+    Entry("diacausal.causal_inference.evidence_level", "evidence level of each estimate (plan 8.11) and the abstain card (P24)"),
     Entry("diacausal.causal_inference.figures", "benchmark figures"),
     Entry("diacausal.causal_inference.benchmark", "benchmark runner (python -m entry point)"),
     Entry("diacausal.causal_inference.export_web", "writes web/model.json"),
@@ -154,7 +155,7 @@ LAYERS: tuple[Layer, ...] = (
 PARTS: tuple[Layer, ...] = (
     Layer("query processing", f"{_O}.layers:query_processing_part"),
     Layer("shap drivers", f"{_O}.stubs:shap_drivers", stub=True, replaced_by="P25"),
-    Layer("evidence levels", f"{_O}.stubs:evidence_levels", stub=True, replaced_by="P24"),
+    Layer("evidence levels", f"{_O}.layers:evidence_levels_part"),
     Layer("prompt builder", f"{_O}.layers:prompt_builder_part"),
     Layer("full output checks", f"{_O}.layers:full_output_checks_part"),
 )

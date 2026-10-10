@@ -207,6 +207,7 @@
         return {
           ...base, status: "insufficient_evidence",
           insufficient_reason: `Too few similar patients received this option (propensity ${p[j].toFixed(3)}, below ${g(threshold)}). A fair comparison is not possible.`,
+          confidence: { propensity: round3(p[j]), overlap_threshold: threshold, interval_level: 0.95, method: model.no_estimate },
         };
       }
       if (!estimable.includes(a.arm)) {
@@ -256,5 +257,73 @@
     return opts.raw ? result : clean;
   }
 
-  return { recommend, validate, bmiCategory, FIELDS, FLAGS, _internals: { g, round3, roundN, propensity, drPredict, secondaryPredict, supportCheck, applyRules } };
+  // ── Evidence level (plan 8.11): a line-by-line mirror of diacausal/causal_inference/evidence_level.py ──
+  // The cut-offs are model.evidence_level (params.yaml group evidence_level); High is never shown on synthetic data.
+  function round2(x) {
+    const v = Math.sign(x) * (Math.floor(Math.abs(x) * 100 + 0.5) / 100);
+    return v === 0 ? 0 : v;
+  }
+  const fmt2 = (x) => round2(x).toFixed(2);
+  const passagesText = (n) => `${n} cited passage` + (n === 1 ? "" : "s");
+  const widthOf = (o) => roundN(o.effect.ci_high - o.effect.ci_low, 3);
+
+  function classifyLevel(model, width, propensity, citations, retrievalAbstained) {
+    const r = model.evidence_level;
+    if (retrievalAbstained) return ["Insufficient", ["no licence-cleared passage answers this question"]];
+    if (propensity < r.insufficient_propensity_below) return ["Insufficient", [`propensity ${fmt2(propensity)} (below ${g(r.insufficient_propensity_below)})`]];
+    if (width > r.insufficient_width_above) return ["Insufficient", [`the 95% interval is ${fmt2(width)} points wide (more than ${g(r.insufficient_width_above)})`]];
+    const low = [];
+    if (width > r.low_width_above) low.push(`the 95% interval is ${fmt2(width)} points wide (more than ${g(r.low_width_above)})`);
+    if (propensity < r.low_propensity_below) low.push(`propensity ${fmt2(propensity)} (below ${g(r.low_propensity_below)})`);
+    if (citations !== null && citations !== undefined && citations < r.low_citations_below) {
+      low.push(`${passagesText(citations)} (fewer than ${g(r.low_citations_below)})`);
+    }
+    return low.length ? ["Low", low] : ["Moderate", []];
+  }
+
+  function abstainWhy(model, o, retrievalAbstained = false) {
+    const r = model.evidence_level;
+    if (retrievalAbstained) return "no licence-cleared passage answers this question";
+    const reason = o.insufficient_reason || "";
+    const conf = o.confidence;
+    if (conf && conf.propensity < r.insufficient_propensity_below) {
+      return `too few similar patients received this option in the reference data (propensity ${fmt2(conf.propensity)}; threshold ${g(r.insufficient_propensity_below)})`;
+    }
+    if (reason.startsWith("Too uncertain")) return `this patient's 95% interval is wider than ${g(r.insufficient_width_above)} points, so no useful estimate can be shown`;
+    if (reason.startsWith("Outside the cohort: ")) return "this patient is outside the range of the reference data (" + reason.slice("Outside the cohort: ".length) + ")";
+    if (o.status === "estimate") return classifyLevel(model, widthOf(o), conf.propensity, null, false)[1].join("; ");
+    return (reason.slice(0, 1).toLowerCase() + reason.slice(1)).replace(/\.+$/, "");
+  }
+
+  /** { level, reason } of one option: level null = removed by a rule ("Not assessed"). */
+  function evidenceLevel(model, o, citations, retrievalAbstained = false) {
+    if (o.status === "excluded") {
+      const ids = o.safety.filter((s) => s.action === "EXCLUDE").map((s) => s.rule_id).join(", ");
+      return { level: null, reason: `Not assessed: removed by rule ${ids} before estimation.` };
+    }
+    if (o.status !== "estimate" || retrievalAbstained) return { level: "Insufficient", reason: `Insufficient: ${abstainWhy(model, o, retrievalAbstained)}.` };
+    const w = widthOf(o), p = o.confidence.propensity;
+    const [level, reasons] = classifyLevel(model, w, p, citations, retrievalAbstained);
+    if (level === "Moderate") {
+      const parts = [`the 95% interval is ${fmt2(w)} points wide`, `propensity ${fmt2(p)}`];
+      if (citations !== null && citations !== undefined) parts.push(passagesText(citations));
+      return { level, reason: "Moderate: " + parts.join(", ") + "." };
+    }
+    return { level, reason: `${level}: ` + reasons.join("; ") + "." };
+  }
+
+  /** The abstain card of plan 8.11, line by line. */
+  function abstainCard(model, o, retrievalAbstained = false) {
+    return [`Insufficient evidence for: ${model.short_names[o.arm]}`, `Why: ${abstainWhy(model, o, retrievalAbstained)}.`, model.still_see,
+      `The clinician decides. ${model.intended_use}`];
+  }
+
+  /** How many passages name the option (its class word or its example molecule). */
+  function countCitations(texts, o) {
+    const keys = [o.name.split(" ")[0].toLowerCase(), o.example_molecule.toLowerCase()];
+    return texts.filter((t) => keys.some((k) => t.toLowerCase().includes(k))).length;
+  }
+
+  return { recommend, validate, bmiCategory, evidenceLevel, abstainWhy, abstainCard, countCitations, FIELDS, FLAGS,
+    _internals: { g, round3, roundN, round2, propensity, drPredict, secondaryPredict, supportCheck, applyRules, classifyLevel } };
 });
