@@ -17,7 +17,14 @@
 | Key in `llm.yaml` | Tag | Download | Licence |
 |---|---|---|---|
 | `candidate_a` | `qwen3:4b-instruct-2507-q4_K_M` | 2.5 GB | Apache-2.0 (stated on its Ollama page) |
-| `candidate_b` | `medgemma1.5:4b-it-q4_K_M` | 3.3 GB | **Not stated on the Ollama page.** Google says its Health AI Developer Foundations terms govern MedGemma and that it is not clinical-grade. **UNVERIFIED: read the terms before MedGemma appears in the report.** |
+| `candidate_b` | `medgemma1.5:4b-it-q4_K_M` | 3.3 GB | **Google's Health AI Developer Foundations (HAI-DEF) Terms of Use**, not an open-source licence (not stated on the Ollama page; read at developers.google.com/health-ai-developer-foundations/terms on 10 Oct 2026). Summary below. |
+
+**What the HAI-DEF terms say** (read from Google's page by a tool that summarises it, not the full legal text, so a human must still read the page and the separate Prohibited Use Policy it points to before the report quotes it):
+- "Clinical Use" is defined as "any use in diagnosis or treatment of patients (including as part of a research study)". There is no blanket ban on it; the terms say to seek Health Regulatory Authorization when applicable (section 3.1). DiaCausal uses the model on synthetic data only, never for a real patient, and says "not for unsupervised clinical use" on every screen.
+- Copies of the model or its derivatives may be redistributed only if the conditions of section 3.1 are met (pass the use restrictions on, share the agreement, include a Notice file). **Do not copy the model into this repository or the Docker image**: it is pulled by each machine from Ollama.
+- A use "that could cause a Health Regulatory Authority to deem Google to be" a medical device manufacturer is not allowed (section 3.2): another reason the prototype stays a research tool.
+- Google does not own the outputs; the user is responsible for them (section 3.3) and for judging whether the model is appropriate (section 4.3).
+- Third-party pages disagree on the label (HAI-DEF, "Gemma terms"); the model card and Google's page both say HAI-DEF. Qwen3 (Apache-2.0) carries none of these conditions, which is one more reason to prefer it if the two models are close.
 
 The plan says "MedGemma 1.5 4B": Ollama has it as its own library entry `medgemma1.5` (`medgemma:4b` is not labelled 1.5). Tags live in `llm.yaml` only; a test fails if one is typed anywhere in the code.
 
@@ -53,7 +60,7 @@ The plan says "MedGemma 1.5 4B": Ollama has it as its own library entry `medgemm
 2. **Check 4 is right when it fires.** I looked at what it caught: "contraindicated in patients with an eGFR below 30 mL/minute", copied from a label. Plan rule 4 says thresholds are never stated by the model, so these drafts must fall back.
 3. **One check was too eager and was fixed before the committed run.** The first P23 run flagged 4 Qwen3 drafts for causal wording about a driver; all 4 were false alarms ("the question is whether SGLT2 inhibitors can cause ketoacidosis in a patient with an HbA1c of 8.4%": the drug causes, the HbA1c is only context). A causal cue now counts only within 4 words of a driver (`causal_window_words` in `output_guards.yaml`, TEAM-SET); the tests keep the true cases ("a higher BMI causes...", "because of eGFR") failing. **Word-list checks will have other misses and false alarms; Member D should read a sample.**
 4. **Dropping a bad claim helps a little:** 2 Qwen3 drafts were used after losing one claim each (they would have fallen back before P23).
-5. **No winner, and the template stays the default.** Qwen3 is more reliably valid (100% against 85%) and gives 6 usable drafts against 4; with n = 20 that is a couple of questions. MedGemma had 3 timeouts and its licence is still UNVERIFIED. The laptop was quieter this time (Qwen3 p50 18 s), but latency is still not a hardware figure, and **the RTX 2050 laptop has not been measured.** I would keep `provider: template` for 30 October.
+5. **No winner, and the template stays the default.** Qwen3 is more reliably valid (100% against 85%) and gives 6 usable drafts against 4; with n = 20 that is a couple of questions. MedGemma had 3 timeouts, and its terms are Google's HAI-DEF terms (summary above). The laptop was quieter this time (Qwen3 p50 18 s), but latency is still not a hardware figure, and **the RTX 2050 laptop has not been measured.** I would keep `provider: template` for 30 October.
 
 ## Run it yourself
 ```bash

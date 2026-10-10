@@ -115,6 +115,7 @@ way to run the demo**, and the recorded video stays the backup.
 | `docs/RESULTS_SUMMARY.md` | The benchmark results in plain English, and how to read each figure |
 | `docs/SYSTEM_REQUIREMENTS.md`, `docs/SYSTEM_DESIGN.md` | Mid-sem items 2 and 4: requirements mapped to tests; architecture, DFDs, use case, sequence, data and API design |
 | `diacausal/rag/`, `diacausal/llm/`, `knowledge_sources/`, `tests/rag/`, `eval/rag_gold.csv`, `docs/SOURCES.md` | RAG: licence gate, WHO 2018 + FDA safety communications, hybrid search, cited explanations (template / Ollama), gold set and evaluation |
+| `docs/PROMPT_TEMPLATE.md`, `docs/LLM_BENCH.md`, `docs/ANSWER_FORMAT.md` | The local-model prompt (plan 8.9), the model benchmark and the licence terms read so far, and the answer card with its evidence levels and abstain card (plan 8.11) |
 | `docs/INTEGRATING_A_TEAMMATE_ENGINE.md` | How a teammate adds their own causal code without overwriting `main` |
 
 ## 💬 Chat app (walking skeleton)

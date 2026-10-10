@@ -115,10 +115,15 @@ const SCREENS = [
     await p.clock.runFor(300);
     await p.getByText('Working through it').waitFor();
   }, async (p) => ({ states: await p.locator('.stage__state').allInnerTexts(), current: await p.locator('.stage[aria-current="step"] .stage__name').count() })],
-  ...[['17-answer-options-compared', /Typical/, null], ['21-answer-no-clear-difference', /eGFR 40/, null], ['19-insufficient-evidence', /Typical/, '88']]
+  ...[['17-answer-options-compared', /Typical/, null], ['21-answer-no-clear-difference', /eGFR 40/, null], ['19-insufficient-evidence', /Typical/, '88'], ['19b-every-option-removed', /Typical/, 'removed']]
     .map(([name, preset, age]) => [name, { accounts: false }, '#patient-details', async (p) => {
       await openPanel(p); await p.getByRole('button', { name: preset }).click();
-      if (age) { await p.locator('#f-age').fill(age); await p.locator('#f-age').blur(); }
+      if (age === 'removed') { // eGFR 20 with past pancreatitis, ketoacidosis and hypoglycaemia: the rules remove all three options
+        await p.locator('#f-egfr').fill('20'); await p.locator('#f-egfr').blur();
+        for (const [name, value] of [['pancreatitis_history', 'yes'], ['dka_history', 'yes'], ['hypo', 'severe']]) {
+          await p.locator(`input[name="${name}"][value="${value}"]`).evaluate((el) => el.click());
+        }
+      } else if (age) { await p.locator('#f-age').fill(age); await p.locator('#f-age').blur(); }
       await p.locator('#thread .compare-btn').click();
       await p.locator('#out .decides').waitFor();
     }, async (p) => ({
@@ -131,6 +136,7 @@ const SCREENS = [
       levels: await p.locator('#out td[data-label="Evidence level"] .level').allInnerTexts(),
       abstain: await p.locator('#out .abstaincard').allInnerTexts(),
       scards: await p.locator('#out .scard').count(),
+      stop: await p.locator('#out .scard--stop').count(),
     })]),
   ['25-guide', { accounts: false }, '#guide', async (p) => { await p.locator('#g-advantages').waitFor(); },
     async (p) => ({ sections: await p.locator('#view-guide section.card').count(), methods: await text(p, '#g-methods > summary') })],
