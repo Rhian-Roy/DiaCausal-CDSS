@@ -3,7 +3,9 @@
 Two ways in:
 
   call_ollama(prompt, cfg)             the older free-text call (numbered [n] citations), kept for the `explain(..., caller=...)` path
-  explain_structured(...)              P21: the structured call below, with the template as the fallback for EVERYTHING
+  request_draft(prompt, cfg)           P21/P23: the structured call below; it only TALKS to the model. What comes back is not trusted:
+                                       diacausal/llm/answer.py runs the seven output checks (diacausal/guards/output_guards.py) on it and
+                                       uses the template instead of anything that fails
 
 The structured call: POST {ollama_url}/api/generate with
     model    the tag of llm.yaml `models.<model>.tag` (never typed anywhere else)
@@ -13,9 +15,8 @@ The structured call: POST {ollama_url}/api/generate with
 and a timeout of `timeout_seconds` (60). With stream false the reply arrives all at once, so that is in effect the whole answer; a
 COLD model load can exceed it (then the question is answered by the template; keep_alive keeps the model loaded afterwards).
 
-ANY error, timeout, bad HTTP status, invalid JSON, a draft that is not a valid AnswerDraftV1, or one whose claims fail the citation
-check falls back to providers/template.py. The reply says so ("note", and "fallback": a short CODE). Only the exception class and the
-code are ever logged or put in the reply, never the model's text, the prompt or the question.
+ANY error, timeout or bad HTTP status gives a ModelReply with a CODE and no text, and the template answers (llm/answer.py). Only the
+exception class and the code are ever logged or put in a reply, never the model's text, the prompt or the question.
 
 Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.
 """
@@ -26,16 +27,12 @@ import json
 import time
 import urllib.error
 import urllib.request
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from pydantic import ValidationError
-
 from diacausal.api.schemas import AnswerDraftV1
 from diacausal.config import load_rag_config
-from diacausal.llm.draft import numbers_match, to_items
-from diacausal.llm.providers.template import _reply, template
 
 CONFIG_PATH = Path(__file__).resolve().parents[1] / "llm.yaml"
 
@@ -101,79 +98,31 @@ def post_generate(body: dict, cfg: dict) -> dict:
     return out
 
 
-def parse_draft(text: str) -> AnswerDraftV1:
-    """The model's text as an AnswerDraftV1 (OllamaError INVALID_JSON or SCHEMA_INVALID otherwise)."""
-    try:
-        data = json.loads(text)
-    except ValueError:
-        raise OllamaError("INVALID_JSON") from None
-    try:
-        return AnswerDraftV1.model_validate(data)
-    except ValidationError:
-        raise OllamaError("SCHEMA_INVALID") from None
-
-
-def generate_draft(prompt: str, cfg: dict, tag: str | None = None) -> tuple[AnswerDraftV1, dict]:
-    """(the validated draft, the Ollama reply with its timing and token counts)."""
-    out = post_generate(request_body(prompt, cfg, tag), cfg)
-    return parse_draft(out["response"]), out
-
-
 @dataclass
-class Attempt:
-    """One try at a structured answer: what came back, how long the model call took, and the reason it cannot be used (if any)."""
+class ModelReply:
+    """What came back from one call: the model's text (checked later by the output guards, diacausal/guards/output_guards.py) or the CODE
+    of what went wrong in talking to Ollama. Never raises."""
 
-    draft: AnswerDraftV1 | None = None
-    items: list[dict] = field(default_factory=list)
-    code: str | None = None  # None = usable; else a short CODE (TIMEOUT, UNREACHABLE, HTTP_ERROR, INVALID_JSON, SCHEMA_INVALID, CITATION_CHECK, ...)
-    schema_valid: bool = False  # the reply was valid JSON that parsed as an AnswerDraftV1
-    seconds: float = 0.0  # the model call only (not the template that may follow)
+    text: str | None = None
+    code: str | None = None  # UNREACHABLE, TIMEOUT, HTTP_ERROR, BAD_REPLY, UNKNOWN_MODEL_KEY, UNEXPECTED_<Class>
+    seconds: float = 0.0  # the model call only
     prompt_tokens: int | None = None
     eval_tokens: int | None = None
 
 
-def attempt(evidence: dict, prompt: str, cfg: dict, llm_cfg: dict, tag: str | None = None,
-            number_sources: list[str] | None = None) -> Attempt:
-    """Ask the model once and check the answer. Never raises: every problem is a `code`. With `number_sources` (the causal output and
-    the drivers, as text) every number the draft writes must be in them or be a page or version of a passage it cites (plan 8.10 check
-    3), else the code is NUMBER_MISMATCH: a model can never put a number on the card that the causal output does not contain."""
-    result, started = Attempt(), time.perf_counter()
+def request_draft(prompt: str, llm_cfg: dict, tag: str | None = None) -> ModelReply:
+    """Ask the model once. The text it returns is NOT trusted: diacausal/llm/answer.py runs the seven output checks on it."""
+    started = time.perf_counter()
+    reply = ModelReply()
     try:
-        draft, raw = generate_draft(prompt, llm_cfg, tag)
-        result.draft, result.schema_valid = draft, True
-        result.prompt_tokens, result.eval_tokens = raw.get("prompt_eval_count"), raw.get("eval_count")
-        result.seconds = time.perf_counter() - started
-        if not draft.insufficient:
-            result.items, problems = to_items(draft, evidence["passages"], float(cfg["explain_min_support"]), int(llm_cfg["max_claims"]))
-            if problems or not result.items:
-                result.code = "CITATION_CHECK"
-            elif number_sources is not None and not numbers_match(draft, number_sources, evidence["passages"])[0]:
-                result.code = "NUMBER_MISMATCH"
+        out = post_generate(request_body(prompt, llm_cfg, tag), llm_cfg)
+        reply.text, reply.prompt_tokens, reply.eval_tokens = out["response"], out.get("prompt_eval_count"), out.get("eval_count")
     except OllamaError as e:
-        result.code = e.code
+        reply.code = e.code
     except Exception as e:  # noqa: BLE001 - anything unexpected is also a fallback; only the class name is kept
-        result.code = f"UNEXPECTED_{type(e).__name__}".upper()
-    result.seconds = result.seconds or time.perf_counter() - started
-    return result
-
-
-def explain_structured(question: str, evidence: dict, prompt: str, cfg: dict, llm_cfg: dict, idf: dict[str, float] | None = None,
-                       tag: str | None = None, number_sources: list[str] | None = None) -> dict:
-    """One question and its retrieved evidence -> a cited explanation written by the local model, or the template's
-    explanation when anything at all goes wrong. The reply has the same shape as `explain()`'s, plus "fallback": None or a CODE."""
-    tried = attempt(evidence, prompt, cfg, llm_cfg, tag, number_sources)
-    if tried.code is None and tried.draft is not None and tried.draft.insufficient:
-        return _reply(question, "ollama", "INSUFFICIENT_EVIDENCE", [], "the model found no answer in the passages") | {"fallback": None}
-    if tried.code is None:
-        return _reply(question, "ollama", "SUCCESS", tried.items) | {"fallback": None}
-    return fall_back(question, evidence, cfg, idf, tried.code)
-
-
-def fall_back(question: str, evidence: dict, cfg: dict, idf: dict[str, float] | None, code: str) -> dict:
-    """The template's explanation, marked with the CODE that sent us here (also used when the prompt could not be built)."""
-    fallback = template(question, evidence, cfg, idf)
-    fallback["note"] = f"the local model could not be used ({code}); showing quoted sentences instead"
-    return fallback | {"fallback": code}
+        reply.code = f"UNEXPECTED_{type(e).__name__}".upper()
+    reply.seconds = time.perf_counter() - started
+    return reply
 
 
 def _post(url: str, body: dict, headers: dict, timeout: float = 60) -> dict:

@@ -131,6 +131,9 @@
   ],
   "excluded": [],
   "abstain": [],
+  "fallback_used": false,
+  "failed_checks": [],
+  "dropped_claims": 0,
   "versions": {
     "engine": "0.3.0",
     "params": "0.3.0",

@@ -7,7 +7,7 @@ section 8.9 of `docs/PLAN_2026-10.md`, copied word for word; a test (`tests/llm/
 or `diacausal/llm/prompt.v2.txt` (the file the code reads) drift apart.
 
 The model is **off by default** (`diacausal/llm/llm.yaml`: `provider: template`). When it is on, every answer still passes the checks of
-`diacausal/llm/draft.py` and the output guards, and any problem falls back to the template (docs/LLM_BENCH.md).
+the seven output checks of plan 8.10 (`diacausal/guards/output_guards.py`), and any failure falls back to the template (docs/LLM_BENCH.md).
 
 ## The template
 ```text

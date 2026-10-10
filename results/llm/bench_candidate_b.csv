@@ -1,21 +1,21 @@
-id,preset,schema_valid,number_match,fallback_code,seconds,prompt_estimate,prompt_tokens,eval_tokens,claims
-L01,typical,1,0,NUMBER_MISMATCH,20.02,1497,2096,292,4
-L02,older_hypo,1,0,NUMBER_MISMATCH,41.75,1356,1617,564,9
-L03,older_hypo,1,0,NUMBER_MISMATCH,24.49,1304,1553,320,4
-L04,typical,1,0,NUMBER_MISMATCH,30.46,1879,2728,375,4
-L05,typical,1,0,NUMBER_MISMATCH,28.91,1683,2361,357,4
-L06,egfr40_pancreatitis,1,0,CITATION_CHECK,41.32,1879,2279,543,4
-L07,egfr40_pancreatitis,1,0,NUMBER_MISMATCH,32.8,1867,2293,428,7
-L08,egfr40_pancreatitis,1,0,CITATION_CHECK,27.59,1500,1894,373,4
-L09,typical,0,,TIMEOUT,60.0,1700,,,
-L10,older_hypo,1,0,CITATION_CHECK,42.78,1717,2128,561,5
-L11,egfr40_pancreatitis,0,,TIMEOUT,60.01,1773,,,
-L12,egfr40_pancreatitis,0,,TIMEOUT,60.01,1742,,,
-L13,typical,1,1,,23.77,1665,2283,288,4
-L14,typical,1,1,,20.43,1361,1983,271,4
-L15,typical,1,0,CITATION_CHECK,16.37,1066,1708,235,4
-L16,egfr40_pancreatitis,1,0,NUMBER_MISMATCH,53.45,1735,2296,727,10
-L17,egfr40_pancreatitis,1,0,NUMBER_MISMATCH,44.24,1714,2268,402,4
-L18,typical,1,1,,12.39,1850,2611,329,4
-L19,typical,1,0,NUMBER_MISMATCH,18.51,1881,2482,619,6
-L20,older_hypo,1,1,,6.74,1798,2281,151,2
+id,preset,schema_valid,number_match,fallback_code,seconds,prompt_estimate,prompt_tokens,eval_tokens,claims,dropped_claims,failed_checks
+L01,typical,1,0,GUARD_NUMBERS,11.63,1497,2096,292,,0,numbers
+L02,older_hypo,1,0,GUARD_NUMBERS,26.18,1356,1617,564,,0,numbers
+L03,older_hypo,1,0,GUARD_NUMBERS,15.95,1304,1553,320,,0,numbers
+L04,typical,1,0,GUARD_NUMBERS,20.55,1879,2728,375,,0,numbers
+L05,typical,1,0,GUARD_NUMBERS,23.4,1683,2361,357,,0,numbers
+L06,egfr40_pancreatitis,1,0,GUARD_NUMBERS,34.72,1879,2279,543,,0,numbers dose_threshold
+L07,egfr40_pancreatitis,1,0,GUARD_NUMBERS,23.73,1867,2293,428,,0,numbers dose_threshold
+L08,egfr40_pancreatitis,1,0,GUARD_NUMBERS,22.26,1500,1894,373,,0,numbers dose_threshold
+L09,typical,0,,TIMEOUT,60.01,1700,,,,0,
+L10,older_hypo,1,0,GUARD_NUMBERS,33.03,1717,2128,561,,3,citations numbers
+L11,egfr40_pancreatitis,0,,TIMEOUT,60.06,1773,,,,0,
+L12,egfr40_pancreatitis,0,,TIMEOUT,60.03,1742,,,,0,
+L13,typical,1,1,,19.16,1665,2283,288,4,0,
+L14,typical,1,1,,18.11,1361,1983,271,4,0,
+L15,typical,1,0,GUARD_NUMBERS,16.11,1066,1708,235,,2,citations numbers
+L16,egfr40_pancreatitis,1,0,GUARD_NUMBERS,41.91,1735,2296,727,,0,numbers
+L17,egfr40_pancreatitis,1,0,GUARD_NUMBERS,21.66,1714,2268,402,,0,numbers
+L18,typical,1,1,,19.42,1850,2611,329,4,0,
+L19,typical,1,0,GUARD_NUMBERS,30.68,1881,2482,619,,0,numbers
+L20,older_hypo,1,1,,11.28,1798,2281,151,2,0,

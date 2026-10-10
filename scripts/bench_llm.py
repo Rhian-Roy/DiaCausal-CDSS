@@ -13,8 +13,9 @@ asked once through the same code the pipeline uses (providers/ollama.py: JSON sc
     schema-valid %   replies that were valid JSON and parsed as AnswerDraftV1                      (of all questions)
     number-match %   schema-valid drafts whose every number is in the causal output or the drivers,
                      or is a page or version number of a passage it cites (plan 8.10 check 3)      (of the schema-valid drafts)
-    fallback %       questions that the pipeline would have answered with the template instead:
-                     any error, timeout, invalid JSON, or a failed citation check                   (of all questions)
+    fallback %       questions that the pipeline would have answered with the template instead: any error or timeout, or a
+                     draft that fails one of the seven output checks of plan 8.10 (P23). A claim that only the citation check
+                     drops does NOT count: the rest of the draft is used (`dropped_claims` in the per-question file)   (of all questions)
     latency p50/p95  seconds of the model call, over all questions (an error counts at the time it took)
 
 Writes results/llm/bench_<key>.csv (one row per question) and results/llm/bench_summary.csv (one row per model, replaced on re-run).
@@ -40,14 +41,14 @@ import numpy as np
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from diacausal.llm.draft import numbers_match  # noqa: E402
+from diacausal.llm.answer import GuardInputs, resolve  # noqa: E402
 from diacausal.llm.golden import load_golden, prepare  # noqa: E402
 from diacausal.llm.providers import ollama  # noqa: E402
 
 OUT = ROOT / "results" / "llm"
 SUMMARY_COLUMNS = ["model_key", "tag", "n", "usable_questions", "schema_valid_pct", "number_match_pct", "fallback_pct", "latency_p50_s",
                    "latency_p95_s", "max_prompt_estimate", "max_prompt_tokens", "warmup_s", "ollama_version", "date", "machine"]
-ROW_COLUMNS = ["id", "preset", "schema_valid", "number_match", "fallback_code", "seconds", "prompt_estimate", "prompt_tokens", "eval_tokens", "claims"]
+ROW_COLUMNS = ["id", "preset", "schema_valid", "number_match", "fallback_code", "seconds", "prompt_estimate", "prompt_tokens", "eval_tokens", "claims", "dropped_claims", "failed_checks"]
 
 
 def server_version(cfg: dict) -> str:
@@ -75,8 +76,7 @@ def bench(key: str | None, tag: str | None, llm_cfg: dict, rag_cfg: dict, golden
     warm = 0.0
     if usable:
         row, ctx = usable[0]
-        built = json_prompt_for(ctx)
-        warm = ollama.attempt(ctx.retrieval, built.text, rag_cfg, llm_cfg, tag, list(built.number_sources)).seconds
+        warm = ollama.request_draft(json_prompt_for(ctx).text, llm_cfg, tag).seconds
         print(f"  warm-up (not counted): {warm:.1f} s", flush=True)
     rows = []
     for row, ctx in usable:
@@ -84,17 +84,22 @@ def bench(key: str | None, tag: str | None, llm_cfg: dict, rag_cfg: dict, golden
             built = json_prompt_for(ctx)
         except PromptError as error:  # no model call: the pipeline would use the template here
             rows.append({"id": row["id"], "preset": row["preset"], "schema_valid": 0, "number_match": "", "fallback_code": error.code, "seconds": 0,
-                         "prompt_estimate": "", "prompt_tokens": "", "eval_tokens": "", "claims": ""})
+                         "prompt_estimate": "", "prompt_tokens": "", "eval_tokens": "", "claims": "", "dropped_claims": "", "failed_checks": ""})
             print(f"  {row['id']}  no prompt: {error.code}", flush=True)
             continue
-        tried = ollama.attempt(ctx.retrieval, built.text, rag_cfg, llm_cfg, tag, list(built.number_sources))
-        matched = None
-        if tried.draft is not None:
-            matched, _ = numbers_match(tried.draft, list(built.number_sources), ctx.retrieval["passages"])
-        rows.append({"id": row["id"], "preset": row["preset"], "schema_valid": int(tried.schema_valid), "number_match": "" if matched is None else int(matched),
-                     "fallback_code": tried.code or "", "seconds": round(tried.seconds, 2), "prompt_estimate": built.tokens, "prompt_tokens": tried.prompt_tokens or "",
-                     "eval_tokens": tried.eval_tokens or "", "claims": len(tried.draft.evidence_summary) if tried.draft else ""})
-        print(f"  {row['id']}  {'valid ' if tried.schema_valid else 'INVALID'}  fallback={tried.code or '-':16s} {tried.seconds:5.1f} s", flush=True)
+        reply = ollama.request_draft(built.text, llm_cfg, tag)
+        inputs = GuardInputs(eligible=ctx.eligible, causal=ctx.causal, drivers=ctx.drivers or {}, number_sources=tuple(built.number_sources))
+        explanation, guarded = resolve(ctx.request.question, reply, evidence=ctx.retrieval, rag_cfg=rag_cfg,
+                                       llm_cfg=llm_cfg, idf=ctx.idf, inputs=inputs)
+        verdict = {c.id: c.result for c in guarded.checks} if guarded else {}
+        parsed = verdict.get("parse") == "PASS"
+        failed = [i for i, r in verdict.items() if r == "FAIL"]
+        rows.append({"id": row["id"], "preset": row["preset"], "schema_valid": int(parsed), "number_match": int(verdict["numbers"] == "PASS") if parsed else "",
+                     "fallback_code": explanation["fallback"] or "", "seconds": round(reply.seconds, 2), "prompt_estimate": built.tokens,
+                     "prompt_tokens": reply.prompt_tokens or "", "eval_tokens": reply.eval_tokens or "",
+                     "claims": len(explanation["sentences"]) if explanation["fallback"] is None else "", "dropped_claims": explanation.get("dropped_claims", 0),
+                     "failed_checks": " ".join(failed)})
+        print(f"  {row['id']}  {'valid ' if parsed else 'INVALID'}  fallback={explanation['fallback'] or '-':20s} {reply.seconds:5.1f} s", flush=True)
     n = len(rows)
     valid = [r for r in rows if r["schema_valid"]]
     summary = {"model_key": key or "(tag given)", "tag": tag, "n": len(golden), "usable_questions": n,

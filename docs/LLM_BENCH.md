@@ -24,31 +24,36 @@ The plan says "MedGemma 1.5 4B": Ollama has it as its own library entry `medgemm
 ## How the provider behaves (`diacausal/llm/providers/ollama.py`)
 - **Request:** `POST {ollama_url}/api/generate` with the model tag, `stream: false`, the `AnswerDraftV1` schema in `format`, `options {temperature 0, num_ctx 4096}`, `keep_alive 10m`; timeout 60 s (all from `llm.yaml`).
 - **On when:** the model is called only if **both** `llm.yaml provider: ollama` **and** the request says `mode: ollama`. A dose question, or one with no evidence, never reaches it.
-- **Falls back to the template on anything:** server not running (`UNREACHABLE`), too slow (`TIMEOUT`), bad HTTP status (`HTTP_ERROR`), a reply that is not Ollama's (`BAD_REPLY`), invalid JSON (`INVALID_JSON`), JSON that is not an `AnswerDraftV1` (`SCHEMA_INVALID`), a claim that cites no passage, a passage that was not shown or one that does not support it, or a dose (`CITATION_CHECK`), a number that is not in the causal output (`NUMBER_MISMATCH`), or any unexpected error. The reply carries `fallback: CODE`; **the model's text is never kept, logged or returned**.
-- **Numbers on the card never come from the model:** the effects table is built from the causal output; the model supplies only the cited claims. Plan 8.10 check 3 is enforced here already (P23 will own the full set of guards).
+- **The model's text is not trusted (P23).** The provider only talks to Ollama; a failure of the call itself gives a CODE: server not running (`UNREACHABLE`), too slow (`TIMEOUT`), bad HTTP status (`HTTP_ERROR`), a reply that is not Ollama's (`BAD_REPLY`), any unexpected error. What does come back goes through the **seven output checks of plan 8.10** (`diacausal/guards/output_guards.py`): parse (`INVALID_JSON`, `SCHEMA_INVALID`), citations (a bad claim is dropped; none left = `GUARD_CITATIONS`), numbers (`GUARD_NUMBERS`), dose and threshold text (`GUARD_DOSE_THRESHOLD`), an excluded option described positively (`GUARD_EXCLUDED_OPTION`), effect wording for an option marked insufficient (`GUARD_INSUFFICIENT_WORDING`), an identifier (a BLOCK) or causal wording about a driver (`GUARD_IDENTIFIER_CAUSAL`). Anything but a pass means the template answers, and the card says `fallback_used` with the failed check IDs; **the model's text is never kept, logged or returned**.
+- **Numbers on the card never come from the model:** the effects table is built from the causal output; the model supplies only the cited claims, a one-sentence context and the limitations, and a number in them must be one the causal output or the drivers contain.
 - The prompt is plan 8.9 (`prompt.v2.txt`), built within a 1,900-token budget by `prompt_builder.build_llm_prompt` (P22; docs/PROMPT_TEMPLATE.md). A prompt that cannot be built (`PromptError`: `PROMPT_TOO_LONG`, `PROMPT_NO_EVIDENCE`, `PROMPT_IDENTIFIER`) sends the request to the template without calling the model.
 
 ## The benchmark (`python scripts/bench_llm.py --all`, `results/llm/`)
-20 golden questions (`eval/llm_golden.csv`): 20 answerable gold questions from all seven sources, each with one of the three demo patients; the causal output and the evidence are produced by the real pipeline layers. **A draft written by Claude: Members B and D must review the questions and their pairing.** One warm-up call is excluded. Ollama 0.40.0, MacBook M5 (16 GB), 10 Oct 2026. **The numbers belong to the prompt that produced them: this table was re-run after P22 replaced the plain P21 prompt with the budgeted one (docs/PROMPT_TEMPLATE.md).** The committed files are the second of two runs on the new prompt (the first ran while I was also running tests, so the second is the quieter one; both are shown).
+20 golden questions (`eval/llm_golden.csv`): 20 answerable gold questions from all seven sources, each with one of the three demo patients; the causal output and the evidence are produced by the real pipeline layers. **A draft written by Claude: Members B and D must review the questions and their pairing.** One warm-up call is excluded. Ollama 0.40.0, MacBook M5 (16 GB), 10 Oct 2026. **The numbers belong to the code that produced them: the committed files were re-run after P23 put the seven output checks in front of every draft** (and after the causal-wording check was narrowed, see point 3).
 
 | | `candidate_a` Qwen3 4B | `candidate_b` MedGemma 1.5 4B |
 |---|---:|---:|
-| Schema-valid (of 20), P22 run 1 / run 2 | 100% / **90%** | 75% / **85%** |
-| Number-match (of the valid drafts), run 1 / run 2 | 35% / **39%** | 27% / **24%** |
-| Fallback to the template (of 20), run 1 / run 2 | 80% / **80%** | 80% / **80%** |
-| of which in run 2: number not in the causal output | 7 | 9 |
-| of which in run 2: citation check failed | 7 | 4 |
-| of which in run 2: timeout | 2 | 3 |
-| Latency p50 / p95 (seconds), run 2 | 40.3 / 60.0 | 29.7 / 60.0 |
-| Longest prompt: the estimate / Ollama's own count | 1,881 / 2,612 | 1,881 / 2,728 |
-| *Before P22 (plain prompt, one run)*: valid / fallback / longest prompt | *100% / 70% / 3,149* | *90% / 65% / 3,124* |
+| Schema-valid (of 20) | 100% | 85% |
+| Number-match (of the valid drafts) | 35% | 24% |
+| Fallback to the template (of 20) | **70%** (6 drafts used) | **80%** (4 drafts used) |
+| failed check 3, numbers (whole draft falls back) | 13 | 13 |
+| failed check 4, dose or threshold text | 4 | 3 |
+| failed check 2, citations (claims dropped) | 8 | 2 |
+| failed check 5, excluded option praised | 1 | 0 |
+| timeouts | 0 | 3 |
+| drafts used after dropping a bad claim | 2 | 0 |
+| Latency p50 / p95 (seconds) | 17.9 / 22.2 | 22.8 / 60.0 |
+| Longest prompt: estimate / Ollama's count | 1,881 / 2,759 | 1,881 / 2,728 |
+| *Earlier: P21 plain prompt / P22 budgeted prompt, drafts used* | *6 / 4* | *7 / 4* |
+
+(A draft can fail several checks, so the rows do not add up to the fallbacks.)
 
 **How to read it**
-1. **The prompt is now inside its budget.** The estimate never passes 1,881 (budget 1,900), and Ollama's own count of the longest prompt fell from 3,149 to about 2,700 tokens, which leaves about 1,300 of the 4,096 for the reply (a draft is about 350). The estimate under-counts: Ollama's count is 1.2 to 1.6 times it (mean 1.35; measured with the prompt cache bypassed, docs/PROMPT_TEMPLATE.md).
-2. **Answers the pipeline can use did not improve: 4 of 20 for both models (was 6 and 7).** Both models fall back on 80% of the questions in both runs. With n = 20 the difference from before is 2 or 3 questions, and the timeouts (2 and 3 in run 2, each a question lost) come from a busy laptop, so I cannot tell a prompt effect from noise. What is clear is the mechanism: **the number rule (plan 8.10 check 3) and the citation check reject most drafts**: models copy numbers from the evidence ("60 years", "30"), which the rule sends to the template. That is the rule working; it means a model-written answer reaches the card in about one question in five. P23 may drop only the offending claim instead of the whole draft; that, not the prompt, is what would raise the usable share.
-3. **No winner.** Qwen3 is more reliably valid (90 to 100% against 75 to 85%) and MedGemma is no better on any measure here; the gap is a few questions. MedGemma's licence is still UNVERIFIED.
-4. **Latency is not a clean number.** The laptop was busy in both runs (load average 3 to 4 with the benchmark idle), and the same model's p50 moved from 26.5 s to 40.3 s between two runs of the same prompt. Treat 27 to 40 s as an upper bound on an M5 under load, not a hardware figure. **The RTX 2050 laptop (4 GB) has not been measured.** The first call after loading takes 13 to 38 s, so a cold server will usually fall back once.
-5. **I would still keep `provider: template` for the 30 October demo**; the local model is an optional extra whose answers are all checked and which cannot show a number the engine did not produce.
+1. **Check 3 (numbers) decides almost everything: 13 of 20 drafts for both models fall back on it.** In a diagnostic run of Qwen3 (only the offending numbers were printed, never the drafts) the 64 numbers that broke it were: **33 numbers that are in the retrieved passages** (the model quotes the evidence), **23 of the patient's own values** (age, HbA1c, eGFR, BMI echoed from PATIENT_SUMMARY into the claims or the context), and 8 others. Every one of the 13 drafts had such a number inside a claim, and none failed on patient values alone. The plan's rule allows only numbers from the causal output, the drivers, or a cited page or version, so this is the rule working as written. **Ways to raise the usable share, all your call, none done here:** drop the claim that holds the number instead of the whole draft (as check 2 does); also allow a number that appears verbatim in a passage the claim cites; also allow the patient-summary values (the card shows them anyway). Each is a change to plan 8.10.
+2. **Check 4 is right when it fires.** I looked at what it caught: "contraindicated in patients with an eGFR below 30 mL/minute", copied from a label. Plan rule 4 says thresholds are never stated by the model, so these drafts must fall back.
+3. **One check was too eager and was fixed before the committed run.** The first P23 run flagged 4 Qwen3 drafts for causal wording about a driver; all 4 were false alarms ("the question is whether SGLT2 inhibitors can cause ketoacidosis in a patient with an HbA1c of 8.4%": the drug causes, the HbA1c is only context). A causal cue now counts only within 4 words of a driver (`causal_window_words` in `output_guards.yaml`, TEAM-SET); the tests keep the true cases ("a higher BMI causes...", "because of eGFR") failing. **Word-list checks will have other misses and false alarms; Member D should read a sample.**
+4. **Dropping a bad claim helps a little:** 2 Qwen3 drafts were used after losing one claim each (they would have fallen back before P23).
+5. **No winner, and the template stays the default.** Qwen3 is more reliably valid (100% against 85%) and gives 6 usable drafts against 4; with n = 20 that is a couple of questions. MedGemma had 3 timeouts and its licence is still UNVERIFIED. The laptop was quieter this time (Qwen3 p50 18 s), but latency is still not a hardware figure, and **the RTX 2050 laptop has not been measured.** I would keep `provider: template` for 30 October.
 
 ## Run it yourself
 ```bash

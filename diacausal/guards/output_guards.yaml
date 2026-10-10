@@ -1,0 +1,55 @@
+# Word lists for the seven output checks of docs/PLAN_2026-10.md section 8.10 (diacausal/guards/output_guards.py, P23).
+# A file of its own, NOT data/params.yaml: that file's hash is recorded in web/model.json and in every engine reply, so adding to it would
+# move the website and the engine's versions. Same rule as params.yaml: every entry has a source and a status (here all TEAM-SET: the
+# team's first lists, for Member D and the collaborating doctor to review). They catch the obvious wordings, NOT every paraphrase
+# (checks 5, 6 and the causal half of 7 are word lists; docs/TESTING.md says so). No brand names and no clinical threshold values here:
+# thresholds live in data/rules.csv; these are only the SHAPES of text that must never come from a model.
+threshold_patterns:
+  value:
+    - '\b\d+(?:\.\d+)?\s*ml\s*/\s*min'
+    - '\b(?:egfr|gfr|creatinine clearance|hba1c|a1c)\b[^.;]{0,20}(?:<|>|≤|≥|below|above|under|over|less than|more than|greater than|lower than|higher than|at least|at most|cut-?off|threshold)\s*\d'
+    - '\bcontraindicated\s+(?:if|when|in|for|with|below|above)\b'
+    - '\b(?:do not|don''t|never|must not|should not)\s+(?:use|give|prescribe|start|take)\b[^.;]{0,30}\b(?:if|when|below|above|under|over)\b'
+    - '\b(?:stop|discontinue|withhold|hold)\b[^.;]{0,25}\b(?:if|when|below|above|under|over)\b'
+    - '\bdos(?:e|es|ed|ing|age)\b(?![\s-]*(?:dependent|response|related|independent|effects?))'
+  source: "docs/PLAN_2026-10.md section 8.10 check 4 ('10 mg', 'mL/min with a number', 'contraindicated if'); the dose shapes (mg, tablets, 'once daily') are the engine's DOSE_PATTERN in diacausal/causal_inference/recommend.py"
+  status: TEAM-SET
+option_words:
+  value:
+    SGLT2i: ["sglt2", "sglt-2", "sglt 2", "gliflozin", "sodium-glucose", "sodium glucose"]
+    DPP4i: ["dpp4", "dpp-4", "dpp 4", "dpp-iv", "gliptin"]
+    SU: ["sulfonylurea", "sulphonylurea", "glimepiride"]
+  source: "Group 28 team choice: generic class words and stems only (no brand name; Member B to confirm). The option's own name and example molecule from the causal output are added at run time"
+  status: TEAM-SET
+positive_cues:
+  value: [recommend, recommended, recommends, suitable, appropriate, safe, safer, safest, "good choice", "good option", best, preferred, ideal, beneficial, benefit, benefits, effective, "can be used", "may be used", "should be used", "is a good", reasonable, "works well", "well tolerated", "first choice", choose, lowers, reduces, improves]
+  source: "docs/PLAN_2026-10.md section 8.10 check 5 ('no excluded option described positively'); wording chosen by the team"
+  status: TEAM-SET
+negation_cues:
+  value: [not, "no", never, avoid, avoided, avoids, exclude, excluded, excludes, exclusion, unsuitable, unsafe, inappropriate, insufficient, uncertain, unable, cannot, "can't", contraindicated, removed, "ruled out", without]
+  source: "docs/PLAN_2026-10.md section 8.10 check 5; a sentence that names an excluded option AND a positive cue passes only if one of these is also in it"
+  status: TEAM-SET
+effect_cues:
+  value: [lower, lowers, lowered, lowering, reduce, reduces, reduced, reduction, improve, improves, improved, improvement, increase, increases, increased, decrease, decreases, decreased, raise, raises, effect, effects, effective, "percentage point", "percentage points", fall, falls, drop, drops, better, worse, superior, inferior, benefit, "weight loss", "weight gain"]
+  source: "docs/PLAN_2026-10.md section 8.10 check 6 ('no effect wording for an option marked insufficient'); wording chosen by the team"
+  status: TEAM-SET
+causal_cues:
+  value: ["because of", "caused by", cause, causes, causing, "due to", "leads to", "led to", "leading to", "results in", "resulted in", "driven by", "responsible for", produces, "explains why", "is the reason"]
+  source: "docs/PLAN_2026-10.md section 8.10 check 7 ('no causal wording about a driver'); AGENTS.md XAI RULE: SHAP drivers describe the model, never a cause"
+  status: TEAM-SET
+driver_words:
+  value:
+    always: [age, hba1c, egfr, "kidney function", bmi, "body mass"]
+    aliases:
+      hba1c_pct: [hba1c, glycated]
+      egfr: [egfr, "kidney function"]
+      bmi: [bmi, "body mass"]
+      age: [age]
+      sex: [sex]
+      duration_years: ["duration of diabetes", "diabetes duration"]
+  source: "Group 28 team choice: the patient values the prompt shows (age, HbA1c, eGFR, BMI) are always treated as drivers; a feature that appears in DRIVERS adds its aliases (an unlisted feature name is used with underscores as spaces)"
+  status: TEAM-SET
+causal_window_words:
+  value: 4
+  source: "Group 28 team choice: a causal cue counts only if a driver word is within this many words of it (before or after). Found by running the benchmark: 'can cause ketoacidosis in a 52-year-old with an HbA1c of 8.4%' named a driver and a cue in one sentence but says nothing causal about the driver"
+  status: TEAM-SET
