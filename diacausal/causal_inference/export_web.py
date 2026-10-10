@@ -30,6 +30,7 @@ from diacausal.causal_inference.schemas import Secondary
 
 WEB = ROOT / "web"
 FIGURES = ("overlap", "love_plot", "ate_vs_truth", "cate_recovery", "calibration")
+XAI_FIGURES = ("ablation_chart", "shap_A_vs_C")  # P26: the A-D chart and the side-by-side SHAP charts (results/xai/)
 DOCS = {"causal-engine.md": ROOT / "docs/explain/07-causal-engine.md",
         "results-summary.md": ROOT / "docs/RESULTS_SUMMARY.md"}
 
@@ -106,7 +107,9 @@ def results_dict() -> dict:
     ev = list(csv.DictReader((ROOT / "results/evalues.csv").open()))
     info = json.loads((ROOT / "results/run_info.json").read_text())
     levels = list(csv.DictReader((ROOT / "results/evidence_level_coverage.csv").open()))
-    return {"summary": rows, "refutation": ref, "evalues": ev, "evidence_levels": levels,
+    ablation_csv = ROOT / "results/xai_ablation.csv"
+    ablation = list(csv.DictReader(ablation_csv.open())) if ablation_csv.exists() else []
+    return {"summary": rows, "refutation": ref, "evalues": ev, "evidence_levels": levels, "xai_ablation": ablation,
             "run": {k: info[k] for k in ("reps", "n_patients", "n_test_patients", "seconds",
                                          "refutation_checks_passed", "true_population_effects")}}
 
@@ -116,8 +119,11 @@ def copy_figures(width: int = 1100) -> None:
 
     out = WEB / "results"
     out.mkdir(parents=True, exist_ok=True)
-    for name in FIGURES:
-        img = Image.open(ROOT / "results/figures" / f"{name}.png").convert("RGB")
+    sources = [ROOT / "results/figures" / f"{name}.png" for name in FIGURES]
+    sources += [ROOT / "results/xai" / f"{name}.png" for name in XAI_FIGURES if (ROOT / "results/xai" / f"{name}.png").exists()]
+    for src in sources:
+        name = src.stem
+        img = Image.open(src).convert("RGB")
         if img.width > width:
             img = img.resize((width, round(img.height * width / img.width)), Image.LANCZOS)
         img.quantize(colors=128, method=Image.Quantize.MEDIANCUT).save(out / f"{name}.png", optimize=True)

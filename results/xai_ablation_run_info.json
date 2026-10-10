@@ -1,0 +1,85 @@
+{
+ "reps": 20,
+ "n_patients": 5000,
+ "n_test_patients": 2000,
+ "shap_lime_patients": 100,
+ "seed": 7,
+ "params_sha": "6d9b4de98d",
+ "rules_sha": "dd3f348885",
+ "seconds": 680.3,
+ "note": "synthetic benchmark; B's numbers repeat under C and D; D's retrieval and writing rows have n_reps 0 (fixed question sets)",
+ "shap_A_vs_C": [
+  {
+   "feature": "egfr",
+   "A": 0.0156257,
+   "C": 0.09923065295076423,
+   "true_modifier": true
+  },
+  {
+   "feature": "hba1c",
+   "A": 0.0307105,
+   "C": 0.05906009064043124,
+   "true_modifier": true
+  },
+  {
+   "feature": "female",
+   "A": 0.0,
+   "C": 0.03506233709829672,
+   "true_modifier": false
+  },
+  {
+   "feature": "age",
+   "A": 0.00247884,
+   "C": 0.030432484700488153,
+   "true_modifier": false
+  },
+  {
+   "feature": "low_income",
+   "A": 0.00320091,
+   "C": 0.025574348369520068,
+   "true_modifier": false
+  },
+  {
+   "feature": "duration_years",
+   "A": 0.00291317,
+   "C": 0.011946861834967046,
+   "true_modifier": false
+  },
+  {
+   "feature": "dka_history",
+   "A": 0.0,
+   "C": 0.008692190567559578,
+   "true_modifier": false
+  },
+  {
+   "feature": "ascvd",
+   "A": 4.62821e-05,
+   "C": 0.007990686872210277,
+   "true_modifier": false
+  },
+  {
+   "feature": "bmi",
+   "A": 0.000733689,
+   "C": 0.0078250744461949,
+   "true_modifier": false
+  },
+  {
+   "feature": "pancreatitis_history",
+   "A": 0.0,
+   "C": 0.005925443843663169,
+   "true_modifier": false
+  },
+  {
+   "feature": "hypo_history",
+   "A": 0.0,
+   "C": 0.0038652786853753214,
+   "true_modifier": false
+  },
+  {
+   "feature": "hf",
+   "A": 0.0,
+   "C": 0.0001434752360967591,
+   "true_modifier": false
+  }
+ ]
+}

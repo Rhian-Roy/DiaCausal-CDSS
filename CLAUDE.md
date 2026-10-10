@@ -346,6 +346,21 @@ prompt and the number check. **Drivers describe the estimate, never a cause.** V
 [--quick]` -> `results/xai/causal_shap_metrics.csv` (incl. `modifier_top3_overlap`), `causal_shap_presets.csv`. The pipeline must never import
 `cate_shap_benchmark` or version A (it borrows A's metric helpers; a test checks).
 
+## XAI with RAG, and the A–D table (built, P26)
+
+- **Drivers steer retrieval:** each comparison's top driver joins the search as ONE extra keyword ranking
+  (`query_processing.add_drivers`, terms in `knowledge_sources/driver_terms.csv`, every term checked IN-CORPUS). It only REORDERS the question's
+  own candidates: abstention, the candidate pool and the coverage check stay the question's (tests/rag/test_driver_queries.py). The website keeps
+  the plain search (`web/evidence.js` has no plan).
+- **Prompt and guards:** DRIVERS (P25) is in the prompt with plan 8.9 rule 6. The number check compares "88" and "88.0" as one number, but
+  only trailing zeros after a point are dropped ("04" of a date never lets a "4" through). Causal wording about a driver is also caught by its
+  card label (params.yaml `xai.labels`).
+- **A–D table:** `python scripts/xai_ablation.py [--quick]` (diacausal/xai/ablation.py) runs A (XAI-only), B (engine), C (B + exact SHAP)
+  and D (C + retrieval and writing) on the 20 benchmark cohorts and writes `results/xai_ablation.csv` (version, metric, comparison, mean, 95% t-interval,
+  n_reps), `results/xai/ablation_chart.png` and `shap_A_vs_C.png`. B's numbers repeat under C and D. D's retrieval and writing rows come from
+  fixed question sets (`n_reps` 0). `driver_passage_hit_rate` stays EMPTY until Members B and D write `eval/xai_driver_evidence.csv`.
+  The Analysis tab shows the table and both charts; Guide → Cautions has the SHAP sentence. Rerun after any change to params.yaml.
+
 ## Licences of the Indian sources (P19, DONE except two open items) — see docs/LICENCE_REGISTER.md
 
 `knowledge_sources/sources.csv` rows S02, S04, S05, S06, S18 carry the 9 Oct 2026 audit: S02 `cleared_ingest` (conditional CC BY-NC-SA, not yet

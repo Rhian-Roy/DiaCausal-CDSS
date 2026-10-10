@@ -463,8 +463,14 @@ def test_every_file_the_offline_cache_lists_exists():
 
 
 def test_results_and_docs_are_copied_for_the_site():
-    for name in ("overlap", "love_plot", "ate_vs_truth", "cate_recovery", "calibration"):
+    for name in ("overlap", "love_plot", "ate_vs_truth", "cate_recovery", "calibration", "ablation_chart", "shap_A_vs_C"):
         assert (WEB / "results" / f"{name}.png").exists()
+    results = json.loads((WEB / "results.json").read_text())
+    assert results["xai_ablation"] and {r["version"] for r in results["xai_ablation"]} == {"A", "B", "C", "D"}  # P26: the A-D table
+    html = (WEB / "index.html").read_text()
+    assert 'id="xai-table"' in html and 'id="xai-figures"' in html
+    cautions = html[html.index('id="g-cautions"'):html.index('id="g-limits"')]
+    assert "SHAP" in cautions and "not what causes the effect" in cautions  # one sentence on SHAP's limits (P26)
     assert (WEB / "docs/causal-engine.md").read_text() == (ROOT / "docs/explain/07-causal-engine.md").read_text()
     assert (WEB / "docs/results-summary.md").read_text() == (ROOT / "docs/RESULTS_SUMMARY.md").read_text()
 

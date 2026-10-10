@@ -151,7 +151,13 @@ def numbers_in(text: str) -> list[str]:
 
 
 def _normal(number: str) -> str:
-    return number.lstrip("-").lstrip("+")
+    """One spelling per number, so "88", "88.0" and "-88.00" compare equal (a driver's value is exported as 88.0) and "0.50" equals
+    "0.5"; the sign is wording ("falls by 0.9"), so it is dropped. Only trailing zeros after a decimal point go: "04" (the day of a
+    version date) stays "04" and never lets a "4" through, and "0.038" never equals "0.04"."""
+    n = number.lstrip("-").lstrip("+")
+    if "." in n:
+        n = n.rstrip("0").rstrip(".") or "0"
+    return n
 
 
 def draft_text(draft: AnswerDraftV1) -> str:
@@ -261,12 +267,24 @@ def effect_wording_for_insufficient(draft: AnswerDraftV1, causal: CausalOutputV1
 
 # ── check 7 ──────────────────────────────────────────────────────────────────────────────────────────────────────
 def driver_names(drivers: Mapping[str, Sequence[DriverV1]] | None) -> list[str]:
+    """The words a draft may use for a driver: the always-on patient values, every alias of a feature in DRIVERS, and (P26) the
+    plain-words label the card shows for it (params.yaml xai.labels, e.g. "starting HbA1c", "diabetes duration")."""
     cfg = _lists()["driver_words"]
     names = list(cfg["always"])
+    labels = _driver_labels()
     for rows in (drivers or {}).values():
         for d in rows:
             names += cfg["aliases"].get(d.feature, [d.feature.replace("_", " ")])
+            if d.feature in labels:
+                names.append(labels[d.feature])
     return sorted(set(n.lower() for n in names))
+
+
+@lru_cache(maxsize=1)
+def _driver_labels() -> dict[str, str]:
+    from diacausal.config import load_params
+
+    return {f: spec["text"] for f, spec in load_params().get("xai.labels").items()}
 
 
 def has_identifier_text(draft: AnswerDraftV1) -> bool:

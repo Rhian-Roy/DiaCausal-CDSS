@@ -699,8 +699,41 @@ function renderResults() {
       h("td", {}, r.level), h("td", {}, Number(r.n).toLocaleString("en-IN")), h("td", {}, `${(Number(r.share) * 100).toFixed(1)}%`),
       h("td", {}, r.coverage_95 === "" ? "—" : `${(Number(r.coverage_95) * 100).toFixed(1)}%`),
       h("td", {}, r.mean_ci_width === "" ? "—" : `${Number(r.mean_ci_width).toFixed(2)} points`))))));
+  renderAblation();
   $("#figures").replaceChildren(...FIGURES.map(([file, title, text]) => h("figure", { class: "card card--flat fig" },
     h("h2", {}, title), h("img", { src: `./results/${file}.png`, alt: `${title} figure`, loading: "lazy" }), h("figcaption", {}, text))));
+}
+
+/** The A-D table (results/xai_ablation.csv, P26): the metrics that tell the versions apart, then the two charts. */
+const ABLATION_ROWS = [
+  ["pehe", "SGLT2i-DPP4i", "Error of the patient-level effect, SGLT2i vs DPP-4i (PEHE, HbA1c points; lower is better)"],
+  ["coverage", "SGLT2i-DPP4i", "95% intervals that contain the true effect, SGLT2i vs DPP-4i"],
+  ["regret", "all", "Regret: extra HbA1c vs the truly best allowed drug (lower is better)"],
+  ["answered_when_thin_pairs", "all", "Numbers given for options this patient almost never gets (lower is safer)"],
+  ["modifier_precision_at_k", "SGLT2i-DPP4i", "Top features are the true effect modifiers, SGLT2i vs DPP-4i"],
+  ["false_driver_rate", "SGLT2i-DPP4i", "Shown drivers that are not true modifiers, SGLT2i vs DPP-4i (lower is better)"],
+  ["citation_precision", "all", "Quoted sentences supported by their passage (60 gold questions)"],
+  ["number_match_pass", "all", "Local-model drafts whose every number is the engine's (20 golden questions)"],
+];
+function renderAblation() {
+  const rows = RESULTS.xai_ablation || [];
+  if (!rows.length) { $("#xai-table").replaceChildren(h("p", { class: "sub" }, "The A-D table has not been run yet.")); return; }
+  const cell = (v, metric, comparison) => {
+    const r = rows.find((x) => x.version === v && x.metric === metric && x.comparison === comparison);
+    if (!r || r.mean === "") return "—";
+    const share = ["coverage", "answered_when_thin_pairs", "modifier_precision_at_k", "false_driver_rate", "citation_precision", "number_match_pass"].includes(metric);
+    const n = (x) => (share ? `${(Number(x) * 100).toFixed(0)}%` : Number(x).toFixed(3));
+    return r.ci_low === "" ? n(r.mean) : `${n(r.mean)} (${n(r.ci_low)} to ${n(r.ci_high)})`;
+  };
+  $("#xai-table").replaceChildren(h("table", {},
+    h("thead", {}, h("tr", {}, ["Metric", "A", "B", "C", "D"].map((t) => h("th", {}, t)))),
+    h("tbody", {}, ABLATION_ROWS.map(([metric, comparison, label]) => h("tr", {}, h("td", {}, label),
+      ...["A", "B", "C", "D"].map((v) => h("td", {}, cell(v, metric, comparison))))))));
+  $("#xai-figures").replaceChildren(
+    h("figure", { class: "fig" }, h("img", { src: "./results/ablation_chart.png", alt: "Versions A to D on four metrics", loading: "lazy" }),
+      h("figcaption", {}, "Four metrics, versions A to D, each with its 95% interval. Synthetic benchmark.")),
+    h("figure", { class: "fig" }, h("img", { src: "./results/shap_A_vs_C.png", alt: "Mean SHAP per feature, version A beside version C", loading: "lazy" }),
+      h("figcaption", {}, "Which patient details each version credits for SGLT2i vs DPP-4i (* = a true effect modifier of the synthetic cohort). SHAP explains a model, not a cause.")));
 }
 
 // ── Guide: Methods (for reviewers) ────────────────────────────────────────

@@ -1,0 +1,13 @@
+feature,terms,source,status
+egfr,kidney function; renal impairment; egfr,knowledge_sources/corpus: fda_dsc_2016_metformin_kidney.txt and who_2018_second_line.txt,IN-CORPUS
+hba1c,hba1c; glycaemic control,knowledge_sources/corpus: who_2018_second_line.txt,IN-CORPUS
+duration_years,duration,knowledge_sources/corpus: fda_dsc_2016_saxagliptin_alogliptin_hf.txt,IN-CORPUS
+age,older; elderly; age,knowledge_sources/corpus: who_2018_second_line.txt and fda_dsc_2016_metformin_kidney.txt,IN-CORPUS
+bmi,weight,knowledge_sources/corpus: who_2018_second_line.txt,IN-CORPUS
+hf,heart failure,knowledge_sources/corpus: fda_dsc_2016_saxagliptin_alogliptin_hf.txt,IN-CORPUS
+ascvd,cardiovascular,knowledge_sources/corpus: who_2018_second_line.txt,IN-CORPUS
+hypo_history,hypoglycaemia,knowledge_sources/corpus: who_2018_second_line.txt,IN-CORPUS
+dka_history,ketoacidosis,knowledge_sources/corpus: fda_dsc_2015_sglt2_ketoacidosis_uti.txt,IN-CORPUS
+pancreatitis_history,pancreatitis,knowledge_sources/corpus: fda_dsc_2016_saxagliptin_alogliptin_hf.txt,IN-CORPUS
+low_income,cost,knowledge_sources/corpus: who_2018_second_line.txt,IN-CORPUS
+female,women,knowledge_sources/corpus: fda_dsc_2018_sglt2_genital_infection.txt,IN-CORPUS

@@ -137,6 +137,10 @@
   <section class="card card--flat"><h2>Refutation tests</h2><div class="scroll" id="ref-table"></div></section>
   <section class="card card--flat"><h2>95% interval coverage by evidence level</h2><div class="scroll" id="lvl-table"></div>
     <p class="field__hint">Every test patient and every option the safety rules leave, with the level its estimate gets (interval width and propensity; no search runs here). Insufficient estimates are never shown to a doctor; they are scored to show what was withheld.</p></section>
+  <section class="card card--flat"><h2>Versions A to D: what each layer adds</h2>
+    <p class="field__hint">A: a predictor explained with SHAP and LIME, no causal adjustment (never shown to a doctor). B: the causal engine. C: B with exact SHAP drivers of its own estimate. D: C with the drivers steering the evidence search and the answer checks. 20 synthetic cohorts; mean with its 95% interval. B's numbers repeat under C and D because they explain the same estimate.</p>
+    <div class="scroll" id="xai-table"></div>
+    <div id="xai-figures" class="stack"></div></section>
   <div id="figures" class="stack"></div>
 </div>
 <footer class="footer"><p>Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.</p></footer>
@@ -179,6 +183,7 @@
     <li>Do not type names, Aadhaar, phone, PAN or email.</li>
     <li>In an emergency, follow your emergency protocol. DiaCausal will not answer.</li>
     <li>Doses are never shown. Use the product label and your formulary.</li>
+    <li>“What drives this estimate” comes from SHAP: it shows which patient details move the estimate in the model, not what causes the effect, and with many details checked an occasional driver can be a chance finding.</li>
   </ul>
 </section>
 <section class="card card--flat prose" id="g-limits"><h2>Limitations</h2>

@@ -239,3 +239,19 @@ def test_the_template_alone_runs_no_output_checks_on_a_model(client, monkeypatch
     monkeypatch.setattr("diacausal.llm.answer.run_output_guards", boom)
     card = AnswerCardV1.model_validate(ask(client, "template").json())
     assert card.mode == "template" and card.fallback_used is False and card.failed_checks == []
+
+
+def test_the_prompt_carries_the_drivers_json_and_the_rule_for_them(client, fake, monkeypatch):
+    """P26: DRIVERS in the prompt is the drivers of the card (exact SHAP, P25), minified, with the plan's rule 6; a draft may copy
+    their numbers (they are number sources) but never say a driver causes anything (output check 7)."""
+    server = fake(lambda p: good_draft(p))
+    configure(monkeypatch, server, "ollama")
+    card = AnswerCardV1.model_validate(ask_with(client).json())
+    prompt = server.requests[0]["prompt"]
+    line = next(x for x in prompt.splitlines() if x.startswith("DRIVERS: "))
+    drivers = json.loads(line[len("DRIVERS: "):])
+    assert drivers and set(drivers) == set(card.drivers)
+    assert {d["feature"] for rows in drivers.values() for d in rows} == {d.feature for rows in card.drivers.values() for d in rows}
+    assert all(set(d) == {"feature", "value", "contribution", "ci95"} for rows in drivers.values() for d in rows)
+    assert ('6. Mention a driver only as listed in DRIVERS, phrased as "the estimate is larger/smaller for patients with ..."; '
+            "never say a driver causes anything.") in prompt.splitlines()

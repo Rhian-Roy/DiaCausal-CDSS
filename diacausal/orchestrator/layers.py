@@ -149,8 +149,11 @@ def retrieval_layer(ctx: Context) -> None:
 
 
 def query_processing_part(ctx: Context, question: str):
-    """Part of the retrieval layer (P16): the question as a QueryPlan. Nothing about it is logged."""
-    return query_processing.process(question)
+    """Part of the retrieval layer (P16, P26): the question as a QueryPlan, plus each comparison's top driver (diacausal/xai/cate_shap.py)
+    as an extra keyword query that only reorders what the question found. Nothing about it is logged."""
+    plan = query_processing.process(question)
+    top = [rows[0].feature for rows in (ctx.drivers or {}).values() if rows]
+    return query_processing.add_drivers(plan, top) if top else plan
 
 
 # ── layer 5: explanation ─────────────────────────────────────────────────────────────────────────────────────────

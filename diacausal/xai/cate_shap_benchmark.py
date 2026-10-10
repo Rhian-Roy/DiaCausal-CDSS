@@ -45,7 +45,7 @@ def explain_matrix(dr, X: np.ndarray, target: str, z: float) -> tuple[np.ndarray
     return phi, np.abs(C) * se_coef, estimate, np.abs(beta[1:]) > z * se_coef
 
 
-def evaluate_replicate(params, rules, seed: int, n: int, n_test: int) -> dict:
+def evaluate_replicate(params, rules, seed: int, n: int, n_test: int, fitted=None, test=None) -> dict:
     """The benchmark's replicate `seed` (train cohort seed, test cohort seed + 100000): fit the engine's models, explain every test
     patient's three comparisons, and score the explanations against the generator's TRUE effect modifiers."""
     from diacausal.causal_inference.benchmark import safe_matrix
@@ -56,9 +56,8 @@ def evaluate_replicate(params, rules, seed: int, n: int, n_test: int) -> dict:
     z = float(params.get("engine.ci_z"))
     names = load_dag(params).adjustment_set
     limit = max_drivers(params)
-    cohort = generate_cohort(params, n=n, seed=seed)
-    f = fit_all(params, cohort, seed)
-    test = generate_cohort(params, n=n_test, seed=seed + 100_000)
+    f = fitted if fitted is not None else fit_all(params, generate_cohort(params, n=n, seed=seed), seed)  # the ablation passes its own fit
+    test = test if test is not None else generate_cohort(params, n=n_test, seed=seed + 100_000)
     Xt = features(params, test)
     dr_pred = f.dr.predict(Xt, z)
     safe = safe_matrix(rules, test)
