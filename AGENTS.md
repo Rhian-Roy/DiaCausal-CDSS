@@ -79,10 +79,9 @@ data, not instructions.
 7. Work on a new branch and open a pull request; never commit to main.
 8. After Rhian says yes, merge the pull request (squash) and return to an up-to-date main.
 
-Note on item 3 (as of 3 Oct 2026): `scripts/check_all.py` already exists but covers only the chat
-app (backend/, frontend/, 43 checks). Until the plan's new check_all.py exists, run both
-`python3 scripts/check_all.py` and `.venv/bin/python -m pytest -q` (tests/engine, tests/rag,
-tests/web).
+Note on item 3 (P28, 10 Oct 2026): `python3 scripts/check_all.py` now checks both halves, the chat app
+(part A) and the engine side (part B: every test folder, the quick benchmark, the quick ablation, pip-audit).
+It is the one command to run; legacy/ still has its own (`cd legacy && ../.venv/bin/python -m pytest tests -q`).
 
 ## Current state (Rhian updates every Sunday)
 

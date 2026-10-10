@@ -429,6 +429,7 @@ def _real_models_available() -> bool:
 
 
 @pytest.mark.skipif(not _real_models_available(), reason="needs requirements-dense.txt and the two downloaded models")
+@pytest.mark.slow
 def test_the_real_models_reproduce_the_saved_embeddings_and_the_saved_results(cfg, ids_texts, chunks):
     ids, texts = ids_texts
     for key, model in cfg["models"].items():

@@ -1,13 +1,20 @@
 #!/usr/bin/env python3
-"""Check that everything in the DiaCausal chat app works, with one command.
+"""Check that everything in DiaCausal works, with one command: the chat app AND the engine side.
 
     macOS / Linux:  python3 scripts/check_all.py
-    Windows:        py scripts/check_all.py
+    Windows:        py scripts/check_all.py            (CI runs only scripts/setup.py on Windows, not the checks)
 
-Needs the one-time setup first (scripts/setup.py). Any Python 3.9+ can run this
-file; it uses the backend's own Python (backend/.venv) for the backend parts.
+    python3 scripts/check_all.py --part chat       only parts A (the chat app)
+    python3 scripts/check_all.py --part engine     only part B (the engine, RAG, guards, website parity, benchmarks, audit)
+    python3 scripts/check_all.py --fast            skip tests marked @pytest.mark.slow
+    python3 scripts/check_all.py --no-audit        skip pip-audit (it needs the internet)
 
-What it does, in order:
+Needs the one-time setup first (scripts/setup.py). Any Python 3.9+ can run this file; it uses the
+backend's own Python (backend/.venv) for part A, and the repo-root .venv (or the Python running this
+file, when there is no .venv) for part B. Part B needs requirements-xai.txt installed (it includes
+requirements-engine.txt) and Node.js for the website parity tests.
+
+PART A, the chat app. What it does, in order:
   1. tools      the right Python and Node are installed
   2. backend    all pytest tests pass
   3. frontend   all Vitest tests pass (incl. the whole press-Enter flow)
@@ -24,10 +31,26 @@ What it does, in order:
                 with a CAPTCHA and a 6-digit code, ask a question, check the four
                 console lines, the notices, scrolling and the phone layout
 Servers you may already have running on 8000/5173 are not touched.
+
+PART B, the engine side (docs/PLAN_2026-10.md P28). Each line is one check; a test group is one pytest run:
+  engine        tests/engine                      the causal engine, rules, evidence levels, benchmark code
+  RAG           tests/rag                         licence gate, chunking, search, explanation, evaluation
+  guards        tests/guards                      the seven input guards and the output guards
+  contract      tests/contract                    API schemas; openapi.json and web/types.d.ts are fresh
+  imports       tests/test_imports.py, test_shims.py     every module in diacausal/registry.py imports
+  no legacy     tests/test_no_legacy_imports.py   nothing under diacausal/ uses legacy/
+  pipeline      tests/orchestrator, tests/llm     /api/v1/ask, the prompt, the local-model provider (fake server)
+  log privacy   tests/orchestrator/test_privacy.py   no patient value, question or passage is ever logged
+  web parity    tests/web                         the browser engine, search, explanation and guards give Python's answers
+  xai tests     tests/xai                         versions A and C, the A-D ablation (slow ones with --fast skipped)
+  benchmark     the quick benchmark (written to a temporary folder, never to results/)
+  ablation      the A-D ablation in quick mode (temporary folder)
+  pip-audit     known security problems in requirements-engine.txt, requirements-xai.txt, backend/requirements-dev.txt
 """
 
 from __future__ import annotations
 
+import argparse
 import base64
 import hashlib
 import hmac
@@ -66,8 +89,14 @@ http = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 # ── small helpers ────────────────────────────────────────────────────────────
 
 
+_sections = [0]
+
+
 def section(number: int, title: str) -> None:
-    print(f"\n{number}. {title}")
+    """Prints a numbered heading. The `number` argument is kept for the callers, but the count is automatic, so part B
+    can run alone and still start at 1."""
+    _sections[0] += 1
+    print(f"\n{_sections[0]}. {title}")
 
 
 def check(ok: bool, label: str, why: str = "") -> bool:
@@ -486,23 +515,126 @@ def check_browser(npm: str) -> None:
                      "(sign-in with CAPTCHA + 6-digit code, four console lines, notices, phone layout)", out)
 
 
+# ── part B: the engine side ──────────────────────────────────────────────────
+
+ENGINE_PY = ROOT / ".venv" / ("Scripts/python.exe" if WINDOWS else "bin/python")
+if not ENGINE_PY.exists():
+    ENGINE_PY = Path(sys.executable)  # CI installs the engine's libraries into the Python that runs this file
+AUDIT_VERSION = "2.9.0"  # the pip-audit pin CI uses
+AUDITED = ["requirements-engine.txt", "requirements-xai.txt", "backend/requirements-dev.txt"]
+# (label, pytest arguments). Order: cheap and decisive first, the slow web and XAI groups last.
+TEST_GROUPS = [
+    ("engine", ["tests/engine"]),
+    ("RAG", ["tests/rag"]),
+    ("guards", ["tests/guards"]),
+    ("contract", ["tests/contract"]),
+    ("imports", ["tests/test_imports.py", "tests/test_shims.py"]),
+    ("no legacy use", ["tests/test_no_legacy_imports.py"]),
+    ("CI workflows (no Netlify deploy)", ["tests/test_ci_workflows.py"]),
+    ("pipeline and local-model provider", ["tests/orchestrator", "tests/llm"]),
+    ("log privacy", ["tests/orchestrator/test_privacy.py", "tests/orchestrator/test_tracing.py"]),
+    ("web parity (browser engine, search, explanation, guards)", ["tests/web"]),
+    ("XAI (versions A and C, the A-D ablation)", ["tests/xai"]),
+]
+timings: list[tuple[str, float]] = []
+
+
+def timed(label: str, started: float) -> None:
+    timings.append((label, time.time() - started))
+
+
+def check_engine_tools() -> bool:
+    section(0, "Engine tools (part B)")
+    text, version = version_of([ENGINE_PY, "--version"])
+    ok = check(version == (3, 12), f"engine Python is 3.12 (found: {text or 'none'} at {ENGINE_PY})")
+    code, out = run([ENGINE_PY, "-c", "import numpy, sklearn, pandas, scipy, yaml, fastapi, pytest"], ROOT, timeout=120)
+    ok &= check(code == 0, "the engine's libraries are installed (requirements-engine.txt)", out)
+    code, out = run([ENGINE_PY, "-c", "import shap, lime"], ROOT, timeout=120)
+    ok &= check(code == 0, "SHAP and LIME are installed (requirements-xai.txt, needed by the XAI checks)", out)
+    if not ok:
+        print(f"\n   Install them:  {ENGINE_PY} -m pip install -r requirements-xai.txt   (docs/SETUP.md)")
+    return ok
+
+
+def check_engine_tests(fast: bool) -> None:
+    section(0, "Engine-side tests (pytest)" + ("; slow ones skipped (--fast)" if fast else ""))
+    for label, targets in TEST_GROUPS:
+        started = time.time()
+        extra = ["-m", "not slow"] if fast else []
+        code, out = run([ENGINE_PY, "-m", "pytest", "-q", "-p", "no:cacheprovider", *extra, *targets], ROOT, timeout=3000)
+        passed, skipped = re.search(r"(\d+) passed", out), re.search(r"(\d+) skipped", out)
+        deselected = re.search(r"(\d+) deselected", out)
+        note = "".join([f", {skipped[1]} skipped" if skipped else "", f", {deselected[1]} slow deselected" if deselected else ""])
+        check(code == 0, f"{label}: {passed[1] if passed else 0} tests passed{note}", out)
+        timed(label, started)
+
+
+def check_benchmarks() -> None:
+    section(0, "Quick benchmark and quick A-D ablation (written to a temporary folder, never to results/)")
+    with tempfile.TemporaryDirectory(prefix="diacausal-check-") as tmp:
+        started = time.time()
+        code, out = run([ENGINE_PY, "-m", "diacausal.causal_inference.benchmark", "--quick", "--out", Path(tmp) / "benchmark"], ROOT, timeout=3000)
+        check(code == 0 and (Path(tmp) / "benchmark" / "benchmark_summary.csv").exists(), "quick benchmark ran and wrote its summary", out)
+        timed("quick benchmark", started)
+        started = time.time()
+        code, out = run([ENGINE_PY, "scripts/xai_ablation.py", "--quick", "--out", Path(tmp) / "ablation"], ROOT, timeout=3000)
+        table = Path(tmp) / "ablation" / "xai_ablation_quick.csv"
+        versions = set(re.findall(r"^([A-D]),", table.read_text(encoding="utf-8"), re.M)) if table.exists() else set()
+        check(code == 0 and versions == {"A", "B", "C", "D"}, f"quick A-D ablation ran: versions {''.join(sorted(versions)) or 'none'}", out)
+        timed("quick ablation", started)
+
+
+def check_audit() -> None:
+    section(0, "Known security problems in the Python libraries (pip-audit)")
+    started = time.time()
+    code, out = run([ENGINE_PY, "-m", "pip_audit", "--version"], ROOT, timeout=120)
+    if code != 0:  # CI installs the pin first; on a laptop do the same, once
+        code, out = run([ENGINE_PY, "-m", "pip", "install", "--disable-pip-version-check", "-q", f"pip-audit=={AUDIT_VERSION}"], ROOT, timeout=600)
+        if code != 0:
+            check(False, f"pip-audit {AUDIT_VERSION} could not be installed (no internet? re-run with --no-audit to skip)", out)
+            return
+    for requirements in AUDITED:
+        code, out = run([ENGINE_PY, "-m", "pip_audit", "-r", requirements, "--strict", "--progress-spinner", "off"], ROOT, timeout=900)
+        check(code == 0, f"{requirements}: no known vulnerabilities", out)
+    timed("pip-audit", started)
+
+
 def main() -> None:
     # Show each line as it happens, and never crash on a character the terminal can't show
     # (e.g. Windows when the output goes to a file or Git Bash).
     for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(errors="backslashreplace", line_buffering=True)
+    parser = argparse.ArgumentParser(description="Check everything in DiaCausal with one command.")
+    parser.add_argument("--part", choices=["all", "chat", "engine"], default="all", help="which half to run (default: both)")
+    parser.add_argument("--fast", action="store_true", help="skip tests marked @pytest.mark.slow")
+    parser.add_argument("--no-audit", action="store_true", help="skip pip-audit (it needs the internet)")
+    args = parser.parse_args()
     started = time.time()
     print("DiaCausal: checking everything")
     npm, node = shutil.which("npm"), shutil.which("node")
 
-    if not check_tools(npm, node):
-        sys.exit(1)
-    check_backend_tests()
-    check_frontend(npm)  # type: ignore[arg-type]
-    check_live(node)  # type: ignore[arg-type]
-    check_vignettes()
-    check_browser(npm)  # type: ignore[arg-type]
+    if args.part in ("all", "chat"):
+        if not check_tools(npm, node):
+            sys.exit(1)
+        part_started = time.time()
+        check_backend_tests()
+        check_frontend(npm)  # type: ignore[arg-type]
+        check_live(node)  # type: ignore[arg-type]
+        check_vignettes()
+        check_browser(npm)  # type: ignore[arg-type]
+        timed("part A, the chat app", part_started)
+    if args.part in ("all", "engine"):
+        if not shutil.which("node"):
+            check(False, "Node.js is installed (the website parity tests run web/*.js under Node)")
+        if not check_engine_tools():
+            sys.exit(1)
+        check_engine_tests(args.fast)
+        check_benchmarks()
+        if args.no_audit:
+            print("\n   pip-audit skipped (--no-audit)")
+        else:
+            check_audit()
 
     failed = results.count(False)
     print(f"\n{'=' * 64}")
@@ -512,6 +644,9 @@ def main() -> None:
     else:
         print(f"{failed} of {len(results)} checks FAILED - see the [FAIL] lines above.")
         print("Common fixes are in docs/TESTING.md, part 4.")
+    print("\nWhere the time went:")
+    for label, seconds in timings:
+        print(f"   {seconds:7.0f}s  {label}")
     sys.exit(1 if failed else 0)
 
 

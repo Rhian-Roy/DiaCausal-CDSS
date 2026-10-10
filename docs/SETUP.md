@@ -91,11 +91,15 @@ test is skipped. Download it once (about 150 MB), after setup:
 | `python3 scripts/check_all.py` | `py scripts/check_all.py` |
 
 It runs every automated test, then starts the real app on spare ports and sends real
-messages through it. It should end with:
+messages through it, then runs the engine side (every test folder, a quick benchmark, a quick
+ablation and a security audit). It should end with:
 
 ```
-ALL 43 CHECKS PASSED
+ALL 62 CHECKS PASSED
 ```
+
+`--part chat` checks only the chat app (43 checks, a minute or so); `--part engine` only the engine side
+(it needs the repo-root `.venv` with `requirements-xai.txt`, see the engine section of CLAUDE.md).
 
 What each check proves, and what to do if one fails: [TESTING.md](TESTING.md).
 

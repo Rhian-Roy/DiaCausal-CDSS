@@ -25,11 +25,21 @@ so a whole block can be pasted at once.
 python3.12 scripts/setup.py      # any OS; Windows: py -3.12 scripts\setup.py (see docs/SETUP.md)
 ```
 
-## Check everything (tests, build, lint, live backend + page on spare ports)
+## Check everything (one command, P28)
 
 ```bash
-python3 scripts/check_all.py     # must end with "ALL 43 CHECKS PASSED"; Windows: py scripts\check_all.py
+python3 scripts/check_all.py                 # both halves: must end with "ALL 62 CHECKS PASSED" (27 min on a laptop, 7 of them pip-audit)
+python3 scripts/check_all.py --part chat     # part A, the chat app only: "ALL 43 CHECKS PASSED"
+python3 scripts/check_all.py --part engine   # part B only: engine, RAG, guards, contract, imports, no-legacy, pipeline,
+                                             # log privacy, web parity, XAI tests, quick benchmark, quick ablation, pip-audit
+python3 scripts/check_all.py --fast          # skip @pytest.mark.slow tests;  --no-audit skips pip-audit (needs internet)
 ```
+
+Part B uses the repo-root `.venv` (with `requirements-xai.txt`) and Node. The benchmark and the ablation write to a temporary
+folder, never to `results/`. CI (`.github/workflows/check.yml`) runs it on every pull request on Linux and macOS; Windows runs
+`scripts/setup.py` only. **CI never deploys the website**: no workflow may mention Netlify, a deploy hook or `--prod`
+(`tests/test_ci_workflows.py`), and `web/netlify.toml` has `ignore = "exit 0"`. Tests that take 15 s or more are marked
+`@pytest.mark.slow` (`pytest -m "not slow"` skips them).
 
 If you add a requirement, add a check for it here or in the tests, and update
 `docs/TESTING.md` (requirement → check table) and the numbers in `docs/explain/02-presenting-it.md`.

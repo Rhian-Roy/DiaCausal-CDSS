@@ -2,6 +2,8 @@
 
     .venv/bin/python scripts/xai_ablation.py            # 20 replicates x 5,000 patients (about 10 minutes; needs requirements-xai.txt)
     .venv/bin/python scripts/xai_ablation.py --quick    # 3 x 1,500, written next to the full table as *_quick.csv (no figures)
+    .venv/bin/python scripts/xai_ablation.py --quick --out /tmp/x   # the same, written into /tmp/x (scripts/check_all.py does this,
+                                                                    # so a check never overwrites the committed results/)
 
 Writes results/xai_ablation.csv (version, metric, comparison, mean, ci_low, ci_high, n_reps), results/xai_ablation_run_info.json,
 results/xai/ablation_chart.png (one comparison chart) and results/xai/shap_A_vs_C.png (the side-by-side SHAP charts).
@@ -22,11 +24,15 @@ from diacausal.xai import ablation  # noqa: E402
 def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--quick", action="store_true")
+    ap.add_argument("--out", type=Path, help="write the table (and its run record) into this folder instead of results/")
     a = ap.parse_args(argv)
     if a.quick:
         out, (reps, n, n_test, n_agree) = ablation.OUT.with_name("xai_ablation_quick.csv"), (3, 1500, 1000, 20)
     else:
         out, (reps, n, n_test, n_agree) = ablation.OUT, (20, 5000, 2000, 100)
+    if a.out:
+        a.out.mkdir(parents=True, exist_ok=True)
+        out = a.out / out.name
     print(f"A-D ablation: {reps} replicates x {n} patients (synthetic) -> {out}")
     rows = ablation.run(reps, n, n_test, n_agree, out, figures=not a.quick)
     for r in rows:

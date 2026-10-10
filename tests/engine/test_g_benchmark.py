@@ -10,6 +10,9 @@ from diacausal.causal_inference.benchmark import run, SUMMARY_COLUMNS
 FIGURES = ("overlap.png", "love_plot.png", "ate_vs_truth.png", "cate_recovery.png", "calibration.png")
 
 
+pytestmark = pytest.mark.slow  # the module's fixture runs the benchmark: 45 s or more
+
+
 @pytest.fixture(scope="module")
 def out(tmp_path_factory):
     path = tmp_path_factory.mktemp("results")

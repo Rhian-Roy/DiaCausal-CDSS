@@ -120,6 +120,7 @@ def _live() -> bool:
 
 
 @pytest.mark.skipif(not _live(), reason="needs a running Ollama server with the candidate_a tag pulled")
+@pytest.mark.slow
 def test_the_real_model_returns_a_valid_draft_for_a_golden_question():
     from diacausal.orchestrator.layers import json_prompt_for
 

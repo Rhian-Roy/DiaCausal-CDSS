@@ -16,11 +16,13 @@ def rows(params, cohort):
     return refute(params, features(params, obs), treatment_index(obs), obs["y"].to_numpy(float), seed=3)
 
 
+@pytest.mark.slow
 def test_three_refuters_for_each_of_the_three_contrasts(rows):
     assert len(rows) == 9
     assert {r.check for r in rows} == {"placebo treatment", "random common cause", "data subset"}
 
 
+@pytest.mark.slow
 def test_placebo_treatment_makes_the_effect_vanish(rows):
     """Average over 20 shuffles is about 0, and at least 85% of placebo CIs contain 0."""
     for r in (r for r in rows if r.check == "placebo treatment"):
@@ -28,6 +30,7 @@ def test_placebo_treatment_makes_the_effect_vanish(rows):
         assert "of 20 placebo CIs contain 0" in r.criterion
 
 
+@pytest.mark.slow
 def test_random_common_cause_and_subset_do_not_move_the_answer(rows):
     for r in (r for r in rows if r.check != "placebo treatment"):
         assert r.passed, r
@@ -52,6 +55,7 @@ def test_evalue_uses_the_interval_bound_nearest_zero(params):
     assert ci == pytest.approx(near)
 
 
+@pytest.mark.slow
 def test_benchmark_writes_refutation_and_evalue_files(tmp_path):
     from diacausal.causal_inference.benchmark import run
 
