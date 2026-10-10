@@ -40,6 +40,8 @@ class Context:
     retrieval: dict[str, Any] | None = None  # the retriever's own reply (passages), as explain() expects it
     labels: dict[str, str] = field(default_factory=dict)  # chunk_id -> "WHO 2018, p.12"
     idf: dict[str, float] | None = None
+    prompt: Any = None  # prompt_builder.BuiltPrompt, built only when the local model will be asked (never logged)
+    prompt_problem: str | None = None  # the PromptError code when it could not be built
     explanation: dict[str, Any] | None = None
     drivers: dict[str, list[DriverV1]] = field(default_factory=dict)
     evidence_levels: list[EvidenceLevelV1] = field(default_factory=list)

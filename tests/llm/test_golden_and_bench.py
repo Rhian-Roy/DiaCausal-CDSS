@@ -123,7 +123,8 @@ def test_the_real_model_returns_a_valid_draft_for_a_golden_question():
     from diacausal.orchestrator.layers import json_prompt_for
 
     ctx = golden.prepare(golden.load_golden()[0])
-    tried = ollama.attempt(ctx.retrieval, json_prompt_for(ctx), ollama.load_rag_config(), ollama.load_llm_config())
+    built = json_prompt_for(ctx)
+    tried = ollama.attempt(ctx.retrieval, built.text, ollama.load_rag_config(), ollama.load_llm_config(), None, list(built.number_sources))
     assert tried.schema_valid and tried.draft.evidence_summary and tried.prompt_tokens < 4096
 
 

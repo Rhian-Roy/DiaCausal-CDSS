@@ -154,7 +154,7 @@ PARTS: tuple[Layer, ...] = (
     Layer("query processing", f"{_O}.layers:query_processing_part"),
     Layer("shap drivers", f"{_O}.stubs:shap_drivers", stub=True, replaced_by="P25"),
     Layer("evidence levels", f"{_O}.stubs:evidence_levels", stub=True, replaced_by="P24"),
-    Layer("prompt builder", f"{_O}.stubs:prompt_builder", stub=True, replaced_by="P22"),
+    Layer("prompt builder", f"{_O}.layers:prompt_builder_part"),
     Layer("full output checks", f"{_O}.stubs:full_output_checks", stub=True, replaced_by="P23"),
 )
 

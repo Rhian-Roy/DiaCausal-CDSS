@@ -206,8 +206,8 @@ app's `backend/app/schemas.py` and the engine API's own models are unchanged; P1
 `diacausal/orchestrator/pipeline.py`, which calls the layers **only through `diacausal/registry.py`** (`LAYERS`, in order:
 input guards, rules, causal engine, retrieval, explanation, output guards, formatter) and returns `AnswerCardV1`.
 Layers are `fn(context) -> None` in `orchestrator/layers.py`; stubs are in `orchestrator/stubs.py`. To replace a stub, build
-the real function and change its one line in the registry (`stubs()` lists what is still a pass-through: input guards P15,
-SHAP drivers P25, evidence levels P24, prompt builder P22, full output checks P23).
+the real function and change its one line in the registry (`stubs()` lists what is still a pass-through: SHAP drivers P25,
+evidence levels P24, full output checks P23; the input guards (P15) and the prompt builder (P22) are real).
 Every layer runs inside `diacausal/tracing.py` (`layer(name, request_id)` or `@traced`): `[rid] entered X layer`,
 `executing`, then `passed (N ms)`, `abstained ... reason=CODE` or `failed ... error=ExceptionClass`. A layer that correctly
 cannot go on raises `AbstainSignal(CODE)` (a code, never free text). **Never log patient values, the question, prompts,
@@ -283,10 +283,23 @@ gain, so it ships off. Switching it on makes Python differ from `web/evidence.js
 anywhere else**; a test greps for it). The model is used only when BOTH `llm.yaml provider: ollama` AND the request's `mode: ollama`
 say so. **Any** error, timeout, bad HTTP status, invalid JSON, schema failure, a claim that cites a passage that was not shown or is not
 supported by it, or a number that is not in the causal output (plan 8.10 check 3) falls back to `providers/template.py`; the reply
-carries `fallback: CODE` and never the model's text. The prompt is a plain version of plan 8.9 (`prompt.v2.txt`, `build_json_prompt`;
-P22 refines it). `python scripts/bench_llm.py --model candidate_a|candidate_b|--all` runs the 20 golden questions
+carries `fallback: CODE` and never the model's text. The prompt is plan 8.9 (`prompt.v2.txt`, saved verbatim in docs/PROMPT_TEMPLATE.md), built by
+`prompt_builder.build_llm_prompt(request, eligible, causal, drivers, evidence)` (P22; see "Prompt builder" below). `python scripts/bench_llm.py --model candidate_a|candidate_b|--all` runs the 20 golden questions
 (`eval/llm_golden.csv`, a draft for Members B and D to review) and writes `results/llm/`. Needs Ollama running with the tags pulled
 (`ollama pull <tag from llm.yaml>`); the tests use a fake server and need neither. The website never uses a model.
+
+## Prompt builder (built, P22) — see docs/PROMPT_TEMPLATE.md
+
+`diacausal/llm/prompt_builder.py` `build_llm_prompt` fills the plan 8.9 template from `AskRequestV1`, `EligibleOptionsV1`, `CausalOutputV1`,
+the DRIVERS mapping (empty until P25) and `EvidenceBundleV1`, and returns a `BuiltPrompt` (text, token estimate, which passages were shown,
+shortened or left out, and the `number_sources` the number check reads). The explanation layer's `prompt builder` part (no longer a stub)
+builds it **only when the model will be asked**. The budget is **1,900 tokens, estimated as words x 1.4** (`prompt_budget_tokens`,
+`tokens_per_word`, `max_passages` in `llm.yaml`); at most 5 passages, cut at SENTENCE ENDS (a passage whose first sentence does not fit is left
+out); the question, patient summary, causal JSON (minified) and drivers are never shortened. Every `<` from outside is written `&lt;`, line breaks
+become spaces, the template is filled in one pass (a `{...}` in the question is inert), no patient identifier or request ID appears (a question
+the identifier guard blocks raises `PromptError`). A `PromptError` (a CODE) sends the request to the template. The words x 1.4 estimate
+under-counts the real token count (see the calibration in docs/PROMPT_TEMPLATE.md). Edit the template in `prompt.v2.txt` and plan 8.9 together;
+`tests/llm/test_prompt_budget.py` compares them and a snapshot (`UPDATE_SNAPSHOTS=1` to accept a deliberate change).
 
 ## Not built yet — where each piece goes
 

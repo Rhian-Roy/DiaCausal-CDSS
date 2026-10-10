@@ -143,15 +143,29 @@ def query_processing_part(ctx: Context, question: str):
 
 # ── layer 5: explanation ─────────────────────────────────────────────────────────────────────────────────────────
 
-def json_prompt_for(ctx: Context) -> str:
-    """The section 8.9 prompt for this request (a plain version; P22 refines it)."""
-    from diacausal.output.formatter import patient_summary
+def json_prompt_for(ctx: Context) -> prompt_builder.BuiltPrompt:
+    """The section 8.9 prompt for this request, within the token budget (diacausal/llm/prompt_builder.py). Raises PromptError."""
+    return prompt_builder.build_llm_prompt(ctx.request, ctx.eligible, ctx.causal, ctx.drivers, ctx.evidence,
+                                           max_claims=int(ollama.load_llm_config()["max_claims"]))
 
-    excluded = [f"{h.option} ({h.rule_id})" for h in ctx.eligible.excluded] if ctx.eligible else []
-    return prompt_builder.build_json_prompt(
-        question=ctx.request.question, patient_summary=patient_summary(ctx.request, ctx.causal.bmi_category), excluded=excluded,
-        causal=prompt_builder.compact_causal(ctx.causal), drivers=ctx.drivers or {}, passages=ctx.retrieval["passages"],
-        max_claims=int(ollama.load_llm_config()["max_claims"]))
+
+def model_will_answer(ctx: Context, llm_cfg: dict | None = None) -> bool:
+    """True when the local model is asked: switched on in BOTH places, evidence to quote, and not a dose question."""
+    llm_cfg = llm_cfg or ollama.load_llm_config()
+    usable = ctx.retrieval is not None and ctx.retrieval.get("status") == "SUCCESS" and bool(_usable(ctx.retrieval["passages"]))
+    return ollama.is_enabled(llm_cfg, ctx.request.mode) and usable and not DOSE_QUESTION.search(ctx.request.question)
+
+
+def prompt_builder_part(ctx: Context) -> None:
+    """Part of the explanation layer (P22): build the model's prompt, only when the model will be asked. A prompt that cannot be
+    built safely leaves `ctx.prompt_problem` (a CODE) and the template writes the answer."""
+    ctx.prompt = ctx.prompt_problem = None
+    if not model_will_answer(ctx):
+        return
+    try:
+        ctx.prompt = json_prompt_for(ctx)
+    except prompt_builder.PromptError as error:
+        ctx.prompt_problem = error.code
 
 
 def explanation_layer(ctx: Context) -> None:
@@ -159,12 +173,12 @@ def explanation_layer(ctx: Context) -> None:
     request's `mode: ollama`); then the model answers in JSON and ANY problem falls back to the template (providers/ollama.py)."""
     registry.part_function("prompt builder")(ctx)
     question = ctx.request.question
-    llm_cfg = ollama.load_llm_config()
-    usable = ctx.retrieval.get("status") == "SUCCESS" and bool(_usable(ctx.retrieval["passages"]))
-    if ollama.is_enabled(llm_cfg, ctx.request.mode) and usable and not DOSE_QUESTION.search(question):
+    if ctx.prompt is not None:
         ctx.explanation = ollama.explain_structured(
-            question, ctx.retrieval, json_prompt_for(ctx), load_rag_config(), llm_cfg, ctx.idf,
-            number_sources=prompt_builder.number_sources(prompt_builder.compact_causal(ctx.causal), ctx.drivers or {}))
+            question, ctx.retrieval, ctx.prompt.text, load_rag_config(), ollama.load_llm_config(), ctx.idf,
+            number_sources=list(ctx.prompt.number_sources))
+    elif ctx.prompt_problem is not None:
+        ctx.explanation = ollama.fall_back(question, ctx.retrieval, load_rag_config(), ctx.idf, ctx.prompt_problem)
     else:
         ctx.explanation = explain(question, ctx.retrieval, backend="template", idf=ctx.idf)
     if ctx.explanation["status"] != "SUCCESS":

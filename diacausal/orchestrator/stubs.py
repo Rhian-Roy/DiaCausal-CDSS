@@ -22,12 +22,6 @@ def evidence_levels(ctx: Context) -> list:
     return []
 
 
-def prompt_builder(ctx: Context) -> None:
-    """P22: the prompt for the local model. Today the template writes the answer and needs none; the older
-    prompt code inside llm/explain.py serves `mode: ollama` until this exists."""
-    stub_notice("prompt builder", ctx.request_id)
-
-
 def full_output_checks(ctx: Context) -> None:
     """P23: the seven output checks of plan 8.10 (parse, citations, numbers, dose threshold, excluded option,
     insufficient wording, identifier/causal wording). The real layer already runs the dose and citation checks."""

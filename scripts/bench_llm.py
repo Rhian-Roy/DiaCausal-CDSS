@@ -46,8 +46,8 @@ from diacausal.llm.providers import ollama  # noqa: E402
 
 OUT = ROOT / "results" / "llm"
 SUMMARY_COLUMNS = ["model_key", "tag", "n", "usable_questions", "schema_valid_pct", "number_match_pct", "fallback_pct", "latency_p50_s",
-                   "latency_p95_s", "max_prompt_tokens", "warmup_s", "ollama_version", "date", "machine"]
-ROW_COLUMNS = ["id", "preset", "schema_valid", "number_match", "fallback_code", "seconds", "prompt_tokens", "eval_tokens", "claims"]
+                   "latency_p95_s", "max_prompt_estimate", "max_prompt_tokens", "warmup_s", "ollama_version", "date", "machine"]
+ROW_COLUMNS = ["id", "preset", "schema_valid", "number_match", "fallback_code", "seconds", "prompt_estimate", "prompt_tokens", "eval_tokens", "claims"]
 
 
 def server_version(cfg: dict) -> str:
@@ -58,13 +58,6 @@ def server_version(cfg: dict) -> str:
         return "unreachable"
 
 
-def allowed_text(ctx) -> list[str]:
-    """What the draft may quote numbers from: the compact causal output and the drivers, as the prompt shows them."""
-    from diacausal.llm import prompt_builder
-
-    return prompt_builder.number_sources(prompt_builder.compact_causal(ctx.causal), ctx.drivers or {})
-
-
 def percentile(values: list[float], q: float) -> float:
     return float(np.percentile(values, q)) if values else float("nan")
 
@@ -73,6 +66,7 @@ def bench(key: str | None, tag: str | None, llm_cfg: dict, rag_cfg: dict, golden
     from diacausal.api.schemas import AnswerDraftV1  # noqa: F401
 
     tag = tag or ollama.model_tag(llm_cfg, key)
+    from diacausal.llm.prompt_builder import PromptError
     from diacausal.orchestrator.layers import json_prompt_for
 
     contexts = [(row, prepare(row)) for row in golden]
@@ -81,16 +75,24 @@ def bench(key: str | None, tag: str | None, llm_cfg: dict, rag_cfg: dict, golden
     warm = 0.0
     if usable:
         row, ctx = usable[0]
-        warm = ollama.attempt(ctx.retrieval, json_prompt_for(ctx), rag_cfg, llm_cfg, tag, allowed_text(ctx)).seconds
+        built = json_prompt_for(ctx)
+        warm = ollama.attempt(ctx.retrieval, built.text, rag_cfg, llm_cfg, tag, list(built.number_sources)).seconds
         print(f"  warm-up (not counted): {warm:.1f} s", flush=True)
     rows = []
     for row, ctx in usable:
-        tried = ollama.attempt(ctx.retrieval, json_prompt_for(ctx), rag_cfg, llm_cfg, tag, allowed_text(ctx))
+        try:
+            built = json_prompt_for(ctx)
+        except PromptError as error:  # no model call: the pipeline would use the template here
+            rows.append({"id": row["id"], "preset": row["preset"], "schema_valid": 0, "number_match": "", "fallback_code": error.code, "seconds": 0,
+                         "prompt_estimate": "", "prompt_tokens": "", "eval_tokens": "", "claims": ""})
+            print(f"  {row['id']}  no prompt: {error.code}", flush=True)
+            continue
+        tried = ollama.attempt(ctx.retrieval, built.text, rag_cfg, llm_cfg, tag, list(built.number_sources))
         matched = None
         if tried.draft is not None:
-            matched, _ = numbers_match(tried.draft, allowed_text(ctx), ctx.retrieval["passages"])
+            matched, _ = numbers_match(tried.draft, list(built.number_sources), ctx.retrieval["passages"])
         rows.append({"id": row["id"], "preset": row["preset"], "schema_valid": int(tried.schema_valid), "number_match": "" if matched is None else int(matched),
-                     "fallback_code": tried.code or "", "seconds": round(tried.seconds, 2), "prompt_tokens": tried.prompt_tokens or "",
+                     "fallback_code": tried.code or "", "seconds": round(tried.seconds, 2), "prompt_estimate": built.tokens, "prompt_tokens": tried.prompt_tokens or "",
                      "eval_tokens": tried.eval_tokens or "", "claims": len(tried.draft.evidence_summary) if tried.draft else ""})
         print(f"  {row['id']}  {'valid ' if tried.schema_valid else 'INVALID'}  fallback={tried.code or '-':16s} {tried.seconds:5.1f} s", flush=True)
     n = len(rows)
@@ -100,6 +102,7 @@ def bench(key: str | None, tag: str | None, llm_cfg: dict, rag_cfg: dict, golden
                "number_match_pct": round(100 * sum(r["number_match"] == 1 for r in valid) / len(valid), 1) if valid else float("nan"),
                "fallback_pct": round(100 * sum(bool(r["fallback_code"]) for r in rows) / n, 1) if n else float("nan"),
                "latency_p50_s": round(percentile([r["seconds"] for r in rows], 50), 2), "latency_p95_s": round(percentile([r["seconds"] for r in rows], 95), 2),
+               "max_prompt_estimate": max([r["prompt_estimate"] for r in rows if r["prompt_estimate"] != ""] or [0]),
                "max_prompt_tokens": max([r["prompt_tokens"] for r in rows if r["prompt_tokens"] != ""] or [0]), "warmup_s": round(warm, 1),
                "ollama_version": server_version(llm_cfg), "date": date.today().isoformat(), "machine": f"{platform.machine()} {platform.system()}"}
     return rows, summary
