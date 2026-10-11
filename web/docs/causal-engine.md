@@ -61,7 +61,7 @@ flowchart LR
 - **A:** A choose-your-own-adventure book. You read only one ending, but the others exist.
 - **N:** One patient's three possible 6-month changes might be SGLT2i −0.9, DPP-4i −0.7, SU −1.0 (*illustrative*). Real data shows only the drug they got.
 - **Viva:** "Each patient has one outcome per drug; we observe only one, so causal inference estimates the missing ones."
-- **Code:** `diacausal_engine/cohort.py` stores all three as `y_true_<arm>`, hidden from the estimators.
+- **Code:** `diacausal/causal_inference/cohort.py` stores all three as `y_true_<arm>`, hidden from the estimators.
 
 ## 4. The synthetic cohort, and why we use it
 - **A:** A driving simulator. You can crash on purpose because you know what the right move was.
@@ -88,19 +88,19 @@ flowchart LR
   - HbA1c → drug choice and HbA1c → outcome, so HbA1c is a **confounder**: adjust for it.
   - SGLT2i → weight loss → HbA1c, so weight change is a **mediator**: never adjust for it, or you hide part of the drug's real effect.
 - **Viva:** "The causal diagram tells us which variables to adjust for; mediators like weight change are excluded."
-- **Code:** `diacausal_engine/dag.py` and the `dag:` section of `data/params.yaml`.
+- **Code:** `diacausal/causal_inference/dag.py` and the `dag:` section of `data/params.yaml`.
 
 ## 7. Safety rules (guardrails)
 - **A:** A lifeguard who checks the pool before anyone starts swimming.
 - **N:** At eGFR 40, rule R01 (eGFR below 45) **excludes SGLT2i**. It shows red with its FDA-label source, and the engine never computes a number for it.
 - **Viva:** "Cited safety rules run before any estimate; thresholds live only in rules.csv, never in code, and no doses are ever shown."
-- **Code:** `diacausal_engine/guardrails.py`, `data/rules.csv`.
+- **Code:** `diacausal/guards/rules_loader.py`, `data/rules.csv`.
 
 ## 8. The propensity score
 - **A:** Guessing which dish a regular customer will order, from their habits.
 - **N:** For the typical demo patient: P(SGLT2i) = 0.43, P(DPP-4i) = 0.25, P(SU) = 0.32. The three always sum to 1.
 - **Viva:** "The propensity score is the probability that a patient like this receives each drug, estimated with multinomial logistic regression."
-- **Code:** `diacausal_engine/propensity.py`.
+- **Code:** `diacausal/causal_inference/propensity.py`.
 
 ## 9. Cross-fitting
 - **A:** You never mark your own exam. A classmate who didn't see your answers marks it.
@@ -116,7 +116,7 @@ flowchart LR
 - **A:** Judging a coaching class only by its toppers, without asking who joined.
 - **N:** Average bias over 20 cohorts is **−0.16** for SGLT2i vs DPP-4i. Its 95% intervals contained the truth **0%** of the time.
 - **Viva:** "The naive difference ignores who got which drug, so it's biased."
-- **Code:** `diacausal_engine/estimators.py` (`naive`).
+- **Code:** `diacausal/causal_inference/estimators.py` (`naive`).
 
 ## 12. IPW (inverse probability weighting)
 - **A:** In a survey where few village people answered, you give each village answer more weight.
@@ -175,13 +175,13 @@ flowchart LR
 | **SMD (balance)** | how different two groups look | HbA1c 8.9 vs 8.4 with SD 1.0 → 0.5; below 0.1 is balanced | 0.70 before → 0.08 after weighting |
 
 - **Viva:** "Because the truth is known, we measured bias, RMSE, coverage, per-patient error, regret and balance directly."
-- **Code:** `diacausal_engine/metrics.py`.
+- **Code:** `diacausal/causal_inference/metrics.py`.
 
 ## 19. The benchmark
 - **A:** Taking a mock exam 20 times, not once.
 - **N:** 20 cohorts × 5,000 patients, about 2.5 minutes.
 - **Viva:** "We repeated the whole experiment 20 times so the results aren't luck."
-- **Command:** `python -m diacausal_engine.benchmark`. Output goes to `results/`.
+- **Command:** `python -m diacausal.causal_inference.benchmark`. Output goes to `results/`.
 
 ## 20. Refutation tests: trying to break our own answer
 - **A:** A lock tester who tries every trick; if the lock resists, you trust it more.
@@ -203,7 +203,7 @@ flowchart LR
 - **A:** A standard lab-report format that the next department knows how to read.
 - **N:** A type 1 diabetes patient gets **NOT_APPLICABLE**, with the reason "the cohort contains only type 2 diabetes".
 - **Viva:** "The engine returns structured JSON — applicable, intervention, outcome, effect, confidence, assumptions — which our flow chart's evidence-fusion layer will use."
-- **Code:** `diacausal_engine/schemas.py`, `recommend.py`.
+- **Code:** `diacausal/causal_inference/schemas.py`, `recommend.py`.
 
 ## 22. The demo, the API and the audit log
 - **A:** The shop window (demo), the service counter (API) and the CCTV record (audit log).
@@ -211,7 +211,7 @@ flowchart LR
 - **Viva:** "Every request is logged with IDs, versions and decisions — never patient values."
 - **Commands:**
   - demo: `streamlit run demo/streamlit_app.py`
-  - API: `uvicorn diacausal_engine.api:app --port 8001`, then `POST /api/v1/recommend`
+  - API: `uvicorn diacausal.api.main:app --port 8001`, then `POST /api/v1/recommend`
 
 ## 23. Limitations (say these confidently; examiners like honesty)
 1. **Synthetic data only.** It shows that the *method* works, not real-world drug effects.

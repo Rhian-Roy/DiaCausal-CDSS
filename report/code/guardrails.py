@@ -17,8 +17,7 @@ import operator
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from diacausal_engine import ARMS
-from diacausal_engine.config import RULES_PATH, file_hash
+from diacausal.config import ARMS, RULES_PATH, file_hash
 
 COLUMNS = [
     "rule_id", "arm", "representative_molecule", "field", "op", "value",
@@ -136,5 +135,5 @@ def load_rules(path: Path | str = RULES_PATH) -> RuleTable:
         raise RulesError("rules.csv has no rules")
     return RuleTable(rules=rules, version=file_hash(path))
 
-# Snapshot of diacausal_engine/guardrails.py on 3 Oct 2026 (before the restructure); the live code is diacausal/guards/rules_loader.py.
+# Snapshot of the old diacausal_engine/guardrails.py on 3 Oct 2026 (before the restructure); the live code is diacausal/guards/rules_loader.py.
 # The note is at the end so that the line ranges used by the report's listings (Chapter 5) stay valid.

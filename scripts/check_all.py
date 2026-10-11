@@ -37,7 +37,7 @@ PART B, the engine side (docs/PLAN_2026-10.md P28). Each line is one check; a te
   RAG           tests/rag                         licence gate, chunking, search, explanation, evaluation
   guards        tests/guards                      the seven input guards and the output guards
   contract      tests/contract                    API schemas; openapi.json and web/types.d.ts are fresh
-  imports       tests/test_imports.py, test_shims.py     every module in diacausal/registry.py imports
+  imports       tests/test_imports.py                  every module in diacausal/registry.py imports
   no legacy     tests/test_no_legacy_imports.py   nothing under diacausal/ uses legacy/
   pipeline      tests/orchestrator, tests/llm     /api/v1/ask, the prompt, the local-model provider (fake server)
   log privacy   tests/orchestrator/test_privacy.py   no patient value, question or passage is ever logged
@@ -528,7 +528,7 @@ TEST_GROUPS = [
     ("RAG", ["tests/rag"]),
     ("guards", ["tests/guards"]),
     ("contract", ["tests/contract"]),
-    ("imports", ["tests/test_imports.py", "tests/test_shims.py"]),
+    ("imports", ["tests/test_imports.py"]),
     ("no legacy use", ["tests/test_no_legacy_imports.py"]),
     ("CI workflows (no Netlify deploy)", ["tests/test_ci_workflows.py"]),
     ("pipeline and local-model provider", ["tests/orchestrator", "tests/llm"]),

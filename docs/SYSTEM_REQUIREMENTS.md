@@ -21,20 +21,20 @@ marks work for October; "Not measured" means we have no evidence yet, so do not 
 
 | ID | Requirement | Status | Proved by |
 |---|---|---|---|
-| FR-1 | Accept the patient's details, with units, and reject impossible values with a plain-English message | Built | `diacausal_engine/schemas.py`; `tests/engine/test_i_api.py`; chat app `backend/tests/test_patient.py` |
+| FR-1 | Accept the patient's details, with units, and reject impossible values with a plain-English message | Built | `diacausal/causal_inference/schemas.py`; `tests/engine/test_i_api.py`; chat app `backend/tests/test_patient.py` |
 | FR-2 | Apply cited safety rules **before** any estimate; exclude or caution each option, and show the source and section | Built | `data/rules.csv`, `guardrails.py`; `test_b_guardrails.py`; `test_h_demo.py` (rules run before the estimate) |
 | FR-3 | Estimate each remaining option's 6-month HbA1c change with a **95% interval** | Built | `estimators.DRLearner`; `test_e_dr_learner.py`; `test_j_invariants.py` (300 random patients) |
 | FR-4 | Say "insufficient evidence" when propensity < 0.05 or the patient is outside the cohort; NOT_APPLICABLE when nothing can be answered | Built | `propensity.py`; `test_c_propensity.py`; `test_h_demo.py` |
 | FR-5 | Compare options fairly (pairwise differences with 95% intervals) | Built | `recommend.py` comparisons; `test_h_demo.py` |
 | FR-6 | Show the monthly cost in INR, or "price unavailable" until a price is confirmed | Built | `data/prices.csv`; `test_h_demo.py` (prices stay unavailable) |
 | FR-7 | Return a structured Causal Output (applicable, intervention, outcome, effect, confidence, assumptions) | Built | `schemas.CausalOutput`; `test_h_demo.py` (every flow-chart field) |
-| FR-8 | REST API `POST /api/v1/recommend` | Built | `diacausal_engine/api.py`; `test_i_api.py` |
+| FR-8 | REST API `POST /api/v1/recommend` | Built | `diacausal/api/main.py`; `test_i_api.py` |
 | FR-9 | Log every request with its ID, versions and decisions | Built | `recommend.write_audit`; chat app `audit_log` table; `test_h_demo.py` |
 | FR-10 | Benchmark against the known truth: bias, RMSE, coverage, PEHE, regret, balance, refutation | Built | `benchmark.py`, `refute.py`; `results/`; `test_g_benchmark.py`, `test_k_refute.py` |
 | FR-11 | Demo with preset patients and a "Why causal?" explanation | Built | `demo/streamlit_app.py`; `screens/`; `test_h_demo.py` |
 | FR-12 | Chat app: sign-in with password, CAPTCHA and an authenticator code; message guards; patient panel | Built | `backend/app/auth/`, `pipeline/`; `scripts/check_all.py` (43 checks) |
 | FR-13 | Voice input put into the message box (never sent automatically) | Built | `backend/app/voice/`; `backend/tests/test_voice.py` |
-| FR-14 | Evidence retrieval with a citation for every sentence (RAG), refusing when unsupported | **Planned (1–16 Oct)** | `docs/03_RAG_Build_Guide.md`; `diacausal_rag/` skeleton |
+| FR-14 | Evidence retrieval with a citation for every sentence (RAG), refusing when unsupported | **Planned (1–16 Oct)** | `docs/03_RAG_Build_Guide.md`; `diacausal/rag/` skeleton |
 | FR-15 | Causal engine inside the chat app (designs 17–19) | **Planned (Oct)** | `docs/CAUSAL_PLAN.md` §6 |
 | FR-16 | Hypoglycaemia risk and weight change per option (from cited tables) | **Planned** | worksheet rows 23–24 still "needs decision" |
 

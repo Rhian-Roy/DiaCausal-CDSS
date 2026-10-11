@@ -31,7 +31,7 @@ No dataset upload: a single-patient form fits the frozen decision, and bulk uplo
 
 ## Today's engine and website ranges (for comparison)
 
-`data/params.yaml` (`display.input_ranges`) is what `diacausal_engine/schemas.py` and the website enforce today.
+`data/params.yaml` (`display.input_ranges`) is what `diacausal/causal_inference/schemas.py` and the website enforce today.
 Every bound above sits **inside** the engine's, so a `PatientV1` is never rejected later by the engine
 (`tests/contract/test_ranges.py` checks this). Aligning `params.yaml` and the website to this table is a
 separate, small task.

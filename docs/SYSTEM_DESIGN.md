@@ -18,7 +18,7 @@ flowchart TB
     WEB["React chat page<br/>frontend/ — Built"]
   end
   subgraph API["Service layer (FastAPI)"]
-    REC["POST /api/v1/recommend<br/>diacausal_engine/api.py — Built"]
+    REC["POST /api/v1/recommend<br/>diacausal/api/main.py — Built"]
     CHAT["POST /api/v1/chat + sign-in, voice<br/>backend/app — Built"]
   end
   subgraph SAFE["Safety layer"]
@@ -153,7 +153,7 @@ sequenceDiagram
 | `recommend.py`, `schemas.py` | One patient → Causal Output; output check; audit | `Engine.recommend`, `check_output`, `CausalOutput` | Built |
 | `api.py` | REST API | `POST /api/v1/recommend`, `GET /api/v1/health` | Built |
 | `demo/streamlit_app.py` | Demo screen | — | Built |
-| `diacausal_rag/` | Ingest, retrieve, evidence JSON | skeleton only | Planned |
+| `diacausal/rag/` | Ingest, retrieve, evidence JSON | skeleton only | Planned |
 
 **Implementation status for the "25%" slide:**
 
@@ -212,7 +212,7 @@ is shown only when its status is CONFIRMED and it has a date and a source.
 ```
 
 *Shortened. The full example is in the demo's "Structured Causal Output" box, and the schema is in
-`diacausal_engine/schemas.py`.*
+`diacausal/causal_inference/schemas.py`.*
 
 ### Audit line (`logs/audit.jsonl`; never patient values)
 

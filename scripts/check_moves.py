@@ -28,6 +28,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 MAP = ROOT / "docs" / "RESTRUCTURE_FILE_MAP.csv"
 MAX_SHIM_LINES = 25
+SHIM_REMOVAL_STEP = 9  # from this step on, the shims and the old packages are deleted, so a merged file's old path may be gone
 
 
 def read_map(path: Path = MAP) -> list[dict]:
@@ -59,7 +60,7 @@ def check(rows: list[dict], root: Path, step: int, tracked: list[str] | None = N
             if not old.exists():
                 problems.append(f"step {row_step}: {r['old_path']} should stay in place but is missing")
         elif action == "merge":
-            for p in [old, *news]:
+            for p in ([old] if step < SHIM_REMOVAL_STEP else []) + news:
                 if not p.exists():
                     problems.append(f"step {row_step}: {p.relative_to(root)} is missing (merge target and source must both exist)")
         elif moves and row_step > step:  # not started

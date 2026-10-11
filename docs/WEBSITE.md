@@ -79,22 +79,22 @@ fails if a key is ever committed.
 - **Analogy:** training the engine is like writing a textbook; answering one patient only needs
   the few pages at the back. We ship those pages (`web/model.json`, a few hundred numbers) to
   the phone, and the phone does the last step itself.
-- `python -m diacausal_engine.export_web` fits the same reference engine as the Streamlit demo
+- `python -m diacausal.causal_inference.export_web` fits the same reference engine as the Streamlit demo
   and the API (synthetic cohort, n = 5000, seed 2026). It writes: the propensity model's
   coefficients, the DR-learner's formula and its 95%-interval covariance, the cohort's range,
   the rules from `data/rules.csv` (with sources) and the thresholds from `data/params.yaml`.
 - `web/engine.js` repeats `recommend.py` step by step: check the input → **safety rules first**
   → cohort support → propensity (below 0.05 → "insufficient evidence") → estimate with a 95%
   interval → output check (no doses, every number has an interval).
-- `python -m diacausal_rag.export_web` writes `web/evidence.json`: each passage's word counts
-  (BM25), its TF-IDF vector and its citation. `web/evidence.js` repeats `diacausal_rag/retrieve.py`:
+- `python -m diacausal.rag.export_web` writes `web/evidence.json`: each passage's word counts
+  (BM25), its TF-IDF vector and its citation. `web/evidence.js` repeats `diacausal/rag/retrieve/hybrid.py`:
   BM25 + vector search → reciprocal rank fusion → best 5, or "insufficient evidence". Passages with
   dose text are withheld before export.
 - **Today's evidence (78 passages):** WHO 2018 second- and third-line medicines guideline (S01,
   CC BY-NC-SA 3.0 IGO) and seven FDA Drug Safety Communications (S08, S19–S23, US government works):
   metformin and kidney function, saxagliptin/alogliptin and heart failure, DPP-4i joint pain, SGLT2i
   ketoacidosis and urinary infections, acute kidney injury, Fournier's gangrene, canagliflozin amputations.
-- **Explanation:** `web/explain.js` (mirror of `diacausal_rag/explain.py`) quotes the sentences that
+- **Explanation:** `web/explain.js` (mirror of `diacausal/llm/explain.py`) quotes the sentences that
   best answer the question, each with its passage number. Nothing leaves the device: the website has no online model.
 - **Evidence fusion:** the answer card's "Cited evidence" and each option's evidence level use the licence-cleared
   passages about that drug class (`web/card.js` counts them). Investigate shows the passages alone (P27).
@@ -111,8 +111,8 @@ fails if a key is ever committed.
 ## Update the website
 
 ```bash
-.venv/bin/python -m diacausal_engine.export_web   # after an engine change: model.json, results, figures, docs
-.venv/bin/python -m diacausal_rag.export_web      # after a corpus or RAG change: evidence.json
+.venv/bin/python -m diacausal.causal_inference.export_web   # after an engine change: model.json, results, figures, docs
+.venv/bin/python -m diacausal.rag.export_web      # after a corpus or RAG change: evidence.json
 .venv/bin/python -m diacausal.guards.export_web   # after a guard, word-list or params.yaml guards change: guards.json
 .venv/bin/python -m pytest tests/web -q            # 30 tests; fails if any of these files is stale
 ```

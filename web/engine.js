@@ -1,11 +1,11 @@
 /*
- * DiaCausal engine, in the browser — a line-by-line mirror of diacausal_engine/recommend.py.
+ * DiaCausal engine, in the browser — a line-by-line mirror of diacausal/causal_inference/recommend.py.
  *
  * Research prototype for clinician evaluation; not a marketed medical device;
  * not for unsupervised clinical use. SYNTHETIC DATA ONLY. The clinician decides.
  *
  * Every number (coefficients, thresholds, rules) comes from model.json, which Python writes
- * (python -m diacausal_engine.export_web). Nothing clinical is typed here. The patient's
+ * (python -m diacausal.causal_inference.export_web). Nothing clinical is typed here. The patient's
  * details never leave the device. tests/web/test_web.py checks this file gives exactly the
  * same answers as the Python engine.
  */
@@ -172,7 +172,7 @@
     return Array.from(bytes, (x) => x.toString(16).padStart(2, "0")).join("");
   }
 
-  /** One patient -> Causal Output (same shape as diacausal_engine.schemas.CausalOutput). */
+  /** One patient -> Causal Output (same shape as diacausal.causal_inference.schemas.CausalOutput). */
   function recommend(model, patient, opts = {}) {
     const problems = validate(model, patient);
     if (problems.length) return { error: "invalid_request", problems, intended_use: model.intended_use };

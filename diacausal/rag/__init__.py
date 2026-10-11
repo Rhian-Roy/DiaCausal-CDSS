@@ -1,4 +1,4 @@
-"""DiaCausal RAG pipeline (diacausal.rag; moved from diacausal_rag in restructure step 6) (the "RAG Pipeline" column of the team flow chart).
+"""DiaCausal RAG pipeline (diacausal.rag; moved from the old diacausal_rag in restructure step 6) (the "RAG Pipeline" column of the team flow chart).
 
 Research prototype for clinician evaluation; not a marketed medical device;
 not for unsupervised clinical use.
