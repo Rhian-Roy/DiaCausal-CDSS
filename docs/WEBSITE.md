@@ -117,17 +117,9 @@ fails if a key is ever committed.
 .venv/bin/python -m pytest tests/web -q            # 30 tests; fails if any of these files is stale
 ```
 
-Then deploy a copy of `web/` with the account settings written in:
-
-```bash
-rm -rf /tmp/site && cp -r web /tmp/site
-SUPABASE_URL=https://txdzvqcserowgcotpqgj.supabase.co SUPABASE_PUBLISHABLE_KEY=sb_publishable_... \
-  .venv/bin/python scripts/web_config.py /tmp/site/config.json
-npx netlify-cli deploy --dir /tmp/site --prod      # after netlify login; or drag /tmp/site onto app.netlify.com
-```
-
-The publishable key is in the Supabase dashboard → Project Settings → API Keys. Bump `VERSION`
-in `web/sw.js` when files change so installed phones fetch the new copy.
+Then deploy by following [DEPLOY.md, section 1](DEPLOY.md#1-the-public-site-diacausalnetlifyapp): a copy of `web/` with the
+sign-in settings read from Netlify, a free draft first, the checks, and only then a production deploy (15 credits) by hand.
+Bump `VERSION` in `web/sw.js` when files change so installed phones fetch the new copy.
 
 ## Files
 

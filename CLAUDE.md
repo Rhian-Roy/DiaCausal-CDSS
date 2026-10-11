@@ -129,7 +129,7 @@ applies it **before** the causal stage, removing any "do not use" option. Never 
 clinical number in code, and never let a later stage put a removed option back.
 Check the table with `(cd backend && .venv/bin/python -m app.clinical.check)`.
 
-## Deployment (built) — see docs/DEPLOY.md and docs/explain/11-deploy.md
+## Legacy chat app deployment — see the last section of docs/DEPLOY.md (not part of the submitted system)
 
 `docker compose up --build -d` serves the page and the API from **one origin** with HTTPS
 in front (Caddy). Security headers live in `backend/app/web.py` only; `/docs` is off when
@@ -181,7 +181,7 @@ After changing params.yaml or the estimators, rerun the full benchmark and commi
 
 ## Website (built) — see docs/WEBSITE.md
 
-Live at https://diacausal.netlify.app. `web/` is a static phone-first PWA; `web/engine.js`
+Live at https://diacausal.netlify.app; deployed by hand only, draft first, then production (15 credits) after a credit check: docs/DEPLOY.md section 1. `web/` is a static phone-first PWA; `web/engine.js`
 mirrors `recommend.py` using `web/model.json` from `python -m diacausal.causal_inference.export_web`, and
 `web/evidence.js` mirrors `diacausal/rag/retrieve/hybrid.py` and `diacausal/rag/index/` using `web/evidence.json` from
 `python -m diacausal.rag.export_web` (rerun after any change; `tests/web` fails if stale).

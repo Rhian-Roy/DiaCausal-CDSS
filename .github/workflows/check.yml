@@ -6,7 +6,7 @@
 # A red cross on GitHub means something broke; click it to see which [FAIL] line.
 #
 # CI NEVER DEPLOYS THE WEBSITE. The Netlify site `diacausal` is not connected to GitHub and is deployed by hand
-# (docs/DEPLOY.md section 9; each production deploy costs credits). No job here uses Netlify, a deploy hook, a deploy
+# (docs/DEPLOY.md section 1; each production deploy costs credits). No job here uses Netlify, a deploy hook, a deploy
 # token or `--prod`, and tests/test_ci_workflows.py fails if one is added.
 name: check
 
