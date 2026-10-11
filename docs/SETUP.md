@@ -95,7 +95,7 @@ messages through it, then runs the engine side (every test folder, a quick bench
 ablation and a security audit). It should end with:
 
 ```
-ALL 63 CHECKS PASSED
+ALL 64 CHECKS PASSED
 ```
 
 `--part chat` checks only the chat app (43 checks, a minute or so); `--part engine` only the engine side

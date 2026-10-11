@@ -102,8 +102,8 @@ Only after the draft passed every check in section 1.7:
 
 ### 1.7 Check the deploy
 
-Open the link in a private window, so no old copy of the site is cached. When `docs/DEMO_SCRIPT.md` exists, go through its
-screens. Until then, this list (the checks run on 11 Oct 2026):
+Open the link in a private window, so no old copy of the site is cached. Go through the six cases of
+[DEMO_SCRIPT.md](DEMO_SCRIPT.md) (each names the screen that should appear), then this list (the checks run on 11 Oct 2026):
 
 | # | Check | Expected |
 |---|---|---|
