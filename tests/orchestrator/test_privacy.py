@@ -15,6 +15,13 @@ SECRETS = ("9.87", "zebra-test", "zebra")
 PATIENT = dict(age=47, sex="M", duration_years=3.0, hba1c_pct=9.87, egfr=77.0, bmi=29.3)
 
 
+def where(secret: str, text: str, width: int = 120) -> str:
+    """Where a secret appears, with the text around it, so a failure says WHAT was logged and by whom (a failure once could
+    not be explained because the message only said that it was)."""
+    i = text.find(secret)
+    return "" if i < 0 else repr(text[max(0, i - width):i + len(secret) + width])
+
+
 def everything_logged(caplog, capsys) -> str:
     out = capsys.readouterr()
     records = " ".join(
@@ -30,7 +37,7 @@ def test_neither_the_distinctive_value_nor_the_question_reaches_any_log(client, 
     logged = everything_logged(caplog, capsys)
     assert "[priv1] entered input guards layer" in logged  # the trace really was captured
     for secret in SECRETS:
-        assert secret not in logged, f"{secret!r} was logged"
+        assert secret not in logged, f"{secret!r} was logged: {where(secret, logged)}"
 
 
 def test_the_patient_numbers_are_not_in_the_audit_line_either(client, audit_file):
@@ -58,7 +65,7 @@ def test_a_failing_layer_logs_the_class_and_the_reply_leaks_nothing(client, capl
     assert "[priv3] failed retrieval layer error=ValueError" in logged
     assert "[priv3] ask: failed error=ValueError" in logged
     for secret in SECRETS:
-        assert secret not in logged, f"{secret!r} was logged"
+        assert secret not in logged, f"{secret!r} was logged: {where(secret, logged)}"
 
 
 def test_a_rejected_request_does_not_echo_or_log_what_was_sent(client, caplog, capsys):

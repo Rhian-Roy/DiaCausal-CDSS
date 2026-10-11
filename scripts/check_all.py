@@ -567,7 +567,11 @@ def check_engine_tests(fast: bool) -> None:
         passed, skipped = re.search(r"(\d+) passed", out), re.search(r"(\d+) skipped", out)
         deselected = re.search(r"(\d+) deselected", out)
         note = "".join([f", {skipped[1]} skipped" if skipped else "", f", {deselected[1]} slow deselected" if deselected else ""])
-        check(code == 0, f"{label}: {passed[1] if passed else 0} tests passed{note}", out)
+        # On a failure, end with pytest's own error lines ("E   ...") and the names of the failed tests: check() shows the last 25
+        # lines, and pytest's own last lines can be captured logs that hide the reason.
+        errors = [line for line in out.splitlines() if line.startswith(("E ", "FAILED ", "ERROR "))]
+        why = out + ("\n--- why it failed ---\n" + "\n".join(errors[-24:]) if errors else "")
+        check(code == 0, f"{label}: {passed[1] if passed else 0} tests passed{note}", why)
         timed(label, started)
 
 
