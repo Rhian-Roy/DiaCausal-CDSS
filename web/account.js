@@ -210,6 +210,14 @@ window.DiaCausalAccount = (function () {
     "Continue", async (el) => AUTH.verifyMfa(el.code.value)), h("div", { class: "row" }, signOutButton())];
   }
 
+  /** After a password-reset link: the code comes before the new password (the account service demands it for accounts with MFA). */
+  function recoveryCode() {
+    return [form([head("Confirm it is you", "To choose a new password, open your authenticator app and type the current code for DiaCausal."),
+      input("code", "6-digit code", { type: "text", inputmode: "numeric", pattern: "[0-9]{6}", maxlength: "6", autocomplete: "one-time-code",
+        placeholder: "000000", class: "input input--otp", required: true })],
+    "Continue", async (el) => AUTH.verifyMfa(el.code.value)), h("div", { class: "row" }, signOutButton())];
+  }
+
   function status(title, text, more = []) {
     const again = h("button", { type: "button", class: "btn btn--ghost" }, "Check again");
     again.addEventListener("click", () => AUTH.refresh());
@@ -304,6 +312,7 @@ window.DiaCausalAccount = (function () {
     else if (!AUTH.state.session && page === "signup") nodes = signUp();
     else if (!AUTH.state.session && page === "forgot") nodes = forgot();
     else if (gate === "signin") nodes = flash === "locked" ? locked() : signIn(WANTED[page] ? page : null);
+    else if (gate === "recovery-code") nodes = recoveryCode();
     else if (gate === "new-password") nodes = newPassword();
     else if (gate === "mfa-setup") nodes = mfaSetup();
     else if (gate === "mfa-code") nodes = mfaCode();

@@ -480,7 +480,11 @@ def test_team_details_are_correct():
 GATE_CASES = [  # (state, expected screen) — the order is sign in, MFA, approval, intended use
     ({"configured": False}, "demo"),
     ({"configured": True}, "signin"),
-    ({"configured": True, "session": {}, "recovery": True}, "new-password"),
+    ({"configured": True, "session": {}, "recovery": True}, "new-password"),  # no authenticator app on the account
+    # a reset link signs in at the first level only, and the account service refuses a new password for an account with an
+    # authenticator app until the code has been entered: the code comes first (bug found on the live site, 11 Oct 2026)
+    ({"configured": True, "session": {}, "recovery": True, "verifiedFactors": 1, "aal": "aal1"}, "recovery-code"),
+    ({"configured": True, "session": {}, "recovery": True, "verifiedFactors": 1, "aal": "aal2"}, "new-password"),
     ({"configured": True, "session": {}, "verifiedFactors": 0}, "mfa-setup"),
     ({"configured": True, "session": {}, "verifiedFactors": 1, "aal": "aal1"}, "mfa-code"),
     ({"configured": True, "session": {}, "verifiedFactors": 1, "aal": "aal2"}, "loading"),

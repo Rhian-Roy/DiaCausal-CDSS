@@ -26,10 +26,12 @@
   const MAX_PASSWORD = 72;
   const ROLES = ["clinician", "student", "examiner"];
 
-  /** Which screen a person sees before the app. Order: sign in → MFA → approval → intended use. */
+  /** Which screen a person sees before the app. Order: sign in → MFA → approval → intended use.
+   *  A password-reset link signs the person in at the first level only. If the account has an authenticator app, the service
+   *  refuses a new password until the 6-digit code has been entered ("AAL2 session is required"), so the code comes first. */
   function gateView(s) {
     if (!s.configured) return "demo";
-    if (s.recovery) return "new-password";
+    if (s.recovery) return s.session && s.verifiedFactors && s.aal !== "aal2" ? "recovery-code" : "new-password";
     if (!s.session) return "signin";
     if (!s.verifiedFactors) return "mfa-setup";
     if (s.aal !== "aal2") return "mfa-code";
@@ -65,6 +67,7 @@
     if (/already registered|already exists/i.test(m)) return "An account with this email already exists. Try signing in.";
     if (/invalid.*(totp|code)|expired/i.test(m)) return "That code did not work. Enter the current 6-digit code from your authenticator app.";
     if (/ip address/i.test(m)) return "Your internet connection changed during sign-in. Please enter the code again.";
+    if (/aal2/i.test(m)) return "Please enter the 6-digit code from your authenticator app first, then choose the new password.";
     if (/rate limit|too many/i.test(m)) return "Too many tries. Please wait a few minutes and try again.";
     if (/failed to fetch|network/i.test(m)) return "No internet connection. Please try again when you are online.";
     return m || "Something went wrong. Please try again.";
