@@ -28,7 +28,7 @@ python3.12 scripts/setup.py      # any OS; Windows: py -3.12 scripts\setup.py (s
 ## Check everything (one command, P28)
 
 ```bash
-python3 scripts/check_all.py                 # both halves: must end with "ALL 63 CHECKS PASSED" (27 min on a laptop, 7 of them pip-audit)
+python3 scripts/check_all.py                 # both halves: must end with "ALL 64 CHECKS PASSED" (27 min on a laptop, 7 of them pip-audit)
 python3 scripts/check_all.py --part chat     # part A, the chat app only: "ALL 43 CHECKS PASSED"
 python3 scripts/check_all.py --part engine   # part B only: engine, RAG, guards, contract, imports, no-legacy, pipeline,
                                              # log privacy, web parity, XAI tests, quick benchmark, quick ablation, pip-audit
@@ -187,6 +187,8 @@ only** (never 0.0.0.0; a test checks), which serves `web/` with the headers of `
 In clinic mode the page sends a question about a filled-in patient to the same computer's `/api/v1/ask` after the browser guards;
 on Netlify there is no `/api`, so nothing changes there. `/ask` replies carry a `Server-Timing` header (ms per layer);
 `scripts/measure_local.py --machine NAME` writes `results/local_llm_<NAME>.csv` and `_summary.csv` (IDs and times only).
+Demo (P29c): docs/DEMO_SCRIPT.md (opening sentence, six cases with their screens); `scripts/demo_check.py [--url ...]` checks them
+before a demo (ALL ... DEMO CHECKS PASSED).
 Live at https://diacausal.netlify.app; deployed by hand only, draft first, then production (15 credits) after a credit check: docs/DEPLOY.md section 1. `web/` is a static phone-first PWA; `web/engine.js`
 mirrors `recommend.py` using `web/model.json` from `python -m diacausal.causal_inference.export_web`, and
 `web/evidence.js` mirrors `diacausal/rag/retrieve/hybrid.py` and `diacausal/rag/index/` using `web/evidence.json` from
