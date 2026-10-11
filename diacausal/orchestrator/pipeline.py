@@ -10,6 +10,8 @@ with RequestBlocked); any other exception is a failure and propagates (logged by
 
 from __future__ import annotations
 
+import time
+
 from diacausal import registry
 from diacausal.api.schemas import AnswerCardV1, AskRequestV1
 from diacausal.api.schemas.patient import to_engine_patient
@@ -20,10 +22,13 @@ from diacausal.tracing import AbstainSignal, layer
 STOPS_THE_REQUEST = "input guards"
 
 
-def ask(request: AskRequestV1, engine: Engine | None = None) -> AnswerCardV1:
+def ask(request: AskRequestV1, engine: Engine | None = None, timings: dict[str, float] | None = None) -> AnswerCardV1:
+    """`timings`, when given, is filled with each layer's duration in milliseconds (layer name -> ms): the route sends them as a
+    Server-Timing header, and scripts/measure_local.py reads them. Names and numbers only."""
     ctx = Context(request=request, engine=engine or get_engine(), patient=to_engine_patient(request.patient))
     for entry in registry.LAYERS:
         function = registry.layer_function(entry.name)
+        t0 = time.perf_counter()
         try:
             with layer(entry.name, ctx.request_id):
                 function(ctx)
@@ -32,5 +37,8 @@ def ask(request: AskRequestV1, engine: Engine | None = None) -> AnswerCardV1:
             if entry.name == STOPS_THE_REQUEST:
                 detail = abstain.result or {}
                 raise RequestBlocked(abstain.code, detail.get("message", ""), detail.get("problems")) from None
+        finally:
+            if timings is not None:
+                timings[entry.name] = (time.perf_counter() - t0) * 1000
     assert ctx.card is not None, "the formatter layer did not produce a card"
     return ctx.card

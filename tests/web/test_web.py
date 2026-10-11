@@ -430,6 +430,12 @@ def test_a_blocked_question_is_never_sent_or_kept():
     assert "DiaCausalGuards" in app and "guards.json" in app
     for bad in ("localStorage.setItem(\"q", "sessionStorage", "location.hash = q", "fetch(\"/api"):
         assert bad not in app, bad
+    # P29b clinic mode: the only request that carries a question goes to the SAME computer's server (a relative ./api path, never
+    # another host), and only after the guards have passed (askServer is called below the BLOCK return in askInThread).
+    assert re.findall(r'fetch\("([^"]+)"', app) == ["./api/v1/llm", "./api/v1/ask", "./evidence.json", "./model.json", "./results.json",
+                                                     "./config.json", "./guards.json"]
+    body = app[app.index("async function askInThread"):app.index("// ── Analysis")]
+    assert body.index('check.status === "BLOCK"') < body.index("askServer(")
 
 
 def test_site_files_carry_the_intended_use_and_no_doses():

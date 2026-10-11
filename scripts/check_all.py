@@ -533,6 +533,7 @@ TEST_GROUPS = [
     ("CI workflows (no Netlify deploy)", ["tests/test_ci_workflows.py"]),
     ("pipeline and local-model provider", ["tests/orchestrator", "tests/llm"]),
     ("log privacy", ["tests/orchestrator/test_privacy.py", "tests/orchestrator/test_tracing.py"]),
+    ("clinic laptop (127.0.0.1 only, the served site, timings, measurement)", ["tests/test_clinic_laptop.py"]),
     ("web parity (browser engine, search, explanation, guards)", ["tests/web"]),
     ("XAI (versions A and C, the A-D ablation)", ["tests/xai"]),
 ]

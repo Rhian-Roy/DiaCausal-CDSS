@@ -136,8 +136,11 @@ screens. Until then, this list (the checks run on 11 Oct 2026):
 ```
 
 It needs the repo-root `.venv` (CLAUDE.md, "Causal engine"). It sends nothing to the internet: no account service, no online
-model (a local Ollama model is used only when `diacausal/llm/llm.yaml` says so). The clinic-laptop install (one command,
-offline after setup, start scripts for Windows and macOS) is P29(b) and will be written in `docs/OFFLINE_INSTALL.md`.
+model. The same server also serves the website at `/`, with the same security headers as Netlify.
+
+**On a clinic laptop**, use the start scripts instead (`scripts/start_clinic.bat` on Windows, `scripts/start_clinic.command` on
+macOS). They listen on 127.0.0.1:8000 only, use a local Ollama model when it is running, and open the browser. The whole install,
+offline after setup, is in [OFFLINE_INSTALL.md](OFFLINE_INSTALL.md).
 
 ---
 
