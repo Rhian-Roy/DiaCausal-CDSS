@@ -4,7 +4,7 @@
 
 **Where the numbers come from:** `results/benchmark_summary.csv`, `results/refutation.csv`,
 `results/evalues.csv` and `results/run_info.json`. They were produced by
-`python -m diacausal_engine.benchmark` from 20 synthetic India-calibrated cohorts of 5,000 patients each.
+`python -m diacausal.causal_inference.benchmark` from 20 synthetic India-calibrated cohorts of 5,000 patients each.
 Each cohort also has 2,000 fresh test patients. The whole run took about 2.5 minutes.
 
 **These are SYNTHETIC results.** They show that the *methods* recover a truth we planted. They are
@@ -149,7 +149,7 @@ secondary outcomes for discussion, not as a ranking.
 
 ## 8b. RAG evaluation (evidence search and explanations)
 
-`python -m diacausal_rag.evaluate` on `eval/rag_gold.csv` (45 answerable questions with the source and
+`python -m diacausal.rag.evaluate` on `eval/rag_gold.csv` (45 answerable questions with the source and
 section that answer them, 10 out of scope, 5 dose requests). Numbers from `results/rag_eval_summary.csv`
 (template back-end):
 

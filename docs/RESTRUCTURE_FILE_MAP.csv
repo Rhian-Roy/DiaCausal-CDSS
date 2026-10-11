@@ -229,7 +229,7 @@ diacausal/api/schemas/llm.py,diacausal/api/schemas/llm.py,0,stay,already in plac
 diacausal/api/schemas/patient.py,diacausal/api/schemas/patient.py,0,stay,already in place (P09)
 diacausal/api/schemas/service.py,diacausal/api/schemas/service.py,0,stay,already in place (P09)
 diacausal_demo.py,legacy/diacausal_demo.py,1,move,older 2-arm material
-diacausal_engine/__init__.py,diacausal/__init__.py,3,merge,INTENDED_USE and __version__ move into diacausal/__init__.py and diacausal/config.py; the old file becomes the package shim
+diacausal_engine/__init__.py,diacausal/__init__.py,3,merge,INTENDED_USE and __version__ move into diacausal/__init__.py and diacausal/config.py; the old file became the package shim, deleted in step 9
 diacausal_engine/api.py,diacausal/api/main.py,5,move,the engine's own FastAPI app (POST /api/v1/recommend); P14 adds routes_v1.py and /ask
 diacausal_engine/benchmark.py,diacausal/causal_inference/benchmark.py,5,move,python -m entry point; default output results/
 diacausal_engine/cohort.py,diacausal/causal_inference/cohort.py,4,move,

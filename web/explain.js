@@ -1,6 +1,6 @@
 /*
  * DiaCausal explanations, in the browser — a mirror of the template writer and the citation
- * checker in diacausal_rag/explain.py.
+ * checker in diacausal/llm/explain.py.
  *
  * Research prototype for clinician evaluation; not a marketed medical device;
  * not for unsupervised clinical use.

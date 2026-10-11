@@ -20,7 +20,7 @@ from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.model_selection import StratifiedKFold
 from sklearn.neighbors import NearestNeighbors
 
-from diacausal_engine import ARMS, CONTRASTS
+from diacausal.config import ARMS, CONTRASTS
 
 IDX = {a: i for i, a in enumerate(ARMS)}
 
@@ -252,5 +252,5 @@ def levels_to_targets(levels: np.ndarray) -> dict[str, np.ndarray]:
         out[f"{a}-{b}"] = levels[:, IDX[a]] - levels[:, IDX[b]]
     return out
 
-# Snapshot of diacausal_engine/estimators.py on 3 Oct 2026 (before the restructure); the live code is diacausal/causal_inference/estimators.py (the DR-learner is now diacausal/causal_inference/dr_learner.py).
+# Snapshot of the old diacausal_engine/estimators.py on 3 Oct 2026 (before the restructure); the live code is diacausal/causal_inference/estimators.py (the DR-learner is now diacausal/causal_inference/dr_learner.py).
 # The note is at the end so that the line ranges used by the report's listings (Chapter 5) stay valid.

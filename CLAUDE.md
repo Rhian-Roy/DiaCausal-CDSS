@@ -138,7 +138,7 @@ The evaluation pack is `eval/` (25 synthetic vignettes + the SUS and feedback fo
 
 ## Causal engine v0.3 (built, standalone) — see docs/CAUSAL_PLAN.md
 
-`diacausal/causal_inference/` (with `diacausal/config.py`, `diacausal/guards/rules_loader.py`; the old `diacausal_engine/` holds shims) compares three options added to metformin (SGLT2i, DPP-4i, sulfonylurea)
+`diacausal/causal_inference/` (with `diacausal/config.py`, `diacausal/guards/rules_loader.py`; the old `diacausal_engine/` package was deleted in restructure step 9) compares three options added to metformin (SGLT2i, DPP-4i, sulfonylurea)
 for one patient: the expected 6-month HbA1c change with a 95% interval (plus secondary outcomes:
 weight change in kg and hypoglycaemia risk in %, each with a 95% interval; an option whose range is
 wider than `engine.max_interval_width` abstains as "too uncertain"). It is the "Causal
@@ -392,18 +392,17 @@ unavailable". Never copy a price, a dose or a licence term from memory; the audi
 | Piece | Backend | Frontend / other |
 |---|---|---|
 | Causal engine in the chat app (October) | `backend/app/pipeline/causal_engine.py` calls `diacausal.causal_inference` on `ctx.options` only | designs 17 and 19; `contract.ts` + `schemas.py` together |
-| RAG in the chat app (built standalone in `diacausal/rag/` and `diacausal/llm/`: licence gate, WHO 2018 + FDA S08/S19–S23, sentence-aware chunks, BM25 + TF-IDF, RRF, coverage abstention, `explain.py` template/Ollama + citation checker, `eval/rag_gold.csv` + `evaluate`; `tests/rag` 33; website Evidence tab). Still to do: switching dense search on (built, off), reranker, doctor review of the gold set | `backend/app/pipeline/rag_retrieval.py`, `llm_explanation.py` call `diacausal_rag` | `docs/03_RAG_Build_Guide.md`; only `cleared_ingest` sources |
+| RAG in the chat app (built standalone in `diacausal/rag/` and `diacausal/llm/`: licence gate, WHO 2018 + FDA S08/S19–S23, sentence-aware chunks, BM25 + TF-IDF, RRF, coverage abstention, `explain.py` template/Ollama + citation checker, `eval/rag_gold.csv` + `evaluate`; `tests/rag` 33; website Evidence tab). Still to do: switching dense search on (built, off), reranker, doctor review of the gold set | `backend/app/pipeline/rag_retrieval.py`, `llm_explanation.py` call `diacausal/rag` | `docs/03_RAG_Build_Guide.md`; only `cleared_ingest` sources |
 
 Each folder's README says how it connects.
 
-Restructure progress (docs/RESTRUCTURE_PLAN.md): steps 1 to 7 are done. `diacausal/config.py` is the one place for `ROOT`,
+Restructure (docs/RESTRUCTURE_PLAN.md): steps 1 to 9 are done (the shims and the old `diacausal_engine/` and `diacausal_rag/` packages are gone). `diacausal/config.py` is the one place for `ROOT`,
 `DATA_DIR`, `WEB_DIR`, `RESULTS_DIR`, `KNOWLEDGE_DIR`, `ARMS`, `CONTRASTS`, the params loader and `load_rag_config`;
 `diacausal/__init__.py` holds `INTENDED_USE` and `__version__`; `dag`, `schemas`, `cohort`, `propensity`, `estimators`, `dr_learner` (split out of estimators), `fitting`, `refute`, `metrics`, `recommend`, `figures`, `benchmark` and `export_web` are in
 `diacausal/causal_inference/` (the engine's FastAPI app is `diacausal/api/main.py`; `uvicorn diacausal.api.main:app`). The RAG code is `diacausal/rag/`
 (`ingest/` = `chunking`, `licence_gate`, `pdf_text`; `index/` = `bm25`, `tfidf`; `retrieve/` = `hybrid`, `rerank`; `evaluate`, `export_web`,
 `sources_table`, `config.yaml`). The explanation writer is `diacausal/llm/` (`explain` = the switch, `prompt_builder` + `prompt.v1.txt`, `providers/template`, `providers/ollama`) and the citation checker
-`sentences` / `check_answer` is `diacausal/guards/output_guards.py` (web/explain.js mirrors it); `diacausal_rag/` now holds only shims, the rules loader is `diacausal/guards/rules_loader.py`. The old `diacausal_engine.*` paths of the moved modules are shims
-(the same module object, or for the split `estimators` a list of re-exports; `tests/test_shims.py`). New code imports from `diacausal`.
+`sentences` / `check_answer` is `diacausal/guards/output_guards.py` (web/explain.js mirrors it); the rules loader is `diacausal/guards/rules_loader.py`. New code imports from `diacausal`.
 
 `diacausal/registry.py` lists every importable module; `tests/test_imports.py` imports each one and fails if a module is
 missing from the list. Update it whenever a module moves (docs/RESTRUCTURE_PLAN.md).

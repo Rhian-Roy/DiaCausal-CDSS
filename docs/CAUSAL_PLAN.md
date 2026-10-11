@@ -48,10 +48,10 @@ build in October together with RAG and the LLM.
 
 | # | Decision | Why (plain English) |
 |---|---|---|
-| D1 | A **new package, `diacausal_engine/`**. The old `causal_engine/` stays as it is. | The old code answers a different question (2 arms). Leaving it alone keeps its notebooks and tests working. The new file names (`guardrails.py`, `estimators.py`) match what the report guide copies into Overleaf. |
+| D1 | A **new package, `diacausal/causal_inference/`**. The old `causal_engine/` stays as it is. | The old code answers a different question (2 arms). Leaving it alone keeps its notebooks and tests working. The new file names (`guardrails.py`, `estimators.py`) match what the report guide copies into Overleaf. |
 | D2 | **Keep both rules tables.** The engine reads only `data/rules.csv`; the chat app keeps its `guardrails.v1.yaml`. | You asked for "both … whatever suits best". Part 6 must be used exactly, and the chat app's tested behaviour shouldn't change five days before the demo. §4 lists every difference for Member D and the doctor. When the two are joined in October, **the stricter action wins** until the doctor decides, so no safety rule from either table is ever lost. |
 | D3 | **The demo is Streamlit** (`demo/streamlit_app.py`), not the React chat page. | The React page needs sign-in with an authenticator app and a Node build. Showing estimates there means changing the tested contract in six or more files. Streamlit is one file and one command, and it runs offline on the MacBook. Our guides, viva answers and slides already describe a Streamlit demo. |
-| D4 | **FastAPI:** a small separate app, `diacausal_engine/api.py`, with `POST /api/v1/recommend` on port 8001. | This is the endpoint slide 13 names. Port 8001 doesn't clash with the chat backend on 8000. The demo and the API call the same Python function, so they always agree. |
+| D4 | **FastAPI:** a small separate app, `diacausal/api/main.py`, with `POST /api/v1/recommend` on port 8001. | This is the endpoint slide 13 names. Port 8001 doesn't clash with the chat backend on 8000. The demo and the API call the same Python function, so they always agree. |
 | D5 | **Its own pinned `requirements-engine.txt`**, a root `.venv`, and tests in `tests/engine/`. | Installing it is small and quick (no Whisper, no DoWhy/EconML). The old test file (2 known failures) stays out of the way. The fastapi, uvicorn and PyYAML pins match the backend's. |
 | D6 | **The audit log** is `logs/audit.jsonl` (not committed). Each line holds the request ID, time, versions, **names** of the fields received, and each option's status and rule IDs. | CLAUDE.md says never to log patient values. That is stricter than viva answer 27, so say "we log what was decided and why, not the patient's numbers". |
 | D7 | **Colours:** red = excluded, amber = caution, grey = insufficient evidence, pine (teal) = an estimate. **Never green for "recommended".** | This follows the PPT guide. The tokens come from `frontend/src/index.css`. |
@@ -62,7 +62,7 @@ For each step below: write the code and its tests, run `python -m pytest tests/e
 it in three plain sentences, commit, and push.
 
 ### a) Synthetic India-calibrated cohort
-- **Files:** `data/params.yaml`, `diacausal_engine/config.py`, `diacausal_engine/cohort.py`.
+- **Files:** `data/params.yaml`, `diacausal/config.py`, `diacausal/causal_inference/cohort.py`.
 - **What:** about 5,000 made-up patients.
   - Their details are age, sex, diabetes duration, HbA1c, eGFR, BMI, heart disease (ASCVD), CKD,
     heart failure, past hypoglycaemia, past DKA, past pancreatitis, and low income.
@@ -84,7 +84,7 @@ it in three plain sentences, commit, and push.
 
 ### b) Guardrails from `data/rules.csv`
 - **Files:** `data/rules.csv` (the Part 6 table, character for character) and
-  `diacausal_engine/guardrails.py`.
+  `diacausal/guards/rules_loader.py`.
 - **What:**
   - Read the csv and check every row. It needs a known operator (`lt le gt ge eq`), a known action
     (`EXCLUDE`, `CAUTION`), a known drug class, a known field, and a non-empty source and section.
@@ -100,7 +100,7 @@ it in three plain sentences, commit, and push.
   - a scan of the engine's code finds no clinical thresholds written into it.
 
 ### c) Cross-fitted multinomial propensity model and overlap check
-- **File:** `diacausal_engine/propensity.py`.
+- **File:** `diacausal/causal_inference/propensity.py`.
 - **What:**
   - Multinomial logistic regression gives each patient's chance of getting each of the three drugs.
   - It is **cross-fitted** with 5 folds: every patient's score comes from a model that never saw
@@ -117,7 +117,7 @@ it in three plain sentences, commit, and push.
   - out-of-range patients abstain.
 
 ### d) Average effects three ways: naive, IPW, AIPW, each with a 95% CI
-- **File:** `diacausal_engine/estimators.py`. The formulas are written out in NumPy so each line can
+- **File:** `diacausal/causal_inference/estimators.py`. The formulas are written out in NumPy so each line can
   be explained.
   - **Naive:** the average outcome in each drug group. This is the unfair comparison.
   - **IPW:** re-weights patients by 1 ÷ (their chance of getting their drug), so each group looks
@@ -133,7 +133,7 @@ it in three plain sentences, commit, and push.
     is clearly off.
 
 ### e) DR-learner: this patient's effect, with an interval
-- **File:** `diacausal_engine/estimators.py`.
+- **File:** `diacausal/causal_inference/estimators.py`.
 - **What:**
   - Take the cross-fitted AIPW pseudo-outcomes φ and fit a **linear regression of φ on the
     patient's details** (the DR-learner, Kennedy 2023).
@@ -148,7 +148,7 @@ it in three plain sentences, commit, and push.
   - lower < estimate < upper, always.
 
 ### f) Metrics against the known truth
-- **File:** `diacausal_engine/metrics.py`.
+- **File:** `diacausal/causal_inference/metrics.py`.
 - **What:**
   - bias, RMSE, 95% interval coverage, PEHE;
   - **policy regret**: how much worse the option with the best estimate is than the truly best
@@ -158,9 +158,9 @@ it in three plain sentences, commit, and push.
 - **Tests:** tiny made-up arrays with answers worked out by hand.
 
 ### g) Benchmark
-- **Files:** `diacausal_engine/benchmark.py`, `diacausal_engine/figures.py`.
+- **Files:** `diacausal/causal_inference/benchmark.py`, `diacausal/causal_inference/figures.py`.
 - **Commands:**
-  - `python -m diacausal_engine.benchmark`: 20 repeats × 5,000 patients, plus 2,000 fresh test
+  - `python -m diacausal.causal_inference.benchmark`: 20 repeats × 5,000 patients, plus 2,000 fresh test
     patients per repeat;
   - `--quick`: 3 repeats × 1,500 patients.
 - **Saves:**
@@ -179,7 +179,7 @@ it in three plain sentences, commit, and push.
 - I run the full benchmark once and commit `results/`.
 
 ### h) Demo (Streamlit)
-- **Files:** `diacausal_engine/recommend.py` (the one-patient pipeline) and `demo/streamlit_app.py`.
+- **Files:** `diacausal/causal_inference/recommend.py` (the one-patient pipeline) and `demo/streamlit_app.py`.
 - **The order is fixed:**
   1. check the inputs;
   2. **apply the safety rules**. An excluded option is never estimated at all;
@@ -202,7 +202,7 @@ it in three plain sentences, commit, and push.
 - The model is fitted once when the app starts; each answer takes well under a second.
 
 ### i) FastAPI endpoint
-- **Files:** `diacausal_engine/api.py`, `diacausal_engine/schemas.py`.
+- **Files:** `diacausal/api/main.py`, `diacausal/causal_inference/schemas.py`.
 - **Endpoints:** `POST /api/v1/recommend` (patient details in; each option's estimate with its 95%
   range, or "insufficient evidence", or excluded with sources; versions; request ID) and
   `GET /api/v1/health`.

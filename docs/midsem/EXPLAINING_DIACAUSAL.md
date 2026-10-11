@@ -84,7 +84,7 @@ works, and the question you are most likely to be asked.
 
 | When | What we built | Where / proof |
 |---|---|---|
-| July – August | Topic, proposal, literature. First research code: a 2-drug causal notebook, a small guideline retrieval (`causal_engine/`, `notebooks/`, `RAG/`). An early RAG prototype, later replaced by the native `diacausal_rag` package. | Initial commit 27 Aug |
+| July – August | Topic, proposal, literature. First research code: a 2-drug causal notebook, a small guideline retrieval (`causal_engine/`, `notebooks/`, `RAG/`). An early RAG prototype, later replaced by the native `diacausal/rag` package. | Initial commit 27 Aug |
 | Early September | **Data decision.** The Pima dataset is not Indian and not about drug choice, so we rejected it. We chose a **synthetic, India-calibrated cohort** where the true effect of every drug is known. Scope frozen: adults with type 2 diabetes on metformin; three add-on classes; outcome = 6-month HbA1c change. | `docs/01_Master_Plan.md` |
 | 18 – 19 Sept | **Chat app: walking skeleton.** React page → FastAPI server → six-stage pipeline → reply, with one trace ID on every log line. One command checks everything. | PR #1, #2; `docs/explain/01` |
 | 20 Sept | **Guards.** Foul language, patient identifiers, out of scope, emergency, language. The same rules file is used in the browser and on the server. | `shared/guard_rules/`; `docs/explain/03` |
@@ -237,7 +237,7 @@ Each part follows the same pattern: **What**, **How**, **Why**, **Where**, **Pro
     weight change.
 - **Why synthetic:** Pima is not Indian data and has no drug choice. Real Indian records need
   ethics approval. A known truth is the only way to *prove* a method is right.
-- **Where:** `diacausal_engine/cohort.py`, `data/params.yaml` (including its `dag:` section, read by `diacausal_engine/dag.py`).
+- **Where:** `diacausal/causal_inference/cohort.py`, `data/params.yaml` (including its `dag:` section, read by `diacausal/causal_inference/dag.py`).
 - **Q:** *"Doesn't synthetic data prove nothing?"*
   **A:** It proves the *method* recovers a planted truth under realistic confounding, which you
   cannot check on real data. It does not prove real drug effects, and we never claim it does.
@@ -302,7 +302,7 @@ Each part follows the same pattern: **What**, **How**, **Why**, **Where**, **Pro
   - an 80% subset should give about the same answer.
 - **E-values:** how strong a hidden confounder would need to be to explain the effect away:
   1.72 (SGLT2i vs DPP-4i), 2.15 (SU vs DPP-4i), 1.57 (SGLT2i vs SU).
-- **Where:** `python -m diacausal_engine.benchmark`, `results/`, five figures in `results/figures/`.
+- **Where:** `python -m diacausal.causal_inference.benchmark`, `results/`, five figures in `results/figures/`.
 
 #### B9. Causal Output, Streamlit demo and API
 - **Causal Output:** the structured JSON handed to the evidence-fusion layer (`schemas.CausalOutput`):
@@ -374,7 +374,7 @@ Each part follows the same pattern: **What**, **How**, **Why**, **Where**, **Pro
 
 #### D2. Ingestion and chunking
 - **How:**
-  - PDFs are converted with page markers and headings (`diacausal_rag/pdf_text.py`). FDA pages
+  - PDFs are converted with page markers and headings (`diacausal/rag/ingest/pdf_text.py`). FDA pages
     come from the official page's archived copy (`scripts/fetch_fda_dsc.py`).
   - Text is cut into passages of about 400 words that **never cross a section** and **end at a
     sentence**.
@@ -408,7 +408,7 @@ Each part follows the same pattern: **What**, **How**, **Why**, **Where**, **Pro
   If any sentence fails, the quoted answer is shown instead, with a note saying why.
 - **Dose questions** ("What dose of glimepiride…?") get: "DiaCausal never gives doses."
 - **Where:**
-  - `diacausal_rag/explain.py` and its browser mirror `web/explain.js`;
+  - `diacausal/llm/explain.py` and its browser mirror `web/explain.js`;
   - `supabase/functions/explain/` (the key is a Supabase secret; only approved, MFA-verified
     users can call it).
 
@@ -478,7 +478,7 @@ Some tests enforce project rules rather than features:
    - confirming the rule cut-offs.
 2. **Thresholds.** Is 1.5 HbA1c points a sensible "too uncertain" limit? Is 60% question
    coverage a sensible "refuse" limit? Both are TEAM-SET, one line each (`data/params.yaml`,
-   `diacausal_rag/config.yaml`).
+   `diacausal/rag/config.yaml`).
 3. **Sources.** Can the department help obtain written permission for the ICMR / RSSDI 2022
    guidelines? Today they are cite-only.
 4. **Prices.** Is using the Jan Aushadhi list acceptable? Until it's confirmed, the app shows

@@ -3,7 +3,7 @@
 > Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.
 
 **For:** Graceton, and anyone with their own causal-inference code. The engine on `main`
-(`diacausal_engine/`) is the **one engine** the demo, the API, the tests and the benchmark use. We
+(`diacausal/causal_inference/`) is the **one engine** the demo, the API, the tests and the benchmark use. We
 compare other code with it first, then keep the best parts through a pull request. Nobody replaces
 it directly.
 
@@ -39,7 +39,7 @@ Please **never upload to `main`**, and never upload:
 ## 3. What happens next
 
 - **A good extra piece** (a new estimator such as a causal forest, a better plot, a real-data
-  loader) gets added to `diacausal_engine/` with tests. It then appears in the benchmark next to
+  loader) gets added to `diacausal/causal_inference/` with tests. It then appears in the benchmark next to
   AIPW and the DR-learner, so the team can see honestly which is better.
 - **A duplicate of something we already have** stays in `contrib/` as reference, credited to you.
 - **Anything that breaks a rule above** (hard-coded thresholds, no intervals, doses) is not merged

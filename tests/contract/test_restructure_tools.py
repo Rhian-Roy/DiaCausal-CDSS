@@ -37,7 +37,7 @@ def test_the_file_map_is_consistent():
     assert {r["action"] for r in rows} <= {"stay", "stay + edit", "move", "split", "merge"}
 
 
-LAST_STEP_DONE = 8  # raise by one in each restructure pull request (docs/RESTRUCTURE_PLAN.md, section 5)
+LAST_STEP_DONE = 9  # raise by one in each restructure pull request (docs/RESTRUCTURE_PLAN.md, section 5)
 
 
 def test_the_tree_matches_the_map_for_the_last_step_done():
@@ -106,3 +106,12 @@ def test_baseline_folder_comparison_detects_a_changed_csv_cell(tmp_path):
     assert baseline.compare_dirs(tmp_path / "old", tmp_path / "same") == []
     problems = baseline.compare_dirs(tmp_path / "old", tmp_path / "diff")
     assert problems and "benchmark_summary.csv" in problems[0]
+
+
+def test_a_merged_files_old_path_may_be_gone_once_the_shims_are_removed(tmp_path):
+    """Step 9 deletes the old packages: a "merge" row then needs only its new file (restructure plan, step 9)."""
+    rows = [{"old_path": "old/__init__.py", "new_path": "new/__init__.py", "step": 3, "action": "merge", "notes": "", "new_paths": ["new/__init__.py"]}]
+    (tmp_path / "new").mkdir()
+    (tmp_path / "new" / "__init__.py").write_text("")
+    assert any("is missing" in p for p in check_moves.check(rows, tmp_path, step=8, tracked=[]))
+    assert check_moves.check(rows, tmp_path, step=9, tracked=[]) == []

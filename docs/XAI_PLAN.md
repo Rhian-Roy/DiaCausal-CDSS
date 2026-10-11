@@ -161,7 +161,7 @@ Because `c_j` is a fixed number, "the interval of `phi_cj` excludes 0" is equiva
 
 ### 3.6 The Python reference and the JavaScript twin
 
-- **Python (P25):** `diacausal/xai/cate_shap.py` (after the restructure; `diacausal_engine/` path before it) with `explain_effect(dr, x, target, z) -> EffectExplanation` holding `base`, `estimate`, and a list of `{feature, value, mean, slope_per_unit, phi, ci_low, ci_high, clear}`. Pure NumPy, no `shap` import (so the website export and CI stay light).
+- **Python (P25):** `diacausal/xai/cate_shap.py` (after the restructure; `diacausal/causal_inference/` path before it) with `explain_effect(dr, x, target, z) -> EffectExplanation` holding `base`, `estimate`, and a list of `{feature, value, mean, slope_per_unit, phi, ci_low, ci_high, clear}`. Pure NumPy, no `shap` import (so the website export and CI stay light).
 - **JavaScript (P25):** `explainEffect(model, x, target)` in `web/engine.js`, using only `model.dr.mean/scale/beta/cov`, `model.targets`, `model.features`, `model.thresholds.ci_z`; it returns the same fields; `recommend()` calls it for the comparisons that are displayed.
 
 ### 3.7 What to export to `model.json` (almost nothing)

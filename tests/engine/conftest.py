@@ -51,7 +51,7 @@ MIN_ENGINE_FILES = 18  # today: config.py + 14 in causal_inference/ (with __init
 @pytest.fixture(scope="session")
 def engine_code_files() -> list[Path]:
     """Every source file of the causal engine at its real place: diacausal/config.py, diacausal/causal_inference/ and
-    diacausal/guards/ (the old diacausal_engine/ package holds only shims now and is deleted in step 9).
+    diacausal/guards/ (the old diacausal_engine/ package, shims only, was deleted in restructure step 9).
     The count guards against a scan that silently looks at nothing: the engine had 16 files before the restructure."""
     files = [ROOT / "diacausal" / "config.py", *(ROOT / "diacausal" / "causal_inference").glob("*.py"),
              *(ROOT / "diacausal" / "guards").glob("*.py")]

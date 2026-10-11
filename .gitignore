@@ -56,7 +56,7 @@ backend/.env
 tests/e2e/test-results/
 tests/e2e/playwright-report/
 
-# ── Causal engine (diacausal_engine/) ────────────────────────────────────────
+# ── Causal engine (diacausal/causal_inference/) ────────────────────────────────────────
 logs/
 
 # Netlify / Supabase CLI local state (site link, CLI cache)

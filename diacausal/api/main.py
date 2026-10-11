@@ -1,6 +1,6 @@
 """Step (i): the causal engine as a web API.
 
-    uvicorn diacausal.api.main:app --port 8001      # docs at http://localhost:8001/docs (the old diacausal_engine.api:app still works)
+    uvicorn diacausal.api.main:app --port 8001      # docs at http://localhost:8001/docs
 
 POST /api/v1/recommend   patient details in -> structured Causal Output out (the engine alone)
 POST /api/v1/ask         patient details + a question -> AnswerCardV1 (the whole pipeline: routes_v1.py)

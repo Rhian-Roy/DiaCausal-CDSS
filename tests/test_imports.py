@@ -10,7 +10,7 @@ import pytest
 from diacausal.registry import REGISTRY, modules
 
 ROOT = Path(__file__).resolve().parent.parent
-PACKAGES = ("diacausal", "diacausal_engine", "diacausal_rag")
+PACKAGES = ("diacausal",)
 
 
 def _on_disk() -> set[str]:

@@ -14,8 +14,8 @@ controlled. Decision: add SGLT2i vs DPP-4i vs sulfonylurea. Primary outcome: 6-m
 (%); secondary: hypoglycaemia risk, weight change, ₹/month. Frozen scope; label anything else
 FUTURE WORK.
 
-**BUILT:** 3-arm causal engine (diacausal_engine: cross-fitted propensity, AIPW, DR-learner with 95%
-intervals, overlap 0.05, abstains if interval width > 1.5); licence-gated RAG (diacausal_rag: BM25 +
+**BUILT:** 3-arm causal engine (diacausal/causal_inference: cross-fitted propensity, AIPW, DR-learner with 95%
+intervals, overlap 0.05, abstains if interval width > 1.5); licence-gated RAG (diacausal/rag: BM25 +
 TF-IDF + RRF over 78 passages from WHO 2018 and FDA safety communications); static web app web/ on
 Netlify with Supabase sign-in.
 

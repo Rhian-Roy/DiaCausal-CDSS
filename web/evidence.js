@@ -1,12 +1,12 @@
 /*
  * DiaCausal evidence search (RAG retrieval), in the browser — a line-by-line mirror of
- * diacausal_rag/retrieve.py.
+ * diacausal/rag/retrieve/hybrid.py.
  *
  * Research prototype for clinician evaluation; not a marketed medical device;
  * not for unsupervised clinical use.
  *
  * The index (word counts, TF-IDF vectors, citations) comes from evidence.json, which Python
- * writes (python -m diacausal_rag.export_web). Only licence-cleared, team-confirmed sources are
+ * writes (python -m diacausal.rag.export_web). Only licence-cleared, team-confirmed sources are
  * in it; passages with dose-like text were withheld before export. The question never leaves the
  * device. tests/web/test_web.py checks this file gives exactly the same passages and scores as
  * the Python retriever.

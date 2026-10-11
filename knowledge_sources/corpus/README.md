@@ -2,12 +2,12 @@
 
 Put a document here only if its source row in `knowledge_sources/sources.csv` has bucket **exactly**
 `cleared_ingest` **and** a team member has confirmed the licence in `checked_by` (not a draft).
-Everything else is refused by `diacausal_rag/ingest.py`, and a test fails if a `.txt` file here is
+Everything else is refused by `diacausal/rag/ingest/chunking.py`, and a test fails if a `.txt` file here is
 missing from `manifest.csv`.
 
 | File | Source | Licence | How it was made |
 |---|---|---|---|
-| `who_2018_second_line.txt` | S01 WHO 2018 second- and third-line medicines guideline, PDF pages 7–26 | CC BY-NC-SA 3.0 IGO | `python -m diacausal_rag.pdf_text` from the official WHO PDF (iris.who.int) |
+| `who_2018_second_line.txt` | S01 WHO 2018 second- and third-line medicines guideline, PDF pages 7–26 | CC BY-NC-SA 3.0 IGO | `python -m diacausal.rag.ingest.pdf_text` from the official WHO PDF (iris.who.int) |
 | `fda_dsc_2016_metformin_kidney.txt` | S08 FDA DSC 8 Apr 2016, metformin and kidney function | US government work | from the FDA PDF |
 | `fda_dsc_2016_saxagliptin_alogliptin_hf.txt` | S08 FDA DSC 5 Apr 2016, saxagliptin/alogliptin and heart failure | US government work | `scripts/fetch_fda_dsc.py` |
 | `fda_dsc_2015_dpp4_joint_pain.txt` | S19 FDA DSC 2015, DPP-4 inhibitors and joint pain | US government work | `scripts/fetch_fda_dsc.py` |

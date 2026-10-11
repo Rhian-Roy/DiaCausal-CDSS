@@ -2,8 +2,8 @@
 
 `tests/test_imports.py` imports every entry and fails if a module exists on disk that is not listed
 here, so this file cannot drift. Update it in every restructure step (docs/RESTRUCTURE_PLAN.md):
-when a module moves, change its `module`; when a shim is left at the old path, keep both lines
-(the old one with `shim_for` naming the new module) until the shim is removed (step 9).
+when a module moves, change its `module`. (The shims of the old diacausal_engine and diacausal_rag packages were
+removed in restructure step 9.)
 
 Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised
 clinical use.
@@ -19,8 +19,6 @@ from typing import NamedTuple
 class Entry(NamedTuple):
     module: str  # dotted import path
     role: str  # one line, plain English
-    shim_for: str = ""  # set on a tiny file left at an old path: the new module it stands for
-    alias: bool = True  # False for a split module: the shim re-exports names (several new modules) instead of aliasing one
 
 
 REGISTRY: tuple[Entry, ...] = (
@@ -100,30 +98,6 @@ REGISTRY: tuple[Entry, ...] = (
     Entry("diacausal.llm.golden", "the 20 golden questions and the pipeline inputs each one needs"),
     Entry("diacausal.llm.providers.ollama", "local model through Ollama"),
     Entry("diacausal.guards.output_guards", "the citation checker (sentences, check_answer) and the seven output checks of plan 8.10"),
-    Entry("diacausal_engine", "the 3-arm causal engine (package)"),
-    Entry("diacausal_engine.api", "old path of diacausal.api.main", shim_for="diacausal.api.main"),
-    Entry("diacausal_engine.benchmark", "old path of diacausal.causal_inference.benchmark", shim_for="diacausal.causal_inference.benchmark"),
-    Entry("diacausal_engine.cohort", "old path of diacausal.causal_inference.cohort", shim_for="diacausal.causal_inference.cohort"),
-    Entry("diacausal_engine.config", "old path of diacausal.config", shim_for="diacausal.config"),
-    Entry("diacausal_engine.dag", "old path of diacausal.causal_inference.dag", shim_for="diacausal.causal_inference.dag"),
-    Entry("diacausal_engine.estimators", "old path of diacausal.causal_inference.estimators", shim_for="diacausal.causal_inference.estimators", alias=False),
-    Entry("diacausal_engine.export_web", "old path of diacausal.causal_inference.export_web", shim_for="diacausal.causal_inference.export_web"),
-    Entry("diacausal_engine.figures", "old path of diacausal.causal_inference.figures", shim_for="diacausal.causal_inference.figures"),
-    Entry("diacausal_engine.fitting", "old path of diacausal.causal_inference.fitting", shim_for="diacausal.causal_inference.fitting"),
-    Entry("diacausal_engine.guardrails", "old path of diacausal.guards.rules_loader", shim_for="diacausal.guards.rules_loader"),
-    Entry("diacausal_engine.metrics", "old path of diacausal.causal_inference.metrics", shim_for="diacausal.causal_inference.metrics"),
-    Entry("diacausal_engine.propensity", "old path of diacausal.causal_inference.propensity", shim_for="diacausal.causal_inference.propensity"),
-    Entry("diacausal_engine.recommend", "old path of diacausal.causal_inference.recommend", shim_for="diacausal.causal_inference.recommend"),
-    Entry("diacausal_engine.refute", "old path of diacausal.causal_inference.refute", shim_for="diacausal.causal_inference.refute"),
-    Entry("diacausal_engine.schemas", "old path of diacausal.causal_inference.schemas", shim_for="diacausal.causal_inference.schemas"),
-    Entry("diacausal_rag", "licence-gated RAG (package)"),
-    Entry("diacausal_rag.evaluate", "old path of diacausal.rag.evaluate", shim_for="diacausal.rag.evaluate"),
-    Entry("diacausal_rag.explain", "old path of diacausal.llm.explain (split into five modules)", shim_for="diacausal.llm.explain", alias=False),
-    Entry("diacausal_rag.export_web", "old path of diacausal.rag.export_web", shim_for="diacausal.rag.export_web"),
-    Entry("diacausal_rag.ingest", "old path of diacausal.rag.ingest.chunking", shim_for="diacausal.rag.ingest.chunking", alias=False),
-    Entry("diacausal_rag.pdf_text", "old path of diacausal.rag.ingest.pdf_text", shim_for="diacausal.rag.ingest.pdf_text"),
-    Entry("diacausal_rag.retrieve", "old path of diacausal.rag.retrieve.hybrid", shim_for="diacausal.rag.retrieve.hybrid", alias=False),
-    Entry("diacausal_rag.sources_table", "old path of diacausal.rag.sources_table", shim_for="diacausal.rag.sources_table"),
 )
 
 

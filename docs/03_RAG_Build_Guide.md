@@ -9,7 +9,7 @@
 | Sources and licences | WHO 2018 (S01) + FDA S08, S19–S23 ingested; licences confirmed by the team; RSSDI-ESI 2020 (S02) still waits for its own PMC licence line |
 | PDF → sections with pages; search index | Built (`pdf_text.py`, `ingest.py`, `retrieve.py`); 78 passages |
 | Answers with citations; refuse when unsupported | Built (`explain.py`: template / Ollama + citation checker) |
-| Gold set + evaluation | Built (`eval/rag_gold.csv`, `python -m diacausal_rag.evaluate`); the doctor still has to review the 20 flagged questions |
+| Gold set + evaluation | Built (`eval/rag_gold.csv`, `python -m diacausal.rag.evaluate`); the doctor still has to review the 20 flagged questions |
 | Connect to engine and UI | Website: Evidence tab explanation + "Evidence for this option" on each card. Chat app: not yet |
 
 Results (`results/rag_eval_summary.csv`, template back-end) against the targets below: recall@5 0.956 (0.933 before query processing, P16)
@@ -25,7 +25,7 @@ After the engine shows the numbers, RAG explains them in words — but only usin
 
 ## What to say about RAG on 30 September
 
-> "RAG is our next phase, from 1 to 16 October. We already have a working native retrieval package, `diacausal_rag`, which replaced the earlier prototype. The October version will search only licence-cleared guidelines and cite every sentence."
+> "RAG is our next phase, from 1 to 16 October. We already have a working native retrieval package, `diacausal/rag`, which replaced the earlier prototype. The October version will search only licence-cleared guidelines and cite every sentence."
 
 Show one screenshot of the prototype, clearly labelled "early prototype".
 
@@ -82,7 +82,7 @@ flowchart LR
 
 | Option | Good | Not so good | Recommendation |
 |---|---|---|---|
-| Build on a large third-party RAG framework | Ready-made | Large framework; hard to enforce our citation and dose rules; harder to explain in the viva | Not used; replaced by the native `diacausal_rag` package |
+| Build on a large third-party RAG framework | Ready-made | Large framework; hard to enforce our citation and dose rules; harder to explain in the viva | Not used; replaced by the native `diacausal/rag` package |
 | A lean pipeline inside our Python service (about 300 lines) | Small, testable, easy to explain; enforces our rules | Has to be written (1–2 Claude Code sessions) | Recommended |
 
 **Language model options:** the Claude API (billed separately from the Pro plan), or a small local model on the MacBook with Ollama (free, slower). Only synthetic or public text goes to any model — never patient data.

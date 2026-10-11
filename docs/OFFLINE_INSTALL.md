@@ -18,7 +18,7 @@ python3.12 -m venv .venv
 Optional local language model (for plain-English explanations without internet):
 
 1. Install Ollama from https://ollama.com (free).
-2. `ollama pull llama3.2:3b` (about 2 GB; the name is `ollama_model` in `diacausal_rag/config.yaml`).
+2. `ollama pull llama3.2:3b` (about 2 GB; the name is `ollama_model` in `diacausal/rag/config.yaml`).
 
 ## 2. Run with the internet switched off
 
@@ -33,18 +33,18 @@ engine, the evidence search and the quoted explanations — runs inside the brow
 Explanations in plain words from the local model (nothing leaves the computer):
 
 ```bash
-.venv/bin/python -m diacausal_rag.explain "Can SGLT2 inhibitors cause ketoacidosis?" --backend ollama
+.venv/bin/python -m diacausal.llm.explain "Can SGLT2 inhibitors cause ketoacidosis?" --backend ollama
 ```
 
 Every sentence the model writes must cite a passage and match its words; otherwise the quotes are
 shown. Other tools, all offline: `streamlit run demo/streamlit_app.py` (demo),
-`uvicorn diacausal_engine.api:app --port 8001` (API), `python -m diacausal_rag.evaluate --backend ollama`.
+`uvicorn diacausal.api.main:app --port 8001` (API), `python -m diacausal.rag.evaluate --backend ollama`.
 
 ## 3. For a hospital (later, with the hospital's IT team)
 
 - Serve `web/` from an internal web server (HTTPS on the intranet), accounts off or behind the
   hospital's own sign-in; never expose it to the internet.
 - Replace the synthetic cohort with a de-identified local dataset only after ethics approval
-  (`diacausal_engine/cohort.py: load_dataset`), rerun the benchmark and refit.
+  (`diacausal/causal_inference/cohort.py: load_dataset`), rerun the benchmark and refit.
 - Keep the licence rules: only sources the hospital may copy go into `knowledge_sources/corpus/`.
 - The doctor stays in charge: decision support only, no doses, every number with its 95% range.
