@@ -24,6 +24,7 @@ Research prototype for clinician evaluation; not a marketed medical device; not 
 from __future__ import annotations
 
 import json
+import os
 import time
 import urllib.error
 import urllib.request
@@ -45,8 +46,35 @@ class OllamaError(Exception):
         self.code = code
 
 
+PROVIDER_ENV = "DIACAUSAL_LLM_PROVIDER"  # set only by scripts/start_clinic.*: the clinic laptop's own choice, llm.yaml stays the team default
+
+
 def load_llm_config(path: Path = CONFIG_PATH) -> dict:
-    return load_rag_config(path)
+    """llm.yaml, except that DIACAUSAL_LLM_PROVIDER=template|ollama (when set) overrides `provider` on this computer only."""
+    cfg = load_rag_config(path)
+    override = os.environ.get(PROVIDER_ENV, "").strip()
+    if override in ("template", "ollama"):
+        cfg = {**cfg, "provider": override}
+    return cfg
+
+
+def status(cfg: dict, timeout: float = 2.0) -> dict:
+    """Which writer will answer, for the page's banner (GET /api/v1/llm): the configured provider, the model tag, and whether a local
+    Ollama answers and has that tag pulled. Names and yes/no only; nothing about any question."""
+    tag = model_tag(cfg) if cfg["provider"] == "ollama" else None
+    reachable = pulled = False
+    if tag:
+        try:
+            with urllib.request.urlopen(f"{cfg['ollama_url'].rstrip('/')}/api/tags", timeout=timeout) as r:
+                models = json.loads(r.read()).get("models", [])
+                names = {m.get("name") for m in models} | {m.get("model") for m in models}
+            reachable = True
+            pulled = tag in names
+        except Exception:  # noqa: BLE001 - not running, refused, or not Ollama: the template answers
+            reachable = False
+    writer = "ollama" if (tag and reachable and pulled) else "template"
+    return {"provider": cfg["provider"], "writer": writer, "model_tag": tag if writer == "ollama" else None,
+            "ollama_reachable": reachable, "model_pulled": pulled}
 
 
 def model_tag(cfg: dict, key: str | None = None) -> str:

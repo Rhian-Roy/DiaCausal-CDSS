@@ -5,6 +5,9 @@
 POST /api/v1/recommend   patient details in -> structured Causal Output out (the engine alone)
 POST /api/v1/ask         patient details + a question -> AnswerCardV1 (the whole pipeline: routes_v1.py)
 GET  /api/v1/health      is the engine up?
+GET  /api/v1/llm         which writer answers questions here: the template, or a local Ollama model (and is it running?)
+GET  /                   the website (web/), with the same security headers as on Netlify (web/netlify.toml): the clinic
+                         laptop (scripts/start_clinic.*, docs/OFFLINE_INSTALL.md) opens this, on 127.0.0.1 only
 
 Every response — including errors — carries the intended-use statement:
 Research prototype for clinician evaluation; not a marketed medical device;
@@ -16,14 +19,17 @@ Logs carry request IDs, option statuses and rule IDs only — never patient valu
 from __future__ import annotations
 
 import logging
+import tomllib
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from diacausal import INTENDED_USE, __version__
+from diacausal.config import WEB_DIR
 from diacausal.causal_inference.recommend import Engine, get_engine
 from diacausal.api.routes_v1 import router as v1_router
 from diacausal.causal_inference.schemas import CausalOutput, ErrorOut, HealthOut, RecommendRequest
@@ -54,6 +60,16 @@ def _plain(error: dict) -> dict:
     else:
         message = "has the wrong type or format"
     return {"field": field, "message": message}
+
+
+NOT_THE_PAGE = ("/api/", "/docs", "/redoc", "/openapi.json")  # these keep FastAPI's own headers (/docs loads its own scripts)
+
+
+def site_headers(toml_path=WEB_DIR / "netlify.toml") -> dict[str, dict[str, str]]:
+    """The security headers of the public site, read from web/netlify.toml so the laptop and Netlify can never differ:
+    {path pattern: {header: value}} ("/*" for every file, "/sw.js" for the service worker)."""
+    data = tomllib.loads(toml_path.read_text(encoding="utf-8"))
+    return {h["for"]: dict(h["values"]) for h in data.get("headers", [])}
 
 
 def create_app(engine: Engine | None = None) -> FastAPI:
@@ -96,6 +112,22 @@ def create_app(engine: Engine | None = None) -> FastAPI:
     def health() -> HealthOut:
         return HealthOut(engine=__version__)
 
+    @app.get("/config.json", include_in_schema=False)
+    def page_config() -> JSONResponse:
+        """The website's committed settings (accounts off, never a key) plus "clinic": true, so the page knows it is served by this
+        server and asks /api/v1/llm. On Netlify config.json has no "clinic", so the public page makes no extra request."""
+        import json
+
+        base = json.loads((WEB_DIR / "config.json").read_text(encoding="utf-8"))
+        return JSONResponse(content={**base, "clinic": True}, headers={"Cache-Control": "no-cache"})
+
+    @app.get("/api/v1/llm")
+    def llm_status() -> JSONResponse:
+        """Which writer answers questions on this computer (for the page's banner). Asked fresh each time, with a 2 s limit."""
+        from diacausal.llm.providers import ollama
+
+        return JSONResponse(content={**ollama.status(ollama.load_llm_config()), "intended_use": INTENDED_USE})
+
     @app.post("/api/v1/recommend", response_model=CausalOutput,
               responses={422: {"model": ErrorOut, "description": "Invalid request (plain-English message)"}})
     def recommend(body: RecommendRequest, request: Request) -> JSONResponse:
@@ -108,6 +140,21 @@ def create_app(engine: Engine | None = None) -> FastAPI:
         return JSONResponse(content=result.model_dump(), headers={"X-Request-Id": result.request_id})
 
     app.include_router(v1_router)
+
+    headers = site_headers()
+
+    @app.middleware("http")
+    async def page_headers(request: Request, call_next):
+        response = await call_next(request)
+        path = request.url.path
+        if not path.startswith(NOT_THE_PAGE):
+            for pattern, values in headers.items():
+                if pattern == "/*" or pattern == path:
+                    response.headers.update(values)
+        return response
+
+    # The website itself, last, so every /api route above wins. html=True serves index.html for "/".
+    app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="web")
     return app
 
 

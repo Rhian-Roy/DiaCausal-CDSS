@@ -32,6 +32,10 @@ let MODEL = null;
 let RESULTS = null;
 let EVIDENCE = null; // web/evidence.json, loaded the first time it is needed
 let GUARD = null; // the seven input guards (guards.js + guards.json); null until loaded, and then nothing is searched
+// Clinic mode (P29b): when this page is served by the local DiaCausal server (scripts/start_clinic.*, 127.0.0.1 only), a question about
+// a filled-in patient goes to its /api/v1/ask, which can use a local Ollama model. On Netlify there is no /api, so CLINIC stays null and
+// everything runs in this browser as before. Patient values and questions then travel only inside this computer.
+let CLINIC = null; // { writer: "ollama" | "template", model_tag } from GET /api/v1/llm
 let AUTH = null; // accounts controller (auth.js); null on a local copy without web/config.json
 let fromExample = false; // the panel holds example data (badge "Example data")
 const $ = (sel) => document.querySelector(sel);
@@ -311,6 +315,55 @@ function compare() {
 
 // ── Input guards and their notices (screens 09–12; diacausal/guards/input_guards.py, mirrored in guards.js) ─────
 /** The panel's patient in the API's names, for the guards. The panel is for patients on metformin and has no glucose field. */
+/** The panel's patient as the API's PatientV1 (the same names the guards use). `ckd` is display only and not asked by the panel. */
+function apiPatient(p) {
+  return { age: p.age, sex: p.sex === "female" ? "F" : "M", duration_years: p.duration_years, hba1c_pct: p.hba1c, egfr: p.egfr, bmi: p.bmi,
+    ascvd: Boolean(p.ascvd), heart_failure: Boolean(p.hf), ckd: false, past_hypo: Boolean(p.hypo_history), past_dka: Boolean(p.dka_history),
+    past_pancreatitis: Boolean(p.pancreatitis_history), type1: Boolean(p.t1d), on_metformin: true, cost_concern: Boolean(p.low_income) };
+}
+
+/** Served by the local server (its config.json says "clinic": true)? Then show which writer answers. One GET of a status. */
+async function detectClinic() {
+  try {
+    const r = await fetch("./api/v1/llm", { cache: "no-store" });
+    if (!r.ok || !(r.headers.get("content-type") || "").includes("json")) return;
+    CLINIC = await r.json();
+  } catch { return; }
+  const bar = $("#clinic");
+  bar.textContent = CLINIC.writer === "ollama"
+    ? `On this computer: answers are written by the local model ${CLINIC.model_tag}, checked by the output guards; the template answers if a check fails.`
+    : "On this computer: answers are written by the template (no local model is running). Nothing leaves this computer.";
+  bar.hidden = false;
+}
+
+/** A question about a filled-in patient, answered by the local server's pipeline (clinic mode). Returns false if it could not. */
+async function askServer(q, patient, box) {
+  let r;
+  try {
+    r = await fetch("./api/v1/ask", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ schema_version: "1.0", request_id: `w${Date.now().toString(36)}`, patient: apiPatient(patient), question: q,
+        mode: CLINIC.writer === "ollama" ? "ollama" : "template" }) });
+  } catch { return false; }
+  if (!r.ok) {
+    const body = await r.json().catch(() => ({}));
+    box.append(h("div", { class: "msgnotice msgnotice--plain", role: "status" }, icon("unclear", 28),
+      h("div", { class: "stack" }, h("span", { class: "msgnotice__word" }, "Cannot answer as written"),
+        h("p", {}, body.message || "The local server could not answer. Try again, or ask the team."))));
+    return true;
+  }
+  const card = await r.json();
+  const index = await loadEvidence();
+  const ids = [...new Set(card.claims.flatMap((c) => c.citations.map((x) => x.chunk_id)))];
+  const passages = ids.map((id) => index.chunks.find((c) => c.chunk_id === id)).filter(Boolean)
+    .map((c) => ({ chunk_id: c.chunk_id, text: c.text, citation: c.citation }));
+  const result = window.DiaCausal.recommend(MODEL, patient); // the same engine and numbers (tests/web): its rule messages draw the safety cards
+  const out = renderCard(card, box, { result, passages, patient });
+  const writer = card.mode === "ollama" && !card.fallback_used ? `the local model ${CLINIC.model_tag}, checked by the output guards`
+    : card.fallback_used ? `the template, because the local model's draft did not pass the checks (${card.fallback_reason || "fallback"})` : "the template";
+  out.insertBefore(h("p", { class: "field__hint" }, `Written on this computer by ${writer}.`), out.querySelector(".intended-line"));
+  return true;
+}
+
 function guardPatient(p) {
   return p ? { age: p.age, type1: Boolean(p.t1d), on_metformin: true, duration_years: p.duration_years, hba1c_pct: p.hba1c, egfr: p.egfr, bmi: p.bmi } : null;
 }
@@ -756,6 +809,8 @@ async function askInThread(question) {
   if (note.note === index.no_dose_note) {
     box.append(h("span", { class: "who" }, "DiaCausal answered"), h("div", { class: "card" }, h("p", {}, h("strong", {}, "No doses. "), index.no_dose_note),
       h("div", { class: "decides" }, icon("check", 24, "c-pine"), h("p", {}, "The clinician decides."))));
+  } else if (patient && CLINIC && await askServer(q, patient, box)) {
+    // answered by the local server (clinic mode)
   } else if (patient) {
     const result = window.DiaCausal.recommend(MODEL, patient);
     const built = questionCard(index, result, patient, q, raw);
@@ -1120,10 +1175,11 @@ async function start() {
   [MODEL, RESULTS, config, guards] = await Promise.all([
     fetch("./model.json").then((r) => r.json()),
     fetch("./results.json").then((r) => r.json()).catch(() => null),
-    fetch("./config.json").then((r) => (r.ok ? r.json() : null)).catch(() => null),
+    fetch("./config.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)).catch(() => null), // fresh: it says clinic or not
     fetch("./guards.json").then((r) => r.json()).catch(() => null), // without it, nothing typed is searched
   ]);
   if (guards && window.DiaCausalGuards) GUARD = window.DiaCausalGuards.make(guards);
+  if (config && config.clinic) await detectClinic();
   if (window.matchMedia("(max-width: 900px)").matches) document.querySelectorAll("details[data-phone-closed]").forEach((d) => { d.open = false; });
   if (config && config.supabaseUrl && config.supabaseKey && window.supabase) {
     AUTH = window.DiaCausalAuth.createController(window.supabase, config, window.localStorage);

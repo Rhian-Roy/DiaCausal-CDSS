@@ -1,0 +1,2 @@
+machine,date,questions,answered,writer_asked,model_tag,median_total_ms,p95_total_ms,fallback_rate,startup_s,python,platform
+mac-m-series,2026-10-11,20,20,template,,52.0,73.5,0.0,8.2,3.12.14,Darwin arm64

@@ -28,8 +28,9 @@ router = APIRouter()
                         500: {"description": "The request could not be completed (only the request ID is returned)"}})
 def ask(body: AskRequestV1, request: Request) -> JSONResponse:
     headers = {"X-Request-Id": body.request_id}
+    timings: dict[str, float] = {}
     try:
-        card = run_pipeline(body, request.app.state.engine)
+        card = run_pipeline(body, request.app.state.engine, timings)
     except RequestBlocked as blocked:
         log.warning("[%s] ask: stopped by an input check reason=%s", body.request_id, blocked.code)
         return JSONResponse(status_code=422, headers=headers, content=ErrorV1(
@@ -39,4 +40,6 @@ def ask(body: AskRequestV1, request: Request) -> JSONResponse:
         return JSONResponse(status_code=500, headers=headers, content={
             "error": "internal", "request_id": body.request_id, "intended_use": INTENDED_USE,
             "message": "The request could not be completed and nothing was shown. Try again, or tell the team the request ID."})
+    # Server-Timing (a standard header): each layer's milliseconds, e.g. "input-guards;dur=3.1, rules;dur=0.4". Names and numbers only.
+    headers["Server-Timing"] = ", ".join(f"{name.replace(' ', '-')};dur={ms:.1f}" for name, ms in timings.items())
     return JSONResponse(content=card.model_dump(mode="json"), headers=headers)
