@@ -83,4 +83,4 @@ Everything else in A is unchanged, byte for byte (`R01`, `R02`, `R04` to `R10`).
 
 `web/model.json` (the website's copy of the rules), `web/results.json` and `results/` (the benchmark chooses among the options
 the rules allow, so its policy numbers can move), and the numbers that quote them. The site needs a redeploy to show them
-(docs/DEPLOY.md section 9).
+(docs/DEPLOY.md section 1).

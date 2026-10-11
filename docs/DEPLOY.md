@@ -1,14 +1,162 @@
-# Running DiaCausal on a real machine
+# Deploying DiaCausal
+
+> Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.
+
+DiaCausal is submitted as two parts:
+
+| Part | What it is | Where it runs | This file |
+|---|---|---|---|
+| **The public site** | the static website in `web/` (Patient Details, Investigate, Analysis, Guide, About), with Supabase sign-in | Netlify, at https://diacausal.netlify.app | **section 1** |
+| **The engine API** | the FastAPI app `diacausal.api.main` (`/api/v1/ask`, `/api/v1/recommend`) | your own computer | section 2 |
+
+The old chat app (`backend/` and `frontend/`) is **not** part of the submitted system. Its Docker guide is kept, unchanged, at
+the end of this file: [Legacy chat app - not part of the submitted system](#legacy-chat-app---not-part-of-the-submitted-system).
+
+---
+
+## 1. The public site (diacausal.netlify.app)
+
+### 1.1 What it costs, and the three rules
+
+- The site is a folder of files. Netlify has **no build step** for it (`web/netlify.toml`: `command = ""`), so a deploy is an
+  upload of a folder from your computer.
+- The team is on Netlify's Free plan with **300 credits** per billing period (as the Netlify API reported on 11 Oct 2026). A **draft deploy is free**. A **production deploy costs 15 credits**.
+  A failed deploy costs nothing.
+- **Rule 1: draft first, production by hand only.** Every change goes to a free draft link first. You check it, then you deploy
+  the same folder to production yourself.
+- **Rule 2: check the credits before every deploy.** The Netlify command line cannot show the balance. Open
+  https://app.netlify.com → your team → **Billing** (usage and credits) and look before you deploy.
+- **Rule 3: GitHub never deploys.** The site is not connected to GitHub, so a push or a merged pull request deploys nothing.
+  `web/netlify.toml` also says `ignore = "exit 0"`, which skips any Git-triggered build if the site were ever connected by
+  mistake. `tests/test_ci_workflows.py` fails if a GitHub workflow mentions Netlify, a deploy hook, a deploy token or `--prod`.
+
+### 1.2 One-time setup on your own computer
+
+You need the Netlify command line (`netlify --version` should print a version; if not: `npm install -g netlify-cli`).
+
+```bash
+netlify login                     # a browser tab opens: click Authorize
+netlify link --name diacausal     # run this from the repo root, once
+netlify status                    # should say: Current project: diacausal
+```
+
+**The sign-in settings.** The site needs two values from Supabase: the project URL and the *publishable* key
+(Supabase dashboard → Project Settings → API Keys). They are kept **in Netlify's settings, not in this repository**, so a
+deploy can read them without anyone typing or seeing them. They are already set. If they ever need setting again, type
+this **in your own terminal** (it reads the key without showing it on screen or saving it in your shell history):
+
+```bash
+netlify env:set SUPABASE_URL "https://<your-project-ref>.supabase.co"
+read -rs KEY && netlify env:set SUPABASE_PUBLISHABLE_KEY "$KEY"; unset KEY    # paste the key, press Enter
+netlify env:list                  # shows the two names; the values are hidden
+```
+
+Never paste the key into a chat, a pull request, an issue or a file in this repository. The publishable key is public
+by design (every visitor's browser downloads it, and the database is protected by row-level security), but the project rule is
+**no keys in this public repo**: the committed `web/config.json` says `"accounts": "off"`, `scripts/web_config.py` refuses
+to write into `web/`, and `tests/web` fails if a key appears anywhere in the repository.
+
+### 1.3 Before every deploy
+
+```bash
+git switch main && git pull                 # deploy only what is merged into main
+python3 scripts/check_all.py                # must end with "ALL ... CHECKS PASSED"
+```
+
+If you changed the engine, the evidence or the guards, regenerate the website's data first (docs/WEBSITE.md, "Update the
+website") and bump `VERSION` in `web/sw.js` so installed phones fetch the new files.
+
+### 1.4 Make the deploy folder (a copy of `web/` with the sign-in settings)
+
+```bash
+rm -rf /tmp/diacausal-site && cp -R web /tmp/diacausal-site
+SUPABASE_URL="$(netlify env:get SUPABASE_URL)" \
+SUPABASE_PUBLISHABLE_KEY="$(netlify env:get SUPABASE_PUBLISHABLE_KEY)" \
+  .venv/bin/python scripts/web_config.py /tmp/diacausal-site/config.json
+```
+
+The key goes only into the copy in `/tmp`, never into `web/`. Deploying from inside the copy makes Netlify read the copied
+`netlify.toml`, which carries the security headers. Use the site ID instead of `--site diacausal` if the name is not found
+(`cat .netlify/state.json` shows it).
+
+### 1.5 Draft deploy (free)
+
+1. Check the credits (rule 2).
+2. Deploy the folder as a draft:
+   ```bash
+   (cd /tmp/diacausal-site && netlify deploy --site diacausal --dir . --message "draft of main <commit>")
+   ```
+   It prints a **Draft URL** like `https://<id>--diacausal.netlify.app`. Nothing changes on the real site.
+3. Check the draft (section 1.7).
+
+### 1.6 Production deploy (15 credits, by hand only)
+
+Only after the draft passed every check in section 1.7:
+
+1. Check the credits again (rule 2): you need at least 15.
+2. Deploy **the same folder**:
+   ```bash
+   (cd /tmp/diacausal-site && netlify deploy --site diacausal --dir . --prod --message "production: main <commit>")
+   ```
+3. Repeat section 1.7 on https://diacausal.netlify.app.
+
+### 1.7 Check the deploy
+
+Open the link in a private window, so no old copy of the site is cached. When `docs/DEMO_SCRIPT.md` exists, go through its
+screens. Until then, this list (the checks run on 11 Oct 2026):
+
+| # | Check | Expected |
+|---|---|---|
+| 1 | Open the link | the sign-in page; the intended-use sentence under the header |
+| 2 | Security headers: `curl -sI <link> \| grep -i content-security-policy` | a policy that starts `default-src 'self'` |
+| 3 | Sign in with your email, password and 6-digit code | Patient Details opens |
+| 4 | Open all five tabs | Patient Details, Investigate, Analysis, Guide, About each open |
+| 5 | Patient Details → **1 · Typical patient** → Compare | three options compared; the card ends with "The clinician decides." |
+| 6 | Tap a citation number on the answer | the evidence drawer opens with source, version, section, page, licence; Esc closes it |
+| 7 | Type "Patient unconscious in OPD, which add-on?" in the message box | the red **Emergency** notice, nothing else |
+| 8 | Investigate → **Metformin and kidney function** | passages from licence-cleared sources, each with source, version, section, page, licence |
+| 9 | Analysis | the A–D table and three charts, labelled "Synthetic benchmark" |
+
+### 1.8 If something is wrong
+
+| You see | What to do |
+|---|---|
+| `Failed retrieving site data for site diacausal: Not Found` | use the site ID: `--site "$(python3 -c 'import json;print(json.load(open(".netlify/state.json"))["siteId"])')"` |
+| The draft shows the old site | open it in a private window (the old copy is cached by the browser's offline store) |
+| Sign-in says "Sign-in is off on this copy" | `config.json` was not written into the copy: redo section 1.4 |
+| "Forgot password" does not finish | the reset needs your 6-digit code first ("Confirm it is you"); if you lost the authenticator app, ask the team's admin |
+| A production deploy is broken | Netlify dashboard → **Deploys** → pick the previous good deploy → **Publish deploy**. Check Billing first: whether this costs credits is UNVERIFIED |
+
+---
+
+## 2. The engine API (`diacausal.api.main`) on your own computer
+
+```bash
+.venv/bin/uvicorn diacausal.api.main:app --port 8001     # http://localhost:8001/docs shows /api/v1/ask and /api/v1/recommend
+```
+
+It needs the repo-root `.venv` (CLAUDE.md, "Causal engine"). It sends nothing to the internet: no account service, no online
+model (a local Ollama model is used only when `diacausal/llm/llm.yaml` says so). The clinic-laptop install (one command,
+offline after setup, start scripts for Windows and macOS) is P29(b) and will be written in `docs/OFFLINE_INSTALL.md`.
+
+---
+
+## Legacy chat app - not part of the submitted system
+
+The old chat app (`backend/`, `frontend/`, `Dockerfile`, `compose.yaml`) is kept for reference and is **not** part of what is
+submitted. The guide below is unchanged from before 11 Oct 2026; its step numbers refer to its own steps.
+
+### Running the legacy chat app on a real machine
 
 One command starts the whole thing: the page and the API in one container, with HTTPS in
 front of it. Works on a clean Windows, macOS or Linux machine with Docker Desktop.
 
+
 **HTTPS is not optional.** Browsers refuse the microphone and refuse the session cookie on
 anything but `https://` or `localhost`, so without it voice and sign-in simply stop working.
 
----
 
-## 1. Install Docker Desktop
+#### 1. Install Docker Desktop
 
 https://www.docker.com/products/docker-desktop/ — install, start it, and wait until the
 whale icon says "running". Check in a terminal:
@@ -17,7 +165,7 @@ whale icon says "running". Check in a terminal:
 docker --version
 ```
 
-## 2. Get the code and make a secret key
+#### 2. Get the code and make a secret key
 
 ```bash
 git clone https://github.com/Rhian-Roy/DiaCausal-CDSS.git
@@ -37,7 +185,7 @@ and never commit it.** If it is lost, every clinician must set up their authenti
 again. If it is stolen *together with* a copy of the database, someone could generate
 their 6-digit codes — so treat it like a password.
 
-## 3. Start it
+#### 3. Start it
 
 ```bash
 docker compose up --build -d      # the first build takes a few minutes
@@ -48,7 +196,7 @@ Open **https://localhost:8443**. On a laptop the certificate is Caddy's own, so 
 asks you to confirm once (that warning is expected here and *only* here — see step 6 for a
 real certificate).
 
-## 4. Make the first admin, then the clinicians
+#### 4. Make the first admin, then the clinicians
 
 ```bash
 docker compose exec app python ../scripts/create_admin.py your.id "Dr Your Name"
@@ -65,7 +213,7 @@ docker compose exec app python ../scripts/admin.py --as your.id create-user dr.m
 docker compose exec app python ../scripts/admin.py --as your.id list
 ```
 
-## 5. Check it works
+#### 5. Check it works
 
 ```bash
 docker compose exec app python ../eval/run_vignettes.py    # 25 of 25 vignettes
@@ -75,7 +223,7 @@ docker compose logs -f app                                 # one line per stage,
 Then by hand: sign in, ask a question, check the console lines, try the microphone, and
 press **New patient**. `docs/TESTING.md` part 2 is the by-eye list.
 
-## 5b. Use it on your phone, on the same Wi-Fi (no internet needed)
+#### 5b. Use it on your phone, on the same Wi-Fi (no internet needed)
 
 Handy for showing the team, and the only way to try the **microphone** on a phone.
 
@@ -104,7 +252,7 @@ Install a certificate → CA certificate.
 Only do this on phones you control; it tells that phone to trust certificates this Mac
 issues. To undo it, delete the profile (iPhone) or the certificate (Android).
 
-## 6. A real address (for a clinic or a demo others can reach)
+#### 6. A real address (for a clinic or a demo others can reach)
 
 1. Point a DNS `A` record at the machine (e.g. `diacausal.example.org`).
 2. Open ports **80** and **443** to it, and set them in `.env`:
@@ -121,7 +269,7 @@ the rest is idle). Everything runs on that one machine: **no patient text, panel
 recording is sent to any other company**, which is the reason the whole design is
 self-hosted rather than serverless.
 
-## 7. Backups
+#### 7. Backups
 
 The database (accounts, the audit log) is a Docker volume. Copy it out regularly:
 
@@ -134,7 +282,7 @@ Keep the backup **and** `DIACAUSAL_SECRET_KEY` — one is useless without the ot
 Restore by stopping the stack, copying the file back to `/data/diacausal.db`, and starting
 it again. Migrations run automatically when the app starts.
 
-## 8. Updating
+#### 8. Updating
 
 ```bash
 git pull
@@ -144,38 +292,7 @@ docker compose up --build -d
 The database is upgraded automatically at start-up. Check `docker compose logs app` for the
 line `clinical_guardrails: rules …` and for any `clinical rule NOT in use — …` warning.
 
----
-
-## 9. The website (diacausal.netlify.app): manual deploys only
-
-The Netlify site `diacausal` is **not connected to GitHub**, so pushing or merging never deploys
-it. Every deploy so far was an upload from the command line ("Deploy triggered by upload"). Keep
-it that way: on Netlify's credit plans each **production** deploy costs 15 credits, while draft
-(preview) deploys and failed deploys cost none. The CLI cannot show the credit balance; look in
-the Netlify dashboard → your team → **Billing** (usage and credits).
-
-There is no build step (`web/netlify.toml`: `command = ""`, `publish = "."`). The only thing a
-"build" does is write `config.json` (Supabase URL + publishable key) into a **copy** of `web/`,
-because the committed `web/config.json` must stay `"accounts": "off"`. Both values are stored as
-Netlify environment variables, so the command reads them from there without printing them.
-
-```bash
-# from the repo root, once: netlify login && netlify link --name diacausal
-rm -rf /tmp/diacausal-site && cp -R web /tmp/diacausal-site
-SUPABASE_URL="$(netlify env:get SUPABASE_URL)" \
-SUPABASE_PUBLISHABLE_KEY="$(netlify env:get SUPABASE_PUBLISHABLE_KEY)" \
-  .venv/bin/python scripts/web_config.py /tmp/diacausal-site/config.json
-(cd /tmp/diacausal-site && netlify deploy --site diacausal --dir . )          # free draft: check the link it prints
-(cd /tmp/diacausal-site && netlify deploy --site diacausal --dir . --prod)    # production: 15 credits
-```
-
-Running the deploy from inside the copy makes Netlify read the copied `netlify.toml`, which
-carries the security headers (CSP and friends). After a production deploy, check them:
-`curl -sI https://diacausal.netlify.app/ | grep -i content-security-policy`.
-
----
-
-## Deploy checklist
+#### Deploy checklist
 
 Tick every line before a clinician uses it. (Checked on the 2026-09-20 build.)
 
@@ -201,7 +318,7 @@ Tick every line before a clinician uses it. (Checked on the 2026-09-20 build.)
 The last three are deliberately unticked: they are not things the software can do for you,
 and **DiaCausal must not be used with real patients until they are done**.
 
-## When something is wrong
+#### When something is wrong
 
 | You see | Likely cause | What to do |
 |---|---|---|
