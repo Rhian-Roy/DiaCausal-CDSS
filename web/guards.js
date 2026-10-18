@@ -59,7 +59,8 @@
 
     const uncuedHit = (phrases, text) => phraseHits(phrases, text).some((i) => !cued(text, i));
     const presentState = (text) => phraseHits(p.present_state_words, text).length > 0;
-    const aboutDrugsInGeneral = (text) => phraseHits(p.knowledge_question_words, text).length > 0 && !presentState(text);
+    const pointsAtAPatient = (text) => phraseHits(G.rules.patient_reference_words, text).length > 0;
+    const aboutDrugsInGeneral = (text) => phraseHits(p.knowledge_question_words, text).length > 0 && !presentState(text) && !pointsAtAPatient(text);
     const wordsBefore = (text, at) => words(text.slice(0, at)).length;
     const result = (id, blocked) => ({ id, status: blocked ? "BLOCK" : "PASS", blocked_reason: blocked || null });
     const fmt = (template, values) => template.replace(/\{(\w+)\}/g, (m, k) => (k in values ? String(values[k]) : m));
@@ -85,7 +86,8 @@
     }
 
     // 2. identifier
-    function hasIdentifier(text) {
+    function hasIdentifier(raw) {
+      const text = raw.normalize("NFKC").replace(/\p{Cf}/gu, ""); // fullwidth digits and "@", and zero-width characters, must not hide an identifier
       for (const spec of R.identifiers) {
         for (const m of text.matchAll(rx(spec))) {
           if (spec.verhoeff && p.aadhaar_checksum_required && !verhoeffOk(m[0].replace(/\D/g, ""))) continue;

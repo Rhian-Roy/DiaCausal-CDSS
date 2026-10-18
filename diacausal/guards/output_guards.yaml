@@ -12,13 +12,17 @@ threshold_patterns:
     - '\b(?:do not|don''t|never|must not|should not)\s+(?:use|give|prescribe|start|take)\b[^.;]{0,30}\b(?:if|when|below|above|under|over)\b'
     - '\b(?:stop|discontinue|withhold|hold)\b[^.;]{0,25}\b(?:if|when|below|above|under|over)\b'
     - '\bdos(?:e|es|ed|ing|age)\b(?![\s-]*(?:dependent|response|related|independent|effects?))'
+    - '\b(?:\d+(?:\.\d+)?|one|two|three|four|five|half)\s*(?:g|gm|gram|grams)\b'
+    - '\b(?:one|two|three|four|five|six|half)\s+(?:tablets?|tabs?|pills?|capsules?)\b'
+    - '\b(?:once|twice|thrice|\d+\s+times)\s+(?:a|per|each|every)\s+(?:day|week)\b'
+    - '\bevery\s+(?:\d+|one|two|three|four|six|eight|twelve)\s+hours?\b'
   source: "docs/PLAN_2026-10.md section 8.10 check 4 ('10 mg', 'mL/min with a number', 'contraindicated if'); the dose shapes (mg, tablets, 'once daily') are the engine's DOSE_PATTERN in diacausal/causal_inference/recommend.py"
   status: TEAM-SET
 option_words:
   value:
     SGLT2i: ["sglt2", "sglt-2", "sglt 2", "gliflozin", "sodium-glucose", "sodium glucose"]
     DPP4i: ["dpp4", "dpp-4", "dpp 4", "dpp-iv", "gliptin"]
-    SU: ["sulfonylurea", "sulphonylurea", "glimepiride"]
+    SU: ["sulfonylurea", "sulphonylurea", "su", "sus", "glimepiride", "gliclazide", "glibenclamide", "glyburide", "glipizide", "tolbutamide"]
   source: "Group 28 team choice: generic class words and stems only (no brand name; Member B to confirm). The option's own name and example molecule from the causal output are added at run time"
   status: TEAM-SET
 positive_cues:
@@ -34,7 +38,7 @@ effect_cues:
   source: "docs/PLAN_2026-10.md section 8.10 check 6 ('no effect wording for an option marked insufficient'); wording chosen by the team"
   status: TEAM-SET
 causal_cues:
-  value: ["because of", "caused by", cause, causes, causing, "due to", "leads to", "led to", "leading to", "results in", "resulted in", "driven by", "responsible for", produces, "explains why", "is the reason"]
+  value: ["because of", "caused by", cause, causes, causing, "due to", "leads to", "led to", "leading to", "results in", "resulted in", "driven by", "responsible for", produces, "explains why", "is the reason", because, since, explains, explain, makes, drives, drive]
   source: "docs/PLAN_2026-10.md section 8.10 check 7 ('no causal wording about a driver'); AGENTS.md XAI RULE: SHAP drivers describe the model, never a cause"
   status: TEAM-SET
 driver_words:

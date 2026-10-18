@@ -91,3 +91,19 @@ def test_logs_carry_ids_and_statuses_but_no_patient_values(client, caplog):
 
 def test_openapi_docs_show_intended_use(client):
     assert INTENDED_USE in client.get("/openapi.json").json()["info"]["description"]
+
+
+def test_an_unexpected_crash_still_answers_in_json_with_the_intended_use_and_never_the_error_text(engine, monkeypatch, caplog):
+    """Audit of 17 Oct 2026: a crash used to give plain text 'Internal Server Error' with no intended-use statement."""
+    def boom(*a, **k):
+        raise RuntimeError("secret detail 9.87 zebra-test")
+
+    monkeypatch.setattr(engine, "recommend", boom)
+    with TestClient(create_app(engine), raise_server_exceptions=False) as c:
+        caplog.set_level(logging.DEBUG)
+        r = c.post("/api/v1/recommend", json=body(**TYPICAL))
+    assert r.status_code == 500 and r.headers["content-type"].startswith("application/json")
+    assert r.json()["intended_use"] == INTENDED_USE and r.json()["error"] == "internal"
+    assert "9.87" not in r.text and "zebra" not in r.text and "secret detail" not in r.text
+    logged = " ".join(f"{x.getMessage()} {x.exc_text}" for x in caplog.records)
+    assert "RuntimeError" in logged and "9.87" not in logged and "zebra" not in logged  # only the class name is logged

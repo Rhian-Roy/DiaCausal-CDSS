@@ -52,7 +52,7 @@ def guards_dict() -> dict:
         "versions": {"rules_v1": rules["version"], "params_sha": params.fingerprint, "guards_sha": file_hash(g.__file__.replace(".pyc", ".py"))},
         "params": {k: v for k, v in p.items() if k not in ("dose_patterns", "injection_role_tags", "honorifics")},
         "rules": {"context_cues": rules["context_cues"], "out_of_scope": {k: v for k, v in rules["out_of_scope"].items() if k != "note"},
-                  "emergency_phrases": rules["emergency"]["phrases"], "blocked_words": rules["profanity"]["blocked_words"],
+                  "emergency_phrases": rules["emergency"]["phrases"], "patient_reference_words": rules["emergency"]["patient_reference_words"], "blocked_words": rules["profanity"]["blocked_words"],
                   "blocked_phrases": rules["profanity"]["blocked_phrases"], "medical_allowlist": rules["medical_allowlist"]},
         "regex": {
             "word": js_regex(g.WORD.pattern, "g"),
@@ -63,7 +63,7 @@ def guards_dict() -> dict:
             "age_text": js_regex(g._AGE_TEXT.pattern, "gi"),
             "text_values": {name: js_regex(rx.pattern, "gi") for name, rx in g._TEXT_VALUES.items()},
             "role_tags": [js_regex(x) for x in p["injection_role_tags"]],
-            "dose": [js_regex(x, "i") for x in p["dose_patterns"]],
+            "dose": [js_regex(x, "i") for x in [*p["dose_patterns"], *rules.get("dose_request", {}).get("patterns", [])]],
             "base64": js_regex(r"[A-Za-z0-9+/]{%d,}={0,2}" % int(p["base64_min_run"]), "g"),
         },
         "messages": g.MESSAGES,

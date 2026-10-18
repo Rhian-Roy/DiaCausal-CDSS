@@ -103,10 +103,15 @@ def _present_state(text: str) -> bool:
     return bool(phrase_hits(_p("present_state_words"), text))
 
 
+def _points_at_a_patient(text: str) -> bool:
+    """"My patient is unconscious, which add-on carries less risk?": a word that points at one person (patient, he, she, my, this)."""
+    return bool(phrase_hits(RULES["emergency"]["patient_reference_words"], text))
+
+
 def _about_drugs_in_general(text: str) -> bool:
     """"Can SGLT2 inhibitors cause ketoacidosis?" asks about a drug; "Admitted with DKA yesterday" reports a patient.
-    A knowledge word makes the first reading, a present-state word cancels it."""
-    return bool(phrase_hits(_p("knowledge_question_words"), text)) and not _present_state(text)
+    A knowledge word makes the first reading; a present-state word or a word that points at one patient cancels it."""
+    return bool(phrase_hits(_p("knowledge_question_words"), text)) and not _present_state(text) and not _points_at_a_patient(text)
 
 
 # ── plain-language messages (fixed text; nothing the user typed is ever repeated) ────────────────────────────────
@@ -193,10 +198,16 @@ def _honorific_name() -> re.Pattern:
     return re.compile(rf"(?i:\b(?:{titles})\b)\.?\s+[A-Z\u0900-\u097F][^\W\d_]+")
 
 
+def _clean(text: str) -> str:
+    """NFKC (fullwidth to ordinary characters) and no format characters (zero-width space and joiners)."""
+    return "".join(ch for ch in unicodedata.normalize("NFKC", text) if unicodedata.category(ch) != "Cf")
+
+
 def has_identifier(text: str) -> bool:
     """True if the text holds an Aadhaar, ABHA, Indian mobile, PAN, email, or an honorific followed by a name. Cues are ignored here.
     Also used by the output guards (P23) on a model's draft."""
     need_checksum = bool(_p("aadhaar_checksum_required"))
+    text = _clean(text)  # fullwidth digits and "@", and zero-width characters, must not hide an identifier
     for pattern, is_aadhaar in _IDENTIFIERS:
         for m in pattern.finditer(text):
             if is_aadhaar and need_checksum and not verhoeff_ok(re.sub(r"\D", "", m.group())):
@@ -334,7 +345,8 @@ def length_language(request: AskRequestV1) -> GuardResultV1:
 # ── 7. dose request ──────────────────────────────────────────────────────────────────────────────────────────────
 @lru_cache(maxsize=1)
 def _dose_patterns() -> list[re.Pattern]:
-    return [re.compile(pattern, re.I) for pattern in _p("dose_patterns")]
+    extra = RULES.get("dose_request", {}).get("patterns", [])  # shared/guard_rules/rules.v1.json (see its note)
+    return [re.compile(pattern, re.I) for pattern in [*_p("dose_patterns"), *extra]]
 
 
 def dose_request(request: AskRequestV1) -> GuardResultV1:

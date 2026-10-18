@@ -5,7 +5,7 @@
 Source: section 8.2 of [docs/PLAN_2026-10.md](PLAN_2026-10.md). **Status: TEAM-SET plausibility bounds.**
 They only catch typing errors (an HbA1c of 45, an age of 5). They are **not clinical thresholds**: those live
 only in `data/rules.csv`. `diacausal/api/schemas/patient.py` (`PatientV1`) uses exactly these bounds, and
-`tests/contract/test_ranges.py` fails if this table and the code ever differ.
+`tests/contract/test_contract.py` fails if this table and the code ever differ.
 
 | Field in `PatientV1` | Meaning | Unit | Required | Allowed range | Used by |
 | --- | --- | --- | --- | --- | --- |
@@ -33,7 +33,7 @@ No dataset upload: a single-patient form fits the frozen decision, and bulk uplo
 
 `data/params.yaml` (`display.input_ranges`) is what `diacausal/causal_inference/schemas.py` and the website enforce today.
 Every bound above sits **inside** the engine's, so a `PatientV1` is never rejected later by the engine
-(`tests/contract/test_ranges.py` checks this). Aligning `params.yaml` and the website to this table is a
+(`tests/contract/test_contract.py` checks this). Aligning `params.yaml` and the website to this table is a
 separate, small task.
 
 | Field | This table | Engine today |
