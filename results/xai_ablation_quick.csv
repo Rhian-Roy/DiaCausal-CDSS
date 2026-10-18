@@ -154,6 +154,6 @@ D,slope_interval_coverage,SGLT2i-SU,0.944444,0.824926,1.06396,3
 D,slope_interval_coverage,SU-DPP4i,0.944444,0.824926,1.06396,3
 D,citation_precision,all,1,,,0
 D,retrieval_recall_at_5,all,0.956,,,0
-D,number_match_pass,all,0.35,,,0
-D,fallback_rate,all,0.7,,,0
+D,number_match_pass,all,0.3,,,0
+D,fallback_rate,all,0.75,,,0
 D,driver_passage_hit_rate,all,,,,0

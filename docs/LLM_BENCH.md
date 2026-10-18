@@ -36,31 +36,33 @@ The plan says "MedGemma 1.5 4B": Ollama has it as its own library entry `medgemm
 - The prompt is plan 8.9 (`prompt.v2.txt`), built within a 1,900-token budget by `prompt_builder.build_llm_prompt` (P22; docs/PROMPT_TEMPLATE.md). A prompt that cannot be built (`PromptError`: `PROMPT_TOO_LONG`, `PROMPT_NO_EVIDENCE`, `PROMPT_IDENTIFIER`) sends the request to the template without calling the model.
 
 ## The benchmark (`python scripts/bench_llm.py --all`, `results/llm/`)
-20 golden questions (`eval/llm_golden.csv`): 20 answerable gold questions from all seven sources, each with one of the three demo patients; the causal output and the evidence are produced by the real pipeline layers. **A draft written by Claude: Members B and D must review the questions and their pairing.** One warm-up call is excluded. Ollama 0.40.0, MacBook M5 (16 GB), 10 Oct 2026. **The numbers belong to the code that produced them: the committed files were re-run after P23 put the seven output checks in front of every draft** (and after the causal-wording check was narrowed, see point 3).
+20 golden questions (`eval/llm_golden.csv`): 20 answerable gold questions from all seven sources, each with one of the three demo patients; the causal output and the evidence are produced by the real pipeline layers. **A draft written by Claude: Members B and D must review the questions and their pairing.** One warm-up call is excluded. Ollama 0.40.0, MacBook M5 (16 GB). **Re-run on 18 Oct 2026** on the code of `main` at that date (the first run, 10 Oct, was before P25 added the drivers to the prompt and P26 extended the number check; the audit of 17 Oct found the A–D table still quoting it). **The numbers belong to the code that produced them: re-run `scripts/bench_llm.py --all` after any change of the prompt or the output checks.**
 
 | | `candidate_a` Qwen3 4B | `candidate_b` MedGemma 1.5 4B |
 |---|---:|---:|
-| Schema-valid (of 20) | 100% | 85% |
-| Number-match (of the valid drafts) | 35% | 24% |
-| Fallback to the template (of 20) | **70%** (6 drafts used) | **80%** (4 drafts used) |
-| failed check 3, numbers (whole draft falls back) | 13 | 13 |
-| failed check 4, dose or threshold text | 4 | 3 |
-| failed check 2, citations (claims dropped) | 8 | 2 |
+| Schema-valid (of 20) | 100% | 60% |
+| Number-match (of the valid drafts) | 30% | 75% |
+| Fallback to the template (of 20) | **75%** (5 drafts used) | **55%** (9 drafts used) |
+| failed check 3, numbers (whole draft falls back) | 14 | 3 |
+| failed check 4, dose or threshold text | 4 | 1 |
+| failed check 2, citations (claims dropped) | 5 | 2 |
 | failed check 5, excluded option praised | 1 | 0 |
-| timeouts | 0 | 3 |
-| drafts used after dropping a bad claim | 2 | 0 |
-| Latency p50 / p95 (seconds) | 17.9 / 22.2 | 22.8 / 60.0 |
-| Longest prompt: estimate / Ollama's count | 1,881 / 2,759 | 1,881 / 2,728 |
+| failed check 7, causal wording about a driver | 1 | 0 |
+| timeouts (60 s) | 0 | **8** |
+| drafts used after dropping a bad claim | 0 | 1 |
+| Latency p50 / p95 (seconds) | 24.3 / 43.2 | 52.9 / 60.0 |
+| Longest prompt: estimate / Ollama's count | 1,893 / 2,850 | 1,893 / 2,799 |
+| *Earlier (10 Oct, before the drivers): Qwen3 35% / 70% / 13 numbers; MedGemma 24% / 80% / 3 timeouts (number-match / fallback / check 3)* | | |
 | *Earlier: P21 plain prompt / P22 budgeted prompt, drafts used* | *6 / 4* | *7 / 4* |
 
 (A draft can fail several checks, so the rows do not add up to the fallbacks.)
 
 **How to read it**
-1. **Check 3 (numbers) decides almost everything: 13 of 20 drafts for both models fall back on it.** In a diagnostic run of Qwen3 (only the offending numbers were printed, never the drafts) the 64 numbers that broke it were: **33 numbers that are in the retrieved passages** (the model quotes the evidence), **23 of the patient's own values** (age, HbA1c, eGFR, BMI echoed from PATIENT_SUMMARY into the claims or the context), and 8 others. Every one of the 13 drafts had such a number inside a claim, and none failed on patient values alone. The plan's rule allows only numbers from the causal output, the drivers, or a cited page or version, so this is the rule working as written. **Ways to raise the usable share, all your call, none done here:** drop the claim that holds the number instead of the whole draft (as check 2 does); also allow a number that appears verbatim in a passage the claim cites; also allow the patient-summary values (the card shows them anyway). Each is a change to plan 8.10.
+1. **Check 3 (numbers) decides almost everything for Qwen3: 14 of its 20 drafts fall back on it** (MedGemma: 3 of the 12 it finished before the time limit). In a diagnostic run of Qwen3 on 10 Oct (only the offending numbers were printed, never the drafts) the 64 numbers that broke it were: **33 numbers that are in the retrieved passages** (the model quotes the evidence), **23 of the patient's own values** (age, HbA1c, eGFR, BMI echoed from PATIENT_SUMMARY into the claims or the context), and 8 others. Every one of the 13 drafts had such a number inside a claim, and none failed on patient values alone. The plan's rule allows only numbers from the causal output, the drivers, or a cited page or version, so this is the rule working as written. **Ways to raise the usable share, all your call, none done here:** drop the claim that holds the number instead of the whole draft (as check 2 does); also allow a number that appears verbatim in a passage the claim cites; also allow the patient-summary values (the card shows them anyway). Each is a change to plan 8.10.
 2. **Check 4 is right when it fires.** I looked at what it caught: "contraindicated in patients with an eGFR below 30 mL/minute", copied from a label. Plan rule 4 says thresholds are never stated by the model, so these drafts must fall back.
 3. **One check was too eager and was fixed before the committed run.** The first P23 run flagged 4 Qwen3 drafts for causal wording about a driver; all 4 were false alarms ("the question is whether SGLT2 inhibitors can cause ketoacidosis in a patient with an HbA1c of 8.4%": the drug causes, the HbA1c is only context). A causal cue now counts only within 4 words of a driver (`causal_window_words` in `output_guards.yaml`, TEAM-SET); the tests keep the true cases ("a higher BMI causes...", "because of eGFR") failing. **Word-list checks will have other misses and false alarms; Member D should read a sample.**
 4. **Dropping a bad claim helps a little:** 2 Qwen3 drafts were used after losing one claim each (they would have fallen back before P23).
-5. **No winner, and the template stays the default.** Qwen3 is more reliably valid (100% against 85%) and gives 6 usable drafts against 4; with n = 20 that is a couple of questions. MedGemma had 3 timeouts, and its terms are Google's HAI-DEF terms (summary above). The laptop was quieter this time (Qwen3 p50 18 s), but latency is still not a hardware figure, and **the RTX 2050 laptop has not been measured.** I would keep `provider: template` for 30 October.
+5. **No winner, and the template stays the default.** Qwen3 is more reliably valid (100% against 85%) and gives 6 usable drafts against 4; with n = 20 that is a couple of questions. MedGemma had 3 timeouts, and its terms are Google's HAI-DEF terms (summary above). **MedGemma timed out on 8 of 20 questions at the 60 s limit in the 18 Oct run** (it had 3 timeouts on 10 Oct), so its fallback rate mostly measures speed on this laptop, not the quality of its drafts; its 75% number-match is of the 12 drafts it finished. Latency is not a hardware figure, and **the RTX 2050 laptop has not been measured.** I would keep `provider: template` for 30 October.
 
 ## Run it yourself
 ```bash

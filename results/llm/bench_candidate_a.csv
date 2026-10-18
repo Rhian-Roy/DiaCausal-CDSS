@@ -1,21 +1,21 @@
 id,preset,schema_valid,number_match,fallback_code,seconds,prompt_estimate,prompt_tokens,eval_tokens,claims,dropped_claims,failed_checks
-L01,typical,1,1,,11.17,1497,2068,326,3,1,citations
-L02,older_hypo,1,0,GUARD_NUMBERS,12.58,1356,1628,343,,0,numbers dose_threshold
-L03,older_hypo,1,0,GUARD_NUMBERS,13.62,1304,1565,318,,1,citations numbers
-L04,typical,1,0,GUARD_NUMBERS,17.99,1879,2759,378,,1,citations numbers
-L05,typical,1,0,GUARD_NUMBERS,21.87,1683,2384,415,,0,numbers
-L06,egfr40_pancreatitis,1,0,GUARD_NUMBERS,20.14,1879,2338,385,,0,numbers dose_threshold
-L07,egfr40_pancreatitis,1,0,GUARD_NUMBERS,14.08,1867,2365,281,,0,numbers dose_threshold
-L08,egfr40_pancreatitis,1,0,GUARD_NUMBERS,13.02,1500,1920,288,,1,citations numbers dose_threshold
-L09,typical,1,1,,15.85,1700,2398,323,4,0,
-L10,older_hypo,1,1,,17.8,1717,2144,322,4,0,
-L11,egfr40_pancreatitis,1,0,GUARD_NUMBERS,19.67,1773,2259,317,,2,citations numbers
-L12,egfr40_pancreatitis,1,0,GUARD_NUMBERS,17.87,1742,2209,294,,0,numbers
-L13,typical,1,0,GUARD_NUMBERS,27.63,1665,2259,411,,2,citations numbers
-L14,typical,1,1,,19.83,1361,1957,272,4,0,
-L15,typical,1,1,,15.41,1066,1674,260,3,1,citations
-L16,egfr40_pancreatitis,1,0,GUARD_NUMBERS,20.95,1735,2362,373,,0,numbers
-L17,egfr40_pancreatitis,1,1,,18.98,1714,2331,365,4,0,
-L18,typical,1,0,GUARD_NUMBERS,18.44,1850,2612,351,,0,numbers
-L19,typical,1,0,GUARD_NUMBERS,19.65,1881,2482,393,,0,numbers
-L20,older_hypo,1,1,GUARD_EXCLUDED_OPTION,15.08,1798,2339,319,,1,citations excluded_option
+L01,typical,1,0,GUARD_NUMBERS,10.01,1673,2413,374,,0,numbers dose_threshold
+L02,older_hypo,1,0,GUARD_NUMBERS,10.6,1356,1628,343,,0,numbers dose_threshold
+L03,older_hypo,1,0,GUARD_NUMBERS,10.27,1304,1565,318,,1,citations numbers
+L04,typical,1,0,GUARD_NUMBERS,16.05,1864,2850,365,,1,citations numbers
+L05,typical,1,0,GUARD_NUMBERS,18.53,1595,2482,410,,0,numbers
+L06,egfr40_pancreatitis,1,1,,15.63,1302,1701,287,4,0,
+L07,egfr40_pancreatitis,1,0,GUARD_NUMBERS,21.79,1756,2317,297,,0,numbers dose_threshold identifier_causal
+L08,egfr40_pancreatitis,1,0,GUARD_NUMBERS,27.11,1220,1762,380,,0,numbers dose_threshold
+L09,typical,1,0,GUARD_NUMBERS,28.55,1862,2681,384,,0,numbers
+L10,older_hypo,1,1,,23.07,1717,2144,322,4,0,
+L11,egfr40_pancreatitis,1,0,GUARD_NUMBERS,27.21,1893,2735,369,,1,citations numbers
+L12,egfr40_pancreatitis,1,1,,25.31,1678,2231,335,4,0,
+L13,typical,1,0,GUARD_NUMBERS,25.85,1875,2787,336,,1,citations numbers
+L14,typical,1,1,,21.65,1881,2733,262,4,0,
+L15,typical,1,0,GUARD_NUMBERS,23.31,1673,2502,282,,0,numbers
+L16,egfr40_pancreatitis,1,0,GUARD_NUMBERS,30.29,1892,2648,368,,0,numbers
+L17,egfr40_pancreatitis,1,1,,27.07,1875,2524,347,4,0,
+L18,typical,1,0,GUARD_NUMBERS,32.06,1861,2704,385,,0,numbers
+L19,typical,1,0,GUARD_NUMBERS,42.58,1659,2450,376,,0,numbers
+L20,older_hypo,1,1,GUARD_EXCLUDED_OPTION,54.17,1798,2339,319,,1,citations excluded_option

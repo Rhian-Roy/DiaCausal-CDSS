@@ -2425,7 +2425,7 @@
    "version": "D",
    "metric": "number_match_pass",
    "comparison": "all",
-   "mean": "0.35",
+   "mean": "0.3",
    "ci_low": "",
    "ci_high": "",
    "n_reps": "0"
@@ -2434,7 +2434,7 @@
    "version": "D",
    "metric": "fallback_rate",
    "comparison": "all",
-   "mean": "0.7",
+   "mean": "0.75",
    "ci_low": "",
    "ci_high": "",
    "n_reps": "0"
