@@ -6,7 +6,7 @@
  "seed": 7,
  "params_sha": "6d9b4de98d",
  "rules_sha": "dd3f348885",
- "seconds": 680.3,
+ "seconds": 780.6,
  "note": "synthetic benchmark; B's numbers repeat under C and D; D's retrieval and writing rows have n_reps 0 (fixed question sets)",
  "shap_A_vs_C": [
   {
