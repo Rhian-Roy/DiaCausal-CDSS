@@ -185,7 +185,7 @@ Because `c_j` is a fixed number, "the interval of `phi_cj` excludes 0" is equiva
 
 Extend the existing pattern, not a new mechanism: `tests/web/run_engine.cjs` (or a sibling `run_explain_effect.cjs`) prints `explainEffect` for every patient and comparison; the test compares against the Python reference.
 
-| Test (in `tests/web/test_web.py` or `tests/xai/test_parity.py`) | What it asserts |
+| Test (in `tests/web/test_web.py` or `tests/xai/test_cate_shap.py`) | What it asserts |
 |---|---|
 | `test_browser_shap_matches_python` | the 155 patients of the existing parity test, all 3 comparisons, all 12 features: `phi`, `ci_low`, `ci_high`, `base`, `estimate` equal Python at **1e-9**; `clear` flags and the order of the shown drivers are identical |
 | `test_shap_adds_up_in_both` | `base + sum(phi)` equals the engine's `value` for that comparison to **1e-9**, in Python and in JavaScript |

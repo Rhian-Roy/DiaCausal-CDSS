@@ -119,10 +119,12 @@ def shap_drivers_part(ctx: Context) -> dict[str, list[DriverV1]]:
 
 # ── layer 4: retrieval ───────────────────────────────────────────────────────────────────────────────────────────
 
-def _label(source: dict, page: str) -> str:
+def _label(source: dict, page: str, section: str = "") -> str:
+    """"WHO 2018, § Safety Announcement, p.12": source, version (its year), section and page of a passage (AGENTS.md invariant 6)."""
     year = re.search(r"\b(?:19|20)\d{2}\b", source.get("version", ""))
     name = f"{source.get('issuer', '').strip() or source.get('id', '')} {year.group(0) if year else ''}".strip()
-    return f"{name}, p.{page}" if page not in ("", "?") else name
+    parts = [name, f"§ {section.strip()}" if section and section.strip() else "", f"p.{page}" if page not in ("", "?") else ""]
+    return ", ".join(x for x in parts if x)
 
 
 def retrieval_layer(ctx: Context) -> None:
@@ -136,7 +138,7 @@ def retrieval_layer(ctx: Context) -> None:
     chunks = []
     for p in raw["passages"]:
         c, s = p["citation"], sources.get(p["citation"]["source_id"], {})
-        ctx.labels[p["chunk_id"]] = _label({"id": c["source_id"], **s}, c["page"])
+        ctx.labels[p["chunk_id"]] = _label({"id": c["source_id"], **s}, c["page"], c.get("section", ""))
         chunks.append(EvidenceChunkV1(
             chunk_id=p["chunk_id"], source=c["title"], version=c["version"], section=c["section"],
             page=int(c["page"]) if str(c["page"]).isdigit() else None, licence=s.get("licence_as_found", "unknown"),

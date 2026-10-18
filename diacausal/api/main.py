@@ -108,6 +108,13 @@ def create_app(engine: Engine | None = None) -> FastAPI:
         return JSONResponse(status_code=exc.status_code,
                             content={"error": "http_error", "message": str(exc.detail), "intended_use": INTENDED_USE})
 
+    @app.exception_handler(Exception)
+    async def unexpected(request: Request, exc: Exception):
+        """Any other crash: a plain JSON reply with the intended-use statement, never the exception's text (it could repeat the input)."""
+        log.error("[-] %s: failed error=%s", request.url.path.rsplit("/", 1)[-1], type(exc).__name__)
+        return JSONResponse(status_code=500, content={"error": "internal", "intended_use": INTENDED_USE,
+                            "message": "The request could not be completed and nothing was shown. Try again, or tell the team."})
+
     @app.get("/api/v1/health", response_model=HealthOut)
     def health() -> HealthOut:
         return HealthOut(engine=__version__)

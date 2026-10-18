@@ -3,7 +3,7 @@
  "versions": {
   "rules_v1": "1.0.0-draft",
   "params_sha": "6d9b4de98d",
-  "guards_sha": "cdc5487c03"
+  "guards_sha": "e769378ca3"
  },
  "params": {
   "question_min_chars": 3,
@@ -155,7 +155,11 @@
     "gdm",
     "breastfeeding",
     "lactating",
-    "antenatal"
+    "antenatal",
+    "trimester",
+    "postpartum",
+    "expecting a baby",
+    "expecting a child"
    ],
    "under_18": [
     "paediatric",
@@ -196,6 +200,27 @@
    "severe hypoglycemia",
    "hypoglycaemic coma",
    "hypoglycemic coma"
+  ],
+  "patient_reference_words": [
+   "my patient",
+   "our patient",
+   "this patient",
+   "the patient",
+   "patient is",
+   "patient has",
+   "patient was",
+   "patient had",
+   "pt",
+   "he",
+   "she",
+   "his",
+   "her",
+   "him",
+   "my",
+   "mine",
+   "mr",
+   "mrs",
+   "ms"
   ],
   "blocked_words": [
    "2g1c",
@@ -831,6 +856,22 @@
    },
    {
     "source": "\\b(?:mg|mcg)\\s*(?:once|twice|daily|per day|a day|/\\s*day)\\b",
+    "flags": "iu"
+   },
+   {
+    "source": "\\b(?:give|start|prescribe|take|use|increase|reduce|titrate|double|halve)\\b[^.?!]{0,30}\\b(?:one|two|three|four|five|\\d+(?:\\.\\d+)?)\\s*(?:g|gm|gram|grams)\\b",
+    "flags": "iu"
+   },
+   {
+    "source": "\\b(?:starting|initial|usual|maintenance|loading|target|maximum|minimum)\\s+(?:amount|strength|quantity)\\b",
+    "flags": "iu"
+   },
+   {
+    "source": "\\bwhat\\s+strength\\b",
+    "flags": "iu"
+   },
+   {
+    "source": "\\b(?:give|prescribe|take|start)\\b[^.?!]{0,40}\\b(?:once|twice|thrice|\\d+\\s+times)\\s+(?:a|per|each|every)\\s+(?:day|week)\\b",
     "flags": "iu"
    }
   ],

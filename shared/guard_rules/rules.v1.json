@@ -709,7 +709,11 @@
    "gdm",
    "breastfeeding",
    "lactating",
-   "antenatal"
+   "antenatal",
+   "trimester",
+   "postpartum",
+   "expecting a baby",
+   "expecting a child"
   ],
   "under_18": [
    "paediatric",
@@ -737,7 +741,18 @@
   ],
   "note": "Age itself comes from the structured patient panel (age_years >= 18). 'child'/'children'/'minor' were removed from text rules because they fire on history ('seizures as a child')."
  },
+ "dose_request": {
+  "patterns": [
+   "\\b(?:give|start|prescribe|take|use|increase|reduce|titrate|double|halve)\\b[^.?!]{0,30}\\b(?:one|two|three|four|five|\\d+(?:\\.\\d+)?)\\s*(?:g|gm|gram|grams)\\b",
+   "\\b(?:starting|initial|usual|maintenance|loading|target|maximum|minimum)\\s+(?:amount|strength|quantity)\\b",
+   "\\bwhat\\s+strength\\b",
+   "\\b(?:give|prescribe|take|start)\\b[^.?!]{0,40}\\b(?:once|twice|thrice|\\d+\\s+times)\\s+(?:a|per|each|every)\\s+(?:day|week)\\b"
+  ],
+  "note": "More shapes of a request for an amount of a drug (grams, 'starting amount', 'what strength', 'twice a day'), added to data/params.yaml guards.dose_patterns (not edited there: its hash feeds the benchmark records). Added after the audit of 17 Oct 2026; Member D to review."
+ },
  "emergency": {
+  "patient_reference_words": ["my patient", "our patient", "this patient", "the patient", "patient is", "patient has", "patient was", "patient had", "pt", "he", "she", "his", "her", "him", "my", "mine", "mr", "mrs", "ms"],
+  "patient_reference_note": "A message that points at ONE person ('my patient is unconscious, which add-on carries less risk?') is a report about a patient, not a question about a drug in general, even when it also holds a knowledge word such as risk or compared. Added after the audit of 17 Oct 2026; Member D to review.",
   "phrases": [
    "unconscious",
    "unresponsive",
