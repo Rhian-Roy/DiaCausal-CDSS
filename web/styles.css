@@ -82,6 +82,21 @@ figure{margin:0}
 .turn .stale{display:inline-flex;align-items:center;gap:var(--s1);font-size:15px;font-weight:700;color:var(--check-ink)}
 details.earlier>summary{cursor:pointer;color:var(--ink-muted);margin-bottom:var(--s2)}
 
+/* ---- Analysis: the three panels and the two-sided change chart ---- */
+.panel{display:flex;flex-direction:column;gap:var(--s3)}
+.panel__lead{font-size:17px;line-height:1.5}
+.rtable tr.row--noimp th,.rtable tr.row--noimp td{background:var(--check-fill)}
+.cbar__bar--worse{fill:var(--check-ink)}
+.cbar__zero{fill:var(--ink)}
+.caxis--two span:nth-child(2) span:nth-child(2){text-align:center}
+.crow--wide{grid-template-columns:200px minmax(0,1fr) 210px}
+@media (max-width:900px){
+  .crow--wide,.caxis--two{grid-template-columns:minmax(0,1fr)}
+  .crow--wide .crow__val{grid-column:1;margin-top:-6px}
+  .caxis--two > span:first-child,.caxis--two > span:last-child{display:none}
+  .caxis--two > span:nth-child(2) > span:nth-child(3){display:inline}
+}
+
 /* ---- consultation summary: Print -> Save as PDF prints only the answer ---- */
 .print-only{display:none}
 @media print{

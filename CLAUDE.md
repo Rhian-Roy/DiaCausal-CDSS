@@ -386,6 +386,10 @@ prompt and the number check. **Drivers describe the estimate, never a cause.** V
   fixed question sets (`n_reps` 0). `driver_passage_hit_rate` stays EMPTY until Members B and D write `eval/xai_driver_evidence.csv`.
   The Analysis tab shows the table and draws the charts as SVG (P27; the two PNGs are for the report); Guide → Cautions has the SHAP
   sentence. Rerun after any change to params.yaml, then `python -m diacausal.causal_inference.export_web`.
+- **Analysis panels (22 Oct):** `xai_ablation.csv` also holds version `0` (the naive comparison, A's definitions, same cohorts) and `B-A` (paired
+  difference with its 95% interval). `diacausal/causal_inference/analysis_panels.py` builds the tab's three panels (`results.json` `analysis_panels`)
+  and `report/assets/ANALYSIS_TAB_TEXT.md` (`python -m diacausal.causal_inference.analysis_panels`) from results files only; `web/app.js` only places
+  the strings. **Never type a number into a panel**: tests/xai/test_analysis_panels.py edits each source number and checks the cell follows.
 
 ## Licences of the Indian sources (P19, DONE except two open items) — see docs/LICENCE_REGISTER.md
 

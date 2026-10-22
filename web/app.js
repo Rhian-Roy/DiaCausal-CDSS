@@ -993,7 +993,47 @@ const ABLATION_COLS = [ // metric, comparison, column title, a share?, what an e
 ];
 const fmtShare = (x) => `${(Number(x) * 100).toFixed(0)}%`;
 
+/** The three panels above the A-D table (results.json analysis_panels, built by diacausal/xai/analysis_panels.py from the results
+ *  files). Every value, change and verdict arrives as text; this only places it. Rows where B is not better say so in words. */
+function renderPanels() {
+  const box = $("#xai-panels");
+  const data = RESULTS.analysis_panels;
+  if (!data) { box.replaceChildren(); return; }
+  box.replaceChildren(...data.panels.map((p) => {
+    const table = h("table", { class: "rtable" }, h("caption", { class: "sr-only" }, `${p.title}, synthetic benchmark`),
+      h("thead", {}, h("tr", {}, p.columns.map((c) => h("th", { scope: "col" }, c)))),
+      h("tbody", {}, p.rows.map((r) => h("tr", { class: r.verdict === "no improvement" ? "row--noimp" : null }, h("th", { scope: "row" }, r.label),
+        r.cells.map((c, i) => h("td", { "data-label": p.columns[i + 1] }, c))))));
+    return h("section", { class: "card card--flat panel", id: `panel-${p.id}` }, h("h2", {}, p.title), h("p", { class: "panel__lead" }, p.sentence),
+      h("div", { class: "tablewrap" }, table), p.chart ? changeChart(p) : null,
+      h("p", { class: "legend" }, `${p.note} Source: ${p.sources.join("; ")}.`));
+  }));
+}
+
+/** Panel a's relative changes, A to B, as two-sided bars: right = B better, left = B worse (marked). The axis end is in the data. */
+function changeChart(p) {
+  const max = p.chart_max;
+  const crow = (it) => {
+    const w = Math.min(50, (Math.abs(it.value) / max) * 50);
+    const graph = svg("svg", { class: "cbar", viewBox: "0 0 100 24", preserveAspectRatio: "none", role: "img", "aria-label": `${it.label}: ${it.text}` },
+      svg("rect", { class: "cbar__track", x: 0, y: 11, width: 100, height: 2 }),
+      svg("rect", { class: it.worse ? "cbar__bar cbar__bar--worse" : it.clear ? "cbar__bar cbar__bar--mark" : "cbar__bar", x: (it.value >= 0 ? 50 : 50 - w).toFixed(2), y: 5,
+        width: Math.max(0.5, w).toFixed(2), height: 14 }),
+      svg("rect", { class: "cbar__zero", x: 49.8, y: 2, width: 0.4, height: 20 }));
+    graph.append(svg("title", {}, `${it.label}: ${it.text}`));
+    return h("div", { class: "crow crow--wide" }, h("span", { class: "crow__label" }, it.label), graph, h("span", { class: "crow__val" }, it.text));
+  };
+  return h("section", { class: "chart" }, h("h3", {}, "How much B changes each measure compared with A"),
+    h("p", { class: "chart__sub" }, "Relative change from A to B. Bars to the right: B is better (dark: the 95% interval of the difference excludes 0; grey: not a clear difference). Bars to the left, in amber: B is not better."),
+    ...p.chart.map(crow),
+    h("div", { class: "caxis caxis--two crow--wide" }, h("span", {}), h("span", {}, h("span", {}, `${max}% worse`), h("span", {}, "0"), h("span", {}, `${max}% better`)), h("span", {})),
+    h("details", { class: "tview" }, h("summary", {}, "Show values as a table"),
+      h("table", {}, h("thead", {}, h("tr", {}, h("th", {}, "Measure"), h("th", {}, "A → B"))),
+        h("tbody", {}, p.chart.map((it) => h("tr", {}, h("td", {}, it.label), h("td", {}, it.text)))))));
+}
+
 function renderAblation() {
+  renderPanels();
   const rows = RESULTS.xai_ablation || [];
   if (!rows.length) { $("#xai-table").replaceChildren(h("p", { class: "sub" }, "The A-D table has not been run yet.")); return; }
   const cell = (v, [metric, comparison, title, share, empty]) => {

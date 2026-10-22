@@ -108,8 +108,11 @@ def results_dict() -> dict:
     levels = list(csv.DictReader((ROOT / "results/evidence_level_coverage.csv").open()))
     ablation_csv = ROOT / "results/xai_ablation.csv"
     ablation = list(csv.DictReader(ablation_csv.open())) if ablation_csv.exists() else []
+    ablation = [r for r in ablation if r["version"] in ("A", "B", "C", "D")]  # the A-D table; version 0 and B-A reach the page as panels
+    from diacausal.causal_inference import analysis_panels
+
     return {"summary": rows, "refutation": ref, "evalues": ev, "evidence_levels": levels, "xai_ablation": ablation,
-            "xai_charts": xai_charts(),
+            "xai_charts": xai_charts(), "analysis_panels": analysis_panels.build() if ablation else None,
             "run": {k: info[k] for k in ("reps", "n_patients", "n_test_patients", "seconds",
                                          "refutation_checks_passed", "true_population_effects")}}
 

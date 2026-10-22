@@ -209,6 +209,8 @@ const SCREENS = [
       badge: (await text(p, '#view-results .badge')).trim(), versions: await p.locator('#xai-table tbody th').allInnerTexts(),
       charts: await p.locator('#view-results svg.cbar').count(), tables: await p.locator('#view-results details.tview').count(),
       chartTitles: await p.locator('#view-results .chart h3').allInnerTexts(), images: await p.locator('#xai-charts img, #xai-lime img').count(),
+      panels: await p.locator('#xai-panels .panel h2').allInnerTexts(), panelText: await text(p, '#xai-panels'),
+      noImprovement: await p.locator('#xai-panels tr.row--noimp').count(), changeBars: await p.locator('#panel-a svg.cbar').count(),
     })],
   ['25-guide', { accounts: false }, '#guide', async (p) => { await p.locator('#g-advantages').waitFor(); },
     async (p) => ({ sections: await p.locator('#view-guide section.card').count(), methods: await text(p, '#g-methods > summary') })],
