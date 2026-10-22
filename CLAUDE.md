@@ -390,6 +390,12 @@ prompt and the number check. **Drivers describe the estimate, never a cause.** V
   difference with its 95% interval). `diacausal/causal_inference/analysis_panels.py` builds the tab's three panels (`results.json` `analysis_panels`)
   and `report/assets/ANALYSIS_TAB_TEXT.md` (`python -m diacausal.causal_inference.analysis_panels`) from results files only; `web/app.js` only places
   the strings. **Never type a number into a panel**: tests/xai/test_analysis_panels.py edits each source number and checks the cell follows.
+- **Stress test (22 Oct, pre-registered in docs/XAI_PLAN.md section 10 before any run):** `generator.assignment.confounding_multiplier` (TEAM-SET,
+  default 1.0 = today's cohorts bit for bit) scales every assignment coefficient but not the intercepts. `python scripts/xai_stress.py` (about 1 minute;
+  `diacausal/xai/stress.py`) runs the naive comparison, A and B at 1.0, 1.5 and 2.0 in the ablation's quick mode and writes `results/xai_stress.csv`; panel d of the
+  Analysis tab shows every row. **Result: B does not pull ahead of A under stronger confounding** (A did as well or better on regret and PEHE; B keeps its
+  honest intervals and withholds more as overlap shrinks): never write otherwise. Changing the multiplier's default, the seeds or the metrics after a
+  run is forbidden by the plan; params.yaml's fingerprint changed with the new entry, so every results file that records `params_sha` was regenerated.
 
 ## Licences of the Indian sources (P19, DONE except two open items) — see docs/LICENCE_REGISTER.md
 

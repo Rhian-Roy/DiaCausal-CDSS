@@ -2934,6 +2934,188 @@
      "results/llm/bench_summary.csv"
     ],
     "note": "Fixed question sets, not synthetic cohorts, so these values have no interval."
+   },
+   {
+    "id": "d",
+    "title": "When confounding is stronger",
+    "sentence": "With the drug choice depending 1.5 and 2 times as strongly on the patient's details, the share of patients with too few similar patients grows from 4.3% to 42.9%, B withholds 4.2% to 24.8% of the options, and B's intervals keep containing the true effect (91.2% to 98.1% of patients) while the naive comparison's fall to 21.1%; but B does not pull ahead of A: of 27 paired comparisons (3 multipliers x the measures with a paired interval, not counting the numbers B withholds), B is clearly better on 0, clearly worse on 2, and shows no improvement or no clear difference on the other 25.",
+    "columns": [
+     "Measure",
+     "Drug choice x1 (today's data)",
+     "Drug choice x1.5",
+     "Drug choice x2"
+    ],
+    "rows": [
+     {
+      "label": "Patients with too few similar patients (smallest true propensity below 0.05)",
+      "metric": "thin_share",
+      "comparison": "all",
+      "cells": [
+       "4.3%",
+       "23.4%",
+       "42.9%"
+      ],
+      "verdict": "not compared"
+     },
+     {
+      "label": "Bias of the average effect (absolute), SGLT2i vs DPP-4i",
+      "metric": "abs_effect_bias",
+      "comparison": "SGLT2i-DPP4i",
+      "cells": [
+       "Naive 0.1280 \u00b7 A 0.0533 \u00b7 B 0.0140; B minus A -0.0393 (95% interval -0.1013 to +0.0227): not a clear difference",
+       "Naive 0.1502 \u00b7 A 0.0889 \u00b7 B 0.1115; B minus A +0.0226 (95% interval -0.0886 to +0.1339): no improvement",
+       "Naive 0.1907 \u00b7 A 0.0715 \u00b7 B 0.0518; B minus A -0.0196 (95% interval -0.0886 to +0.0494): not a clear difference"
+      ],
+      "verdict": "mixed"
+     },
+     {
+      "label": "Bias of the average effect (absolute), Sulfonylurea vs DPP-4i",
+      "metric": "abs_effect_bias",
+      "comparison": "SU-DPP4i",
+      "cells": [
+       "Naive 0.0792 \u00b7 A 0.0780 \u00b7 B 0.0611; B minus A -0.0168 (95% interval -0.1663 to +0.1326): not a clear difference",
+       "Naive 0.0841 \u00b7 A 0.1076 \u00b7 B 0.0715; B minus A -0.0361 (95% interval -0.0838 to +0.0117): not a clear difference",
+       "Naive 0.1194 \u00b7 A 0.0959 \u00b7 B 0.0701; B minus A -0.0257 (95% interval -0.0762 to +0.0247): not a clear difference"
+      ],
+      "verdict": "mixed"
+     },
+     {
+      "label": "Bias of the average effect (absolute), SGLT2i vs sulfonylurea",
+      "metric": "abs_effect_bias",
+      "comparison": "SGLT2i-SU",
+      "cells": [
+       "Naive 0.0546 \u00b7 A 0.0247 \u00b7 B 0.0592; B minus A +0.0345 (95% interval -0.0998 to +0.1688): no improvement",
+       "Naive 0.0661 \u00b7 A 0.0212 \u00b7 B 0.0610; B minus A +0.0397 (95% interval -0.0539 to +0.1333): no improvement",
+       "Naive 0.0712 \u00b7 A 0.0244 \u00b7 B 0.0191; B minus A -0.0053 (95% interval -0.0210 to +0.0104): not a clear difference"
+      ],
+      "verdict": "no improvement"
+     },
+     {
+      "label": "Error of each patient's effect (PEHE), SGLT2i vs DPP-4i",
+      "metric": "pehe",
+      "comparison": "SGLT2i-DPP4i",
+      "cells": [
+       "Naive 0.1906 \u00b7 A 0.1204 \u00b7 B 0.1972; B minus A +0.0768 (95% interval -0.0327 to +0.1864): no improvement",
+       "Naive 0.2051 \u00b7 A 0.1411 \u00b7 B 0.3965; B minus A +0.2554 (95% interval -0.3132 to +0.8239): no improvement",
+       "Naive 0.2366 \u00b7 A 0.1566 \u00b7 B 0.3564; B minus A +0.1999 (95% interval +0.0511 to +0.3487): no improvement (B clearly worse)"
+      ],
+      "verdict": "no improvement"
+     },
+     {
+      "label": "Error of each patient's effect (PEHE), Sulfonylurea vs DPP-4i",
+      "metric": "pehe",
+      "comparison": "SU-DPP4i",
+      "cells": [
+       "Naive 0.1899 \u00b7 A 0.1498 \u00b7 B 0.2981; B minus A +0.1483 (95% interval -0.0296 to +0.3263): no improvement",
+       "Naive 0.1881 \u00b7 A 0.1606 \u00b7 B 0.3985; B minus A +0.2379 (95% interval -0.2340 to +0.7099): no improvement",
+       "Naive 0.2049 \u00b7 A 0.1648 \u00b7 B 0.3701; B minus A +0.2052 (95% interval -0.1453 to +0.5557): no improvement"
+      ],
+      "verdict": "no improvement"
+     },
+     {
+      "label": "Error of each patient's effect (PEHE), SGLT2i vs sulfonylurea",
+      "metric": "pehe",
+      "comparison": "SGLT2i-SU",
+      "cells": [
+       "Naive 0.1709 \u00b7 A 0.1236 \u00b7 B 0.2761; B minus A +0.1525 (95% interval -0.1775 to +0.4825): no improvement",
+       "Naive 0.1750 \u00b7 A 0.1211 \u00b7 B 0.2652; B minus A +0.1441 (95% interval -0.0768 to +0.3651): no improvement",
+       "Naive 0.1794 \u00b7 A 0.1325 \u00b7 B 0.2448; B minus A +0.1123 (95% interval -0.0291 to +0.2538): no improvement"
+      ],
+      "verdict": "no improvement"
+     },
+     {
+      "label": "Patients whose true effect lies in the 95% interval, SGLT2i vs DPP-4i",
+      "metric": "coverage",
+      "comparison": "SGLT2i-DPP4i",
+      "cells": [
+       "Naive 30.4% \u00b7 B 96.6%",
+       "Naive 28.5% \u00b7 B 91.2%",
+       "Naive 21.1% \u00b7 B 96.0%"
+      ],
+      "verdict": "not compared"
+     },
+     {
+      "label": "Patients whose true effect lies in the 95% interval, Sulfonylurea vs DPP-4i",
+      "metric": "coverage",
+      "comparison": "SU-DPP4i",
+      "cells": [
+       "Naive 36.7% \u00b7 B 93.2%",
+       "Naive 37.1% \u00b7 B 92.2%",
+       "Naive 30.0% \u00b7 B 95.0%"
+      ],
+      "verdict": "not compared"
+     },
+     {
+      "label": "Patients whose true effect lies in the 95% interval, SGLT2i vs sulfonylurea",
+      "metric": "coverage",
+      "comparison": "SGLT2i-SU",
+      "cells": [
+       "Naive 41.1% \u00b7 B 95.1%",
+       "Naive 39.6% \u00b7 B 98.1%",
+       "Naive 38.1% \u00b7 B 96.3%"
+      ],
+      "verdict": "not compared"
+     },
+     {
+      "label": "Regret: extra HbA1c vs the truly best allowed drug",
+      "metric": "regret",
+      "comparison": "all",
+      "cells": [
+       "Naive 0.0669 \u00b7 A 0.0200 \u00b7 B 0.0369; B minus A +0.0169 (95% interval -0.0004 to +0.0343): no improvement",
+       "Naive 0.0669 \u00b7 A 0.0121 \u00b7 B 0.0456; B minus A +0.0334 (95% interval -0.0126 to +0.0795): no improvement",
+       "Naive 0.0669 \u00b7 A 0.0411 \u00b7 B 0.0343; B minus A -0.0069 (95% interval -0.0897 to +0.0760): not a clear difference"
+      ],
+      "verdict": "no improvement"
+     },
+     {
+      "label": "Error of the predicted HbA1c change (RMSE)",
+      "metric": "pred_rmse",
+      "comparison": "all",
+      "cells": [
+       "Naive 0.4137 \u00b7 A 0.1527 \u00b7 B 0.1556; B minus A +0.0029 (95% interval -0.0880 to +0.0937): no improvement",
+       "Naive 0.4145 \u00b7 A 0.1551 \u00b7 B 0.1878; B minus A +0.0327 (95% interval -0.0610 to +0.1264): no improvement",
+       "Naive 0.4137 \u00b7 A 0.1513 \u00b7 B 0.2122; B minus A +0.0608 (95% interval -0.0590 to +0.1806): no improvement"
+      ],
+      "verdict": "no improvement"
+     },
+     {
+      "label": "Picks the truly best allowed drug",
+      "metric": "best_pick_rate",
+      "comparison": "all",
+      "cells": [
+       "Naive 47.6% \u00b7 A 74.0% \u00b7 B 65.2%; B minus A -8.8 points (95% interval -17.3 points to -0.3 points): no improvement (B clearly worse)",
+       "Naive 47.6% \u00b7 A 80.4% \u00b7 B 63.2%; B minus A -17.2 points (95% interval -50.6 points to +16.3 points): no improvement",
+       "Naive 47.6% \u00b7 A 62.6% \u00b7 B 65.6%; B minus A +3.0 points (95% interval -35.8 points to +41.8 points): not a clear difference"
+      ],
+      "verdict": "no improvement"
+     },
+     {
+      "label": "Numbers given where similar patients are too few",
+      "metric": "answered_when_thin_pairs",
+      "comparison": "all",
+      "cells": [
+       "Naive 100.0% \u00b7 A 100.0% \u00b7 B 11.2%; B minus A -88.8 points (95% interval -93.2 points to -84.4 points): B clearly better",
+       "Naive 100.0% \u00b7 A 100.0% \u00b7 B 7.8%; B minus A -92.2 points (95% interval -104.8 points to -79.6 points): B clearly better",
+       "Naive 100.0% \u00b7 A 100.0% \u00b7 B 3.9%; B minus A -96.1 points (95% interval -103.0 points to -89.1 points): B clearly better"
+      ],
+      "verdict": "mixed"
+     },
+     {
+      "label": "Options the engine withholds (B only)",
+      "metric": "abstention_rate",
+      "comparison": "all",
+      "cells": [
+       "Naive 0.0% \u00b7 A 0.0% \u00b7 B 4.2%",
+       "Naive 0.0% \u00b7 A 0.0% \u00b7 B 12.3%",
+       "Naive 0.0% \u00b7 A 0.0% \u00b7 B 24.8%"
+      ],
+      "verdict": "not compared"
+     }
+    ],
+    "sources": [
+     "results/xai_stress.csv"
+    ],
+    "note": "Pre-registered before any run (docs/XAI_PLAN.md section 10): quick mode, 3 synthetic cohorts of 1,500 patients per multiplier (fewer and smaller than the 20 cohorts of 5,000 above), so every interval is wide and a single small cohort is a noisy judge; a multiplier raises confounding and removes overlap together. Naive = plain group averages; B minus A is paired on the same cohorts; absolute bias is the absolute value of each cohort's bias, averaged over the cohorts; every row of the results file is shown."
    }
   ],
   "synthetic": true
@@ -2942,7 +3124,7 @@
   "reps": 20,
   "n_patients": 5000,
   "n_test_patients": 2000,
-  "seconds": 772.4,
+  "seconds": 2097.7,
   "refutation_checks_passed": "9 of 9",
   "true_population_effects": {
    "SGLT2i": -0.96146283,

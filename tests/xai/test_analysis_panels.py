@@ -13,7 +13,7 @@ from diacausal.causal_inference import analysis_panels
 
 ROOT = Path(__file__).resolve().parents[2]
 RESULTS = ROOT / "results"
-FILES = ("xai_ablation.csv", "rag_eval_summary.csv", "llm/bench_summary.csv")
+FILES = ("xai_ablation.csv", "xai_stress.csv", "rag_eval_summary.csv", "llm/bench_summary.csv")
 
 
 def rows(path):
@@ -47,7 +47,7 @@ def test_the_website_and_the_report_text_hold_exactly_what_the_results_files_giv
     assert json.loads((ROOT / "web/results.json").read_text())["analysis_panels"] == json.loads(json.dumps(built)), \
         "run: python -m diacausal.causal_inference.export_web"
     assert analysis_panels.TEXT_FILE.read_text(encoding="utf-8") == analysis_panels.text(built), "run: python -m diacausal.causal_inference.analysis_panels"
-    assert [p["title"] for p in built["panels"]] == ["From records to causal estimates", "What C adds", "What D adds"]
+    assert [p["title"] for p in built["panels"]] == ["From records to causal estimates", "What C adds", "What D adds", "When confounding is stronger"]
     for p in built["panels"]:
         assert p["sentence"] and p["sources"] and all(len(r["cells"]) == len(p["columns"]) - 1 for r in p["rows"])
 
@@ -72,7 +72,7 @@ def test_panels_b_and_c_change_when_their_source_numbers_change(tmp_path):
     edit_csv(d / "xai_ablation.csv", {"version": "C", "metric": "false_driver_rate", "comparison": "SU-DPP4i"}, "mean", "0.4321")
     edit_csv(d / "rag_eval_summary.csv", {"metric": "dose_leaks"}, "value", "7")
     edit_csv(d / "llm/bench_summary.csv", {"model_key": "candidate_a"}, "fallback_pct", "12.5")
-    b, c = analysis_panels.build(d)["panels"][1:]
+    b, c = analysis_panels.build(d)["panels"][1:3]
     assert any("43.2%" in r["cells"][1] for r in b["rows"] if r["metric"] == "false_driver_rate")
     assert "7 of 60" in next(r for r in c["rows"] if r["metric"] == "dose_leaks")["cells"][0]
     assert "12.5%" in next(r for r in c["rows"] if r["metric"] == "fallback_pct")["cells"][0] and "7 answers contained dose text" in c["sentence"]
@@ -138,3 +138,35 @@ def test_the_panel_code_types_no_result_number():
 def test_versions_0_and_b_minus_a_are_in_both_ablation_files(name):
     versions = {r["version"] for r in rows(RESULTS / name)}
     assert {"0", "A", "B", "C", "D", "B-A"} <= versions
+
+
+def test_panel_d_follows_the_stress_results_and_shows_every_row(tmp_path):
+    d = copy_results(tmp_path)
+    base = analysis_panels.build(d)["panels"][3]
+    stress = rows(d / "xai_stress.csv")
+    # every measure of the pre-registered list is on the panel, for all three multipliers, plus the thin share
+    assert {(r["metric"], r["comparison"]) for r in base["rows"]} == {(m, c) for m, c, *_ in analysis_panels.STRESS_ROWS} | {("thin_share", "all")}
+    assert all(len(r["cells"]) == 3 for r in base["rows"]) and len(base["columns"]) == 4
+    edit_csv(d / "xai_stress.csv", {"multiplier": "1.5", "version": "B", "metric": "regret", "comparison": "all"}, "mean", "0.4321")
+    edit_csv(d / "xai_stress.csv", {"multiplier": "2", "version": "cohort", "metric": "thin_share", "comparison": "all"}, "mean", "0.5")
+    after = analysis_panels.build(d)["panels"][3]
+    regret = next(r for r in after["rows"] if r["metric"] == "regret")
+    assert "B 0.4321" in regret["cells"][1] and regret["cells"] != next(r for r in base["rows"] if r["metric"] == "regret")["cells"]
+    assert next(r for r in after["rows"] if r["metric"] == "thin_share")["cells"][2] == "50.0%" and "50.0%" in after["sentence"]
+    assert len(stress) > 200
+
+
+def test_the_stress_test_reports_what_it_found_in_the_panels_words():
+    """B does not pull ahead of A in the committed run, and the panel says so in the same vocabulary as panel a."""
+    panel = analysis_panels.build()["panels"][3]
+    stress = {(r["multiplier"], r["version"], r["metric"], r["comparison"]): r for r in rows(RESULTS / "xai_stress.csv")}
+    assert [m for m in ("1", "1.5", "2") if ("1", "B", "regret", "all") in stress] == ["1", "1.5", "2"]
+    for m in ("1", "1.5", "2"):  # B's intervals are checked against 95% at every multiplier and the naive ones fall
+        assert all(num(stress[m, "B", "coverage", c]["mean"]) > 0.85 for c in analysis_panels.PAIRS)
+        assert all(num(stress[m, "0", "coverage", c]["mean"]) < 0.5 for c in analysis_panels.PAIRS)
+    thin = [num(stress[m, "cohort", "thin_share", "all"]["mean"]) for m in ("1", "1.5", "2")]
+    assert thin == sorted(thin) and thin[-1] > 4 * thin[0]  # the multiplier removes overlap: the engine withholds more, which is a cost
+    for r in panel["rows"]:
+        if r["verdict"] == "no improvement":
+            assert "no improvement" in " ".join(r["cells"]), r["label"]
+    assert "does not pull ahead of A" in panel["sentence"] and "clearly better on 0" in panel["sentence"]

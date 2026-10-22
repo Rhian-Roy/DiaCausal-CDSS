@@ -153,6 +153,10 @@ generator:
       ascvd: {value: -0.5, unit: log-odds, source: TEAM, status: TEAM-SET}
       pancreatitis_history: {value: 1.0, unit: log-odds, source: TEAM, status: TEAM-SET}
       low_income: {value: 1.0, unit: log-odds, source: TEAM, status: TEAM-SET, note: "cheapest option"}
+    # how strongly the drug choice depends on the patient's details: every coefficient above is multiplied by it (the intercepts and the
+    # centring points are not). 1.0 = the cohorts of every committed result; > 1 is used only by the pre-registered stress test
+    # (docs/XAI_PLAN.md section 10, scripts/xai_stress.py)
+    confounding_multiplier: {value: 1.0, unit: factor, source: TEAM, status: TEAM-SET, note: "stress-test knob; 1.0 = today's generator, bit for bit"}
     # centring points for the continuous covariates in the logit
     centre:
       hba1c: {value: 8.5, unit: "%", source: TEAM, status: TEAM-SET}

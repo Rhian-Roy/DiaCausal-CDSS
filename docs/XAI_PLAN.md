@@ -310,3 +310,70 @@ and `report/assets/ANALYSIS_TAB_TEXT.md`; every value on them is read from a res
 | 7 | **Secondary outcomes** (weight, hypoglycaemia) have the same linear structure, so the same function could explain them | out of scope for 30 Oct; list as FUTURE WORK |
 | 8 | **Timing:** P17 is due by Sun 11 Oct (gate G1) and the restructure moves files the same week | write `diacausal/xai/` at its final path, as the restructure plan's rule 1 says |
 | 9 | **UNVERIFIED:** the driver-to-passage gold table. (Run time measured: about 2.5 minutes for version A. Licences read from the installed packages on 10 Oct 2026: `shap` 0.52.0 is MIT, `lime` 0.2.0.1 is BSD, as their package metadata says; the licence text files were not read) | measure or check when built |
+
+## 10. Pre-registered stress test: stronger confounding (written 22 Oct 2026, BEFORE any run)
+
+**Question.** The A–D table shows B (the causal engine) ahead of A (the XAI-only model) on some measures and not on others. Does the
+difference between them grow when the choice of drug depends more strongly on the patient's details (confounding by indication)?
+
+**The one change.** A new parameter `generator.assignment.confounding_multiplier` in `data/params.yaml` (TEAM-SET, default 1.0 = today's
+cohorts, bit for bit). `cohort.true_propensity` multiplies every assignment coefficient (HbA1c, eGFR, BMI, age, duration, ASCVD, HF, DKA,
+pancreatitis, hypoglycaemia, low income) by it; the intercepts and the centring points are not scaled. The outcome model, the safety rules, every
+engine setting (overlap threshold 0.05, widest allowed interval 1.5), the learners, the cohort sizes and the seeds are not touched.
+
+**Runs.** Multiplier 1.0, 1.5 and 2.0; quick mode of the ablation (3 replicates, 1,500 training and 1,000 test patients, seeds 7, 8, 9, the test
+cohort of seed s being generated with seed s + 100000); the same three versions with exactly the ablation's functions: the naive comparison (0),
+version A and version B (C and D never change B's estimate, so they are not run). `python scripts/xai_stress.py` writes `results/xai_stress.csv`
+(columns `multiplier, version, metric, comparison, mean, ci_low, ci_high, n_reps`).
+
+**Check before reporting.** At multiplier 1.0 the 0, A and B rows must equal the committed `results/xai_ablation_quick.csv` to 1e-9. If they do
+not, the code is wrong and is fixed using the 1.0 run only, before the 1.5 and 2.0 results are looked at.
+
+**Everything that is reported** (every row goes into the CSV and the fourth panel; none is dropped after the results are seen):
+bias of the average effect and PEHE for each of the three comparisons (0, A, B), coverage of the 95% interval (0, B), regret, prediction RMSE,
+best-pick rate, share of numbers given where similar patients are too few, B's abstention rate, the share of test patients whose smallest TRUE
+propensity is below 0.05 ("thin share"; how much overlap the multiplier removes), and the paired difference B minus A with its 95% t-interval
+(2 degrees of freedom with 3 replicates, so the intervals are wide).
+
+**Hypotheses, written before running (UNVERIFIED).**
+1. The naive comparison's bias grows with the multiplier, and its interval covers the true effect less often.
+2. A's bias of the average effect grows with the multiplier; B's stays near zero.
+3. B's interval coverage stays near 95%.
+4. The thin share grows, so B abstains on more options. That is a cost of the engine, not a win, and is reported as one.
+5. B's regret advantage over A grows, but with 3 replicates the paired intervals will probably be too wide to show it, and A may do as well as B
+   on regret and PEHE. If so, the panel says "no clear difference" or "no improvement" in the same words as the other panels.
+
+**Reporting rule.** All three multipliers and all metrics are shown, whatever they show. A difference is called clear only if the paired 95%
+interval excludes 0. No multiplier, metric, seed or cohort size is added, removed or changed after the first run; if a code error is found,
+the whole test is rerun, and the first run's numbers stay in the git history and are named in this section. Nothing else (parameters, rules,
+learners, thresholds) is changed to improve B's numbers.
+
+**Limits.** The generator is synthetic and linear; three replicates are few; the multiplier changes confounding and overlap together and the
+test cannot separate them (the thin share shows how much overlap changed). It says nothing about real patients.
+
+**Detail fixed before the first run (22 Oct 2026, not a deviation).** The paired difference for bias is taken on the ABSOLUTE bias of the
+average effect (`abs_effect_bias` = |mean of estimate minus truth| per replicate, B minus A; a negative difference means B is closer to the
+truth); the signed `effect_bias` is reported too. The multiplier is an entry of the generator (`generator.assignment.confounding_multiplier`);
+its default 1.0 reproduces the committed cohorts bit for bit (checked: identical cohort hash before and after the change).
+
+**Results (22 Oct 2026, one run, 16:59 UTC; `python scripts/xai_stress.py` -> `results/xai_stress.csv`).** The plan was committed at 16:57 UTC
+(`5ab7116`, author time 16:57:05 UTC), the multiplier at `bde8919` (16:57:45 UTC; both commits were replayed onto `main` after PR #132 merged, so their hashes differ from the first local ones, their author times do not), the code after the run of 16:59 UTC; the check at multiplier 1.0 passed (249 numbers equal `xai_ablation_quick.csv`).
+Nothing was changed after seeing the results. Quick mode: 3 cohorts of 1,500 patients per multiplier (smaller and fewer than the 20 cohorts of
+5,000 behind the table above), so every interval is wide.
+
+| # | Hypothesis | What the run shows |
+|---|---|---|
+| H1 | The naive bias grows and its coverage falls | **Supported.** Naive bias, SGLT2i vs DPP-4i: -0.128, -0.150, -0.191; its coverage of that comparison 30.4%, 28.5%, 21.1%. (Sulfonylurea vs DPP-4i coverage went 36.7%, 37.1%, 30.0%: not monotone.) |
+| H2 | A's bias grows with the multiplier; B's stays near zero | **Not supported.** A's bias (SGLT2i vs DPP-4i) went +0.053, +0.089, +0.072: not monotone. B's went +0.014, +0.112, +0.012: at 1.5 it is larger than A's. Every paired interval of the absolute bias contains 0. |
+| H3 | B's coverage stays near 95% | **Mostly supported:** 91.2% to 98.1% across the nine cells (lowest 91.2%, SGLT2i vs DPP-4i at 1.5). |
+| H4 | Thin share grows, so B abstains more (a cost) | **Supported:** thin share 4.3%, 23.4%, 42.9%; B withholds 4.2%, 12.3%, 24.8% of the options; B gives numbers for 11.2%, 7.8%, 3.9% of the thin patient-option pairs (A: 100%). |
+| H5 | B's regret advantage grows; A may do as well as B | **Not supported; A did as well or better.** B minus A in regret: +0.0169, +0.0334, -0.0069 (95% intervals -0.0004 to +0.0343, -0.0126 to +0.0795, -0.0897 to +0.0760). PEHE is worse for B at every multiplier and every comparison; clearly so for SGLT2i vs DPP-4i at 2.0 (+0.0511 to +0.3487). A picks the truly best drug more often than B at 1.0 (-8.8 points, interval -17.3 to -0.3: clear), and the difference is not clear at 1.5 and 2.0. |
+
+Of the 27 paired comparisons (3 multipliers x 9 measures with a paired interval, not counting the numbers B withholds), B is clearly better on 0, clearly
+worse on 2 (best-pick rate at 1.0; PEHE, SGLT2i vs DPP-4i at 2.0) and not clearly different, or not better, on the other 25. **Reading it:** stronger
+confounding does not make the causal engine's point predictions better than the XAI-only model's in this synthetic generator; what the engine
+keeps is honest 95% intervals (the naive comparison's collapse) and its refusal to answer where data are thin, which costs it more answers as
+overlap shrinks. Do not write that B beats A under stronger confounding. Caveats: only 3 small cohorts; the multiplier removes overlap at the same
+time as it raises confounding; the 20-cohort result above (B's regret 16% lower, not clear) used 5,000 patients per cohort.
+
+**Deviations from this plan** (none so far): listed here if any occurs.

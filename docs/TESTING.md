@@ -144,6 +144,14 @@ benchmark and `pip-audit` on Linux and macOS. `scripts/check_all.py` is unchange
 
 **XAI with RAG and the A–D table** (P26): `tests/rag/test_driver_queries.py` (every driver term is in the corpus file it cites; driver queries are deterministic and deduplicated, and unknown features are ignored; on four questions the drivers change only the order of the question's own passages; "zebra-test" still abstains with three drivers; a kidney driver moves kidney passages up; the pipeline adds the top driver of each comparison), `tests/guards/test_output_guards_drivers.py` (numbers copied from DRIVERS pass, invented or rounded ones fail, 88 and 88.0 are one number but digits never change, causal wording about a driver by its card label fails, a label of a feature that is not a driver is not checked, the XAI phrasing passes), `tests/llm/test_pipeline_ollama.py` (the prompt's DRIVERS line is the card's drivers, minified, with rule 6), `tests/xai/test_ablation.py` (all four versions and the plan's columns; B, C and D share the engine's numbers; intervals bracket the means; synthetic metrics use 20 replicates and the question-set rows say n_reps 0; the driver-passage hit rate stays empty until its reviewed table exists; B gives far fewer numbers where data are thin; the run record is not stale and the charts exist; a quick re-run equals the committed quick file to 1e-9), `tests/web/test_web.py` (the two new charts are copied, results.json carries the A–D rows, the Analysis tab has the table, Guide → Cautions has the SHAP sentence).
 
+**Stress test: stronger confounding** (22 Oct 2026, docs/XAI_PLAN.md section 10): `tests/xai/test_stress.py` (the multiplier is a TEAM-SET entry of
+`generator.assignment`; 1.0 gives the identical cohort as today's generator and 2.0 does not; it scales the coefficients and never the intercepts;
+the plan with its multipliers, seeds, hypotheses and reporting rule is in the XAI plan; at multiplier 1.0 the 0, A, B and B-A rows equal
+`xai_ablation_quick.csv` exactly (the pre-registered check); the results file has every multiplier, version and reported metric; the plan records the
+result against each hypothesis; a slow test reruns the whole stress test and gets the committed file byte for byte) and the panel d tests in
+`tests/xai/test_analysis_panels.py` (every measure of the pre-registered list is on the panel for all three multipliers; editing a stress number
+changes its cell and the sentence; every row where B is not better says "no improvement").
+
 **Analysis tab panels** (22 Oct 2026): `tests/xai/test_analysis_panels.py` (`web/results.json` and `report/assets/ANALYSIS_TAB_TEXT.md` equal a fresh
 build from the results files; editing one mean in a copy of `xai_ablation.csv`, `rag_eval_summary.csv` or `llm/bench_summary.csv` changes exactly the
 matching cell, so nothing on the panels is typed; every panel-a row where B is not better says "no improvement" and every row whose paired 95% interval
