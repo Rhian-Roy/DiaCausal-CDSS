@@ -357,7 +357,7 @@ truth); the signed `effect_bias` is reported too. The multiplier is an entry of 
 its default 1.0 reproduces the committed cohorts bit for bit (checked: identical cohort hash before and after the change).
 
 **Results (22 Oct 2026, one run, 16:59 UTC; `python scripts/xai_stress.py` -> `results/xai_stress.csv`).** The plan was committed at 16:57 UTC
-(`9f3f44e`), the multiplier at `00c619b`, and the code after; the check at multiplier 1.0 passed (249 numbers equal `xai_ablation_quick.csv`).
+(`5ab7116`, author time 16:57:05 UTC), the multiplier at `bde8919` (16:57:45 UTC; both commits were replayed onto `main` after PR #132 merged, so their hashes differ from the first local ones, their author times do not), the code after the run of 16:59 UTC; the check at multiplier 1.0 passed (249 numbers equal `xai_ablation_quick.csv`).
 Nothing was changed after seeing the results. Quick mode: 3 cohorts of 1,500 patients per multiplier (smaller and fewer than the 20 cohorts of
 5,000 behind the table above), so every interval is wide.
 

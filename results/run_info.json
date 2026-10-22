@@ -8,7 +8,7 @@
   "base_seed": 7,
   "psm_bootstrap": 100,
   "params_version": "0.3.0",
-  "params_sha": "6d9b4de98d",
+  "params_sha": "4196c421d3",
   "rules_sha": "dd3f348885",
   "true_population_effects": {
     "SGLT2i": -0.96146283,
@@ -33,6 +33,6 @@
     "hypo:SGLT2i-SU": -0.12854517830623477
   },
   "refutation_checks_passed": "9 of 9",
-  "python": "3.12.14",
-  "seconds": 772.4
+  "python": "3.12.3",
+  "seconds": 2097.7
 }
