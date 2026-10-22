@@ -1552,27 +1552,27 @@
    "version": "C",
    "metric": "additivity_max_error",
    "comparison": "SGLT2i-DPP4i",
-   "mean": "2.80331e-16",
-   "ci_low": "2.4127e-16",
-   "ci_high": "3.19392e-16",
+   "mean": "2.13718e-16",
+   "ci_low": "1.86699e-16",
+   "ci_high": "2.40737e-16",
    "n_reps": "20"
   },
   {
    "version": "C",
    "metric": "additivity_max_error",
    "comparison": "SGLT2i-SU",
-   "mean": "1.8735e-16",
-   "ci_low": "1.5613e-16",
-   "ci_high": "2.1857e-16",
+   "mean": "1.94289e-16",
+   "ci_low": "1.69714e-16",
+   "ci_high": "2.18864e-16",
    "n_reps": "20"
   },
   {
    "version": "C",
    "metric": "additivity_max_error",
    "comparison": "SU-DPP4i",
-   "mean": "3.16414e-16",
-   "ci_low": "2.78624e-16",
-   "ci_high": "3.54203e-16",
+   "mean": "2.72005e-16",
+   "ci_low": "2.29108e-16",
+   "ci_high": "3.14902e-16",
    "n_reps": "20"
   },
   {
@@ -1984,27 +1984,27 @@
    "version": "D",
    "metric": "additivity_max_error",
    "comparison": "SGLT2i-DPP4i",
-   "mean": "2.80331e-16",
-   "ci_low": "2.4127e-16",
-   "ci_high": "3.19392e-16",
+   "mean": "2.13718e-16",
+   "ci_low": "1.86699e-16",
+   "ci_high": "2.40737e-16",
    "n_reps": "20"
   },
   {
    "version": "D",
    "metric": "additivity_max_error",
    "comparison": "SGLT2i-SU",
-   "mean": "1.8735e-16",
-   "ci_low": "1.5613e-16",
-   "ci_high": "2.1857e-16",
+   "mean": "1.94289e-16",
+   "ci_low": "1.69714e-16",
+   "ci_high": "2.18864e-16",
    "n_reps": "20"
   },
   {
    "version": "D",
    "metric": "additivity_max_error",
    "comparison": "SU-DPP4i",
-   "mean": "3.16414e-16",
-   "ci_low": "2.78624e-16",
-   "ci_high": "3.54203e-16",
+   "mean": "2.72005e-16",
+   "ci_low": "2.29108e-16",
+   "ci_high": "3.14902e-16",
    "n_reps": "20"
   },
   {
@@ -2454,13 +2454,13 @@
    {
     "feature": "egfr",
     "A": 0.0156257,
-    "C": 0.09923065295076423,
+    "C": 0.09923065295076405,
     "true_modifier": true
    },
    {
     "feature": "hba1c",
     "A": 0.0307105,
-    "C": 0.05906009064043124,
+    "C": 0.059060090640431204,
     "true_modifier": true
    },
    {
@@ -2472,55 +2472,55 @@
    {
     "feature": "age",
     "A": 0.00247884,
-    "C": 0.030432484700488153,
+    "C": 0.03043248470048813,
     "true_modifier": false
    },
    {
     "feature": "low_income",
     "A": 0.00320091,
-    "C": 0.025574348369520068,
+    "C": 0.02557434836952015,
     "true_modifier": false
    },
    {
     "feature": "duration_years",
     "A": 0.00291317,
-    "C": 0.011946861834967046,
+    "C": 0.011946861834967069,
     "true_modifier": false
    },
    {
     "feature": "dka_history",
     "A": 0.0,
-    "C": 0.008692190567559578,
+    "C": 0.008692190567559566,
     "true_modifier": false
    },
    {
     "feature": "ascvd",
     "A": 4.62821e-05,
-    "C": 0.007990686872210277,
+    "C": 0.007990686872210368,
     "true_modifier": false
    },
    {
     "feature": "bmi",
     "A": 0.000733689,
-    "C": 0.0078250744461949,
+    "C": 0.00782507444619497,
     "true_modifier": false
    },
    {
     "feature": "pancreatitis_history",
     "A": 0.0,
-    "C": 0.005925443843663169,
+    "C": 0.005925443843663121,
     "true_modifier": false
    },
    {
     "feature": "hypo_history",
     "A": 0.0,
-    "C": 0.0038652786853753214,
+    "C": 0.0038652786853752147,
     "true_modifier": false
    },
    {
     "feature": "hf",
     "A": 0.0,
-    "C": 0.0001434752360967591,
+    "C": 0.00014347523609670328,
     "true_modifier": false
    }
   ],
@@ -2583,6 +2583,360 @@
     "mean_abs_weight_top": "0.0860275"
    }
   ]
+ },
+ "analysis_panels": {
+  "panels": [
+   {
+    "id": "a",
+    "title": "From records to causal estimates",
+    "sentence": "B adjusts for why each patient received their drug instead of only learning from the records as A does: compared with A, its regret is 16% lower (not a clear difference), the average effect has 88% smaller bias, and it gives numbers for 12.8% of the patient-option pairs where similar patients are too few instead of 100.0%; its error on each patient's effect (PEHE) shows no clear improvement on 3 of 3 comparisons. The naive comparison of group averages has a regret of 0.0633 (A 0.0126, B 0.0106) and its interval contains the true SGLT2i vs DPP-4i effect for 13.9% of patients (B 94.4%).",
+    "columns": [
+     "Measure",
+     "Naive comparison (version 0)",
+     "A \u00b7 XAI only",
+     "B \u00b7 causal engine",
+     "A \u2192 B"
+    ],
+    "rows": [
+     {
+      "label": "Bias of the average effect, SGLT2i vs DPP-4i",
+      "metric": "effect_bias",
+      "comparison": "SGLT2i-DPP4i",
+      "cells": [
+       "-0.1597 (95% CI -0.1693 to -0.1501)",
+       "+0.0137 (95% CI +0.0052 to +0.0223)",
+       "+0.0016 (95% CI -0.0096 to +0.0128)",
+       "88% smaller bias; 95% interval A excludes 0, B includes 0"
+      ],
+      "verdict": "better",
+      "words": "88% smaller bias"
+     },
+     {
+      "label": "Patients whose true effect lies in the 95% interval, SGLT2i vs DPP-4i",
+      "metric": "coverage",
+      "comparison": "SGLT2i-DPP4i",
+      "cells": [
+       "13.9% (95% CI 13.0% to 14.8%)",
+       "no interval",
+       "94.4% (95% CI 91.8% to 97.0%)",
+       "A gives no interval, so only B and the naive comparison can be checked against 95%"
+      ],
+      "verdict": "not comparable",
+      "words": "A gives no interval, so only B and the naive comparison can be checked against 95%"
+     },
+     {
+      "label": "Regret: extra HbA1c vs the truly best allowed drug",
+      "metric": "regret",
+      "comparison": "all",
+      "cells": [
+       "0.0633 (95% CI 0.0545 to 0.0721)",
+       "0.0126 (95% CI 0.0084 to 0.0169)",
+       "0.0106 (95% CI 0.0083 to 0.0130)",
+       "16% lower: not a clear difference; paired 95% interval of B minus A -0.0064 to +0.0024"
+      ],
+      "verdict": "not a clear difference",
+      "words": "16% lower"
+     },
+     {
+      "label": "Error of the predicted HbA1c change (RMSE)",
+      "metric": "pred_rmse",
+      "comparison": "all",
+      "cells": [
+       "0.4129 (95% CI 0.4078 to 0.4181)",
+       "0.0931 (95% CI 0.0896 to 0.0966)",
+       "0.0723 (95% CI 0.0672 to 0.0774)",
+       "22% lower; paired 95% interval of B minus A -0.0255 to -0.0161"
+      ],
+      "verdict": "better",
+      "words": "22% lower"
+     },
+     {
+      "label": "Picks the truly best allowed drug",
+      "metric": "best_pick_rate",
+      "comparison": "all",
+      "cells": [
+       "50.3% (95% CI 44.8% to 55.8%)",
+       "81.1% (95% CI 77.7% to 84.5%)",
+       "82.7% (95% CI 80.8% to 84.7%)",
+       "1.6 points higher (2% more): not a clear difference; paired 95% interval of B minus A -1.8 points to +5.0 points"
+      ],
+      "verdict": "not a clear difference",
+      "words": "1.6 points higher (2% more)"
+     },
+     {
+      "label": "Numbers given where similar patients are too few",
+      "metric": "answered_when_thin_pairs",
+      "comparison": "all",
+      "cells": [
+       "100.0%",
+       "100.0%",
+       "12.8% (95% CI 9.3% to 16.2%)",
+       "87.2 points lower (87% fewer)"
+      ],
+      "verdict": "better",
+      "words": "87.2 points lower (87% fewer)"
+     },
+     {
+      "label": "Error of each patient's effect (PEHE), SGLT2i vs DPP-4i",
+      "metric": "pehe",
+      "comparison": "SGLT2i-DPP4i",
+      "cells": [
+       "0.2136 (95% CI 0.2064 to 0.2208)",
+       "0.1033 (95% CI 0.0965 to 0.1101)",
+       "0.1048 (95% CI 0.0934 to 0.1162)",
+       "1% higher: no improvement; paired 95% interval of B minus A -0.0090 to +0.0119"
+      ],
+      "verdict": "no improvement",
+      "words": "1% higher"
+     },
+     {
+      "label": "Error of each patient's effect (PEHE), Sulfonylurea vs DPP-4i",
+      "metric": "pehe",
+      "comparison": "SU-DPP4i",
+      "cells": [
+       "0.1971 (95% CI 0.1912 to 0.2030)",
+       "0.1035 (95% CI 0.0957 to 0.1114)",
+       "0.1171 (95% CI 0.1049 to 0.1293)",
+       "13% higher: no improvement; paired 95% interval of B minus A +0.0011 to +0.0261"
+      ],
+      "verdict": "no improvement",
+      "words": "13% higher"
+     },
+     {
+      "label": "Error of each patient's effect (PEHE), SGLT2i vs sulfonylurea",
+      "metric": "pehe",
+      "comparison": "SGLT2i-SU",
+      "cells": [
+       "0.1686 (95% CI 0.1650 to 0.1722)",
+       "0.1104 (95% CI 0.1034 to 0.1175)",
+       "0.1078 (95% CI 0.0958 to 0.1198)",
+       "2% lower: not a clear difference; paired 95% interval of B minus A -0.0150 to +0.0097"
+      ],
+      "verdict": "not a clear difference",
+      "words": "2% lower"
+     }
+    ],
+    "chart": [
+     {
+      "label": "Bias of the average effect, SGLT2i vs DPP-4i",
+      "value": 88.3,
+      "text": "88% smaller bias",
+      "worse": false,
+      "clear": true
+     },
+     {
+      "label": "Regret: extra HbA1c vs the truly best allowed drug",
+      "value": 15.9,
+      "text": "16% lower, not clear",
+      "worse": false,
+      "clear": false
+     },
+     {
+      "label": "Error of the predicted HbA1c change (RMSE)",
+      "value": 22.4,
+      "text": "22% lower",
+      "worse": false,
+      "clear": true
+     },
+     {
+      "label": "Picks the truly best allowed drug",
+      "value": 2.0,
+      "text": "2% more, not clear",
+      "worse": false,
+      "clear": false
+     },
+     {
+      "label": "Numbers given where similar patients are too few",
+      "value": 87.2,
+      "text": "87% fewer",
+      "worse": false,
+      "clear": true
+     },
+     {
+      "label": "Error of each patient's effect (PEHE), SGLT2i vs DPP-4i",
+      "value": -1.4,
+      "text": "1% higher, no improvement",
+      "worse": true,
+      "clear": false
+     },
+     {
+      "label": "Error of each patient's effect (PEHE), Sulfonylurea vs DPP-4i",
+      "value": -13.1,
+      "text": "13% higher, no improvement",
+      "worse": true,
+      "clear": false
+     },
+     {
+      "label": "Error of each patient's effect (PEHE), SGLT2i vs sulfonylurea",
+      "value": 2.4,
+      "text": "2% lower, not clear",
+      "worse": false,
+      "clear": false
+     }
+    ],
+    "chart_max": 90,
+    "sources": [
+     "results/xai_ablation.csv",
+     "results/benchmark_summary.csv (the same 20 cohorts; naive PEHE agrees)"
+    ],
+    "note": "Mean over 20 synthetic cohorts with its 95% interval. The naive comparison uses the plain average HbA1c change in each drug group of the records for every patient. C and D do not change B's estimate, so they are not repeated here."
+   },
+   {
+    "id": "b",
+    "title": "What C adds",
+    "sentence": "C splits B's estimate into one contribution per patient detail that adds up to the estimate (largest error 2.7e-16) and shows only the details whose 95% interval excludes zero; 11% to 18% of the drivers it shows are not true effect modifiers, and A's top features match the true modifiers more often than C's on 2 of 3 comparisons.",
+    "columns": [
+     "Measure",
+     "A \u00b7 XAI only",
+     "C \u00b7 B + exact SHAP"
+    ],
+    "rows": [
+     {
+      "label": "Contributions add up to the estimate (largest error), SGLT2i vs DPP-4i",
+      "metric": "additivity_max_error",
+      "comparison": "SGLT2i-DPP4i",
+      "cells": [
+       "not applicable",
+       "2.1e-16"
+      ]
+     },
+     {
+      "label": "Contributions add up to the estimate (largest error), Sulfonylurea vs DPP-4i",
+      "metric": "additivity_max_error",
+      "comparison": "SU-DPP4i",
+      "cells": [
+       "not applicable",
+       "2.7e-16"
+      ]
+     },
+     {
+      "label": "Contributions add up to the estimate (largest error), SGLT2i vs sulfonylurea",
+      "metric": "additivity_max_error",
+      "comparison": "SGLT2i-SU",
+      "cells": [
+       "not applicable",
+       "1.9e-16"
+      ]
+     },
+     {
+      "label": "Top features that are true effect modifiers, SGLT2i vs DPP-4i",
+      "metric": "modifier_precision_at_k",
+      "comparison": "SGLT2i-DPP4i",
+      "cells": [
+       "95.0% (95% CI 87.8% to 102.2%)",
+       "87.5% (95% CI 77.1% to 97.9%)"
+      ],
+      "verdict": "A higher"
+     },
+     {
+      "label": "Top features that are true effect modifiers, Sulfonylurea vs DPP-4i",
+      "metric": "modifier_precision_at_k",
+      "comparison": "SU-DPP4i",
+      "cells": [
+       "92.5% (95% CI 83.9% to 101.1%)",
+       "97.5% (95% CI 92.3% to 102.7%)"
+      ],
+      "verdict": "C higher or equal"
+     },
+     {
+      "label": "Top features that are true effect modifiers, SGLT2i vs sulfonylurea",
+      "metric": "modifier_precision_at_k",
+      "comparison": "SGLT2i-SU",
+      "cells": [
+       "98.3% (95% CI 94.8% to 101.8%)",
+       "78.3% (95% CI 69.2% to 87.5%)"
+      ],
+      "verdict": "A higher"
+     },
+     {
+      "label": "Shown drivers that are not true effect modifiers, SGLT2i vs DPP-4i",
+      "metric": "false_driver_rate",
+      "comparison": "SGLT2i-DPP4i",
+      "cells": [
+       "A shows no drivers",
+       "18.1% (95% CI 5.7% to 30.4%)"
+      ]
+     },
+     {
+      "label": "Shown drivers that are not true effect modifiers, Sulfonylurea vs DPP-4i",
+      "metric": "false_driver_rate",
+      "comparison": "SU-DPP4i",
+      "cells": [
+       "A shows no drivers",
+       "10.9% (95% CI 2.8% to 19.0%)"
+      ]
+     },
+     {
+      "label": "Shown drivers that are not true effect modifiers, SGLT2i vs sulfonylurea",
+      "metric": "false_driver_rate",
+      "comparison": "SGLT2i-SU",
+      "cells": [
+       "A shows no drivers",
+       "16.8% (95% CI 9.1% to 24.6%)"
+      ]
+     }
+    ],
+    "sources": [
+     "results/xai_ablation.csv"
+    ],
+    "note": "Drivers describe the estimate, never a cause. A's SHAP explains a prediction model, not an effect. An interval past 100% is the t-interval of the 20 cohorts as the ablation wrote it (most cohorts score 100%), not a value above 100%."
+   },
+   {
+    "id": "c",
+    "title": "What D adds",
+    "sentence": "D finds cited passages and writes the explanation, and checks every draft before it is shown: on the 60 gold questions 100% of the quoted sentences were supported by their cited passage and 0 answers contained dose text; the local model's drafts failed a check on 75% of the 20 golden questions, so the template answered instead.",
+    "columns": [
+     "Measure",
+     "Value",
+     "Measured on",
+     "Source"
+    ],
+    "rows": [
+     {
+      "label": "Quoted sentences supported by their cited passage (citation precision)",
+      "metric": "citation_precision",
+      "cells": [
+       "100.0%",
+       "60 gold questions, template writer",
+       "results/rag_eval_summary.csv"
+      ]
+     },
+     {
+      "label": "Answers that contained dose text (dose leaks)",
+      "metric": "dose_leaks",
+      "cells": [
+       "0 of 60",
+       "60 gold questions, template writer",
+       "results/rag_eval_summary.csv"
+      ]
+     },
+     {
+      "label": "Local-model drafts whose every number is in the causal output",
+      "metric": "number_match_pct",
+      "cells": [
+       "30.0%",
+       "20 golden questions, local model (candidate_a)",
+       "results/llm/bench_summary.csv"
+      ]
+     },
+     {
+      "label": "Local-model drafts replaced by the template after a failed check",
+      "metric": "fallback_pct",
+      "cells": [
+       "75.0%",
+       "20 golden questions, local model (candidate_a)",
+       "results/llm/bench_summary.csv"
+      ]
+     }
+    ],
+    "sources": [
+     "results/rag_eval_summary.csv",
+     "results/llm/bench_summary.csv"
+    ],
+    "note": "Fixed question sets, not synthetic cohorts, so these values have no interval."
+   }
+  ],
+  "synthetic": true
  },
  "run": {
   "reps": 20,

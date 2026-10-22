@@ -1,5 +1,7 @@
 """The A-D ablation (docs/XAI_PLAN.md section 6; plan section 7.1; P26): what each layer adds, measured on the same 20 synthetic cohorts.
 
+    0  naive comparison: the plain average HbA1c change in each drug group of the records (estimators.naive), the same for every
+       patient, with its Welch 95% interval; scored with version A's definitions (it answers every option the rules leave)
     A  XAI-only baseline: a gradient-boosted predictor on factual data, explained with TreeSHAP and LIME (diacausal/xai/baseline.py)
     B  the causal engine: cross-fitted AIPW + DR-learner, 95% intervals, overlap abstention, the same safety rules
     C  B + exact SHAP on its own estimate, with intervals and the clear-driver rule (diacausal/xai/cate_shap.py)
@@ -8,7 +10,8 @@
 Every replicate uses the benchmark's cohorts (train: seed; test: seed + 100000; diacausal/causal_inference/benchmark.py) and the same
 safety-rule exclusions in every version. A cell is the mean over replicates with a 95% t-interval. B's numbers are C's and D's too
 (C and D explain or describe B's estimate, they do not change it); the table repeats them under C and D so each version's row is
-complete. D's retrieval and writing metrics are not per synthetic cohort: they come from the fixed question sets (the 60 gold
+complete. Version 0 and the paired rows `B-A` (B minus A on the same replicate, with a 95% t-interval of the difference) were
+added for the Analysis tab's first panel; they change no number of A to D. D's retrieval and writing metrics are not per synthetic cohort: they come from the fixed question sets (the 60 gold
 questions, the 20 golden questions of the local-model benchmark); `n_reps` is 0 on those rows and the doc says where each comes from.
 
     python scripts/xai_ablation.py [--quick]   ->  results/xai_ablation.csv, results/xai/ablation_chart.png, results/xai/shap_A_vs_C.png
@@ -35,13 +38,20 @@ OUT = RESULTS_DIR / "xai_ablation.csv"
 FIG_DIR = RESULTS_DIR / "xai"
 COLUMNS = ["version", "metric", "comparison", "mean", "ci_low", "ci_high", "n_reps"]
 COMPARISONS = truth.COMPARISONS
-VERSIONS = ("A", "B", "C", "D")
+VERSIONS = ("0", "A", "B", "C", "D", "B-A")  # "0" = naive comparison; "B-A" = paired difference B minus A (same replicate)
+PAIRED = (("pred_rmse", "all"), ("regret", "all"), ("best_pick_rate", "all"),
+          *((m, c) for m in ("pehe", "pehe_thin", "pehe_not_thin") for c in COMPARISONS))
 B_METRICS = ("effect_bias", "pehe", "pehe_thin", "pehe_not_thin", "coverage", "pred_rmse", "regret", "best_pick_rate", "abstention_rate",
              "answered_when_thin", "answered_when_thin_pairs")
-CHART = [("pehe", "SGLT2i-DPP4i", "Error of the patient-level effect (PEHE), SGLT2i vs DPP-4i", "HbA1c points (lower is better)"),
-         ("regret", "all", "Regret: extra HbA1c vs the truly best allowed drug", "HbA1c points (lower is better)"),
-         ("answered_when_thin_pairs", "all", "Numbers given where data are thin", "share of thin patient-option pairs (lower is safer)"),
-         ("modifier_precision_at_k", "SGLT2i-DPP4i", "Top features are the true modifiers, SGLT2i vs DPP-4i", "precision at k (higher is better)")]
+# The report figure: (metric, comparison, title, unit, versions drawn). C and D repeat B's accuracy by design, so they are drawn only
+# where they add something (the modifier check).
+CHART = [("regret", "all", "Regret: extra HbA1c vs the truly best allowed drug", "HbA1c points (lower is better)", ("0", "A", "B")),
+         ("pred_rmse", "all", "Error of the predicted HbA1c change (RMSE)", "HbA1c points (lower is better)", ("0", "A", "B")),
+         ("answered_when_thin_pairs", "all", "Numbers given where data are thin", "share of thin patient-option pairs (lower is safer)",
+          ("0", "A", "B")),
+         ("modifier_precision_at_k", "SGLT2i-DPP4i", "Top features are the true modifiers, SGLT2i vs DPP-4i", "precision at k (higher is better)",
+          ("A", "C"))]
+CHART_LABEL = {"0": "Naive", "A": "A", "B": "B", "C": "C", "D": "D"}
 
 
 def engine_metrics(params, rules, f, test) -> dict[tuple[str, str], float]:
@@ -90,6 +100,43 @@ def engine_metrics(params, rules, f, test) -> dict[tuple[str, str], float]:
     return m
 
 
+def naive_metrics(params, rules, f, test) -> dict[tuple[str, str], float]:
+    """Version 0 on one replicate: the plain group averages of the training records (the benchmark's `naive`), used as every test
+    patient's predicted HbA1c change, scored exactly as version A is (the options the rules leave; no abstention)."""
+    from diacausal.causal_inference.estimators import naive
+    from diacausal.causal_inference.metrics import coverage, pehe, policy_regret
+    from diacausal.xai.baseline import pick, rule_allowed
+
+    est = {e.target: e for e in naive(f.Y, f.T, float(params.get("engine.ci_z")))}
+    mu = test[[f"mu_true_{a}" for a in ARMS]].to_numpy(float)
+    e_true = test[[f"e_true_{a}" for a in ARMS]].to_numpy(float)
+    threshold = params.get("engine.overlap_min_propensity")
+    thin = e_true.min(axis=1) < threshold
+    allowed = rule_allowed(rules, test)
+    levels = np.tile([est[a].value for a in ARMS], (len(test), 1))
+    true_effects = truth.true_effect(params, mu)
+    m: dict[tuple[str, str], float] = {}
+    for c in COMPARISONS:
+        e = est[c]
+        value = np.full(len(test), e.value)
+        m["effect_bias", c] = float(np.mean(value - true_effects[c]))
+        m["pehe", c] = pehe(value, true_effects[c])
+        m["pehe_thin", c] = pehe(value[thin], true_effects[c][thin]) if thin.any() else float("nan")
+        m["pehe_not_thin", c] = pehe(value[~thin], true_effects[c][~thin])
+        m["coverage", c] = coverage(np.full(len(test), e.low), np.full(len(test), e.high), true_effects[c])
+    received = test["treatment"].map({a: j for j, a in enumerate(ARMS)}).to_numpy()
+    rows = np.arange(len(test))
+    m["pred_rmse", "all"] = float(np.sqrt(np.mean((levels[rows, received] - mu[rows, received]) ** 2)))
+    m["regret", "all"] = policy_regret(levels, mu, allowed)[0]
+    two = allowed.sum(axis=1) >= 2
+    m["best_pick_rate", "all"] = float(np.mean(pick(levels, allowed)[two] == pick(mu, allowed)[two])) if two.any() else float("nan")
+    m["abstention_rate", "all"] = 0.0  # it never abstains
+    m["answered_when_thin", "all"] = float(allowed.any(axis=1)[thin].mean()) if thin.any() else float("nan")
+    thin_pairs = allowed & (e_true < threshold)
+    m["answered_when_thin_pairs", "all"] = 1.0 if thin_pairs.any() else float("nan")
+    return m
+
+
 def evaluate_replicate(params, rules, seed: int, n: int, n_test: int, n_agree: int) -> dict[tuple[str, str, str], float]:
     from diacausal.causal_inference.cohort import generate_cohort
     from diacausal.causal_inference.fitting import fit_all
@@ -102,6 +149,8 @@ def evaluate_replicate(params, rules, seed: int, n: int, n_test: int, n_agree: i
     test = generate_cohort(params, n=n_test, seed=seed + 100_000)
     b = engine_metrics(params, rules, f, test)
     out["A", "answered_when_thin_pairs", "all"] = b.pop(("_A_answered_when_thin_pairs", "all"))
+    for (metric, comp), v in naive_metrics(params, rules, f, test).items():
+        out["0", metric, comp] = v
     c = cate_shap_benchmark.evaluate_replicate(params, rules, seed, n, n_test, fitted=f, test=test)
     for (metric, comp), v in b.items():
         for version in ("B", "C", "D"):  # C and D explain or describe B's estimate; they never change it
@@ -109,6 +158,9 @@ def evaluate_replicate(params, rules, seed: int, n: int, n_test: int, n_agree: i
     for (metric, comp), v in c.items():
         for version in ("C", "D"):
             out[version, metric, comp] = v
+    for metric, comp in PAIRED:  # paired on the same cohorts, so the interval of the difference is narrower than the two intervals
+        if ("A", metric, comp) in out and ("B", metric, comp) in out:
+            out["B-A", metric, comp] = out["B", metric, comp] - out["A", metric, comp]
     return out
 
 
@@ -166,13 +218,13 @@ def _plt():
 
 
 def comparison_chart(rows: list[dict], path: Path) -> None:
-    """One chart: four key metrics, versions A to D side by side, each with its 95% interval (synthetic benchmark)."""
+    """Four key metrics side by side, each version with its 95% interval (synthetic benchmark). Naive = version 0."""
     plt = _plt()
     got = {(r["version"], r["metric"], r["comparison"]): r for r in rows}
     fig, axes = plt.subplots(1, len(CHART), figsize=(4.2 * len(CHART), 3.8))
-    for ax, (metric, comp, title, unit) in zip(axes, CHART):
+    for ax, (metric, comp, title, unit, versions) in zip(axes, CHART):
         means, errs, labels = [], [[], []], []
-        for v in VERSIONS:
+        for v in versions:
             r = got.get((v, metric, comp))
             mean = float(r["mean"]) if r and not np.isnan(float(r["mean"])) else float("nan")
             lo = float(r["ci_low"]) if r and not np.isnan(float(r["ci_low"])) else mean
@@ -180,12 +232,14 @@ def comparison_chart(rows: list[dict], path: Path) -> None:
             means.append(mean)
             errs[0].append(max(0.0, mean - lo) if not np.isnan(mean) else 0.0)
             errs[1].append(max(0.0, hi - mean) if not np.isnan(mean) else 0.0)
-            labels.append(v if not np.isnan(mean) else f"{v}\n(n/a)")
-        ax.bar(range(len(VERSIONS)), [0 if np.isnan(x) else x for x in means], yerr=errs, capsize=4, color=["#9FB0A6", "#0E5049", "#0E5049", "#0E5049"])
-        ax.set_xticks(range(len(VERSIONS)), labels)
+            labels.append(CHART_LABEL[v] if not np.isnan(mean) else f"{CHART_LABEL[v]}\n(n/a)")
+        colours = ["#B9C2BD" if v == "0" else "#9FB0A6" if v == "A" else "#0E5049" for v in versions]
+        ax.bar(range(len(versions)), [0 if np.isnan(x) else x for x in means], yerr=errs, capsize=4, color=colours)
+        ax.set_xticks(range(len(versions)), labels)
         ax.set_title(title, fontsize=9)
         ax.set_ylabel(unit, fontsize=8)
-    fig.suptitle("A-D ablation, 20 synthetic cohorts (mean with 95% interval). SYNTHETIC BENCHMARK.", fontsize=10)
+    fig.suptitle("Naive, A and B on 20 synthetic cohorts (mean with 95% interval; C and D repeat B's accuracy). SYNTHETIC BENCHMARK.",
+                 fontsize=10)
     fig.tight_layout()
     fig.savefig(path, dpi=120)
     plt.close(fig)

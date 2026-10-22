@@ -6,19 +6,19 @@
  "seed": 7,
  "params_sha": "6d9b4de98d",
  "rules_sha": "dd3f348885",
- "seconds": 780.6,
+ "seconds": 400.0,
  "note": "synthetic benchmark; B's numbers repeat under C and D; D's retrieval and writing rows have n_reps 0 (fixed question sets)",
  "shap_A_vs_C": [
   {
    "feature": "egfr",
    "A": 0.0156257,
-   "C": 0.09923065295076423,
+   "C": 0.09923065295076405,
    "true_modifier": true
   },
   {
    "feature": "hba1c",
    "A": 0.0307105,
-   "C": 0.05906009064043124,
+   "C": 0.059060090640431204,
    "true_modifier": true
   },
   {
@@ -30,55 +30,55 @@
   {
    "feature": "age",
    "A": 0.00247884,
-   "C": 0.030432484700488153,
+   "C": 0.03043248470048813,
    "true_modifier": false
   },
   {
    "feature": "low_income",
    "A": 0.00320091,
-   "C": 0.025574348369520068,
+   "C": 0.02557434836952015,
    "true_modifier": false
   },
   {
    "feature": "duration_years",
    "A": 0.00291317,
-   "C": 0.011946861834967046,
+   "C": 0.011946861834967069,
    "true_modifier": false
   },
   {
    "feature": "dka_history",
    "A": 0.0,
-   "C": 0.008692190567559578,
+   "C": 0.008692190567559566,
    "true_modifier": false
   },
   {
    "feature": "ascvd",
    "A": 4.62821e-05,
-   "C": 0.007990686872210277,
+   "C": 0.007990686872210368,
    "true_modifier": false
   },
   {
    "feature": "bmi",
    "A": 0.000733689,
-   "C": 0.0078250744461949,
+   "C": 0.00782507444619497,
    "true_modifier": false
   },
   {
    "feature": "pancreatitis_history",
    "A": 0.0,
-   "C": 0.005925443843663169,
+   "C": 0.005925443843663121,
    "true_modifier": false
   },
   {
    "feature": "hypo_history",
    "A": 0.0,
-   "C": 0.0038652786853753214,
+   "C": 0.0038652786853752147,
    "true_modifier": false
   },
   {
    "feature": "hf",
    "A": 0.0,
-   "C": 0.0001434752360967591,
+   "C": 0.00014347523609670328,
    "true_modifier": false
   }
  ]

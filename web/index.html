@@ -136,7 +136,8 @@
   <div class="stack"><div class="row"><h1 id="res-h">Analysis</h1><span class="badge badge--example"><svg class="icon c-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><path d="M12 7.6h.01"/></svg> Synthetic benchmark</span></div>
     <p class="lede">How four versions of DiaCausal compare on a synthetic India-calibrated benchmark where the true effects are known. This tests
       whether the methods recover a planted truth. It says nothing about real-world drug effects.</p></div>
-  <section class="card card--flat"><h2>Versions A–D compared</h2>
+  <div class="stack" id="xai-panels"></div>
+  <section class="card card--flat"><h2>All versions A–D (full table)</h2>
     <div class="tablewrap" id="xai-table"></div>
     <p class="legend" id="xai-legend">A: a predictor explained with SHAP and LIME, no causal adjustment (never shown to a doctor). B: the causal engine.
       C: B with exact SHAP drivers of its own estimate. D: C with the drivers steering the evidence search and the answer checks.

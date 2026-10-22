@@ -71,6 +71,7 @@ REGISTRY: tuple[Entry, ...] = (
     Entry("diacausal.causal_inference.figures", "benchmark figures"),
     Entry("diacausal.causal_inference.benchmark", "benchmark runner (python -m entry point)"),
     Entry("diacausal.causal_inference.export_web", "writes web/model.json and web/results.json"),
+    Entry("diacausal.causal_inference.analysis_panels", "the Analysis tab's three panels and their report text, read from the results files only"),
     Entry("diacausal.api.main", "the engine's own FastAPI app (POST /api/v1/recommend)"),
     Entry("diacausal.rag", "package: RAG (moved from diacausal_rag)"),
     Entry("diacausal.rag.evaluate", "RAG evaluation (python -m entry point)"),

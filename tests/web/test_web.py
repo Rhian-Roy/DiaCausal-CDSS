@@ -865,8 +865,18 @@ def test_every_screen_built_here_renders_at_desktop_and_phone_size(tmp_path):
             assert f["none"].startswith("Insufficient evidence.") and f["headings"] == ["Why this can happen", "What you can do"] and f["results"] == 0
         elif name == "24-analysis":
             assert f["badge"] == "Synthetic benchmark" and [v[0] for v in f["versions"]] == ["A", "B", "C", "D"]
-            assert f["charts"] >= 12 and f["tables"] == 3 and f["images"] == 0
-            assert f["chartTitles"] == ["A · SHAP on the HbA1c prediction model", "C · SHAP on the causal estimate", "LIME stability across reruns (version A)"]
+            assert f["charts"] >= 12 and f["tables"] == 4 and f["images"] == 0
+            assert f["chartTitles"] == ["How much B changes each measure compared with A", "A · SHAP on the HbA1c prediction model",
+                                        "C · SHAP on the causal estimate", "LIME stability across reruns (version A)"]
+            # the three panels: every number on them is in results.json's panel text (written from the results files); rows
+            # where B is not better are marked and say "no improvement"
+            panels = json.loads((WEB / "results.json").read_text())["analysis_panels"]
+            assert f["panels"] == [p["title"] for p in panels["panels"]] and f["changeBars"] == len(panels["panels"][0]["chart"])
+            allowed = set(re.findall(r"\d+(?:\.\d+)?(?:e-\d+)?", json.dumps(panels, ensure_ascii=False)))
+            shown = re.findall(r"\d+(?:\.\d+)?(?:e-\d+)?", f["panelText"])
+            assert shown and not [n for n in shown if n not in allowed], [n for n in shown if n not in allowed]
+            assert f["noImprovement"] == sum(r.get("verdict") == "no improvement" for p in panels["panels"] for r in p["rows"]) >= 1
+            assert f["panelText"].count("no improvement") >= f["noImprovement"]
         elif name == "25-guide":
             assert f["sections"] == 7 and f["methods"] == "Methods (for reviewers)"
         elif name == "26-about":
