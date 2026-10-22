@@ -72,6 +72,7 @@ def draw_covariates(params: Params, n: int, rng: np.random.Generator) -> pd.Data
 def true_propensity(params: Params, df: pd.DataFrame) -> np.ndarray:
     """P(drug | patient) used to assign drugs: (n, 3) in ARMS order. DPP-4i is the reference."""
     centre = params.group("generator.assignment.centre")
+    strength = params.get("generator.assignment.confounding_multiplier")  # 1.0 = every committed result; the stress test varies it
     logits = np.zeros((len(df), len(ARMS)))
     for j, arm in enumerate(ARMS):
         if arm == "DPP4i":
@@ -79,7 +80,7 @@ def true_propensity(params: Params, df: pd.DataFrame) -> np.ndarray:
         coefs = params.group(f"generator.assignment.{arm}")
         z = np.full(len(df), coefs.pop("intercept"), dtype=float)
         for var, beta in coefs.items():
-            z += beta * (df[var].to_numpy(float) - centre.get(var, 0.0))
+            z += (strength * beta) * (df[var].to_numpy(float) - centre.get(var, 0.0))
         logits[:, j] = z
     logits -= logits.max(axis=1, keepdims=True)
     p = np.exp(logits)

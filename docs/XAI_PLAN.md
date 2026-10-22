@@ -351,4 +351,9 @@ learners, thresholds) is changed to improve B's numbers.
 **Limits.** The generator is synthetic and linear; three replicates are few; the multiplier changes confounding and overlap together and the
 test cannot separate them (the thin share shows how much overlap changed). It says nothing about real patients.
 
+**Detail fixed before the first run (22 Oct 2026, not a deviation).** The paired difference for bias is taken on the ABSOLUTE bias of the
+average effect (`abs_effect_bias` = |mean of estimate minus truth| per replicate, B minus A; a negative difference means B is closer to the
+truth); the signed `effect_bias` is reported too. The multiplier is an entry of the generator (`generator.assignment.confounding_multiplier`);
+its default 1.0 reproduces the committed cohorts bit for bit (checked: identical cohort hash before and after the change).
+
 **Deviations from this plan** (none so far): listed here if any occurs.
