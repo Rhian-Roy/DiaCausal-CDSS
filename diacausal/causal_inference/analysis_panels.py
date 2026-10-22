@@ -21,7 +21,7 @@ import math
 from pathlib import Path
 
 from diacausal import INTENDED_USE
-from diacausal.config import ROOT, RESULTS_DIR
+from diacausal.config import ROOT, RESULTS_DIR, load_params
 
 TEXT_FILE = ROOT / "report" / "assets" / "ANALYSIS_TAB_TEXT.md"
 ABLATION = "results/xai_ablation.csv"
@@ -253,7 +253,8 @@ def panel_d(st: dict, multipliers: list[str]) -> dict:
     abst = [_num(st[m, "B", "abstention_rate", "all"]["mean"]) for m in multipliers]
     cov_b = [_num(st[m, "B", "coverage", c]["mean"]) for m in multipliers for c in PAIRS]
     cov_n = {m: [_num(st[m, "0", "coverage", c]["mean"]) for c in PAIRS] for m in multipliers}
-    rows.insert(0, {"label": "Patients with too few similar patients (smallest true propensity below 0.05)", "metric": "thin_share", "comparison": "all",
+    floor = load_params().get("engine.overlap_min_propensity")  # the engine's own overlap threshold, never typed here
+    rows.insert(0, {"label": f"Patients with too few similar patients (smallest true propensity below {floor:g})", "metric": "thin_share", "comparison": "all",
                     "cells": [_pct(x) for x in thin], "verdict": "not compared"})
     n_all = tally["better"] + tally["no improvement"] + tally["not a clear difference"]
     sentence = (f"With the drug choice depending {multipliers[1]} and {multipliers[2]} times as strongly on the patient's details, the share of patients with too few similar patients grows from {_pct(thin[0])} to {_pct(thin[-1])}, B withholds "

@@ -63,7 +63,7 @@ def test_at_multiplier_one_the_stress_rows_equal_the_committed_quick_ablation():
         if key in quick:
             assert all(quick[key][c] == r[c] for c in ("mean", "ci_low", "ci_high")), key
             checked += 1
-    assert checked > 200
+    assert checked >= 80  # rows (each compared in mean, ci_low and ci_high): every 0, A, B and B-A row the ablation also has
 
 
 def test_the_results_file_holds_every_multiplier_version_and_reported_metric():

@@ -72,7 +72,7 @@ def test_panels_b_and_c_change_when_their_source_numbers_change(tmp_path):
     edit_csv(d / "xai_ablation.csv", {"version": "C", "metric": "false_driver_rate", "comparison": "SU-DPP4i"}, "mean", "0.4321")
     edit_csv(d / "rag_eval_summary.csv", {"metric": "dose_leaks"}, "value", "7")
     edit_csv(d / "llm/bench_summary.csv", {"model_key": "candidate_a"}, "fallback_pct", "12.5")
-    b, c = analysis_panels.build(d)["panels"][1:]
+    b, c = analysis_panels.build(d)["panels"][1:3]
     assert any("43.2%" in r["cells"][1] for r in b["rows"] if r["metric"] == "false_driver_rate")
     assert "7 of 60" in next(r for r in c["rows"] if r["metric"] == "dose_leaks")["cells"][0]
     assert "12.5%" in next(r for r in c["rows"] if r["metric"] == "fallback_pct")["cells"][0] and "7 answers contained dose text" in c["sentence"]

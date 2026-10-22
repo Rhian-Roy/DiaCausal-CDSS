@@ -2,7 +2,7 @@
  "intended_use": "Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.",
  "versions": {
   "rules_v1": "1.0.0-draft",
-  "params_sha": "6d9b4de98d",
+  "params_sha": "4196c421d3",
   "guards_sha": "e769378ca3"
  },
  "params": {
