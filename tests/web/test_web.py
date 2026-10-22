@@ -648,6 +648,47 @@ def test_the_site_works_on_an_iphone_sized_screen(tmp_path):
     assert c["demoBanner"] and c["accountDemo"]  # a local copy without account settings says sign-in is off
 
 
+@pytest.mark.skipif(NODE is None or _chromium() is None or not (ROOT / "tests/e2e/node_modules/playwright").exists(),
+                    reason="needs Node, Playwright (tests/e2e/node_modules) and a Chromium binary")
+def test_the_compare_card_follows_every_change_to_the_patient(tmp_path):
+    """Live update: after Compare, a change to the panel redraws the same card without a reload. eGFR 88 -> 40 on the
+    Typical patient removes SGLT2i by R01 (rules first, no number); an empty age leaves no estimate on screen; one card, never
+    appended; announced once; an earlier question is marked and asked again only when pressed."""
+    import functools
+    import http.server
+    import os
+    import threading
+
+    handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(WEB))
+    handler.log_message = lambda *a: None
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    try:
+        out = subprocess.run([NODE, str(ROOT / "tests/web/live_update_check.cjs"), f"http://127.0.0.1:{server.server_port}/"],
+                             capture_output=True, text=True, timeout=180, env={**os.environ, "CHROMIUM_PATH": _chromium()})
+    finally:
+        server.shutdown()
+    assert out.returncode == 0, out.stderr[-2000:]
+    report = json.loads(out.stdout.strip().splitlines()[-1])
+    c = report["checks"]
+    assert report["errors"] == []
+    assert c["before"]["stop"] is False and "R01" not in c["before"]["text"]
+    # (a) eGFR 40: SGLT2i "Do not use" with R01 and no estimate, without a page reload
+    assert c["after"]["stop"] is True and "Do not use" in c["after"]["text"] and "R01" in c["after"]["text"]
+    assert c["sglt2Row"]["excluded"] is True and "Not estimated" in c["sglt2Row"]["text"]
+    assert "eGFR 40" in c["patientLine"] and c["sameLoad"] is True and c["sameLoadAtEnd"] is True
+    assert c["said"] == ["Comparison updated"]  # once, after typing stopped; not per keystroke
+    # an earlier question: marked, folded away, asked again only when pressed
+    assert c["stale"] == 1 and c["earlierFolded"] == [False] and c["askAgain"] == 1 and c["askedAgain"] is True
+    # (c) replaced, never appended: one Compare turn and one card, also after a yes/no toggle and a preset
+    assert c["presetLive"] >= 1 and c["compareCards"] == 1 and c["compareTurns"] == 1 and c["cardsInBox"] == 1
+    # (b) empty age: no table, safety card or number left; the field's message is shown; the card comes back once fixed
+    assert c["incomplete"]["tables"] == 0
+    assert "Details incomplete or out of range: no comparison shown" in c["incomplete"]["text"]
+    assert "Age: Enter the age." in c["incomplete"]["text"]
+    assert c["backAfterFix"] == 1 and c["clearedCards"] == 0
+
+
 def test_consultation_summary_prints_the_answer_not_the_form():
     """FR11: Print -> Save as PDF gives a one-document summary with the intended use and versions."""
     app = (WEB / "app.js").read_text(encoding="utf-8")

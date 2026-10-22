@@ -19,7 +19,7 @@ send the link, show the QR code (About tab), or press **Share this website**.
 
 | Tab | Sign-in? | What it shows |
 |---|---|---|
-| Patient Details | approved account | Screens 09–21 of `design/screens-v2/`: the patient panel (units, Asian-Indian BMI category, out-of-range messages, 3 example patients), a summary strip, the six loading stages, then the answer card (P24, docs/ANSWER_FORMAT.md): screens 17 (a leader), 21 (no clear difference) and 19 (insufficient evidence), with the effects table, evidence levels, drivers and the abstain card; each cite number opens the evidence drawer (18). A message box that answers from the licence-cleared passages on this device; the seven input guards run first and a blocked question shows notice 09 (identifier), 10 (out of scope), 11 (emergency) or 12 (cannot answer as written) |
+| Patient Details | approved account | Screens 09–21 of `design/screens-v2/`: the patient panel (units, Asian-Indian BMI category, out-of-range messages, 3 example patients), a summary strip, the six loading stages, then the answer card (P24, docs/ANSWER_FORMAT.md): screens 17 (a leader), 21 (no clear difference) and 19 (insufficient evidence), with the effects table, evidence levels, drivers and the abstain card; each cite number opens the evidence drawer (18). A message box that answers from the licence-cleared passages on this device; the seven input guards run first and a blocked question shows notice 09 (identifier), 10 (out of scope), 11 (emergency) or 12 (cannot answer as written). After the first Compare, every change to the panel redraws that one card in place (400 ms after typing stops; at once for buttons, yes/no and presets; at once with no numbers when the details are incomplete or out of range), and a question answered for earlier details is marked with an "Ask again for the current details" button |
 | Investigate | approved account | **The RAG part** (screens 22 and 23). Search the licence-cleared sources; each passage is shown exactly as stored with source, version, section, page and licence, with "Copy citation" and "Open source"; or "Insufficient evidence" with why and what to do. Passages only: the three options are in Patient Details. The input guards run on the search too |
 | Analysis | open | Screen 24: versions A–D on the synthetic benchmark (table with 95% intervals), SHAP of A beside SHAP of C, and LIME stability, drawn as SVG with "Show values as a table"; then the causal engine's own benchmark (bias, 95% coverage, refutation, evidence-level coverage, five figures) |
 | Guide | open | Screen 25: intro, problem, solution, workflow, cautions, limitations, advantages; "Methods (for reviewers)" holds "Every idea, explained simply" and "Results in plain English" |
@@ -114,7 +114,7 @@ fails if a key is ever committed.
 .venv/bin/python -m diacausal.causal_inference.export_web   # after an engine change: model.json, results, figures, docs
 .venv/bin/python -m diacausal.rag.export_web      # after a corpus or RAG change: evidence.json
 .venv/bin/python -m diacausal.guards.export_web   # after a guard, word-list or params.yaml guards change: guards.json
-.venv/bin/python -m pytest tests/web -q            # 30 tests; fails if any of these files is stale
+.venv/bin/python -m pytest tests/web -q            # 31 tests; fails if any of these files is stale
 ```
 
 Then deploy by following [DEPLOY.md, section 1](DEPLOY.md#1-the-public-site-diacausalnetlifyapp): a copy of `web/` with the

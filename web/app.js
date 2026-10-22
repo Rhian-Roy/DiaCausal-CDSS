@@ -233,6 +233,10 @@ function newPatient() {
   fromExample = false;
   pressPreset(-1);
   for (const box of $("#patient").querySelectorAll("[data-field]")) delete box.dataset.touched;
+  clearTimeout(liveTimer);
+  live = null;
+  liveGen += 1;
+  asked = [];
   $("#thread").replaceChildren();
   $("#pd").open = true;
   panelChanged();
@@ -278,6 +282,88 @@ function compare() {
   const p = readForm();
   const problems = window.DiaCausal.validate(MODEL, p);
   if (problems.length) return; // the panel's own messages already say what to fix
+  if (live) { if (live.shown) drawLive(true); return; } // Compare again: the same card, redrawn in place (or still on its six steps)
+  const thread = $("#thread");
+  if (thread.querySelector(".thread-intro")) thread.replaceChildren();
+  thread.append(h("section", { class: "turn" }, h("span", { class: "who" }, "You asked"), h("p", {}, "Compare the three options for this patient.")));
+  const { card, draw } = stagesCard();
+  thread.append(card);
+  if (window.matchMedia("(max-width: 900px)").matches) $("#pd").open = false;
+  // the thread is aria-live; this card is not, so a live update is announced once by #live-status, not read out in full
+  const answer = h("section", { class: "answer", "data-compare": "1", "aria-live": "off" });
+  live = { box: answer, key: null, state: null, shown: false };
+  let step = 0;
+  draw(step);
+  loadEvidence();
+  const next = async () => {
+    step += 1;
+    draw(step);
+    if (step < STAGES.length) { setTimeout(next, STAGE_MS); return; }
+    if (!live || live.box !== answer) return; // New patient was pressed meanwhile
+    thread.append(answer);
+    live.shown = true;
+    await drawLive(false); // the details as they are now, even if they changed during the six steps
+    answer.scrollIntoView({ block: "start" });
+  };
+  setTimeout(next, STAGE_MS);
+}
+
+// ── Live update: after the first Compare, every change to the panel redraws that one card (never a new turn) ──
+const LIVE_MS = 400; // wait after the last keystroke; buttons, yes/no and presets update at once
+let live = null; // { box, key, state, shown } once Compare was pressed; null before it and after New patient
+let liveGen = 0; // goes up on every redraw: a slower, older redraw never draws over a newer one
+let liveTimer = null;
+let asked = []; // questions answered in the thread: { turn, box, q, key }; blocked questions are never kept (P27)
+
+const patientKey = () => JSON.stringify(readForm());
+
+/** Say it once to a screen reader (#live-status, aria-live="polite"). */
+function say(text) {
+  const el = $("#live-status");
+  if (!el) return;
+  el.textContent = "";
+  setTimeout(() => { el.textContent = text; }, 30);
+}
+
+/** The panel changed. Old answers are marked at once; the Compare card is redrawn (now, or 400 ms after typing stops). */
+function liveChanged(immediate) {
+  markStale();
+  if (!live || !live.shown) return; // before the first Compare, or while its six steps run (it then draws the current details)
+  clearTimeout(liveTimer);
+  if (live.key === patientKey() && live.state === "ok") { live.box.classList.remove("answer--updating"); return; }
+  if (!readyPatient()) { drawLive(true); return; } // wrong or incomplete: the old numbers go now, without waiting
+  live.box.classList.add("answer--updating");
+  if (immediate) drawLive(true); else liveTimer = setTimeout(() => drawLive(true), LIVE_MS);
+}
+
+/** Every panel problem with its field's name, for the "no comparison shown" notice. */
+function problemLines() {
+  const f = $("#patient");
+  const lines = Object.entries(panelProblems()).map(([name, msg]) => {
+    const label = f.querySelector(`[data-field="${name}"] .field__label`);
+    return label ? `${label.textContent.trim()}: ${msg}` : msg;
+  });
+  return lines.length ? lines : window.DiaCausal.validate(MODEL, readForm());
+}
+
+/** Draw the Compare card for the details in the panel now; the rules run first inside recommend(), exactly as before. */
+async function drawLive(update) {
+  if (!live) return;
+  const gen = ++liveGen;
+  const box = live.box;
+  clearTimeout(liveTimer);
+  const p = readyPatient();
+  if (!p) {
+    box.classList.remove("answer--updating");
+    box.replaceChildren(h("div", { class: "msgnotice msgnotice--check", role: "status", "data-live": "incomplete" }, icon("info", 26, "c-check"),
+      h("div", { class: "stack" }, h("span", { class: "msgnotice__word" }, "Details incomplete or out of range: no comparison shown"),
+        h("ul", {}, problemLines().map((t) => h("li", {}, t))),
+        h("p", {}, "Fix the details in the panel; the comparison comes back by itself."))));
+    if (update && live.state !== "incomplete") say("Comparison removed: details incomplete or out of range");
+    live.state = "incomplete";
+    live.key = null;
+    return;
+  }
   let result = null;
   let withheld = null;
   try {
@@ -285,32 +371,40 @@ function compare() {
   } catch (e) {
     withheld = e.message;
   }
-  const thread = $("#thread");
-  if (thread.querySelector(".thread-intro")) thread.replaceChildren();
-  thread.append(h("section", { class: "turn" }, h("span", { class: "who" }, "You asked"), h("p", {}, "Compare the three options for this patient.")));
-  const { card, draw } = stagesCard();
-  thread.append(card);
-  if (window.matchMedia("(max-width: 900px)").matches) $("#pd").open = false;
-  let step = 0;
-  draw(step);
-  const evidence = loadEvidence();
-  const next = async () => {
-    step += 1;
-    draw(step);
-    if (step < STAGES.length) { setTimeout(next, STAGE_MS); return; }
-    const answer = h("section", { class: "answer" });
-    thread.append(answer);
-    if (withheld) {
-      answer.append(h("div", { class: "msgnotice msgnotice--plain" }, icon("stop", 26, "c-danger"),
-        h("div", { class: "stack" }, h("span", { class: "msgnotice__word" }, "Answer withheld"),
-          h("p", {}, "The output check withheld this answer: " + withheld), h("p", {}, "The clinician decides."))));
-    } else {
-      const built = compareCard(await evidence, result, p);
-      renderCard(built.card, answer, { result, passages: built.passages, patient: p });
-    }
-    answer.scrollIntoView({ block: "start" });
-  };
-  setTimeout(next, STAGE_MS);
+  const index = withheld ? null : await loadEvidence();
+  if (!live || live.box !== box || gen !== liveGen) return; // newer details (or New patient) arrived meanwhile
+  box.replaceChildren();
+  box.classList.remove("answer--updating");
+  if (withheld) {
+    box.append(h("div", { class: "msgnotice msgnotice--plain" }, icon("stop", 26, "c-danger"),
+      h("div", { class: "stack" }, h("span", { class: "msgnotice__word" }, "Answer withheld"),
+        h("p", {}, "The output check withheld this answer: " + withheld), h("p", {}, "The clinician decides."))));
+  } else {
+    const built = compareCard(index, result, p);
+    const out = renderCard(built.card, box, { result, passages: built.passages, patient: p });
+    if (update) out.querySelector(".card__head").append(h("span", { class: "updated" }, icon("check", 16, "c-pine"),
+      ` Updated for the current details at ${new Date().toLocaleTimeString("en-IN")}`));
+  }
+  live.key = JSON.stringify(p);
+  live.state = "ok";
+  if (update) say("Comparison updated");
+}
+
+/** A question answered for other details than the panel's now: say so, fold its old card away, offer to ask again. */
+function markStale() {
+  const key = patientKey();
+  for (const a of asked) {
+    if (a.stale || a.key === key || !a.turn.isConnected) continue;
+    a.stale = true;
+    const again = h("button", { type: "button", class: "btn btn--ghost" }, "Ask again for the current details");
+    again.addEventListener("click", () => { again.disabled = true; askInThread(a.q); });
+    a.turn.append(h("p", { class: "stale" }, icon("info", 18, "c-check"), " Answered for earlier details"), h("div", { class: "row" }, again));
+    const old = h("details", { class: "earlier" }, h("summary", {}, "Show the earlier answer (for earlier details)"));
+    old.append(...a.box.childNodes);
+    a.box.append(old);
+    const card = old.querySelector("#out");
+    if (card) card.removeAttribute("id"); // print the current answer, not this one
+  }
 }
 
 // ── Input guards and their notices (screens 09–12; diacausal/guards/input_guards.py, mirrored in guards.js) ─────
@@ -798,9 +892,11 @@ async function askInThread(question) {
     thread.lastElementChild.previousElementSibling.scrollIntoView({ block: "start" });
     return;
   }
-  thread.append(h("section", { class: "turn" }, h("span", { class: "who" }, "You asked"), h("p", {}, q)));
+  const turn = h("section", { class: "turn" }, h("span", { class: "who" }, "You asked"), h("p", {}, q));
+  thread.append(turn);
   const box = h("section", { class: "answer" });
   thread.append(box);
+  const entry = { turn, box, q, key: patientKey() }; // the details this question is answered for
   const index = await loadEvidence();
   const raw = window.DiaCausalEvidence.search(index, q, { raw: true });
   const res = JSON.parse(JSON.stringify({ ...raw, passages: raw.passages.map(({ _raw, ...p }) => p) }));
@@ -832,6 +928,7 @@ async function askInThread(question) {
     card.append(h("p", { class: "field__hint" }, "Fill in the patient details to see the three options compared for that patient."),
       h("div", { class: "decides" }, icon("check", 24, "c-pine"), h("p", {}, "These are source passages, not advice. The clinician decides.")));
   }
+  if (box.isConnected) { asked.push(entry); markStale(); } // the details may have changed while it was answered
   box.scrollIntoView({ block: "start" });
 }
 
@@ -1202,6 +1299,7 @@ async function start() {
     fromExample = true;
     pressPreset(i);
     panelChanged(false);
+    liveChanged(true);
     $("#thread .compare-btn")?.focus();
   }));
   $("#new-patient").addEventListener("click", newPatient);
@@ -1211,6 +1309,7 @@ async function start() {
     if (box && e.target.type === "text") box.dataset.touched = "1";
     if (fromExample) { fromExample = false; pressPreset(-1); }
     panelChanged();
+    liveChanged(e.target.type !== "text"); // typing waits 400 ms; a yes/no or radio button updates at once
   });
   form.addEventListener("change", (e) => {
     const box = e.target.closest("[data-field]");
