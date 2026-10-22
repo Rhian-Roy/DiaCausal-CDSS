@@ -240,6 +240,15 @@ Extend the existing pattern, not a new mechanism: `tests/web/run_engine.cjs` (or
 | **Fallback rate** | share of answers that fall back to the template | n/a | n/a | n/a | yes | `fallback_rate` |
 | **Passage backs the top driver** | for each shown top driver, whether one of the retrieved passages is the one a reviewer listed for that driver and option (a small reviewed table, `eval/xai_driver_evidence.csv`, written by Members B and D: e.g. `egfr` x SGLT2i -> the FDA kidney communications and the WHO section on renal function); share of drivers backed | n/a | n/a | n/a | yes | `driver_passage_hit_rate` |
 
+**Version 0 and the paired rows (added 22 Oct 2026, for the Analysis tab's first panel).** `version = 0` is the **naive comparison**: the plain
+average HbA1c change in each drug group of the training records (`estimators.naive`, the benchmark's naive row), used as every test patient's
+prediction, with its Welch 95% interval; it is scored with version A's definitions on the same 20 cohorts (it answers every option the rules
+leave). Its PEHE equals `results/benchmark_summary.csv`'s naive row (a test checks). `version = B-A` holds the **paired difference** B minus A
+on the same replicate, with a 95% t-interval of the difference, for `pred_rmse`, `regret`, `best_pick_rate` and `pehe*`: a difference whose
+interval contains 0 is reported as "not a clear difference", and a row where B is not better as "no improvement". Neither changes any number
+of A to D. `diacausal/causal_inference/analysis_panels.py` turns the table into the three panels (Naive vs A vs B; what C adds; what D adds)
+and `report/assets/ANALYSIS_TAB_TEXT.md`; every value on them is read from a results file.
+
 **Output files:** `results/xai_ablation.csv` (one row per version x metric x comparison: `version, metric, comparison, mean, ci_low, ci_high, n_reps`), `results/xai/*.csv`, and the figures P27 draws in the Analysis tab (version A vs C SHAP bars side by side; LIME stability chart), all labelled "synthetic benchmark".
 
 **What to expect (hypotheses, not results; UNVERIFIED until run):** A predicts HbA1c well but picks worse and answers everywhere, including thin patients; A's SHAP ranks prognostic factors (`hba1c` first, because everyone with a high start falls further) while C's ranks only effect modifiers; the three treatment bars in A reflect the prescribing mix. **Runtime estimate (UNVERIFIED):** LIME at about 0.02 to 0.05 s per explanation means about 15 s per replicate for 100 patients x 3 comparisons, so about 5 minutes for 20 replicates; TreeSHAP on 2000 patients is seconds. Measure before committing to 100 LIME patients.
