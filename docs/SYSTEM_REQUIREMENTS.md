@@ -71,7 +71,7 @@ marks work for October; "Not measured" means we have no evidence yet, so do not 
 |---|---|---|---|
 | Language | Python | 3.12 | CI, `scripts/setup.py` |
 | Causal engine | NumPy, pandas, SciPy, scikit-learn, Matplotlib, PyYAML | 2.5.3, 3.0.6, 1.18.1, 1.9.1, 3.11.2, 6.0.3 | `requirements-engine.txt` |
-| Demo | Streamlit | 1.64.0 | `requirements-engine.txt`, `demo/requirements.txt` |
+| Demo | Streamlit | 1.66.1 | `requirements-engine.txt`, `demo/requirements.txt` |
 | API | FastAPI, Pydantic, Uvicorn | 0.141.1, 2.13.5, 0.53.0 | `requirements-engine.txt`, `backend/requirements.txt` |
 | Tests | pytest, httpx2 | 9.1.1, 2.13.0 | `requirements-engine.txt` |
 | Chat backend | SQLAlchemy, Alembic, pwdlib/argon2-cffi, pyotp, cryptography, captcha, faster-whisper | 2.0.54, 1.20.0, 0.3.1/25.1.0, 2.10.0, 50.0.1, 0.7.1, 1.2.1 | `backend/requirements.txt` |

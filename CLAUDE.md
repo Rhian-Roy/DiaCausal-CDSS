@@ -210,7 +210,7 @@ from `results.json` `xai_charts`; no chart library). An answer card ends with th
 Look: `design/screens-v2/` is the only design source (`handoff/HANDOFF.md`); colours, fonts and spacing come
 only from `web/styles/tokens.css` (copied from the handoff); fonts are self-hosted in `web/fonts/` (SIL OFL).
 Tabs: Patient Details, Investigate, Analysis, Guide, About (`#patient-details` …); `#try`, `#evidence`,
-`#results`, `#learn` still work. `.venv/bin/python -m pytest tests/web -q` (30 tests; the two browser tests
+`#results`, `#learn` still work. `.venv/bin/python -m pytest tests/web -q` (31 tests; the three browser tests
 need Node, `tests/e2e/node_modules` and Chromium or Google Chrome). Full chat app hosting: docs/HOSTING_CHAT_APP.md.
 
 ## API contract v1 (built) — see docs/INPUT_RANGES.md and docs/PLAN_2026-10.md §8.4

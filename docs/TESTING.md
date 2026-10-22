@@ -189,7 +189,7 @@ benchmark and `pip-audit` on Linux and macOS. `scripts/check_all.py` is unchange
 Regenerate after changing a model: `.venv/bin/python scripts/export_openapi.py && bash scripts/make_types.sh`
 (the second needs Node and internet the first time: `npx` fetches `openapi-typescript@7.13.0`).
 
-**Website** (`python -m pytest tests/web -q`, 30 tests, about 90 s; needs Node, and Chromium or Google Chrome for the two browser tests):
+**Website** (`python -m pytest tests/web -q`, 31 tests, about 3 min; needs Node, and Chromium or Google Chrome for the three browser tests):
 
 | Requirement | Proved by (`tests/web/test_web.py`) |
 |---|---|
@@ -209,6 +209,7 @@ Regenerate after changing a model: `.venv/bin/python scripts/export_openapi.py &
 | Account database: row-level security, no direct writes, admin actions need the authenticator code, no clinical columns | *accounts_database_is_locked_down* |
 | Works on an iPhone-sized screen: red, amber and grey cards, team details, Investigate answers with FDA citations and abstains when it should, local copy says sign-in is off, no sideways scrolling; P27: a cite number opens the drawer as a bottom sheet and Esc closes it, an emergency question shows notice 11, the Analysis charts are drawn, the sources list starts folded | *the_site_works_on_an_iphone_sized_screen* (skips without Chromium or Google Chrome; get it with `npx playwright install chromium` in `e2e/`, [SETUP.md step 3](SETUP.md#3-one-time-setup)) |
 | The design package passes its own checker (`design/screens-v2/handoff/check_screens.py`) | *the_design_package_passes_its_own_checker* |
+| Live update: after Compare, eGFR 88 → 40 on the Typical patient turns SGLT2i to "Do not use" with R01 and no number, without a page reload; an empty age leaves no estimate on screen and lists the field's message; still one Compare card after a yes/no toggle and a preset; "Comparison updated" is announced once, not per keystroke; an earlier question is marked "Answered for earlier details", its old card folded, and asked again only when pressed | *the_compare_card_follows_every_change_to_the_patient* (needs Chromium or Google Chrome, like the row above) |
 | The site's text keeps the design's content rules: no single-drug instruction, GLP-1, ADA, dose prompt, microphone or header badge; intended-use sentence twice; no placeholders; no online-model button | *web_text_keeps_the_screens_content_rules* |
 | Colours, fonts and spacing only from `tokens.css`; fonts self-hosted with their OFL licences | *tokens_and_self_hosted_fonts_are_the_only_style_source* |
 | Five tabs in order; old links (`#try`, `#evidence`, `#results`, `#learn`) still work | *five_tabs_in_order_and_old_links_still_work* |

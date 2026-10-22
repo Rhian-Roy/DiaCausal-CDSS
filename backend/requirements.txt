@@ -12,7 +12,7 @@ argon2-cffi==25.1.0
 pyotp==2.10.0  # 6-digit authenticator codes (TOTP)
 cryptography==50.0.2  # Fernet: encrypts each MFA secret at rest
 captcha==0.7.1  # offline image + audio CAPTCHA
-pillow==12.3.0
+pillow==13.0.0
 qrcode==8.2  # QR code for authenticator set-up
 python-dotenv==1.2.4  # reads backend/.env
 # Voice (app/voice/): speech-to-text on our own server, CPU, int8

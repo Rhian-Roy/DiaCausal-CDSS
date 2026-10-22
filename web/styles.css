@@ -76,6 +76,12 @@ figure{margin:0}
   .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
+/* ---- live update of the Compare card (Patient Details) ---- */
+.card__head .updated{display:inline-flex;align-items:center;gap:var(--s1);margin-left:var(--s3);font-size:14px;color:var(--ink-muted)}
+.answer--updating{opacity:0.55}
+.turn .stale{display:inline-flex;align-items:center;gap:var(--s1);font-size:15px;font-weight:700;color:var(--check-ink)}
+details.earlier>summary{cursor:pointer;color:var(--ink-muted);margin-bottom:var(--s2)}
+
 /* ---- consultation summary: Print -> Save as PDF prints only the answer ---- */
 .print-only{display:none}
 @media print{
