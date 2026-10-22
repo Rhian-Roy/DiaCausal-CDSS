@@ -1,7 +1,7 @@
 version,metric,comparison,mean,ci_low,ci_high,n_reps
-C,additivity_max_error,SGLT2i-DPP4i,2.80331e-16,2.4127e-16,3.19392e-16,20
-C,additivity_max_error,SGLT2i-SU,1.8735e-16,1.5613e-16,2.1857e-16,20
-C,additivity_max_error,SU-DPP4i,3.16414e-16,2.78624e-16,3.54203e-16,20
+C,additivity_max_error,SGLT2i-DPP4i,2.13718e-16,1.86699e-16,2.40737e-16,20
+C,additivity_max_error,SGLT2i-SU,1.94289e-16,1.69714e-16,2.18864e-16,20
+C,additivity_max_error,SU-DPP4i,2.72005e-16,2.29108e-16,3.14902e-16,20
 C,clear_set_equals_true_modifiers,SGLT2i-DPP4i,0.55,0.311117,0.788883,20
 C,clear_set_equals_true_modifiers,SGLT2i-SU,0.25,0.0420791,0.457921,20
 C,clear_set_equals_true_modifiers,SU-DPP4i,0.6,0.364764,0.835236,20

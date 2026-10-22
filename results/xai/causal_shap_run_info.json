@@ -5,8 +5,8 @@
  "n_test_patients": 2000,
  "seed": 7,
  "max_drivers": 3,
- "params_sha": "6d9b4de98d",
+ "params_sha": "4196c421d3",
  "rules_sha": "dd3f348885",
- "seconds": 341.7,
+ "seconds": 125.0,
  "note": "synthetic benchmark; drivers describe the estimate, never a cause"
 }

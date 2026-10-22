@@ -7,7 +7,7 @@
  "lime_seeds_per_preset": 10,
  "lime_samples": 5000,
  "seed": 7,
- "params_sha": "6d9b4de98d",
+ "params_sha": "4196c421d3",
  "rules_sha": "dd3f348885",
  "shap": "0.52.0",
  "lime": "0.2.0.1",
@@ -49,6 +49,6 @@
    }
   }
  },
- "seconds": 361.1,
+ "seconds": 272.0,
  "note": "synthetic benchmark; version A is a baseline, never shown to a doctor"
 }
