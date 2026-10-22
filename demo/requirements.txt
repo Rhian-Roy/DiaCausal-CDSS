@@ -8,4 +8,5 @@ scikit-learn==1.9.1
 matplotlib==3.11.2
 PyYAML==6.0.3
 pydantic==2.13.5
-streamlit==1.64.0
+streamlit==1.66.1
+pillow==13.0.0  # not used directly (matplotlib, streamlit and scikit-image need it); pinned so pip-audit and every laptop get the fixed version
