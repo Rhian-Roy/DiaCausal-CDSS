@@ -5,6 +5,7 @@ Every number on these panels is READ from a results file and every relative chan
 tests/xai/test_analysis_panels.py rebuilds the panels from the CSVs and compares.
 
     results/xai_ablation.csv           versions 0 (naive), A, B, C and the paired differences B-A (20 synthetic cohorts)
+    results/xai_stress.csv             the pre-registered stress test: the same comparison at 1.0, 1.5 and 2.0 times the confounding
     results/rag_eval_summary.csv       the 60 gold questions with the template writer (citations, dose leaks)
     results/llm/bench_summary.csv      the 20 golden questions with the local model (number check, fallback)
 
@@ -24,6 +25,7 @@ from diacausal.config import ROOT, RESULTS_DIR
 
 TEXT_FILE = ROOT / "report" / "assets" / "ANALYSIS_TAB_TEXT.md"
 ABLATION = "results/xai_ablation.csv"
+STRESS = "results/xai_stress.csv"
 RAG = "results/rag_eval_summary.csv"
 LLM = "results/llm/bench_summary.csv"
 LLM_MODEL = "candidate_a"  # the model the ablation's D rows use (diacausal/xai/ablation.py retrieval_and_writing_rows)
@@ -195,12 +197,93 @@ def panel_c(rag: dict, llm: dict) -> dict:
             "sources": [RAG, LLM], "note": "Fixed question sets, not synthetic cohorts, so these values have no interval."}
 
 
+# Panel d (stress test): (metric, comparison, label, direction, paired). direction: "lower" or "higher" is better for B; paired: has a B-A row
+STRESS_ROWS = [("abs_effect_bias", c, f"Bias of the average effect (absolute), {PAIRS[c]}", "lower", True) for c in PAIRS] + \
+              [("pehe", c, f"Error of each patient's effect (PEHE), {PAIRS[c]}", "lower", True) for c in PAIRS] + \
+              [("coverage", c, f"Patients whose true effect lies in the 95% interval, {PAIRS[c]}", "higher", False) for c in PAIRS] + \
+              [("regret", "all", "Regret: extra HbA1c vs the truly best allowed drug", "lower", True),
+               ("pred_rmse", "all", "Error of the predicted HbA1c change (RMSE)", "lower", True),
+               ("best_pick_rate", "all", "Picks the truly best allowed drug", "higher", True),
+               ("answered_when_thin_pairs", "all", "Numbers given where similar patients are too few", "lower", True),
+               ("abstention_rate", "all", "Options the engine withholds (B only)", "higher", False)]
+SHARES = {"coverage", "best_pick_rate", "answered_when_thin_pairs", "abstention_rate", "thin_share"}
+VERSION_NAMES = {"0": "Naive", "A": "A", "B": "B"}
+
+
+def _stress_value(metric: str, x: float) -> str:
+    return _pct(x) if metric in SHARES else _hba1c(x)
+
+
+def _stress_pair(metric: str, direction: str, r: dict) -> dict:
+    """B minus A for one measure at one multiplier, in words (the same words as panel a)."""
+    d, lo, hi = _num(r["mean"]), _num(r["ci_low"]), _num(r["ci_high"])
+    better = d < 0 if direction == "lower" else d > 0
+    clear = not (lo <= 0.0 <= hi)
+    shown = (lambda v: f"{v * 100:+.1f} points") if metric in SHARES else (lambda v: f"{v:+.4f}")
+    verdict = "no improvement" if not better else "better" if clear else "not a clear difference"
+    words = {"no improvement": "no improvement" + (" (B clearly worse)" if clear else ""), "better": "B clearly better",
+             "not a clear difference": "not a clear difference"}[verdict]
+    return {"verdict": verdict, "clear": clear, "better": better,
+            "text": f"B minus A {shown(d)} (95% interval {shown(lo)} to {shown(hi)}): {words}"}
+
+
+def panel_d(st: dict, multipliers: list[str]) -> dict:
+    rows, tally = [], {"better": 0, "no improvement": 0, "not a clear difference": 0, "clearly worse": 0}
+    for metric, comp, label, direction, paired in STRESS_ROWS:
+        cells, verdicts = [], []
+        for m in multipliers:
+            parts = []
+            for v in ("0", "A", "B"):
+                r = st.get((m, v, metric, comp))
+                if r is not None and not math.isnan(_num(r["mean"])):
+                    parts.append(f"{VERSION_NAMES[v]} {_stress_value(metric, _num(r['mean']))}")
+            text = " · ".join(parts)
+            if paired:
+                pr = _stress_pair(metric, direction, st[m, "B-A", metric, comp])
+                text += f"; {pr['text']}"
+                verdicts.append(pr)
+                if metric != "answered_when_thin_pairs":  # counted separately: B withholds those numbers by design
+                    tally[pr["verdict"]] += 1
+                    tally["clearly worse"] += int(pr["verdict"] == "no improvement" and pr["clear"])
+            cells.append(text)
+        not_better = sum(not v["better"] for v in verdicts)
+        rows.append({"label": label, "metric": metric, "comparison": comp, "cells": cells,
+                     "verdict": "no improvement" if paired and not_better * 2 > len(verdicts) else "mixed" if paired else "not compared"})
+    thin = [_num(st[m, "cohort", "thin_share", "all"]["mean"]) for m in multipliers]
+    abst = [_num(st[m, "B", "abstention_rate", "all"]["mean"]) for m in multipliers]
+    cov_b = [_num(st[m, "B", "coverage", c]["mean"]) for m in multipliers for c in PAIRS]
+    cov_n = {m: [_num(st[m, "0", "coverage", c]["mean"]) for c in PAIRS] for m in multipliers}
+    rows.insert(0, {"label": "Patients with too few similar patients (smallest true propensity below 0.05)", "metric": "thin_share", "comparison": "all",
+                    "cells": [_pct(x) for x in thin], "verdict": "not compared"})
+    n_all = tally["better"] + tally["no improvement"] + tally["not a clear difference"]
+    sentence = (f"With the drug choice depending {multipliers[1]} and {multipliers[2]} times as strongly on the patient's details, the share of patients with too few similar patients grows from {_pct(thin[0])} to {_pct(thin[-1])}, B withholds "
+                f"{_pct(abst[0])} to {_pct(abst[-1])} of the options, and B's intervals keep containing the true effect ({_pct(min(cov_b))} to "
+                f"{_pct(max(cov_b))} of patients) while the naive comparison's fall to {_pct(min(cov_n[multipliers[-1]]))}; but B does not pull ahead of A: "
+                f"of {n_all} paired comparisons (3 multipliers x the measures with a paired interval, not counting the numbers B withholds), B is "
+                f"clearly better on {tally['better']}, clearly worse on {tally['clearly worse']}, and shows no improvement or no clear difference "
+                f"on the other {n_all - tally['better'] - tally['clearly worse']}.")
+    return {"id": "d", "title": "When confounding is stronger", "sentence": sentence,
+            "columns": ["Measure", *(f"Drug choice x{m}" + (" (today's data)" if m == multipliers[0] else "") for m in multipliers)],
+            "rows": rows, "sources": [STRESS],
+            "note": "Pre-registered before any run (docs/XAI_PLAN.md section 10): quick mode, 3 synthetic cohorts of 1,500 patients per multiplier "
+                    "(fewer and smaller than the 20 cohorts of 5,000 above), so every interval is wide and a single small cohort is a noisy "
+                    "judge; a multiplier raises confounding and removes overlap together. Naive = plain group averages; B minus A is paired on the "
+                    "same cohorts; absolute bias is the absolute value of each cohort's bias, averaged over the cohorts; every row of the results "
+                    "file is shown."}
+
+
 def build(results_dir: Path = RESULTS_DIR) -> dict:
     """The three panels, from the results files only. Raises KeyError if a file lacks a row the panels need (rerun the ablation)."""
     ab = {(r["version"], r["metric"], r["comparison"]): r for r in _rows(results_dir / "xai_ablation.csv")}
     rag = {r["metric"]: r["value"] for r in _rows(results_dir / "rag_eval_summary.csv")}
     llm = {r["model_key"]: r for r in _rows(results_dir / "llm" / "bench_summary.csv")}[LLM_MODEL]
-    return {"panels": [panel_a(ab), panel_b(ab), panel_c(rag, llm)], "synthetic": True}
+    panels = [panel_a(ab), panel_b(ab), panel_c(rag, llm)]
+    stress_file = results_dir / "xai_stress.csv"
+    if stress_file.exists():
+        stress = _rows(stress_file)
+        panels.append(panel_d({(r["multiplier"], r["version"], r["metric"], r["comparison"]): r for r in stress},
+                              sorted({r["multiplier"] for r in stress}, key=float)))
+    return {"panels": panels, "synthetic": True}
 
 
 def text(panels: dict) -> str:

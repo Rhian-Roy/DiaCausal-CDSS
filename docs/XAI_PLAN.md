@@ -356,4 +356,24 @@ average effect (`abs_effect_bias` = |mean of estimate minus truth| per replicate
 truth); the signed `effect_bias` is reported too. The multiplier is an entry of the generator (`generator.assignment.confounding_multiplier`);
 its default 1.0 reproduces the committed cohorts bit for bit (checked: identical cohort hash before and after the change).
 
+**Results (22 Oct 2026, one run, 16:59 UTC; `python scripts/xai_stress.py` -> `results/xai_stress.csv`).** The plan was committed at 16:57 UTC
+(`9f3f44e`), the multiplier at `00c619b`, and the code after; the check at multiplier 1.0 passed (249 numbers equal `xai_ablation_quick.csv`).
+Nothing was changed after seeing the results. Quick mode: 3 cohorts of 1,500 patients per multiplier (smaller and fewer than the 20 cohorts of
+5,000 behind the table above), so every interval is wide.
+
+| # | Hypothesis | What the run shows |
+|---|---|---|
+| H1 | The naive bias grows and its coverage falls | **Supported.** Naive bias, SGLT2i vs DPP-4i: -0.128, -0.150, -0.191; its coverage of that comparison 30.4%, 28.5%, 21.1%. (Sulfonylurea vs DPP-4i coverage went 36.7%, 37.1%, 30.0%: not monotone.) |
+| H2 | A's bias grows with the multiplier; B's stays near zero | **Not supported.** A's bias (SGLT2i vs DPP-4i) went +0.053, +0.089, +0.072: not monotone. B's went +0.014, +0.112, +0.012: at 1.5 it is larger than A's. Every paired interval of the absolute bias contains 0. |
+| H3 | B's coverage stays near 95% | **Mostly supported:** 91.2% to 98.1% across the nine cells (lowest 91.2%, SGLT2i vs DPP-4i at 1.5). |
+| H4 | Thin share grows, so B abstains more (a cost) | **Supported:** thin share 4.3%, 23.4%, 42.9%; B withholds 4.2%, 12.3%, 24.8% of the options; B gives numbers for 11.2%, 7.8%, 3.9% of the thin patient-option pairs (A: 100%). |
+| H5 | B's regret advantage grows; A may do as well as B | **Not supported; A did as well or better.** B minus A in regret: +0.0169, +0.0334, -0.0069 (95% intervals -0.0004 to +0.0343, -0.0126 to +0.0795, -0.0897 to +0.0760). PEHE is worse for B at every multiplier and every comparison; clearly so for SGLT2i vs DPP-4i at 2.0 (+0.0511 to +0.3487). A picks the truly best drug more often than B at 1.0 (-8.8 points, interval -17.3 to -0.3: clear), and the difference is not clear at 1.5 and 2.0. |
+
+Of the 27 paired comparisons (3 multipliers x 9 measures with a paired interval, not counting the numbers B withholds), B is clearly better on 0, clearly
+worse on 2 (best-pick rate at 1.0; PEHE, SGLT2i vs DPP-4i at 2.0) and not clearly different, or not better, on the other 25. **Reading it:** stronger
+confounding does not make the causal engine's point predictions better than the XAI-only model's in this synthetic generator; what the engine
+keeps is honest 95% intervals (the naive comparison's collapse) and its refusal to answer where data are thin, which costs it more answers as
+overlap shrinks. Do not write that B beats A under stronger confounding. Caveats: only 3 small cohorts; the multiplier removes overlap at the same
+time as it raises confounding; the 20-cohort result above (B's regret 16% lower, not clear) used 5,000 patients per cohort.
+
 **Deviations from this plan** (none so far): listed here if any occurs.
