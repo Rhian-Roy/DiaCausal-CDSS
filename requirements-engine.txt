@@ -16,5 +16,6 @@ pydantic==2.13.5
 uvicorn==0.53.0
 httpx2==2.13.0
 pytest==9.1.1
-pypdf==6.19.0
-pillow==13.0.0  # not used directly (matplotlib, streamlit and scikit-image need it); pinned so pip-audit and every laptop get the fixed version
+pypdf==6.21.1
+# pillow: not used directly (matplotlib, streamlit and scikit-image need it); pinned so pip-audit and every laptop get the fixed version
+pillow==13.0.0
