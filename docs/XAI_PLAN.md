@@ -310,3 +310,45 @@ and `report/assets/ANALYSIS_TAB_TEXT.md`; every value on them is read from a res
 | 7 | **Secondary outcomes** (weight, hypoglycaemia) have the same linear structure, so the same function could explain them | out of scope for 30 Oct; list as FUTURE WORK |
 | 8 | **Timing:** P17 is due by Sun 11 Oct (gate G1) and the restructure moves files the same week | write `diacausal/xai/` at its final path, as the restructure plan's rule 1 says |
 | 9 | **UNVERIFIED:** the driver-to-passage gold table. (Run time measured: about 2.5 minutes for version A. Licences read from the installed packages on 10 Oct 2026: `shap` 0.52.0 is MIT, `lime` 0.2.0.1 is BSD, as their package metadata says; the licence text files were not read) | measure or check when built |
+
+## 10. Pre-registered stress test: stronger confounding (written 22 Oct 2026, BEFORE any run)
+
+**Question.** The A–D table shows B (the causal engine) ahead of A (the XAI-only model) on some measures and not on others. Does the
+difference between them grow when the choice of drug depends more strongly on the patient's details (confounding by indication)?
+
+**The one change.** A new parameter `generator.assignment.confounding_multiplier` in `data/params.yaml` (TEAM-SET, default 1.0 = today's
+cohorts, bit for bit). `cohort.true_propensity` multiplies every assignment coefficient (HbA1c, eGFR, BMI, age, duration, ASCVD, HF, DKA,
+pancreatitis, hypoglycaemia, low income) by it; the intercepts and the centring points are not scaled. The outcome model, the safety rules, every
+engine setting (overlap threshold 0.05, widest allowed interval 1.5), the learners, the cohort sizes and the seeds are not touched.
+
+**Runs.** Multiplier 1.0, 1.5 and 2.0; quick mode of the ablation (3 replicates, 1,500 training and 1,000 test patients, seeds 7, 8, 9, the test
+cohort of seed s being generated with seed s + 100000); the same three versions with exactly the ablation's functions: the naive comparison (0),
+version A and version B (C and D never change B's estimate, so they are not run). `python scripts/xai_stress.py` writes `results/xai_stress.csv`
+(columns `multiplier, version, metric, comparison, mean, ci_low, ci_high, n_reps`).
+
+**Check before reporting.** At multiplier 1.0 the 0, A and B rows must equal the committed `results/xai_ablation_quick.csv` to 1e-9. If they do
+not, the code is wrong and is fixed using the 1.0 run only, before the 1.5 and 2.0 results are looked at.
+
+**Everything that is reported** (every row goes into the CSV and the fourth panel; none is dropped after the results are seen):
+bias of the average effect and PEHE for each of the three comparisons (0, A, B), coverage of the 95% interval (0, B), regret, prediction RMSE,
+best-pick rate, share of numbers given where similar patients are too few, B's abstention rate, the share of test patients whose smallest TRUE
+propensity is below 0.05 ("thin share"; how much overlap the multiplier removes), and the paired difference B minus A with its 95% t-interval
+(2 degrees of freedom with 3 replicates, so the intervals are wide).
+
+**Hypotheses, written before running (UNVERIFIED).**
+1. The naive comparison's bias grows with the multiplier, and its interval covers the true effect less often.
+2. A's bias of the average effect grows with the multiplier; B's stays near zero.
+3. B's interval coverage stays near 95%.
+4. The thin share grows, so B abstains on more options. That is a cost of the engine, not a win, and is reported as one.
+5. B's regret advantage over A grows, but with 3 replicates the paired intervals will probably be too wide to show it, and A may do as well as B
+   on regret and PEHE. If so, the panel says "no clear difference" or "no improvement" in the same words as the other panels.
+
+**Reporting rule.** All three multipliers and all metrics are shown, whatever they show. A difference is called clear only if the paired 95%
+interval excludes 0. No multiplier, metric, seed or cohort size is added, removed or changed after the first run; if a code error is found,
+the whole test is rerun, and the first run's numbers stay in the git history and are named in this section. Nothing else (parameters, rules,
+learners, thresholds) is changed to improve B's numbers.
+
+**Limits.** The generator is synthetic and linear; three replicates are few; the multiplier changes confounding and overlap together and the
+test cannot separate them (the thin share shows how much overlap changed). It says nothing about real patients.
+
+**Deviations from this plan** (none so far): listed here if any occurs.
