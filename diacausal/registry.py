@@ -31,6 +31,12 @@ REGISTRY: tuple[Entry, ...] = (
     Entry("diacausal.xai.truth", "the generator's true effect modifiers, derived from params.yaml"),
     Entry("diacausal.tracing", "console tracing: layer(), @traced, AbstainSignal (plan 8.5)"),
     Entry("diacausal.api.routes_v1", "POST /api/v1/ask"),
+    Entry("diacausal.api.routes_observability", "GET /api/v1/observability/...: the recorded traces (this computer only)"),
+    Entry("diacausal.observability", "package: a record of what each request actually did (docs/OBSERVABILITY.md)"),
+    Entry("diacausal.observability.recorder", "one trace per request: spans for layers, parts and engine steps (no values)"),
+    Entry("diacausal.observability.summaries", "what each layer and part produced, as IDs, codes, counts, versions and settings"),
+    Entry("diacausal.observability.store", "the finished traces on this computer (SQLite, with retention)"),
+    Entry("diacausal.observability.engine_facts", "what the engine was fitted on at startup (reference cohort, models, settings)"),
     Entry("diacausal.orchestrator", "package: the request pipeline"),
     Entry("diacausal.orchestrator.context", "what travels through the pipeline for one request"),
     Entry("diacausal.orchestrator.pipeline", "runs the layers in registry order, each in a trace"),
@@ -155,8 +161,11 @@ def layer_function(name: str) -> Callable:
 
 
 def part_function(name: str) -> Callable:
-    """The function behind a part of a layer (a stub today for the parts in PARTS)."""
-    return _resolve(PARTS, name)
+    """The function behind a part of a layer. While a request is traced (diacausal/observability/recorder.py) the call is also recorded
+    as a child span of its layer; otherwise the call goes straight to the function, unchanged."""
+    from diacausal.observability import recorder, summaries
+
+    return recorder.wrap_part(name, summaries.PART_PIPELINE.get(name, "request"), _resolve(PARTS, name), summaries.PARTS.get(name))
 
 
 def stubs() -> list[Layer]:

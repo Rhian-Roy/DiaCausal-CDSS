@@ -1,8 +1,8 @@
 /* Offline support: after the first visit, DiaCausal opens and works without internet.
    The cache name changes whenever the site changes, so a new version replaces the old.
-   Only this website's own files are cached; sign-in requests to the account service are never cached.
+   Only this website's own files are cached; sign-in requests to the account service and the local server's /api replies are never cached.
    config.json (made at deploy time, not in git) is cached the first time it loads. */
-const VERSION = "diacausal-v15";
+const VERSION = "diacausal-v16";
 const ASSETS = [
   "./",
   "./index.html",
@@ -22,6 +22,8 @@ const ASSETS = [
   "./evidence.js",
   "./explain.js",
   "./guards.js",
+  "./trace.js",
+  "./observability.js",
   "./guards.json",
   "./evidence.json",
   "./auth.js",
@@ -56,9 +58,11 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-// Network first (so updates show at once), falling back to the cache when offline.
+// Network first (so updates show at once), falling back to the cache when offline. Replies of the local server's API
+// (./api/..., clinic mode: the writer status and the observability traces) are never cached.
 self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET" || new URL(event.request.url).origin !== location.origin) return;
+  const url = new URL(event.request.url);
+  if (event.request.method !== "GET" || url.origin !== location.origin || url.pathname.includes("/api/")) return;
   event.respondWith(
     fetch(event.request)
       .then((resp) => {

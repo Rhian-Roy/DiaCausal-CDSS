@@ -40,6 +40,19 @@ let AUTH = null; // accounts controller (auth.js); null on a local copy without 
 let fromExample = false; // the panel holds example data (badge "Example data")
 const $ = (sel) => document.querySelector(sel);
 
+// ── Observability (docs/OBSERVABILITY.md): each run on this device is recorded by trace.js, step by step, as it really runs
+// (IDs, codes, counts, settings; never a patient value, the question or a passage). This tab only; the Observability screen shows them.
+const TRACE = () => window.DiaCausalTrace || null;
+const NOSPAN = { note() {}, skip() {}, abstain() {} };
+const traced = (t, name, opts, fn) => (t ? t.span(name, opts, fn) : fn(NOSPAN));
+const DESCRIBE = (kind, ...args) => (TRACE() ? TRACE().describe[kind](...args) : null);
+const COMPARE_LAYERS = [["input check", "guards", "web/app.js:readyPatient"], ["causal engine", "ci", "web/engine.js:recommend"],
+  ["evidence for each option", "rag", "web/app.js:optionPassages"], ["explanation", "llm", "web/explain.js:template"],
+  ["answer card", "output", "web/card.js:build"], ["render", "output", "web/app.js:renderCard"]];
+const QUESTION_LAYERS = [["input guards", "guards", "web/guards.js:run"], ["retrieval", "rag", "web/evidence.js:search"],
+  ["explanation", "llm", "web/explain.js:explain"], ["answer", "output", "web/app.js:askInThread"]];
+const rid = (prefix) => `${prefix}${Date.now().toString(36)}`;
+
 /** Tiny DOM builder: h("p", {class: "x"}, "text", child). Text is never parsed as HTML. */
 function h(tag, attrs = {}, ...kids) {
   const el = document.createElement(tag);
@@ -352,7 +365,13 @@ async function drawLive(update) {
   const gen = ++liveGen;
   const box = live.box;
   clearTimeout(liveTimer);
-  const p = readyPatient();
+  const tr = TRACE() && TRACE().start(update ? "compare (live update)" : "compare", rid("c"));
+  const p = traced(tr, "input check", { pipeline: "guards", component: "web/app.js:readyPatient (engine.js validate)" }, (s) => {
+    const ready = readyPatient();
+    s.note({ complete_and_plausible: Boolean(ready), problems: ready ? 0 : problemLines().length });
+    if (!ready) s.abstain("DETAILS_INCOMPLETE");
+    return ready;
+  });
   if (!p) {
     box.classList.remove("answer--updating");
     box.replaceChildren(h("div", { class: "msgnotice msgnotice--check", role: "status", "data-live": "incomplete" }, icon("info", 26, "c-check"),
@@ -362,17 +381,25 @@ async function drawLive(update) {
     if (update && live.state !== "incomplete") say("Comparison removed: details incomplete or out of range");
     live.state = "incomplete";
     live.key = null;
+    if (tr) { TRACE().notRunAfter(tr, COMPARE_LAYERS); TRACE().finish(tr, { blocked: "DETAILS_INCOMPLETE" }); }
     return;
   }
   let result = null;
   let withheld = null;
   try {
-    result = window.DiaCausal.recommend(MODEL, p);
+    result = traced(tr, "causal engine", { pipeline: "ci", component: "web/engine.js:recommend" }, (s) => {
+      const r = window.DiaCausal.recommend(MODEL, p, tr ? { step: (report) => tr.step("causal engine", report) } : {});
+      s.note(DESCRIBE("engine", r));
+      return r;
+    });
   } catch (e) {
     withheld = e.message;
   }
   const index = withheld ? null : await loadEvidence();
-  if (!live || live.box !== box || gen !== liveGen) return; // newer details (or New patient) arrived meanwhile
+  if (!live || live.box !== box || gen !== liveGen) { // newer details (or New patient) arrived meanwhile
+    if (tr) { TRACE().notRunAfter(tr, COMPARE_LAYERS); TRACE().finish(tr, { cancelled: true }); }
+    return;
+  }
   box.replaceChildren();
   box.classList.remove("answer--updating");
   if (withheld) {
@@ -380,11 +407,13 @@ async function drawLive(update) {
       h("div", { class: "stack" }, h("span", { class: "msgnotice__word" }, "Answer withheld"),
         h("p", {}, "The output check withheld this answer: " + withheld), h("p", {}, "The clinician decides."))));
   } else {
-    const built = compareCard(index, result, p);
-    const out = renderCard(built.card, box, { result, passages: built.passages, patient: p });
+    const built = compareCard(index, result, p, tr);
+    const out = traced(tr, "render", { pipeline: "output", component: "web/app.js:renderCard" }, () =>
+      renderCard(built.card, box, { result, passages: built.passages, patient: p }));
     if (update) out.querySelector(".card__head").append(h("span", { class: "updated" }, icon("check", 16, "c-pine"),
       ` Updated for the current details at ${new Date().toLocaleTimeString("en-IN")}`));
   }
+  if (tr) { TRACE().notRunAfter(tr, COMPARE_LAYERS); TRACE().finish(tr, { failed: Boolean(withheld), context: { versions: MODEL.versions } }); }
   live.key = JSON.stringify(p);
   live.state = "ok";
   if (update) say("Comparison updated");
@@ -431,13 +460,15 @@ async function detectClinic() {
 }
 
 /** A question about a filled-in patient, answered by the local server's pipeline (clinic mode). Returns false if it could not. */
-async function askServer(q, patient, box) {
+async function askServer(q, patient, box, span = NOSPAN, requestId = rid("w")) {
   let r;
   try {
     r = await fetch("./api/v1/ask", { method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ schema_version: "1.0", request_id: `w${Date.now().toString(36)}`, patient: apiPatient(patient), question: q,
+      body: JSON.stringify({ schema_version: "1.0", request_id: requestId, patient: apiPatient(patient), question: q,
         mode: CLINIC.writer === "ollama" ? "ollama" : "template" }) });
-  } catch { return false; }
+  } catch { span.note({ reached: false }); return false; }
+  // the server keeps its own trace of this request (GET ./api/v1/observability/traces/<id>); this span links to it
+  span.note({ reached: true, http_status: r.status, request_id: requestId, server_trace_id: r.headers.get("X-Trace-Id") });
   if (!r.ok) {
     const body = await r.json().catch(() => ({}));
     box.append(h("div", { class: "msgnotice msgnotice--plain", role: "status" }, icon("unclear", 28),
@@ -841,20 +872,41 @@ function optionPassages(index, o) {
 }
 
 /** The card for "Compare the three options": each option's own passages are its citations; one quoted sentence each. */
-function compareCard(index, result, p) {
+function compareCard(index, result, p, tr = null) {
   const passages = [];
   const textsByOption = {};
   const sentences = [];
-  for (const o of result.options) {
-    const mine = optionPassages(index, o);
-    textsByOption[o.arm] = mine.map((x) => x.text);
-    for (const x of mine) if (!passages.some((y) => y.chunk_id === x.chunk_id)) passages.push(x);
-    if (o.status === "excluded" || !mine.length) continue;
-    const note = window.DiaCausalExplain.template(index, `${o.name} ${o.safety.map((s) => s.condition).join(" ")}`, { status: "SUCCESS", passages: mine });
-    const s = note.sentences && note.sentences[0];
-    if (s) sentences.push({ text: s.text, cites: [passages.findIndex((y) => y.chunk_id === mine[s.cites[0] - 1].chunk_id) + 1] });
-  }
-  return { card: window.DiaCausalCard.build(MODEL, result, p, { passages, sentences, textsByOption, withheldText: index.withheld_text }), passages };
+  // the passages of every option first, then one quoted sentence per option: the same cards as one loop (a passage keeps the
+  // number of the first option that found it), in two steps so each can be traced
+  const mineOf = traced(tr, "evidence for each option", { pipeline: "rag", component: "web/app.js:optionPassages" }, (sp) => {
+    const out = {};
+    for (const o of result.options) {
+      const mine = optionPassages(index, o);
+      out[o.arm] = mine;
+      textsByOption[o.arm] = mine.map((x) => x.text);
+      for (const x of mine) if (!passages.some((y) => y.chunk_id === x.chunk_id)) passages.push(x);
+    }
+    sp.note({ index_versions: index.versions, per_option: Object.fromEntries(Object.entries(out).map(([k, v]) => [k, v.map((x) => x.chunk_id)])),
+      passages: passages.length });
+    return out;
+  });
+  traced(tr, "explanation", { pipeline: "llm", component: "web/explain.js:template" }, (sp) => {
+    for (const o of result.options) {
+      const mine = mineOf[o.arm];
+      if (o.status === "excluded" || !mine.length) continue;
+      const note = window.DiaCausalExplain.template(index, `${o.name} ${o.safety.map((s) => s.condition).join(" ")}`, { status: "SUCCESS", passages: mine });
+      const s = note.sentences && note.sentences[0];
+      if (s) sentences.push({ text: s.text, cites: [passages.findIndex((y) => y.chunk_id === mine[s.cites[0] - 1].chunk_id) + 1] });
+    }
+    sp.note({ writer: "template (explain.js; this page runs no model)", sentences: sentences.length,
+      cited_passages: sentences.map((x) => x.cites[0]) });
+  });
+  const card = traced(tr, "answer card", { pipeline: "output", component: "web/card.js:build" }, (sp) => {
+    const c = window.DiaCausalCard.build(MODEL, result, p, { passages, sentences, textsByOption, withheldText: index.withheld_text });
+    sp.note(DESCRIBE("card", c));
+    return c;
+  });
+  return { card, passages };
 }
 
 /** The card for a question about this patient: the question's passages and quoted sentences (Patient Details and Investigate). */
@@ -885,11 +937,20 @@ async function askInThread(question) {
   if (!q) return;
   const thread = $("#thread");
   if (thread.querySelector(".thread-intro")) thread.replaceChildren();
-  const check = checkQuestion(q, guardPatient(readyPatient()));
+  const requestId = rid("w");
+  const tr = TRACE() && TRACE().start("question", requestId);
+  const check = traced(tr, "input guards", { pipeline: "guards", component: "web/guards.js:run" }, (s) => {
+    const ready = readyPatient();
+    const c = checkQuestion(q, guardPatient(ready));
+    s.note({ ...DESCRIBE("guards", c), question_chars: q.length, patient_filled_in: Boolean(ready) });
+    if (c.status === "BLOCK") s.abstain(c.code || "BLOCKED");
+    return c;
+  });
   if (window.matchMedia("(max-width: 900px)").matches) $("#pd").open = false; // on a phone, fold the panel so the reply is in view
   if (check.status === "BLOCK") { // never searched, sent or kept; the message box is already empty
     blockedTurn(thread, q, check);
     thread.lastElementChild.previousElementSibling.scrollIntoView({ block: "start" });
+    if (tr) { TRACE().notRunAfter(tr, QUESTION_LAYERS); TRACE().finish(tr, { blocked: check.code || "BLOCKED" }); }
     return;
   }
   const turn = h("section", { class: "turn" }, h("span", { class: "who" }, "You asked"), h("p", {}, q));
@@ -898,36 +959,65 @@ async function askInThread(question) {
   thread.append(box);
   const entry = { turn, box, q, key: patientKey() }; // the details this question is answered for
   const index = await loadEvidence();
-  const raw = window.DiaCausalEvidence.search(index, q, { raw: true });
+  const raw = traced(tr, "retrieval", { pipeline: "rag", component: "web/evidence.js:search (BM25 + TF-IDF, fused)" }, (s) => {
+    const found = window.DiaCausalEvidence.search(index, q, { raw: true });
+    s.note(DESCRIBE("retrieval", found, index));
+    if (found.status !== "SUCCESS") s.abstain("NO_EVIDENCE");
+    return found;
+  });
   const res = JSON.parse(JSON.stringify({ ...raw, passages: raw.passages.map(({ _raw, ...p }) => p) }));
-  const note = window.DiaCausalExplain.explain(index, q, res);
+  const note = traced(tr, "explanation", { pipeline: "llm", component: "web/explain.js:explain (template + citation check)" }, (s) => {
+    const n = window.DiaCausalExplain.explain(index, q, res);
+    s.note(DESCRIBE("explanation", n, index));
+    if (n.note === index.no_dose_note) s.abstain("DOSE_REQUEST");
+    else if (n.status !== "SUCCESS") s.abstain("NO_SUPPORTED_CLAIM");
+    return n;
+  });
   const patient = readyPatient();
+  const answerSpan = (name, pipeline, component, fn) => traced(tr, name, { pipeline, component }, fn);
   if (note.note === index.no_dose_note) {
-    box.append(h("span", { class: "who" }, "DiaCausal answered"), h("div", { class: "card" }, h("p", {}, h("strong", {}, "No doses. "), index.no_dose_note),
-      h("div", { class: "decides" }, icon("check", 24, "c-pine"), h("p", {}, "The clinician decides."))));
-  } else if (patient && CLINIC && await askServer(q, patient, box)) {
+    answerSpan("answer", "output", "web/app.js:askInThread (fixed notice)", (s) => {
+      s.note({ answer: "the fixed notice for dosing questions; nothing else is shown" });
+      box.append(h("span", { class: "who" }, "DiaCausal answered"), h("div", { class: "card" }, h("p", {}, h("strong", {}, "No doses. "), index.no_dose_note),
+        h("div", { class: "decides" }, icon("check", 24, "c-pine"), h("p", {}, "The clinician decides."))));
+    });
+  } else if (patient && CLINIC && await answerSpan("server pipeline", "request", "POST ./api/v1/ask (this computer)",
+    (s) => askServer(q, patient, box, s, requestId))) {
     // answered by the local server (clinic mode)
   } else if (patient) {
-    const result = window.DiaCausal.recommend(MODEL, patient);
-    const built = questionCard(index, result, patient, q, raw);
-    renderCard(built.card, box, { result, passages: built.passages, patient });
+    const result = answerSpan("causal engine", "ci", "web/engine.js:recommend", (s) => {
+      const r = window.DiaCausal.recommend(MODEL, patient, tr ? { step: (report) => tr.step("causal engine", report) } : {});
+      s.note(DESCRIBE("engine", r));
+      return r;
+    });
+    const built = answerSpan("answer card", "output", "web/card.js:build", (s) => {
+      const b = questionCard(index, result, patient, q, raw);
+      s.note(DESCRIBE("card", b.card));
+      return b;
+    });
+    answerSpan("render", "output", "web/app.js:renderCard", () => renderCard(built.card, box, { result, passages: built.passages, patient }));
   } else {
-    box.append(h("span", { class: "who" }, "DiaCausal answered"));
-    const card = h("div", { class: "card" });
-    box.append(card);
-    if (res.status === "INSUFFICIENT_EVIDENCE") {
-      card.append(h("h3", {}, "Insufficient evidence"), h("p", {}, res.reason),
-        h("p", {}, "DiaCausal does not guess. Try Investigate, or ask about something the approved sources cover."));
-    } else {
-      card.append(explanationView(note));
-      res.passages.slice(0, 3).forEach((p, i) => {
-        const c = p.citation;
-        card.append(h("blockquote", { class: "passage" }, h("p", { class: "passage__cite" }, `${i + 1}. Source ${c.source_id}: ${c.title} — “${c.section}”`), excerpt(p.text, q)));
-      });
-    }
-    card.append(h("p", { class: "field__hint" }, "Fill in the patient details to see the three options compared for that patient."),
-      h("div", { class: "decides" }, icon("check", 24, "c-pine"), h("p", {}, "These are source passages, not advice. The clinician decides.")));
+    answerSpan("answer", "output", "web/app.js:askInThread (passages only: no patient filled in)", (s) => {
+      s.note({ answer: res.status === "INSUFFICIENT_EVIDENCE" ? "insufficient evidence notice" : "quoted sentences and passages",
+        passages_shown: res.status === "INSUFFICIENT_EVIDENCE" ? 0 : Math.min(3, res.passages.length) });
+      box.append(h("span", { class: "who" }, "DiaCausal answered"));
+      const card = h("div", { class: "card" });
+      box.append(card);
+      if (res.status === "INSUFFICIENT_EVIDENCE") {
+        card.append(h("h3", {}, "Insufficient evidence"), h("p", {}, res.reason),
+          h("p", {}, "DiaCausal does not guess. Try Investigate, or ask about something the approved sources cover."));
+      } else {
+        card.append(explanationView(note));
+        res.passages.slice(0, 3).forEach((p, i) => {
+          const c = p.citation;
+          card.append(h("blockquote", { class: "passage" }, h("p", { class: "passage__cite" }, `${i + 1}. Source ${c.source_id}: ${c.title} — “${c.section}”`), excerpt(p.text, q)));
+        });
+      }
+      card.append(h("p", { class: "field__hint" }, "Fill in the patient details to see the three options compared for that patient."),
+        h("div", { class: "decides" }, icon("check", 24, "c-pine"), h("p", {}, "These are source passages, not advice. The clinician decides.")));
+    });
   }
+  if (tr) TRACE().finish(tr, { context: { versions: MODEL.versions, patient_filled_in: Boolean(patient), clinic: Boolean(CLINIC) } });
   if (box.isConnected) { asked.push(entry); markStale(); } // the details may have changed while it was answered
   box.scrollIntoView({ block: "start" });
 }
@@ -1198,23 +1288,50 @@ async function ask(question) {
   if (window.matchMedia("(max-width: 900px)").matches) out.scrollIntoView({ block: "start" }); // on a phone the results are below the box
 }
 
+const SEARCH_LAYERS = [["input guards", "guards", "web/guards.js:run"], ["retrieval", "rag", "web/evidence.js:search"],
+  ["dosing question check", "output", "web/explain.js:explain"], ["render", "output", "web/app.js:resultCard"]];
+
 async function searchAndShow(out, q) {
-  const check = checkQuestion(q, null);
+  const tr = TRACE() && TRACE().start("investigate", rid("s"));
+  const stop = (code) => { if (tr) { TRACE().notRunAfter(tr, SEARCH_LAYERS); TRACE().finish(tr, { blocked: code }); } };
+  const check = traced(tr, "input guards", { pipeline: "guards", component: "web/guards.js:run" }, (s) => {
+    const c = checkQuestion(q, null);
+    s.note({ ...DESCRIBE("guards", c), question_chars: q.length });
+    if (c.status === "BLOCK") s.abstain(c.code || "BLOCKED");
+    return c;
+  });
   if (check.status === "BLOCK") { // never searched or kept
     if (check.shown === "identifier") $("#q").value = "";
     out.replaceChildren(guardNotice(check));
+    stop(check.code || "BLOCKED");
     return;
   }
   const index = await loadEvidence();
-  const raw = window.DiaCausalEvidence.search(index, q, { raw: true });
-  if (window.DiaCausalExplain.explain(index, q, { ...raw, passages: [] }).note === index.no_dose_note) {
+  const raw = traced(tr, "retrieval", { pipeline: "rag", component: "web/evidence.js:search (BM25 + TF-IDF, fused)" }, (s) => {
+    const found = window.DiaCausalEvidence.search(index, q, { raw: true });
+    s.note(DESCRIBE("retrieval", found, index));
+    if (found.status !== "SUCCESS") s.abstain("NO_EVIDENCE");
+    return found;
+  });
+  const dose = traced(tr, "dosing question check", { pipeline: "output", component: "web/explain.js:explain" }, (s) => {
+    const isDose = window.DiaCausalExplain.explain(index, q, { ...raw, passages: [] }).note === index.no_dose_note;
+    s.note({ dose_question: isDose });
+    if (isDose) s.abstain("DOSE_REQUEST");
+    return isDose;
+  });
+  if (dose) {
     out.replaceChildren(guardNotice({ shown: "dose_request", blocked_reason: index.no_dose_note }));
+    stop("DOSE_REQUEST");
     return;
   }
-  if (raw.status !== "SUCCESS") { out.replaceChildren(insufficientView()); return; }
-  const passages = raw.passages.map((x) => ({ chunk_id: x._raw.chunk_id, text: x.text, citation: x.citation }));
-  out.replaceChildren(h("p", { class: "muted" }, `${passages.length} passage${passages.length === 1 ? "" : "s"} found · ranked by keyword and TF-IDF search, fused`),
-    ...passages.map(resultCard), toPatientDetails(), passagesEnd());
+  traced(tr, "render", { pipeline: "output", component: "web/app.js:resultCard" }, (s) => {
+    s.note({ shown: raw.status === "SUCCESS" ? raw.passages.length : "insufficient evidence notice" });
+    if (raw.status !== "SUCCESS") { out.replaceChildren(insufficientView()); return; }
+    const passages = raw.passages.map((x) => ({ chunk_id: x._raw.chunk_id, text: x.text, citation: x.citation }));
+    out.replaceChildren(h("p", { class: "muted" }, `${passages.length} passage${passages.length === 1 ? "" : "s"} found · ranked by keyword and TF-IDF search, fused`),
+      ...passages.map(resultCard), toPatientDetails(), passagesEnd());
+  });
+  if (tr) TRACE().finish(tr, { context: { index_versions: index.versions } });
 }
 
 /** "Open in Investigate" from the drawer: that one passage, as stored. */
@@ -1228,7 +1345,7 @@ async function showInInvestigate(passage) {
 // ── Routing and start-up ──────────────────────────────────────────────────
 // Internal names (and the gate in auth.js) stay as before; the tabs use the new names,
 // and the old links (#try, #evidence, #results, #learn) still work.
-const VIEWS = ["try", "evidence", "results", "guide", "about", "account", "signup", "forgot", "admin"];
+const VIEWS = ["try", "evidence", "results", "guide", "about", "account", "signup", "forgot", "admin", "observability"];
 const ALIASES = { "patient-details": "try", investigate: "evidence", analysis: "results", learn: "guide" };
 const PUBLIC = { try: "patient-details", evidence: "investigate", results: "analysis" };
 let returnTo = "try";
@@ -1262,6 +1379,8 @@ function route() {
   }
   if (name === "results") renderResults();
   if (name === "guide") loadEvidence().catch(() => {});
+  if (name === "observability" && window.DiaCausalObservability) window.DiaCausalObservability.open(location.hash);
+  else if (window.DiaCausalObservability) window.DiaCausalObservability.close();
   const main = document.querySelector(`#view-${viewOf(name)}`);
   if (main && main.classList.contains("docmain")) main.scrollTop = 0;
 }
@@ -1276,7 +1395,7 @@ function afterAuthChange() {
   acct.textContent = !AUTH ? "Local copy" : session ? "Sign out" : "Sign in";
   nameLink.hidden = !session;
   nameLink.textContent = session ? (p && p.full_name) || "Your account" : "";
-  if (hadSession && !session) newPatient(); // signed out (or timed out): clear the conversation on screen
+  if (hadSession && !session) { newPatient(); if (TRACE()) TRACE().clear(); } // signed out (or timed out): clear the conversation and this tab's traces
   hadSession = session;
   if (!session) $("#session-modal").hidden = true;
   const name = canonical((location.hash || "#patient-details").slice(1));

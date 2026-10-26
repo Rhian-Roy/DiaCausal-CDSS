@@ -173,23 +173,52 @@
   }
 
   /** One patient -> Causal Output (same shape as diacausal.causal_inference.schemas.CausalOutput). */
+  // Observability (docs/OBSERVABILITY.md): with opts.step(report), each numbered step of recommend() reports how long it took and what
+  // it decided (arms, rule IDs, counts, settings; never a patient value). Without opts.step nothing extra runs and nothing changes.
+  function stepper(report) {
+    const none = () => {};
+    if (typeof report !== "function") { none.begin = none; return none; }
+    let last = performance.now();
+    const mark = (name, component, summary, skipped = null) => {
+      const t = performance.now();
+      report({ name, component, start: last, duration_ms: t - last, summary, status: skipped ? "skipped" : "completed", code: skipped });
+      last = t;
+    };
+    mark.begin = () => { last = performance.now(); };
+    return mark;
+  }
+
   function recommend(model, patient, opts = {}) {
     const problems = validate(model, patient);
     if (problems.length) return { error: "invalid_request", problems, intended_use: model.intended_use };
+    const step = stepper(opts.step);
+    const ARM_IDS = model.arms.map((a) => a.arm);
     const r = row(patient);
     const verdicts = applyRules(model, r); // 2. safety rules first
+    step("safety rules", "web/engine.js:applyRules", { rules_version: model.versions.rules_sha,
+      fired: Object.fromEntries(ARM_IDS.map((a) => [a, verdicts[a].fired.map((x) => x.rule_id)])), excluded: ARM_IDS.filter((a) => verdicts[a].excluded) });
     const outside = supportCheck(model, r); // 3.
+    step("cohort support check", "web/engine.js:supportCheck", { inside_reference_cohort: !outside.length, details_outside: outside.length });
     const x = model.features.map((c) => r[c]);
     const p = propensity(model, x); // 4.
     const threshold = model.thresholds.overlap_min_propensity;
     const ok = p.map((v) => v >= threshold);
     let estimable = model.arms.map((a) => a.arm).filter((a, j) => !verdicts[a].excluded && !outside.length && ok[j]);
+    step("propensity overlap", "web/engine.js:propensity", { features: model.features.length, overlap_min_propensity: threshold,
+      enough_overlap: Object.fromEntries(ARM_IDS.map((a, j) => [a, ok[j]])), estimable: [...estimable] });
     const pred = estimable.length ? drPredict(model, x) : {}; // 5. only surviving options
+    step("DR-learner estimate", "web/engine.js:drPredict", { method: model.method, estimated: [...estimable],
+      contrasts: model.contrasts.filter(([a, b]) => estimable.includes(a) && estimable.includes(b)).map(([a, b]) => `${a}-${b}`) },
+    estimable.length ? null : "NO_OPTION_LEFT_TO_ESTIMATE");
     const width = {};
     for (const a of estimable) width[a] = pred[a][2] - pred[a][1];
     const maxWidth = model.thresholds.max_interval_width;
     estimable = estimable.filter((a) => width[a] <= maxWidth); // too uncertain -> abstain
+    step("interval width check", "web/engine.js:recommend", { max_interval_width: maxWidth, within_limit: [...estimable],
+      too_uncertain: Object.keys(width).filter((a) => !estimable.includes(a)) });
     const secondary = estimable.length ? secondaryPredict(model, x) : {};
+    step("secondary outcomes", "web/engine.js:secondaryPredict", { outcomes: ["weight change (kg)", "hypoglycaemia risk (%)"],
+      computed_for: Object.keys(secondary).sort() }, estimable.length ? null : "NO_OPTION_LEFT_TO_ESTIMATE");
 
     const options = model.arms.map((a, j) => {
       const v = verdicts[a.arm];
@@ -253,7 +282,9 @@
       computed_on: "this device (nothing was sent anywhere)",
     };
     const clean = JSON.parse(JSON.stringify(result));
+    step.begin();
     checkOutput(model, clean);
+    step("engine output check", "web/engine.js:checkOutput", { applicable: result.applicable });
     return opts.raw ? result : clean;
   }
 
