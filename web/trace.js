@@ -151,7 +151,7 @@
     retrieval: (raw, index) => ({
       status: raw.status, reason: code(raw.reason, RETRIEVAL), index_versions: index && index.versions,
       index: { chunks: index ? index.chunks.length : null, built: "web/evidence.json, made by python -m diacausal.rag.export_web",
-        searches: ["BM25", "TF-IDF"], fusion: "reciprocal rank fusion", dense_enabled: false, source_ranking_enabled: false },
+        searches: ["BM25", "TF-IDF"], fusion: "reciprocal rank fusion", source_ranking_enabled: false },
       settings: index ? { top_k: index.config.top_k, rrf_k: index.config.rrf_k, min_bm25_score: index.config.min_bm25_score,
         min_query_coverage: index.config.min_query_coverage } : null,
       passages: (raw.passages || []).map((p, i) => ({ rank: i + 1, chunk_id: p._raw ? p._raw.chunk_id : p.chunk_id || null,
