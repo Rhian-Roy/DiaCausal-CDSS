@@ -17,6 +17,6 @@ qrcode==8.2  # QR code for authenticator set-up
 python-dotenv==1.2.4  # reads backend/.env
 # Voice (app/voice/): speech-to-text on our own server, CPU, int8
 faster-whisper==1.2.1
-ctranslate2==4.8.2
+ctranslate2==4.8.3
 av==18.1.0  # decodes the browser's WebM/Opus or MP4/AAC recordings
 PyYAML==6.0.3  # reads app/clinical/guardrails.v1.yaml
