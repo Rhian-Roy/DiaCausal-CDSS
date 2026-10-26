@@ -6,6 +6,7 @@ POST /api/v1/recommend   patient details in -> structured Causal Output out (the
 POST /api/v1/ask         patient details + a question -> AnswerCardV1 (the whole pipeline: routes_v1.py)
 GET  /api/v1/health      is the engine up?
 GET  /api/v1/llm         which writer answers questions here: the template, or a local Ollama model (and is it running?)
+GET  /api/v1/observability/...   the recorded trace of each /ask request (routes_observability.py; this computer only)
 GET  /                   the website (web/), with the same security headers as on Netlify (web/netlify.toml): the clinic
                          laptop (scripts/start_clinic.*, docs/OFFLINE_INSTALL.md) opens this, on 127.0.0.1 only
 
@@ -19,6 +20,7 @@ Logs carry request IDs, option statuses and rule IDs only — never patient valu
 from __future__ import annotations
 
 import logging
+import time
 import tomllib
 from contextlib import asynccontextmanager
 
@@ -31,8 +33,12 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from diacausal import INTENDED_USE, __version__
 from diacausal.config import WEB_DIR
 from diacausal.causal_inference.recommend import Engine, get_engine
+from diacausal.api.routes_observability import router as observability_router
 from diacausal.api.routes_v1 import router as v1_router
 from diacausal.causal_inference.schemas import CausalOutput, ErrorOut, HealthOut, RecommendRequest
+from diacausal.observability import engine_facts
+from diacausal.observability.recorder import enabled as observability_enabled
+from diacausal.observability.store import TraceStore
 from diacausal.tracing import configure_console
 
 log = logging.getLogger("diacausal.engine")
@@ -72,16 +78,27 @@ def site_headers(toml_path=WEB_DIR / "netlify.toml") -> dict[str, dict[str, str]
     return {h["for"]: dict(h["values"]) for h in data.get("headers", [])}
 
 
-def create_app(engine: Engine | None = None) -> FastAPI:
+def create_app(engine: Engine | None = None, trace_store: TraceStore | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         configure_console()  # the pipeline trace in the console while developing (DIACAUSAL_ENV=production: off)
-        app.state.engine = engine or get_engine()  # fit once at startup, not on the first request
+        fit_ms = None
+        if engine is None and get_engine.cache_info().currsize == 0:  # timed only when it is really fitted here
+            t0 = time.perf_counter()
+            app.state.engine = get_engine()
+            fit_ms = (time.perf_counter() - t0) * 1000
+        else:
+            app.state.engine = engine or get_engine()  # fit once at startup, not on the first request
         from diacausal.orchestrator.layers import warm_up
 
         warm_up()  # build the search index now, not on the first /ask
+        # observability (docs/OBSERVABILITY.md): the trace store on this computer and what the engine was fitted on
+        app.state.trace_store = trace_store or (TraceStore() if observability_enabled() else None)
+        app.state.engine_facts = engine_facts.describe(app.state.engine, fit_ms)
         log.info("[-] engine %s ready", __version__)
         yield
+        if trace_store is None and app.state.trace_store is not None:
+            app.state.trace_store.close()
 
     app = FastAPI(
         title="DiaCausal causal engine",
@@ -147,6 +164,7 @@ def create_app(engine: Engine | None = None) -> FastAPI:
         return JSONResponse(content=result.model_dump(), headers={"X-Request-Id": result.request_id})
 
     app.include_router(v1_router)
+    app.include_router(observability_router)
 
     headers = site_headers()
 

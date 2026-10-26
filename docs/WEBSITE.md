@@ -27,6 +27,12 @@ send the link, show the QR code (About tab), or press **Share this website**.
 
 Old links still work: `#try`, `#evidence`, `#results` and `#learn` open the new tabs.
 
+**Observability** (`#observability`, the link at the top right, not a sixth tab; open, like Analysis): the real execution record of every
+Compare, question and Investigate search run in this tab (and, on the clinic laptop, of every request the local server answered):
+summary counts, recent errors and warnings, a searchable and sortable list, and for one request its lifecycle, what each stage handed
+on and a timeline of every step with its status, time and summary. IDs, codes, counts and settings only, never a patient's values or
+the question. See [OBSERVABILITY.md](OBSERVABILITY.md).
+
 ## Accounts: sign up, sign in, approval
 
 Anyone can ask for an account, but **the team's admin approves each one** before Patient Details and
@@ -114,7 +120,7 @@ fails if a key is ever committed.
 .venv/bin/python -m diacausal.causal_inference.export_web   # after an engine change: model.json, results, figures, docs
 .venv/bin/python -m diacausal.rag.export_web      # after a corpus or RAG change: evidence.json
 .venv/bin/python -m diacausal.guards.export_web   # after a guard, word-list or params.yaml guards change: guards.json
-.venv/bin/python -m pytest tests/web -q            # 31 tests; fails if any of these files is stale
+.venv/bin/python -m pytest tests/web -q            # 35 tests; fails if any of these files is stale
 ```
 
 Then deploy by following [DEPLOY.md, section 1](DEPLOY.md#1-the-public-site-diacausalnetlifyapp): a copy of `web/` with the
@@ -124,7 +130,8 @@ Bump `VERSION` in `web/sw.js` when files change so installed phones fetch the ne
 ## Files
 
 `web/index.html`, `styles.css`, `app.js` (the page), `engine.js` (the engine), `evidence.js`
-(the evidence search), `auth.js` (sign-in rules) and `account.js` (sign-in screens),
+(the evidence search), `auth.js` (sign-in rules) and `account.js` (sign-in screens), `trace.js` (this tab's execution records)
+and `observability.js` (the Observability screen),
 `model.json`, `evidence.json`, `results.json`, `config.json` (accounts off in git),
 `sw.js` + `manifest.webmanifest` (offline, installable), `icons/`, `results/` (figures), `docs/`,
 `vendor/` (`marked` and `@supabase/supabase-js`, MIT, licences kept), `netlify.toml` and

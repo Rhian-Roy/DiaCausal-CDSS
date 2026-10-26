@@ -24,14 +24,17 @@
   <script src="./evidence.js" defer></script>
   <script src="./explain.js" defer></script>
   <script src="./guards.js" defer></script>
+  <script src="./trace.js" defer></script>
   <script src="./auth.js" defer></script>
   <script src="./app.js" defer></script>
   <script src="./account.js" defer></script>
+  <script src="./observability.js" defer></script>
 </head>
 <body class="app">
 <header class="topbar">
   <a class="brand" href="#patient-details" aria-label="DiaCausal home"><svg class="icon c-onpine" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13h4l2.5-6 4 12 2.5-6h5"/></svg><span class="brand__name">DiaCausal</span></a>
   <div class="topbar__right">
+    <a class="topbar__link topbar__obs" href="#observability" data-obs-link>Observability</a>
     <a class="topbar__user" id="acct-name" href="#account" hidden></a>
     <a class="topbar__link" id="acct" href="#account">Sign in</a>
   </div>
@@ -264,6 +267,18 @@
   <p>Code and documentation: <a href="https://github.com/Rhian-Roy/DiaCausal-CDSS" rel="noopener">github.com/Rhian-Roy/DiaCausal-CDSS</a></p>
 </section>
 <p class="field__hint" id="versions"></p>
+</div>
+<footer class="footer"><p>Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.</p></footer>
+</section>
+
+<!-- ───────────── Observability: what each request actually did (docs/OBSERVABILITY.md; drawn by observability.js) ───────────── -->
+<section id="view-observability" class="view docmain" aria-labelledby="obs-h" hidden>
+<div class="doc">
+  <div class="stack"><div class="row"><h1 id="obs-h">Observability</h1><span class="badge badge--pine">Execution records</span></div>
+    <p class="lede">What each request actually did, step by step: the input checks, the safety rules, the causal engine, the evidence search,
+      the explanation and the output checks, in the order they ran, with their timings and results. Recorded while the work ran:
+      IDs, codes, counts, settings and timings only — never a patient's values, the question or a passage.</p></div>
+  <div class="stack" id="obs-root"></div>
 </div>
 <footer class="footer"><p>Research prototype for clinician evaluation; not a marketed medical device; not for unsupervised clinical use.</p></footer>
 </section>

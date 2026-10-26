@@ -725,7 +725,7 @@ def test_web_text_keeps_the_screens_content_rules():
     cs = _check_screens()
     page = cs.audit(str(WEB / "index.html"), content_only=True)
     assert page["fail"] == [], page["fail"]
-    for name in ("app.js", "account.js", "auth.js"):
+    for name in ("app.js", "account.js", "auth.js", "observability.js", "trace.js"):
         source = (WEB / name).read_text(encoding="utf-8")
         strings = " ".join(a or b for a, b in re.findall(r'"((?:[^"\\]|\\.)*)"|`((?:[^`\\]|\\.)*)`', source))
         for rule, rx in cs.BANNED.items():
@@ -881,3 +881,166 @@ def test_every_screen_built_here_renders_at_desktop_and_phone_size(tmp_path):
             assert f["sections"] == 7 and f["methods"] == "Methods (for reviewers)"
         elif name == "26-about":
             assert f["people"] == 5 and f["versions"].startswith("Engine ")
+
+
+# ── Observability (docs/OBSERVABILITY.md): web/trace.js, web/observability.js, the engine's step hook ─────────────────────────────
+
+ENGINE_STEPS = ["safety rules", "cohort support check", "propensity overlap", "DR-learner estimate", "interval width check",
+                "secondary outcomes", "engine output check"]
+
+
+@pytest.mark.skipif(NODE is None, reason="Node.js is needed to run web/engine.js")
+def test_the_browser_engine_reports_the_same_steps_as_python_and_the_same_answer():
+    """recommend() with opts.step gives exactly the same answer as without it, and reports the seven steps diacausal/causal_inference/
+    recommend.py records, in the same order, with the same decisions (excluded arms, estimable arms, too uncertain)."""
+    script = ("const e=require(process.argv[1]);const m=require(process.argv[2]);const ps=JSON.parse(process.argv[3]);"
+              "const strip=(r)=>{const {request_id,...x}=r;return x;};"
+              "process.stdout.write(JSON.stringify(ps.map((p)=>{const steps=[];const a=e.recommend(m,p);const b=e.recommend(m,p,{step:(s)=>steps.push(s)});"
+              "return {same:JSON.stringify(strip(a))===JSON.stringify(strip(b)),steps:steps.map((s)=>({name:s.name,status:s.status,code:s.code,"
+              "summary:s.summary,ms:s.duration_ms}))};})))")
+    patients = [dict(age=52, sex="male", duration_years=5, hba1c=8.4, egfr=88, bmi=27.0),
+                dict(age=60, sex="female", duration_years=8, hba1c=8.2, egfr=40, bmi=25.5, pancreatitis_history=True),
+                dict(age=80, sex="male", duration_years=15, hba1c=8.0, egfr=38, bmi=24.0, hypo_history=True, ascvd=True)]
+    out = json.loads(subprocess.run([NODE, "-e", script, str(WEB / "engine.js"), str(WEB / "model.json"), json.dumps(patients)],
+                                    capture_output=True, text=True, check=True).stdout)
+    from diacausal.observability import recorder
+
+    engine = Engine()
+    for p, js in zip(patients, out):
+        assert js["same"], "the step hook changed the answer"
+        assert [s["name"] for s in js["steps"]] == ENGINE_STEPS and all(s["ms"] >= 0 for s in js["steps"])
+        t = recorder.start("parity", "web1")
+        try:
+            engine.recommend(PatientIn(**p), audit=False)
+        finally:
+            recorder.finish(t, http_status=200)
+        py = {s.name: s.summary for s in t.spans}
+        for s in js["steps"]:
+            for key in ("excluded", "estimable", "estimated", "within_limit", "too_uncertain", "computed_for", "inside_reference_cohort"):
+                if key in s["summary"] or key in py[s["name"]]:
+                    assert sorted(s["summary"].get(key) or []) == sorted(py[s["name"]].get(key) or []) if isinstance(
+                        py[s["name"]].get(key), list) else s["summary"].get(key) == py[s["name"]].get(key), (s["name"], key)
+
+
+@pytest.mark.skipif(NODE is None, reason="Node.js is needed to run web/trace.js")
+def test_the_browser_trace_recorder_keeps_labels_records_failures_and_ends_in_the_right_status():
+    script = r"""
+globalThis.window = globalThis; require(process.argv[1]); const T = window.DiaCausalTrace;
+const t = T.start("question", "w1");
+t.span("input guards", { pipeline: "guards" }, (s) => s.note({ status: "PASS", question: "what about my patient? (age 57)", n: 1.234567, "bad key": 1 }));
+try { t.span("retrieval", { pipeline: "rag" }, () => { throw new TypeError("cannot search zebra"); }); } catch (e) { }
+T.notRunAfter(t, [["input guards", "guards", ""], ["retrieval", "rag", ""], ["explanation", "llm", ""]]);
+T.finish(t);
+const ok = T.start("compare", "c1"); ok.span("causal engine", { pipeline: "ci" }, (s) => s.abstain("NO_EVIDENCE")); T.finish(ok);
+const stop = T.start("investigate", "s1"); T.finish(stop, { blocked: "RED_FLAG" });
+const gone = T.start("compare", "c2"); T.finish(gone, { cancelled: true });
+const running = T.start("compare", "c3");
+const all = T.list();
+process.stdout.write(JSON.stringify({ all, one: T.get(t.trace_id), n: all.length }));
+for (let i = 0; i < 60; i++) T.finish(T.start("compare", "x" + i));
+process.stdout.write("\n" + JSON.stringify({ kept: T.list().length, max: T.MAX }));
+T.clear(); process.stdout.write("\n" + JSON.stringify({ cleared: T.list().length }));
+"""
+    lines = subprocess.run([NODE, "-e", script, str(WEB / "trace.js")], capture_output=True, text=True, check=True).stdout.splitlines()
+    first, second, third = (json.loads(x) for x in lines)
+    one = first["one"]
+    assert one["status"] == "failed" and one["failed_stage"] == "retrieval" and one["error_type"] == "TypeError"
+    assert "zebra" not in json.dumps(first) and "my patient" not in json.dumps(first)
+    guards = one["spans"][0]["summary"]
+    assert guards == {"status": "PASS", "question": "<not kept>", "n": 1.2346}
+    assert [s["name"] for s in one["spans"]] == ["input guards", "retrieval", "explanation"]
+    assert [s["status"] for s in one["spans"]] == ["completed", "failed", "not run"] and one["spans"][2]["duration_ms"] is None
+    by = {t["request_id"]: t["status"] for t in first["all"]}
+    assert by == {"w1": "failed", "c1": "partial", "s1": "blocked", "c2": "cancelled", "c3": "running"}
+    assert second == {"kept": 50, "max": 50} and third == {"cleared": 0}
+
+
+def _serve_static():
+    import functools
+    import http.server
+    import threading
+
+    handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(WEB))
+    handler.log_message = lambda *a: None
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    return server
+
+
+def _observability_report(url, *extra):
+    import os
+
+    out = subprocess.run([NODE, str(ROOT / "tests/web/observability_check.cjs"), url, *extra],
+                         capture_output=True, text=True, timeout=240, env={**os.environ, "CHROMIUM_PATH": _chromium()})
+    assert out.returncode == 0, out.stderr[-2000:]
+    report = json.loads(out.stdout.strip().splitlines()[-1])
+    assert report["errors"] == []
+    return report["checks"]
+
+
+@pytest.mark.skipif(NODE is None or _chromium() is None or not (ROOT / "tests/e2e/node_modules/playwright").exists(),
+                    reason="needs Node, Playwright (tests/e2e/node_modules) and a Chromium binary")
+@pytest.mark.slow
+def test_the_observability_screen_shows_what_this_tab_really_ran():
+    """On the public site (no server): a Compare, a question, an emergency question and a search appear as four requests with the
+    statuses they really had; the Compare trace shows its six steps and, inside the causal engine, the engine's seven; the stopped
+    question lists the steps it never reached; nothing typed reaches a record; no request goes to /api; a phone shows it without
+    sideways scrolling."""
+    server = _serve_static()
+    try:
+        c = _observability_report(f"http://127.0.0.1:{server.server_port}/")
+    finally:
+        server.shutdown()
+    assert c["headerLink"] == 1 and c["emptyState"].startswith("No requests recorded yet.")
+    assert [(r["workflow"], r["status"]) for r in c["rows"]] == [("investigate", "Completed"), ("question", "Blocked"),
+                                                                   ("question", "Completed"), ("compare", "Completed")]
+    assert c["tiles"]["Requests"] == "4" and c["tiles"]["Blocked by a check"] == "1" and c["problems"] == 1 and c["sources"] == ["browser"]
+    assert c["compareFlow"] == ["input check", "causal engine", "evidence for each option", "explanation", "answer card", "render"]
+    inside = [s["name"] for s in c["compareSpans"] if s["depth"] == 1]
+    assert inside == ENGINE_STEPS and all(s["status"] == "Completed" for s in c["compareSpans"])
+    assert "web/engine.js:applyRules" in c["stepDetail"] and c["ciOnly"] == 8
+    assert c["integrated"][:3] == ["Input checks", "Safety rules", "Causal engine"]
+    assert c["blockedRows"] == ["question"] and c["blockedFlow"][0].startswith("Abstained (RED_FLAG)")
+    assert all(x.startswith("Not run") for x in c["blockedFlow"][1:])
+    assert c["leaks"] == [] and c["api"] == [] and c["horizontalOverflow"] is False
+
+
+@pytest.mark.skipif(NODE is None or _chromium() is None or not (ROOT / "tests/e2e/node_modules/playwright").exists(),
+                    reason="needs Node, Playwright (tests/e2e/node_modules) and a Chromium binary")
+@pytest.mark.slow
+def test_the_observability_screen_reads_the_clinic_servers_stored_traces(tmp_path):
+    """Served by the DiaCausal server (clinic mode): the question goes to POST /api/v1/ask, the server's stored trace is listed, and the
+    browser's "server pipeline" span opens it: the seven layers, the engine's steps, the request ID the browser sent."""
+    import socket
+    import threading
+
+    import uvicorn
+
+    from diacausal.api.main import create_app
+    from diacausal.causal_inference.recommend import get_engine
+    from diacausal.observability.store import TraceStore
+
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        port = s.getsockname()[1]
+    store = TraceStore(tmp_path / "traces.sqlite3")
+    server = uvicorn.Server(uvicorn.Config(create_app(get_engine(), trace_store=store), host="127.0.0.1", port=port, log_level="warning"))
+    thread = threading.Thread(target=server.run, daemon=True)
+    thread.start()
+    import time
+
+    for _ in range(600):
+        if server.started:
+            break
+        time.sleep(0.1)
+    try:
+        c = _observability_report(f"http://127.0.0.1:{port}/", "clinic")
+    finally:
+        server.should_exit = True
+        thread.join(timeout=30)
+        store.close()
+    assert c["sources"] == ["browser", "server"] and c["serverButton"] == 1
+    assert c["serverFlow"] == ["input guards", "rules", "causal engine", "retrieval", "explanation", "output guards", "formatter"]
+    assert c["serverSteps"][:7] == ENGINE_STEPS and "the DiaCausal server on this computer" in c["serverRecordedBy"]
+    assert c["leaks"] == [] and c["serverLeaks"] == [] and "/api/v1/ask" in c["api"] and "/api/v1/observability/traces" in c["api"]
+    assert c["horizontalOverflow"] is False

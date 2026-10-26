@@ -210,7 +210,7 @@ from `results.json` `xai_charts`; no chart library). An answer card ends with th
 Look: `design/screens-v2/` is the only design source (`handoff/HANDOFF.md`); colours, fonts and spacing come
 only from `web/styles/tokens.css` (copied from the handoff); fonts are self-hosted in `web/fonts/` (SIL OFL).
 Tabs: Patient Details, Investigate, Analysis, Guide, About (`#patient-details` …); `#try`, `#evidence`,
-`#results`, `#learn` still work. `.venv/bin/python -m pytest tests/web -q` (31 tests; the three browser tests
+`#results`, `#learn` still work. `.venv/bin/python -m pytest tests/web -q` (35 tests; the five browser tests
 need Node, `tests/e2e/node_modules` and Chromium or Google Chrome). Full chat app hosting: docs/HOSTING_CHAT_APP.md.
 
 ## API contract v1 (built) — see docs/INPUT_RANGES.md and docs/PLAN_2026-10.md §8.4
@@ -396,6 +396,21 @@ prompt and the number check. **Drivers describe the estimate, never a cause.** V
   Analysis tab shows every row. **Result: B does not pull ahead of A under stronger confounding** (A did as well or better on regret and PEHE; B keeps its
   honest intervals and withholds more as overlap shrinks): never write otherwise. Changing the multiplier's default, the seeds or the metrics after a
   run is forbidden by the plan; params.yaml's fingerprint changed with the new entry, so every results file that records `params_sha` was regenerated.
+
+## Observability (built, 26 Oct) — see docs/OBSERVABILITY.md
+
+`#observability` (a link at the top right, not a sixth tab) shows the real execution record of each request. Server side:
+`diacausal/observability/` (`recorder.py` spans in a context variable, `summaries.py`, `store.py` SQLite at `logs/observability.sqlite3`
+or `DIACAUSAL_TRACE_DB`, newest 1,000 for 30 days, `engine_facts.py`); `pipeline.py` records each layer (and "not run" for layers a
+stopped request never reached), `registry.part_function` each part, `Engine.recommend` its seven steps (`with step(...)`, a no-op without
+a trace), `routes_v1.py` starts and finishes the trace (`X-Trace-Id`); `GET /api/v1/observability/{summary,traces,traces/{id},engine}`
+answer ONLY 127.0.0.1 / ::1 (403 otherwise); `DIACAUSAL_OBSERVABILITY=off` switches it all off. Browser side: `web/trace.js` (memory only,
+newest 50, cleared on reload or sign-out), `web/app.js` wraps each step, `web/engine.js` reports its steps through `opts.step`,
+`web/observability.js` draws the screen; on Netlify it never requests `/api`. **A trace holds IDs, codes, counts, versions, settings and
+timings only: never patient values, the question, a passage, a prompt or model text** (`safe()` keeps short labels and numbers; fields are
+chosen by name). Per-patient numbers stay on the card. Recording never changes an answer (tested on and off); a trace that cannot be
+written never touches the reply. Tests: `tests/orchestrator/test_observability.py`, `tests/web` (engine step parity, `trace.js`, two
+real-browser checks), `tests/conftest.py` (a temporary store for every test).
 
 ## Licences of the Indian sources (P19, DONE except two open items) — see docs/LICENCE_REGISTER.md
 

@@ -36,6 +36,7 @@ from diacausal.config import PRICES_PATH, ROOT, Params, load_params
 from diacausal.causal_inference.dag import load_dag
 from diacausal.causal_inference.fitting import Fitted, fit_all
 from diacausal.guards.rules_loader import RuleTable, load_rules
+from diacausal.observability.recorder import step
 from diacausal.causal_inference.propensity import overlap_check, predict, support_check
 from diacausal.causal_inference.schemas import (
     CausalOutput,
@@ -192,21 +193,42 @@ class Engine:
         return out
 
     def recommend(self, patient: PatientIn, audit: bool = True, audit_path: Path | None = None) -> CausalOutput:
+        # Each numbered step is also an observability span while a request is traced (diacausal/observability/recorder.py): what ran,
+        # how long it took and what it decided, as arms, rule IDs, counts and settings. A no-op otherwise; nothing here changes.
         row = self._row(patient)
         # 2. safety rules first — before anything is estimated
-        verdicts = self.rules.apply(row)
+        with step("safety rules", "ci", "diacausal.guards.rules_loader:RuleTable.apply") as s:
+            verdicts = self.rules.apply(row)
+            s.note(rules_version=self.rules.version, fired={a: [r.rule_id for r in verdicts[a].fired] for a in ARMS},
+                   excluded=[a for a in ARMS if verdicts[a].excluded])
         # 3. support
-        outside = support_check(row, self.fitted.observed, self.params)
+        with step("cohort support check", "ci", "diacausal.causal_inference.propensity:support_check") as s:
+            outside = support_check(row, self.fitted.observed, self.params)
+            s.note(inside_reference_cohort=not outside, details_outside=len(outside))
         # 4. overlap (for every option, from the full-data propensity model)
-        x = np.array([[row[c] for c in self.adjustment]])
-        p = predict(self.fitted.propensity, x)[0]
-        ok = overlap_check(p, self.threshold)
-        estimable = [a for a in ARMS if not verdicts[a].excluded and not outside and ok[a]]
+        with step("propensity overlap", "ci", "diacausal.causal_inference.propensity:predict, overlap_check") as s:
+            x = np.array([[row[c] for c in self.adjustment]])
+            p = predict(self.fitted.propensity, x)[0]
+            ok = overlap_check(p, self.threshold)
+            estimable = [a for a in ARMS if not verdicts[a].excluded and not outside and ok[a]]
+            s.note(model="standardised logistic regression, 3 arms (full-data fit for new patients)", features=len(self.adjustment),
+                   overlap_min_propensity=self.threshold, enough_overlap={a: bool(ok[a]) for a in ARMS}, estimable=estimable)
         # 5. DR-learner — only for options that survived 2-4
-        pred = self.fitted.dr.predict(x, self.z) if estimable else {}
-        width = {a: float(pred[a][0][2] - pred[a][0][1]) for a in estimable}
-        estimable = [a for a in estimable if width[a] <= self.max_width]  # too uncertain -> abstain
-        secondary = self._secondary(x) if estimable else {}
+        with step("DR-learner estimate", "ci", "diacausal.causal_inference.dr_learner:DRLearner.predict") as s:
+            pred = self.fitted.dr.predict(x, self.z) if estimable else {}
+            if not estimable:
+                s.skip("NO_OPTION_LEFT_TO_ESTIMATE")
+            s.note(method="DR-learner on cross-fitted AIPW scores, HC3 95% interval", ci_z=self.z, estimated=estimable,
+                   contrasts=[f"{a}-{b}" for a, b in CONTRASTS if a in estimable and b in estimable])
+        with step("interval width check", "ci", "diacausal.causal_inference.recommend:Engine.recommend") as s:
+            width = {a: float(pred[a][0][2] - pred[a][0][1]) for a in estimable}
+            estimable = [a for a in estimable if width[a] <= self.max_width]  # too uncertain -> abstain
+            s.note(max_interval_width=self.max_width, within_limit=estimable, too_uncertain=[a for a in width if a not in estimable])
+        with step("secondary outcomes", "ci", "diacausal.causal_inference.recommend:Engine._secondary") as s:
+            secondary = self._secondary(x) if estimable else {}
+            if not estimable:
+                s.skip("NO_OPTION_LEFT_TO_ESTIMATE")
+            s.note(outcomes=["weight change (kg)", "hypoglycaemia risk (%)"], computed_for=sorted(secondary))
 
         options = []
         for j, arm in enumerate(ARMS):
@@ -268,7 +290,11 @@ class Engine:
             versions=Versions(engine=__version__, params=self.params.version, params_sha=self.params.fingerprint,
                               rules_sha=self.rules.version, cohort=f"synthetic n={self.n} seed={self.seed}"),
         )
-        check_output(result)  # 7.
+        with step("engine output check", "ci", "diacausal.causal_inference.recommend:check_output") as s:
+            check_output(result)  # 7.
+            s.note(applicable=result.applicable, checks=["no dose-like text", "intended-use statement", "every estimate has a 95% interval",
+                                                         "no number on an option without an estimate", "every exclusion cites an EXCLUDE rule",
+                                                         "NOT_APPLICABLE carries no estimate"])
         if audit:
             write_audit(result, patient, audit_path)  # 8.
         return result
